@@ -10,4 +10,32 @@
   --quant-accent-2: #2563eb;
   --quant-danger: #dc2626;
   --quant-warn: #d97706;
+
+  /* Flask-compatible surface levels */
+  --quant-surface-2: #f8fbfd;
+  --quant-surface-3: #eef4f8;
+  --quant-surface-strong: #ffffff;
+  --quant-surface-elevated: #ffffff;
+  --quant-surface-border: #d8e1ea;
+  --quant-surface-border-soft: #e2e8f0;
+
+  /* Shadows */
+  --quant-shadow: 0 20px 64px rgba(15, 23, 42, 0.11);
+  --quant-shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.04);
+  --quant-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  /* Lines & focus */
+  --quant-line-soft: rgba(19, 32, 45, 0.08);
+  --quant-line-strong: rgba(14, 122, 67, 0.32);
+  --quant-focus: rgba(14, 122, 67, 0.28);
+  --quant-focus-ring: 0 0 0 3px rgba(14, 122, 67, 0.16);
+
+  /* Nav */
+  --quant-nav-bg: #f0f2f5;
+  --quant-nav-border: #d8e1ea;
+
+  /* Chart */
+  --quant-chart-grid: rgba(0, 0, 0, 0.08);
+  --quant-chart-up: #16a34a;
+  --quant-chart-down: #dc2626;
 }

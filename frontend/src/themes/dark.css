@@ -10,11 +10,45 @@
   --quant-accent-2: #5aa7ff;
   --quant-danger: #ff6b6b;
   --quant-warn: #ffd166;
+
+  /* Flask-compatible surface levels */
+  --quant-surface-2: rgba(255, 255, 255, 0.035);
+  --quant-surface-3: rgba(8, 12, 20, 0.48);
+  --quant-surface-strong: #131b2a;
+  --quant-surface-elevated: #1a2438;
+  --quant-surface-border: rgba(255, 255, 255, 0.13);
+  --quant-surface-border-soft: rgba(255, 255, 255, 0.06);
+
+  /* Shadows */
+  --quant-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  --quant-shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --quant-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.25);
+
+  /* Lines & focus */
+  --quant-line-soft: rgba(255, 255, 255, 0.09);
+  --quant-line-strong: rgba(85, 228, 139, 0.35);
+  --quant-focus: rgba(85, 228, 139, 0.55);
+  --quant-focus-ring: 0 0 0 3px rgba(85, 228, 139, 0.25);
+
+  /* Nav */
+  --quant-nav-bg: #050a12;
+  --quant-nav-border: rgba(255, 255, 255, 0.06);
+
+  /* Chart */
+  --quant-chart-grid: rgba(255, 255, 255, 0.08);
+  --quant-chart-up: #55e48b;
+  --quant-chart-down: #ff6b6b;
+
+  /* Radii */
+  --quant-radius-xs: 8px;
   --quant-radius-sm: 12px;
   --quant-radius-md: 16px;
-  --quant-radius-lg: 22px;
-  --quant-radius-xl: 28px;
-  --font-quant: -apple-system, BlinkMacSystemFont, "PingFang SC",
-    "Microsoft YaHei", sans-serif;
+  --quant-radius-lg: 24px;
+  --quant-radius-xl: 32px;
+  --quant-radius-pill: 999px;
+
+  /* Font */
+  --font-quant: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+  --font-quant-display: "Space Grotesk", "Noto Sans SC", "PingFang SC", sans-serif;
   --font-quant-mono: ui-monospace, Menlo, Consolas, monospace;
 }
