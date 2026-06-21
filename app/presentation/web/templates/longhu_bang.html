@@ -1,6 +1,13 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/longhu-bang" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('longhu-bang')">
+  �����°� &#8594;
+</a>
+{% endblock %}
 
-{% block title %}龙虎榜 - Quant Atlas{% endblock %}
+
+{% block title %}龙虎�?- Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
@@ -18,17 +25,17 @@
 </div>
 {% endfor %}
 
-<section class="qc-ux-onboarding" aria-label="龙虎榜与主流程联动">
+<section class="qc-ux-onboarding" aria-label="龙虎榜与主流程联�?>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">对照操盘台</div>
-        <p class="qc-ux-step-desc">首页操盘台有龙虎榜摘要卡片；先看资金结构再点开个股日线。</p>
-        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
+        <div class="qc-ux-step-title">对照操盘�?/div>
+        <p class="qc-ux-step-desc">首页操盘台有龙虎榜摘要卡片；先看资金结构再点开个股日线�?/p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘�?/a>
     </div>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">2</span>
         <div class="qc-ux-step-title">个股里看上榜原因</div>
-        <p class="qc-ux-step-desc">在个股详情可结合买卖计划与诊股；无数据时可点「同步数据」或等待收盘后定时入库。</p>
+        <p class="qc-ux-step-desc">在个股详情可结合买卖计划与诊股；无数据时可点「同步数据」或等待收盘后定时入库�?/p>
         <a class="btn-soft btn-sm" href="{{ url_for('pages.market_panorama') }}">市场全景</a>
         <a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>
     </div>
@@ -36,8 +43,8 @@
 
 <section class="section-shell lhb-hero">
     <div class="hero-caption">Market Flow</div>
-    <h1 class="page-title">龙虎榜</h1>
-    <p class="page-subtitle">基础数据层定时入库（AkShare 东财明细），供行情页与六分析师工具 <code>get_cn_longhu_for_symbol</code> 使用</p>
+    <h1 class="page-title">龙虎�?/h1>
+    <p class="page-subtitle">基础数据层定时入库（AkShare 东财明细），供行情页与六分析师工�?<code>get_cn_longhu_for_symbol</code> 使用</p>
     <div id="lhbFreshnessStrip" class="qc-freshness-strip market-freshness-strip--hero qa-is-hidden" aria-live="polite"></div>
     <div id="lhbActiveJobs" class="market-jobs-hint market-jobs-hint--hero"></div>
 </section>
@@ -45,17 +52,17 @@
 <section class="section-shell">
     <div class="lhb-toolbar">
         <div>
-            <label class="label field-label" for="lhbDatePick">交易日</label>
+            <label class="label field-label" for="lhbDatePick">交易�?/label>
             <input type="date" id="lhbDatePick" class="input-soft lhb-date-input">
         </div>
         <button type="button" class="btn-brand" id="lhbLoadBtn">刷新列表</button>
-        <button type="button" class="btn-soft" id="lhbRefreshDataBtn" title="触发服务端入库">同步数据</button>
+        <button type="button" class="btn-soft" id="lhbRefreshDataBtn" title="触发服务端入�?>同步数据</button>
     </div>
     <div id="lhbSyncProgress" class="market-sync-progress"></div>
     <div class="date-strip" id="lhbDateChips"></div>
     <div id="lhbSummary" class="panel-subtitle mt-2">--</div>
     <div class="lhb-grid mt-3" id="lhbGrid">
-        <div class="empty-hint">加载中…</div>
+        <div class="empty-hint">加载中�?/div>
     </div>
 </section>
 {% endblock %}
@@ -71,7 +78,7 @@ function lhbHideError() {
 function lhbShowError(msg) {
     const safe = $('<div/>').text(msg || '未知错误').html();
     $('#lhbGlobalError').html(
-        '<div class="qc-ux-banner__title">龙虎榜加载失败</div>' +
+        '<div class="qc-ux-banner__title">龙虎榜加载失�?/div>' +
         '<div class="qc-ux-banner__body">' + safe + '</div>' +
         '<button type="button" class="btn-brand btn-sm" data-lhb-action="retry">重试</button> ' +
         '<a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>'
@@ -82,9 +89,9 @@ function renderCards(items, tradeDate) {
     const $g = $('#lhbGrid');
     if (!items || !items.length) {
         $g.html(
-            '<div class="empty-hint">暂无数据。可点击「同步数据」或等待定时任务（约 17:00）。</div>' +
+            '<div class="empty-hint">暂无数据。可点击「同步数据」或等待定时任务（约 17:00）�?/div>' +
             '<div class="empty-hint empty-hint--compact">' +
-            '<a class="btn-brand btn-sm" href="{{ url_for("pages.daily_workbench") }}">操盘台</a> ' +
+            '<a class="btn-brand btn-sm" href="{{ url_for("pages.daily_workbench") }}">操盘�?/a> ' +
             '<a class="btn-soft btn-sm" href="/message-center">消息中心</a>' +
             '</div>'
         );
@@ -96,12 +103,12 @@ function renderCards(items, tradeDate) {
                 <span class="lhb-pill">${tradeDate || it.trade_date || ''}</span>
                 <div class="lhb-card-actions">
                 <a class="btn-soft btn-compact" href="/stock/${it.code}?m=CN">行情</a>
-                <a class="btn-soft btn-compact" href="/stock/${encodeURIComponent(it.code)}?m=CN#decision-brief-strip">简报</a>
+                <a class="btn-soft btn-compact" href="/stock/${encodeURIComponent(it.code)}?m=CN#decision-brief-strip">简�?/a>
                 </div>
             </div>
             <div class="lhb-code">${it.code}</div>
-            <div class="lhb-name">${it.name || '—'}</div>
-            <div class="lhb-reason">${it.reason || (it.detail && it.detail['上榜原因']) || '—'}</div>
+            <div class="lhb-name">${it.name || '�?}</div>
+            <div class="lhb-reason">${it.reason || (it.detail && it.detail['上榜原因']) || '�?}</div>
             <div class="lhb-meta">更新 ${it.updated_at || ''}</div>
         </article>
     `).join(''));
@@ -114,13 +121,13 @@ function loadLonghu(dateStr) {
         const d = pickData(res);
         const td = d.trade_date;
         const items = d.items || [];
-        $('#lhbSummary').text(td ? `共 ${items.length} 条 · 交易日 ${td}` : '库中暂无龙虎榜数据');
+        $('#lhbSummary').text(td ? `�?${items.length} �?· 交易�?${td}` : '库中暂无龙虎榜数�?);
         renderCards(items, td);
         if (window.QAUserCenter) {
             QAUserCenter.renderEvidenceFeedFreshness(
                 document.getElementById('lhbFreshnessStrip'),
                 d,
-                '龙虎榜'
+                '龙虎�?
             );
         }
         const chips = d.available_dates || [];
@@ -132,7 +139,7 @@ function loadLonghu(dateStr) {
     }).fail(function(xhr) {
         const detail = (xhr && xhr.responseJSON && xhr.responseJSON.message)
             ? String(xhr.responseJSON.message)
-            : (xhr.statusText || '网络或服务异常');
+            : (xhr.statusText || '网络或服务异�?);
         lhbShowError(detail);
         $('#lhbGrid').html(
             '<div class="empty-hint">加载失败（请登录后重试）</div>' +
@@ -161,7 +168,7 @@ $(function() {
     $('#lhbRefreshDataBtn').on('click', function() {
         const $b = $(this).prop('disabled', true);
         const prog = document.getElementById('lhbSyncProgress');
-        if (prog) prog.innerHTML = '<div class="mini-label">正在提交同步任务…</div>';
+        if (prog) prog.innerHTML = '<div class="mini-label">正在提交同步任务�?/div>';
         const done = function() {
             if (window.updateNavMessageBadge) window.updateNavMessageBadge();
             loadLonghu($('#lhbDatePick').val() || '');

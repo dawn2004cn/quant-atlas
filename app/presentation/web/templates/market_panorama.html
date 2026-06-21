@@ -1,4 +1,11 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/market-panorama" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('market-panorama')">
+  �����°� &#8594;
+</a>
+{% endblock %}
+
 
 {% block title %}市场全景 - Quant Atlas{% endblock %}
 
@@ -17,26 +24,26 @@
 </div>
 {% endfor %}
 
-<section class="qc-ux-onboarding" aria-label="与市场全景联动">
+<section class="qc-ux-onboarding" aria-label="与市场全景联�?>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">对照操盘台</div>
-        <p class="qc-ux-step-desc">今日操盘台会汇总涨跌结构、涨停与龙虎榜摘要；先看环境再翻列表，减少「单票噪音」。</p>
-        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
+        <div class="qc-ux-step-title">对照操盘�?/div>
+        <p class="qc-ux-step-desc">今日操盘台会汇总涨跌结构、涨停与龙虎榜摘要；先看环境再翻列表，减少「单票噪音」�?/p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘�?/a>
     </div>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">2</span>
-        <div class="qc-ux-step-title">沉淀到自选</div>
-        <p class="qc-ux-step-desc">全景里扫到的标的，建议先加入自选或模拟观察单，再写买卖计划与复盘。</p>
+        <div class="qc-ux-step-title">沉淀到自�?/div>
+        <p class="qc-ux-step-desc">全景里扫到的标的，建议先加入自选或模拟观察单，再写买卖计划与复盘�?/p>
         <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">自选股</a>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">模拟观察单</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">模拟观察�?/a>
     </div>
 </section>
 
 <div class="panorama-hero">
     <div class="hero-caption">Real-time Market Panorama</div>
-    <h1 class="page-title">全市场纵览</h1>
-    <p class="page-subtitle">监控全量标的实时异动，内置高性能排序与多维过滤器。</p>
+    <h1 class="page-title">全市场纵�?/h1>
+    <p class="page-subtitle">监控全量标的实时异动，内置高性能排序与多维过滤器�?/p>
     <div id="panoramaFreshnessStrip" class="qc-freshness-strip unknown panorama-freshness qa-is-hidden" role="status"></div>
 </div>
 
@@ -57,7 +64,7 @@
     <div class="col-md-6">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-gradient-info text-white">
-                <h6 class="mb-0">🌡️ 市场日记</h6>
+                <h6 class="mb-0">🌡�?市场日记</h6>
             </div>
             <div class="card-body" id="marketDiary">
                 <p class="text-muted">正在生成今日市场体感...</p>
@@ -67,7 +74,7 @@
     <div class="col-md-6">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-gradient-warning text-white">
-                <h6 class="mb-0">⚡ 脉冲预警 <span class="badge bg-light text-dark" id="pulseCount">0</span></h6>
+                <h6 class="mb-0">�?脉冲预警 <span class="badge bg-light text-dark" id="pulseCount">0</span></h6>
             </div>
             <div class="card-body pano-pulse-scroll">
                 <div id="pulseList">
@@ -113,16 +120,16 @@
         <button class="tab-btn" data-filter="up">上涨</button>
         <button class="tab-btn" data-filter="down">下跌</button>
         <span class="pano-control-sep"></span>
-        <button class="tab-btn" data-filter="sh">上证A股</button>
-        <button class="tab-btn" data-filter="sz">深证A股</button>
-        <button class="tab-btn" data-filter="cyb">创业板</button>
-        <button class="tab-btn" data-filter="kc">科创板</button>
-        <button class="tab-btn" data-filter="bj">京证A股</button>
+        <button class="tab-btn" data-filter="sh">上证A�?/button>
+        <button class="tab-btn" data-filter="sz">深证A�?/button>
+        <button class="tab-btn" data-filter="cyb">创业�?/button>
+        <button class="tab-btn" data-filter="kc">科创�?/button>
+        <button class="tab-btn" data-filter="bj">京证A�?/button>
     </div>
     <div class="pano-control-actions">
         <select id="groupFilter" class="form-control pano-select-narrow">
-            <option value="all">全市场 (CN)</option>
-            <option value="self">我的自选</option>
+            <option value="all">全市�?(CN)</option>
+            <option value="self">我的自�?/option>
         </select>
         <div class="time-badge" id="lastUpdate">等待加载...</div>
         <button type="button" class="btn-brand" id="panoramaRefreshBtn">🔄 刷新</button>
@@ -138,15 +145,15 @@
                 <th>趋势</th>
                 <th data-sort="price">现价</th>
                 <th data-sort="change_pct">涨幅</th>
-                <th data-sort="amount">成交额</th>
+                <th data-sort="amount">成交�?/th>
                 <th data-sort="turnover">换手</th>
                 <th data-sort="pe">PE</th>
-                <th data-sort="total_market_cap">市值</th>
+                <th data-sort="total_market_cap">市�?/th>
                 <th>操作</th>
             </tr>
         </thead>
         <tbody id="panoBody">
-            <tr><td colspan="10" class="loading-tile">正在同步全市场快照...</td></tr>
+            <tr><td colspan="10" class="loading-tile">正在同步全市场快�?..</td></tr>
         </tbody>
     </table>
 </div>
@@ -165,8 +172,8 @@ let sortOrder = 'desc';
 let currentFilter = 'all';
 
 function formatAmount(v) {
-    if (v >= 1e8) return (v/1e8).toFixed(2) + '亿';
-    if (v >= 1e4) return (v/1e4).toFixed(2) + '万';
+    if (v >= 1e8) return (v/1e8).toFixed(2) + '�?;
+    if (v >= 1e4) return (v/1e4).toFixed(2) + '�?;
     return v.toFixed(0);
 }
 
@@ -206,7 +213,7 @@ async function loadPulse() {
             idx = (idx + 1) % events.length;
         };
         rotate();
-        setInterval(rotate, 6000); // 6秒切换一条叙事
+        setInterval(rotate, 6000); // 6秒切换一条叙�?
     } catch(e) { window.qcLogError('Pulse load failed', e); }
 }
 
@@ -218,7 +225,7 @@ async function loadSentimentRadar() {
         const diary = (diaryData.status === 'success' || diaryData.ok) ? (diaryData.data ?? diaryData) : null;
         if (diary) {
             document.getElementById('marketDiary').innerHTML = `
-                <div class="mb-2"><span class="badge ${diary.overall_sentiment === 'bullish' ? 'bg-success' : (diary.overall_sentiment === 'bearish' ? 'bg-danger' : 'bg-secondary')}">${diary.overall_sentiment === 'bullish' ? '偏暖' : (diary.overall_sentiment === 'bearish' ? '偏冷' : '中性')}</span></div>
+                <div class="mb-2"><span class="badge ${diary.overall_sentiment === 'bullish' ? 'bg-success' : (diary.overall_sentiment === 'bearish' ? 'bg-danger' : 'bg-secondary')}">${diary.overall_sentiment === 'bullish' ? '偏暖' : (diary.overall_sentiment === 'bearish' ? '偏冷' : '中�?)}</span></div>
                 <p class="mb-1">${diary.summary}</p>
                 ${diary.key_events && diary.key_events.length ? `<small class="text-muted">${diary.key_events.join(', ')}</small>` : ''}
             `;
@@ -235,7 +242,7 @@ async function loadSentimentRadar() {
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                     <div>
                         <strong>${p.name}</strong>
-                        <span class="badge ${p.sentiment_score > 0 ? 'bg-success' : 'bg-danger'} ms-1">${p.sentiment_score > 0 ? '🔥热' : '❄️冷'}</span>
+                        <span class="badge ${p.sentiment_score > 0 ? 'bg-success' : 'bg-danger'} ms-1">${p.sentiment_score > 0 ? '🔥�? : '❄️�?}</span>
                     </div>
                     <small class="text-muted">${p.trigger_reason}</small>
                 </div>
@@ -270,7 +277,7 @@ async function loadData() {
         if (stocks.length > 0) {
             updateStats();
             applyFilterAndSort();
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString() + ' 已同步 ' + stocks.length + '条';
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString() + ' 已同�?' + stocks.length + '�?;
         } else {
             document.getElementById('panoBody').innerHTML = '<tr><td colspan="10" class="loading-tile">暂无数据</td></tr>';
         }
@@ -371,10 +378,10 @@ function renderTable() {
                 <td>${parseFloat(s.turnover || 0).toFixed(2)}%</td>
                 <td class="muted">${parseFloat(s.pe || 0).toFixed(1)}</td>
                 <td class="muted">${formatAmount(s.total_market_cap || 0)}</td>
-                <td>${typeof window.qcWatchlistButton === 'function' ? window.qcWatchlistButton(s.code, s.name, '加自选', 'btn-soft btn-sm') : ''}</td>
+                <td>${typeof window.qcWatchlistButton === 'function' ? window.qcWatchlistButton(s.code, s.name, '加自�?, 'btn-soft btn-sm') : ''}</td>
             </tr>
         `;
-    }).join('') || '<tr><td colspan="10" class="loading-tile">无匹配数据</td></tr>';
+    }).join('') || '<tr><td colspan="10" class="loading-tile">无匹配数�?/td></tr>';
     
     renderPagination();
 }
@@ -386,7 +393,7 @@ function renderPagination() {
 
     let html = '';
     if (currentPage > 1) {
-        html += `<button type="button" class="page-btn" data-page="${currentPage - 1}" aria-label="上一页">‹</button>`;
+        html += `<button type="button" class="page-btn" data-page="${currentPage - 1}" aria-label="上一�?>�?/button>`;
     }
     let start = Math.max(1, currentPage - 2);
     let end = Math.min(total, start + 4);
@@ -403,7 +410,7 @@ function renderPagination() {
         html += `<button type="button" class="page-btn" data-page="${total}">${total}</button>`;
     }
     if (currentPage < total) {
-        html += `<button type="button" class="page-btn" data-page="${currentPage + 1}" aria-label="下一页">›</button>`;
+        html += `<button type="button" class="page-btn" data-page="${currentPage + 1}" aria-label="下一�?>�?/button>`;
     }
     box.innerHTML = html;
 }
@@ -421,7 +428,7 @@ async function loadFullTrace() {
         const res = await fetch('/api/v1/panorama/full-trace');
         const data = (await res.json()).data || {};
         el.innerHTML = `
-            <div class="text-xs text-muted mb-2">全链路追踪 · ${data.generated_at ? new Date(data.generated_at).toLocaleString() : ''}</div>
+            <div class="text-xs text-muted mb-2">全链路追�?· ${data.generated_at ? new Date(data.generated_at).toLocaleString() : ''}</div>
             <div class="d-flex flex-wrap gap-2">
                 ${data.evolution_status ? `<span class="badge bg-success">Evolution ${data.evolution_status.current_regime || ''}</span>` : ''}
                 ${data.data_truth_alerts ? `<span class="badge bg-warning">TruthGuardian ${(data.data_truth_alerts.drifts||[]).length} drifts</span>` : ''}

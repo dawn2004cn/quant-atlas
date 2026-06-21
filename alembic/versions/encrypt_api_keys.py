@@ -20,32 +20,41 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # 1. gateway_configs: rename api_key_hash → api_key_encrypted
-    op.alter_column('gateway_configs', 'api_key_hash',
-                    new_column_name='api_key_encrypted',
-                    type_=sa.String(512),
-                    nullable=False,
-                    server_default='')
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
 
-    # 2. openbb_provider_configs: rename api_key_hash → api_key_encrypted
-    op.alter_column('openbb_provider_configs', 'api_key_hash',
-                    new_column_name='api_key_encrypted',
-                    type_=sa.String(512),
-                    nullable=True,
-                    server_default=None)
+    # gateway_configs: columns_at_create_all may have api_key_encrypted directly
+    gw_cols = [c["name"] for c in inspector.get_columns("gateway_configs")]
+    if "api_key_hash" in gw_cols:
+        op.alter_column("gateway_configs", "api_key_hash",
+                        new_column_name="api_key_encrypted",
+                        type_=sa.String(512),
+                        nullable=False,
+                        server_default="")
 
-    # 3. Mark users.role column as deprecated (add comment)
-    # MySQL doesn't support column comments well, so we just add a deprecation note
-    # The column can be dropped in a future migration after data migration is complete
-
+    # openbb_provider_configs: same check
+    ob_cols = [c["name"] for c in inspector.get_columns("openbb_provider_configs")]
+    if "api_key_hash" in ob_cols:
+        op.alter_column("openbb_provider_configs", "api_key_hash",
+                        new_column_name="api_key_encrypted",
+                        type_=sa.String(512),
+                        nullable=True,
+                        server_default=None)
 
 def downgrade() -> None:
-    op.alter_column('openbb_provider_configs', 'api_key_encrypted',
-                    new_column_name='api_key_hash',
-                    type_=sa.String(255),
-                    nullable=True)
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
 
-    op.alter_column('gateway_configs', 'api_key_encrypted',
-                    new_column_name='api_key_hash',
-                    type_=sa.String(255),
-                    nullable=False)
+    gw_cols = [c[name] for c in inspector.get_columns(gateway_configs)]
+    if api_key_encrypted in gw_cols and api_key_hash not in gw_cols:
+        op.alter_column(gateway_configs, api_key_encrypted,
+                        new_column_name=api_key_hash,
+                        type_=sa.String(255),
+                        nullable=False)
+
+    ob_cols = [c[name] for c in inspector.get_columns(openbb_provider_configs)]
+    if api_key_encrypted in ob_cols and api_key_hash not in ob_cols:
+        op.alter_column(openbb_provider_configs, api_key_encrypted,
+                        new_column_name=api_key_hash,
+                        type_=sa.String(255),
+                        nullable=True)

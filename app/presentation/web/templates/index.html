@@ -1,4 +1,11 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/dashboard" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('dashboard')">
+  �����°� &#8594;
+</a>
+{% endblock %}
+
 
 {% block title %}Quant Atlas - {{ t('app.name') }}{% endblock %}
 
@@ -20,7 +27,7 @@
                     <span class="cap-badge">🇨🇳 {{ t('index.market_cn') }}</span>
                     <span class="cap-badge">🇭🇰 {{ t('index.market_hk') }}</span>
                     <span class="cap-badge">🇺🇸 {{ t('index.market_us') }}</span>
-                    <span class="cap-badge">₿ {{ t('index.market_crypto') }}</span>
+                    <span class="cap-badge">�?{{ t('index.market_crypto') }}</span>
                 </div>
                 <div class="hero-actions">
                     <button class="btn-brand" type="button" data-index-action="refresh-dashboard">{{ t('index.btn_refresh') }}</button>
@@ -32,7 +39,7 @@
                 <div class="dash-jarvis-block">
                     <div class="input-group dash-jarvis-input">
                         <input type="text" id="jarvisSearch" class="form-control" 
-                               placeholder="🔍 询问 Jarvis (例如: 推荐A股低估股票, 分析茅台走势)">
+                               placeholder="🔍 询问 Jarvis (例如: 推荐A股低估股�? 分析茅台走势)">
                         <button class="btn-brand" type="button" data-index-action="jarvis-search">Ask</button>
                     </div>
                     <div id="jarvisResult" class="p-3 bg-light rounded dash-jarvis-result qa-is-hidden"></div>
@@ -177,8 +184,8 @@ async function handleJarvisSearch() {
 
 function formatAmount(amount) {
     const value = Number(amount || 0);
-    if (value >= 100000000) return (value / 100000000).toFixed(2) + ' 亿';
-    if (value >= 10000) return (value / 10000).toFixed(2) + ' 万';
+    if (value >= 100000000) return (value / 100000000).toFixed(2) + ' �?;
+    if (value >= 10000) return (value / 10000).toFixed(2) + ' �?;
     return value.toFixed(0);
 }
 
@@ -218,8 +225,8 @@ function stockCard(stock) {
             <div class="stock-price">¥${Number(stock.price || 0).toFixed(2)}</div>
             <div class="stock-change ${positiveClass}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</div>
             <div class="stock-foot">
-                <div class="mini-metric"><div class="panel-subtitle">成交额</div><div>${formatAmount(stock.amount || 0)}</div></div>
-                <div class="mini-metric"><div class="panel-subtitle">换手率</div><div>${Number(stock.turnover || 0).toFixed(2)}%</div></div>
+                <div class="mini-metric"><div class="panel-subtitle">成交�?/div><div>${formatAmount(stock.amount || 0)}</div></div>
+                <div class="mini-metric"><div class="panel-subtitle">换手�?/div><div>${Number(stock.turnover || 0).toFixed(2)}%</div></div>
             </div>
         </a>
     `;
@@ -277,10 +284,10 @@ function updateSentiment(res) {
     const stats = data.stats || {};
     const score = Number(data.score || 0);
     $('#sentimentScore').text(score.toFixed(0));
-    $('#sentimentLevel').text(`${data.emoji || ''} ${data.level || '中性'}`.trim());
+    $('#sentimentLevel').text(`${data.emoji || ''} ${data.level || '中�?}`.trim());
     $('#sentimentDescription').text(data.description || '市场情绪稳定，投资者信心适中');
         if (data.stale) {
-            $('#sentimentDescription').append(' <span class="text-delay-hint">(数据可能有延迟)</span>');
+            $('#sentimentDescription').append(' <span class="text-delay-hint">(数据可能有延�?</span>');
         }
     $('#sentimentFill').css('width', Math.max(0, Math.min(100, score)) + '%');
     $('#sentimentUp').text(stats.gainers ?? '--');
@@ -309,7 +316,7 @@ function loadStocks() {
     let url = '/api/v1/markets/CN/quotes';
     if (filter === 'self') url = '/api/v1/stock-groups/1/stocks';
     if (filter.startsWith('group-')) url = `/api/v1/stock-groups/${filter.split('-')[1]}/stocks`;
-    $('#stocksContainer').html('<div class="loading-state">加载中...</div>');
+    $('#stocksContainer').html('<div class="loading-state">加载�?..</div>');
     return $.get(url, function(res) {
         const stocks = res.data?.stocks || res.stocks || [];
         updateStats(stocks);
@@ -324,7 +331,7 @@ function loadStocks() {
 }
 
 function loadMarketMovements() {
-    $('#marketMovements').html('<div class="loading-state">加载中...</div>');
+    $('#marketMovements').html('<div class="loading-state">加载�?..</div>');
     return $.get('/api/v1/markets/CN/movements', function(res) {
         const movements = res.data?.movements || res.movements || [];
         renderList('#marketMovements', movements, movementItem);

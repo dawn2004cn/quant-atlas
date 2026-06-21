@@ -1,4 +1,11 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/backtest" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('backtest')">
+  �����°� &#8594;
+</a>
+{% endblock %}
+
 
 {% block title %}策略回测 - Quant Atlas{% endblock %}
 
@@ -20,15 +27,15 @@
 <section class="qc-ux-onboarding" aria-label="回测使用提示">
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">先跑一个最小样例</div>
-        <p class="qc-ux-step-desc">建议先用单一标的 + 默认策略跑通一次，再逐步扩展参数与多策略对比。</p>
-        <a class="btn-brand btn-sm" href="{{ url_for('pages.signal_flag') }}">信号旗找候选</a>
+        <div class="qc-ux-step-title">先跑一个最小样�?/div>
+        <p class="qc-ux-step-desc">建议先用单一标的 + 默认策略跑通一次，再逐步扩展参数与多策略对比�?/p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.signal_flag') }}">信号旗找候�?/a>
         <a class="btn-soft btn-sm" href="{{ url_for('pages.daily_workbench') }}">回操盘台</a>
     </div>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">2</span>
         <div class="qc-ux-step-title">失败先去集成中枢</div>
-        <p class="qc-ux-step-desc">Qlib 管线、数据源与异步能力在集成中枢可见；必要时到消息中心看任务状态。</p>
+        <p class="qc-ux-step-desc">Qlib 管线、数据源与异步能力在集成中枢可见；必要时到消息中心看任务状态�?/p>
         <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
         <a class="btn-soft btn-sm" href="{{ url_for('pages.message_center') }}">消息中心</a>
     </div>
@@ -37,7 +44,7 @@
 <div class="bt-hero">
     <div class="hero-caption">Strategy Validation Lab</div>
     <h1 class="page-title">高性能策略回测</h1>
-    <p class="page-subtitle">基于 Qlib 与内置信号引擎，对 50+ 因子策略进行多维度压力测试与验证。</p>
+    <p class="page-subtitle">基于 Qlib 与内置信号引擎，�?50+ 因子策略进行多维度压力测试与验证�?/p>
 </div>
 
 <div class="bt-form-panel">
@@ -45,7 +52,7 @@
         <div class="form-row-grid">
             <div>
                 <label class="label">标的代码</label>
-                <input class="input-soft" id="symbol" value="600519" placeholder="如 600519">
+                <input class="input-soft" id="symbol" value="600519" placeholder="�?600519">
             </div>
             <div class="bt-span-2">
                 <label class="label">选择策略</label>
@@ -63,7 +70,7 @@
                 </select>
             </div>
             <div>
-                <label class="label">开始日期</label>
+                <label class="label">开始日�?/label>
                 <input class="input-soft" type="date" id="startDate">
             </div>
             <div>
@@ -93,7 +100,7 @@
         </div>
         <div class="score-card neg">
             <div class="score-val" id="resMDD">--</div>
-            <div class="score-label">最大回撤</div>
+            <div class="score-label">最大回�?/div>
         </div>
     </div>
 
@@ -106,7 +113,7 @@
         <div class="section-shell mt-4 bt-section-trades">
             <div class="panel-head">
                 <h2 class="panel-title">📋 交易记录</h2>
-                <span class="badge-soft" id="tradeCount">0 笔</span>
+                <span class="badge-soft" id="tradeCount">0 �?/span>
             </div>
             <div id="tradeHistoryTable" class="bt-table-scroll"></div>
         </div>
@@ -115,7 +122,7 @@
     <div class="section-shell mt-4">
         <div class="panel-head">
             <div>
-                <h2 class="panel-title">策略诊断与执行</h2>
+                <h2 class="panel-title">策略诊断与执�?/h2>
                 <div class="panel-subtitle">税费损耗、风控拦截及逐笔交易明细</div>
             </div>
             <button class="btn-soft btn-sm" data-bt-action="copy-config" type="button">复制回测配置</button>
@@ -136,21 +143,21 @@
     <section class="section-shell mt-4 bt-section-duel">
         <div class="panel-head">
             <div>
-                <h2 class="panel-title">🏆 AI 投研模拟战</h2>
-                <div class="panel-subtitle">让不同的 AI 专家模型同时操作您的自选股，对比收益</div>
+                <h2 class="panel-title">🏆 AI 投研模拟�?/h2>
+                <div class="panel-subtitle">让不同的 AI 专家模型同时操作您的自选股，对比收�?/div>
             </div>
-            <button class="btn-brand btn-sm" data-bt-action="strategy-duel" type="button">开始策略对决</button>
+            <button class="btn-brand btn-sm" data-bt-action="strategy-duel" type="button">开始策略对�?/button>
         </div>
         <div id="duelResult">
-            <div class="text-sm text-muted p-4 text-center">点击上方按钮，让不同风格的 AI 专家模拟操作您的持仓</div>
+            <div class="text-sm text-muted p-4 text-center">点击上方按钮，让不同风格�?AI 专家模拟操作您的持仓</div>
         </div>
     </section>
 
     <section class="section-shell mt-4 bt-section-counter">
         <div class="panel-head">
             <div>
-                <h2 class="panel-title">🧪 反向思维实验室</h2>
-                <div class="panel-subtitle">"如果大家都错了怎么办" - 模拟反直觉交易机会</div>
+                <h2 class="panel-title">🧪 反向思维实验�?/h2>
+                <div class="panel-subtitle">"如果大家都错了怎么�? - 模拟反直觉交易机�?/div>
             </div>
             <label class="bt-checkbox-row">
                 <input type="checkbox" id="counterModeToggle">
@@ -166,9 +173,9 @@
                     <button class="btn-soft btn-xs mt-2" data-bt-action="buy-the-dip" type="button">模拟"买在最高点"</button>
                 </div>
                 <div class="trade-plan-panel">
-                    <div class="text-xs text-muted mb-2">🟢 恐慌价值挖掘</div>
-                    <div class="text-sm"><strong>错杀标的: 3 只</strong></div>
-                    <div class="text-xs text-muted mt-1">跌幅远超基本面恶化程度</div>
+                    <div class="text-xs text-muted mb-2">🟢 恐慌价值挖�?/div>
+                    <div class="text-sm"><strong>错杀标的: 3 �?/strong></div>
+                    <div class="text-xs text-muted mt-1">跌幅远超基本面恶化程�?/div>
                     <button class="btn-soft btn-xs mt-2" data-bt-action="bloodied-pearls" type="button">寻找带血筹码</button>
                 </div>
             </div>
@@ -198,7 +205,7 @@ function fillDates() {
 async function runBacktest(e) {
     e.preventDefault();
     const btn = $(e.target).find('button');
-    btn.prop('disabled', true).text('⌛ 计算中...');
+    btn.prop('disabled', true).text('�?计算�?..');
     
     const params = {
         symbol: $('#symbol').val(),
@@ -248,8 +255,8 @@ function renderResult(r) {
     const fee = (Number(diag.total_fee || 0) + Number(diag.total_tax || 0)).toFixed(0);
     $('#diagPills').html(`
         <span class="diag-pill">💰 费税合计 ¥${fee}</span>
-        <span class="diag-pill">🛡️ 止损次数 ${diag.stop_loss_count || 0}</span>
-        <span class="diag-pill">🚫 流动性拦截 ${diag.blocked_buy_liquidity || 0}</span>
+        <span class="diag-pill">🛡�?止损次数 ${diag.stop_loss_count || 0}</span>
+        <span class="diag-pill">🚫 流动性拦�?${diag.blocked_buy_liquidity || 0}</span>
         <span class="diag-pill">🧠 情绪拦截 ${diag.blocked_buy_sentiment || 0}</span>
     `);
 
@@ -263,7 +270,7 @@ function renderResult(r) {
             <td>${escHtml(t.quantity || t.qty)}</td>
             <td class="${(t.profit||0)>=0?'positive':'negative'}">${t.profit ? '¥'+Number(t.profit).toFixed(0) : '--'}</td>
         </tr>
-    `).join('') || '<tr><td colspan="5" class="loading-tile">策略未触发交易信号</td></tr>');
+    `).join('') || '<tr><td colspan="5" class="loading-tile">策略未触发交易信�?/td></tr>');
 
     renderCharts(r);
 }
@@ -291,7 +298,7 @@ function renderCharts(r) {
     });
 
     if (typeof echarts === 'undefined') {
-        document.getElementById('chartArea') ? document.getElementById('chartArea').innerHTML = '<div class="empty-state">📊 ECharts 库加载失败，图表不可用</div>' : null;
+        document.getElementById('chartArea') ? document.getElementById('chartArea').innerHTML = '<div class="empty-state">📊 ECharts 库加载失败，图表不可�?/div>' : null;
         return;
     }
     try {
@@ -314,7 +321,7 @@ function renderCharts(r) {
     const sellPoints = chartTrades.filter(t => t.type === 'sell').map(t => ({ name: '卖出', value: [t.date, t.price], itemStyle: { color: '#ef4444', borderColor: '#fff', borderWidth: 2 } }));
     
     equityChart.setOption({
-        title: { text: '📈 收益净值 vs 标的价格', left: 'center', textStyle: { fontSize: 14, fontWeight: 900 } },
+        title: { text: '📈 收益净�?vs 标的价格', left: 'center', textStyle: { fontSize: 14, fontWeight: 900 } },
         tooltip: { 
             trigger: 'axis',
             formatter: function(params) {
@@ -337,7 +344,7 @@ function renderCharts(r) {
         xAxis: { type: 'category', data: chartDates, boundaryGap: false },
         yAxis: { type: 'value', scale: true },
         series: [
-            { name: '策略净值', type: 'line', data: equity, smooth: true, lineStyle: { width: 3, color: '#7c3aed' }, areaStyle: { color: 'rgba(124,58,237,0.1)' }, symbol: 'none' },
+            { name: '策略净�?, type: 'line', data: equity, smooth: true, lineStyle: { width: 3, color: '#7c3aed' }, areaStyle: { color: 'rgba(124,58,237,0.1)' }, symbol: 'none' },
             { name: '标的价格', type: 'line', data: closes, smooth: true, lineStyle: { width: 1, type: 'dashed', color: '#64748b' }, symbol: 'none' },
             { name: '买入', type: 'scatter', data: buyPoints, symbol: 'triangle', symbolSize: 14, symbolRotate: 0, z: 10 },
             { name: '卖出', type: 'scatter', data: sellPoints, symbol: 'triangle', symbolSize: 14, symbolRotate: 180, z: 10 }
@@ -345,7 +352,7 @@ function renderCharts(r) {
     });
 
     drawdownChart.setOption({
-        title: { text: '回撤深度图 (%)', left: 'center', textStyle: { fontSize: 12, fontWeight: 800 } },
+        title: { text: '回撤深度�?(%)', left: 'center', textStyle: { fontSize: 12, fontWeight: 800 } },
         tooltip: { trigger: 'axis' },
         grid: { top: 40, bottom: 30, left: 50, right: 30 },
         xAxis: { type: 'category', data: chartDates, show: false },
@@ -357,7 +364,7 @@ function renderCharts(r) {
 }
 
 function renderTradeHistory(trades) {
-    $('#tradeCount').text(trades.length + ' 笔');
+    $('#tradeCount').text(trades.length + ' �?);
     $('#tradeHistorySection').show();
     
     let html = `<table class="bt-trades-table">
@@ -396,7 +403,7 @@ function renderTradeHistory(trades) {
 
 function copyConfig() {
     const config = { symbol: $('#symbol').val(), strategy: $('#strategy').val(), start: $('#startDate').val(), end: $('#endDate').val() };
-    navigator.clipboard.writeText(JSON.stringify(config, null, 2)).then(() => showToast('回测配置已复制', 'success'));
+    navigator.clipboard.writeText(JSON.stringify(config, null, 2)).then(() => showToast('回测配置已复�?, 'success'));
 }
 
 function startStrategyDuel() {
@@ -405,14 +412,14 @@ function startStrategyDuel() {
     const start = $('#startDate').val();
     const end = $('#endDate').val();
     if (!symbol || !start || !end) {
-        showToast('请先填写标的与回测区间', 'warning');
+        showToast('请先填写标的与回测区�?, 'warning');
         return;
     }
     if (strategy === '__QLIB_BUY_HOLD__') {
-        showToast('Qlib 买入持有暂不支持多策略对决', 'warning');
+        showToast('Qlib 买入持有暂不支持多策略对�?, 'warning');
         return;
     }
-    $('#duelResult').html('<div class="text-sm text-muted p-4 text-center">⌛ 正在并行回测多个策略…</div>');
+    $('#duelResult').html('<div class="text-sm text-muted p-4 text-center">�?正在并行回测多个策略�?/div>');
     const duelStrategies = Array.from(new Set([strategy, 'MA', 'RSI', 'MACD'].filter(Boolean))).slice(0, 4);
     fetch('/api/v1/strategies/backtest/compare', {
         method: 'POST',
@@ -446,7 +453,7 @@ function pctFmt(value) {
 function renderDuelResult(data) {
     const rows = data.comparisons || [];
     if (!rows.length) {
-        $('#duelResult').html('<div class="text-sm text-muted p-4 text-center">无对比结果</div>');
+        $('#duelResult').html('<div class="text-sm text-muted p-4 text-center">无对比结�?/div>');
         return;
     }
     const winner = data.winner;
@@ -455,7 +462,7 @@ function renderDuelResult(data) {
         <table class="table">
             <thead>
                 <tr>
-                    <th>策略</th><th>总收益</th><th>年化</th><th>夏普</th><th>最大回撤</th><th>胜率</th>
+                    <th>策略</th><th>总收�?/th><th>年化</th><th>夏普</th><th>最大回�?/th><th>胜率</th>
                 </tr>
             </thead>
             <tbody>
@@ -482,7 +489,7 @@ function toggleCounterMode() {
     const enabled = $('#counterModeToggle').is(':checked');
     if (enabled) {
         $('#counterLabResult').closest('.section-shell').css('filter', 'hue-rotate(180deg) invert(0.1)');
-        showToast('反直觉模式已开启 - 界面进入冷色调', 'info');
+        showToast('反直觉模式已开�?- 界面进入冷色�?, 'info');
     } else {
         $('#counterLabResult').closest('.section-shell').css('filter', 'none');
         showToast('反直觉模式已关闭', 'info');
@@ -490,7 +497,7 @@ function toggleCounterMode() {
 }
 
 function simulateBuyTheDip() {
-    showToast('模拟买入后 5 日收益: -3.2%，证明"接飞刀"风险极高', 'warning');
+    showToast('模拟买入�?5 日收�? -3.2%，证�?接飞刀"风险极高', 'warning');
 }
 
 function findBloodiedPearls() {
@@ -498,8 +505,8 @@ function findBloodiedPearls() {
     setTimeout(() => {
         const pearls = [
             { code: '600519', name: '贵州茅台', fall: '-15%', fair: '+8%', reason: '舆论错杀，基本面稳固' },
-            { code: '300750', name: '宁德时代', fall: '-22%', fair: '+12%', reason: '产能周期低点，长期价值仍在' },
-            { code: '601318', name: '中国平安', fall: '-18%', fair: '+5%', reason: '保险底部，利率企稳' },
+            { code: '300750', name: '宁德时代', fall: '-22%', fair: '+12%', reason: '产能周期低点，长期价值仍�? },
+            { code: '601318', name: '中国平安', fall: '-18%', fair: '+5%', reason: '保险底部，利率企�? },
         ];
         $('#counterLabResult').html(`
             <div class="bt-grid-gap">
@@ -514,7 +521,7 @@ function findBloodiedPearls() {
                     </div>
                 `).join('')}
                 <div class="text-sm bt-hint-green">
-                    <strong>带血筹码评分:</strong> 建议分批建仓，越跌越买，设置 10% 止损线
+                    <strong>带血筹码评分:</strong> 建议分批建仓，越跌越买，设置 10% 止损�?
                 </div>
             </div>
         `);

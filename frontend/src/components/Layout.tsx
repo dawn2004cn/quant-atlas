@@ -6,7 +6,12 @@ import { useTheme } from "../hooks/useTheme";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 
-export function Layout() {
+interface LayoutProps {
+  enableBackToClassic?: boolean;
+  backToClassicUrl?: string;
+}
+
+export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
   const { t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const { isAuthenticated, loading, mode, username, refresh } = useAuth();
@@ -74,6 +79,11 @@ export function Layout() {
       <main className="mx-auto max-w-7xl px-4 py-6">
         <Outlet />
       </main>
+      {enableBackToClassic && (
+        <a href={backToClassicUrl || "/"} className="fixed bottom-4 right-4 text-xs text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 transition-colors">
+          ← 回到经典版
+        </a>
+      )}
     </div>
   );
 }

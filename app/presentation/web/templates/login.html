@@ -10,6 +10,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/auth.css') }}">
 </head>
 <body class="auth-page">
+    <!-- spa_switcher -->
+    <a href="/app/login" class="spa-switcher-link"
+       onclick="window.trackSwitcherClick && window.trackSwitcherClick('login')">
+      试试新版 →
+    </a>
     <div class="login-shell">
         <section class="login-hero">
             <div class="login-hero-badge">Quant Atlas · Flask</div>

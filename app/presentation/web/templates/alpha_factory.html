@@ -1,4 +1,11 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/alpha-factory" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('alpha-factory')">
+  �����°� &#8594;
+</a>
+{% endblock %}
+
 
 {% block title %}Alpha Factory - 智能因子工厂{% endblock %}
 
@@ -14,21 +21,21 @@
             <h1 class="af-hero-title">智能因子工厂</h1>
             <p class="af-hero-subtitle">
                 整合 RD-Agent 因子生成 + Qlib 回测 + 因子仓库<br>
-                自动化 Alpha Factory 实现从因子发现到模型部署的完整闭环
+                自动�?Alpha Factory 实现从因子发现到模型部署的完整闭�?
             </p>
             <div class="af-hero-links">
-                <a href="{{ url_for('pages.factor_repository') }}" class="btn-soft">📚 因子库</a>
-                <a href="{{ url_for('pages.stock_selector') }}" class="btn-soft">🎯 选股器</a>
+                <a href="{{ url_for('pages.factor_repository') }}" class="btn-soft">📚 因子�?/a>
+                <a href="{{ url_for('pages.stock_selector') }}" class="btn-soft">🎯 选股�?/a>
             </div>
             <div class="af-data-note">
-                <strong>数据来源说明：</strong>
+                <strong>数据来源说明�?/strong>
                 <ul class="af-data-list">
                     <li>因子总数/平均Sharpe：来自因子库（需通过"因子实验"提交并验证通过后保存）</li>
                     <li>失败次数：来自实验失败记录（实验执行失败时自动记录）</li>
-                    <li>投研周会：来自周会调度器（需启用并执行后才有数据）</li>
+                    <li>投研周会：来自周会调度器（需启用并执行后才有数据�?/li>
                 </ul>
                 <div class="af-mt-8">
-                    <strong>产生数据方式：</strong> 在下方"因子实验"标签页提交因子表达式进行实验，实验完成后因子自动存入因子库
+                    <strong>产生数据方式�?/strong> 在下�?因子实验"标签页提交因子表达式进行实验，实验完成后因子自动存入因子�?
                 </div>
             </div>
         </div>
@@ -39,67 +46,67 @@
     <h2 class="af-section-title">🎯 Alpha Factory 核心目标</h2>
     <div class="af-goals">
         <div class="af-goal-card">
-            <div class="af-goal-icon">⚡</div>
-            <div class="af-goal-title">Alpha 永动机</div>
+            <div class="af-goal-icon">�?/div>
+            <div class="af-goal-title">Alpha 永动�?/div>
             <div class="af-goal-desc">
-                从"因子失效发现"到"新因子上线"耗时从周级缩短至小时级。<br>
-                当系统检测到IR下降时，RD-Agent已在实验室挖掘10个候补因子。
+                �?因子失效发现"�?新因子上�?耗时从周级缩短至小时级�?br>
+                当系统检测到IR下降时，RD-Agent已在实验室挖�?0个候补因子�?
             </div>
-            <span class="af-goal-status active">✓ 已实现</span>
+            <span class="af-goal-status active">�?已实�?/span>
         </div>
         <div class="af-goal-card">
             <div class="af-goal-icon">🧠</div>
-            <div class="af-goal-title">动态策略合成</div>
+            <div class="af-goal-title">动态策略合�?/div>
             <div class="af-goal-desc">
-                根据当前市场状态(牛市/熊市/震荡)，由Agent实时从因子库挑选最适配的算子，分钟级训练"临时战时模型"。<br>
-                <span class="af-goal-hint">开发中：市场状态识别模块 + 因子推荐引擎</span>
+                根据当前市场状�?牛市/熊市/震荡)，由Agent实时从因子库挑选最适配的算子，分钟级训�?临时战时模型"�?br>
+                <span class="af-goal-hint">开发中：市场状态识别模�?+ 因子推荐引擎</span>
             </div>
             <span class="af-goal-status building">🚧 开发中</span>
         </div>
         <div class="af-goal-card">
             <div class="af-goal-icon">🎭</div>
-            <div class="af-goal-title">零差距研发</div>
+            <div class="af-goal-title">零差距研�?/div>
             <div class="af-goal-desc">
-                消除"回测林志玲，实盘罗玉凤"的痛点。将真实交易成本(佣金/滑点/冲击)实时反馈给RD-Agent研发阶段。<br>
-                <span class="af-goal-hint">支持滑点模拟、冲击成本预估</span>
+                消除"回测林志玲，实盘罗玉�?的痛点。将真实交易成本(佣金/滑点/冲击)实时反馈给RD-Agent研发阶段�?br>
+                <span class="af-goal-hint">支持滑点模拟、冲击成本预�?/span>
             </div>
-            <span class="af-goal-status active">✓ 已实现</span>
+            <span class="af-goal-status active">�?已实�?/span>
         </div>
         <div class="af-goal-card">
             <div class="af-goal-icon">🔮</div>
             <div class="af-goal-title">超维规律发现</div>
             <div class="af-goal-desc">
-                利用QLib并行计算+RD-Agent多模态关联，挖掘"非人类直觉"的高阶非线性因子。如研报字数与行业因子协方差的领先关系。<br>
-                <span class="af-goal-hint">待实现：研报语义特征提取 + 跨模态相关性分析</span>
+                利用QLib并行计算+RD-Agent多模态关联，挖掘"非人类直�?的高阶非线性因子。如研报字数与行业因子协方差的领先关系�?br>
+                <span class="af-goal-hint">待实现：研报语义特征提取 + 跨模态相关性分�?/span>
             </div>
-            <span class="af-goal-status building">⏳ 规划中</span>
+            <span class="af-goal-status building">�?规划�?/span>
         </div>
     </div>
 
     <h2 class="af-section-title">🔄 自动化流水线</h2>
     <div class="af-pipeline-flow">
         <div class="af-pipeline-step factor">🤖 RD-Agent<br>因子生成</div>
-        <span class="af-pipeline-arrow">→</span>
-        <div class="af-pipeline-step backtest">📊 Qlib<br>向量化回测</div>
-        <span class="af-pipeline-arrow">→</span>
+        <span class="af-pipeline-arrow">�?/span>
+        <div class="af-pipeline-step backtest">📊 Qlib<br>向量化回�?/div>
+        <span class="af-pipeline-arrow">�?/span>
         <div class="af-pipeline-step model">🧠 模型<br>训练蒸馏</div>
-        <span class="af-pipeline-arrow">→</span>
-        <div class="af-pipeline-step validation">✓ 影子测试<br>偏差验证</div>
-        <span class="af-pipeline-arrow">→</span>
+        <span class="af-pipeline-arrow">�?/span>
+        <div class="af-pipeline-step validation">�?影子测试<br>偏差验证</div>
+        <span class="af-pipeline-arrow">�?/span>
         <div class="af-pipeline-step deploy">🚀 生产部署</div>
     </div>
 
     <div class="af-tabs">
         <button class="af-tab active" data-tab="experiment" data-af-action="switch-tab" data-tab="experiment">因子实验</button>
-        <button class="af-tab" data-tab="knowledge" data-af-action="switch-tab" data-tab="knowledge">知识库</button>
+        <button class="af-tab" data-tab="knowledge" data-af-action="switch-tab" data-tab="knowledge">知识�?/button>
         <button class="af-tab" data-tab="validate" data-af-action="switch-tab" data-tab="validate">验证</button>
-        <button class="af-tab" data-tab="correlation" data-af-action="switch-tab" data-tab="correlation">相关性</button>
+        <button class="af-tab" data-tab="correlation" data-af-action="switch-tab" data-tab="correlation">相关�?/button>
         <button class="af-tab" data-tab="model" data-af-action="switch-tab" data-tab="model">模型选择</button>
         <button class="af-tab" data-tab="modelzoo" data-af-action="switch-tab" data-tab="modelzoo">Model Zoo</button>
         <button class="af-tab" data-tab="online" data-af-action="switch-tab" data-tab="online">增量学习</button>
         <button class="af-tab" data-tab="paper" data-af-action="switch-tab" data-tab="paper">影子测试</button>
         <button class="af-tab" data-tab="weekly" data-af-action="switch-tab" data-tab="weekly">投研周会</button>
-        <button class="af-tab" data-tab="pipeline" data-af-action="switch-tab" data-tab="pipeline">流水线</button>
+        <button class="af-tab" data-tab="pipeline" data-af-action="switch-tab" data-tab="pipeline">流水�?/button>
     </div>
 
     <div id="tab-experiment" class="af-tab-content">
@@ -109,18 +116,18 @@
                 <div class="af-form-group">
                     <label class="af-form-label">🎯 实验目标</label>
                     <select class="af-form-select" id="experimentGoal">
-                        <option value="alpha_discovery">Alpha 发现 (寻找新因子)</option>
-                        <option value="regime_adaptation">动态适应 (根据市场状态调整)</option>
+                        <option value="alpha_discovery">Alpha 发现 (寻找新因�?</option>
+                        <option value="regime_adaptation">动态适应 (根据市场状态调�?</option>
                         <option value="complementary">互补因子 (与现有组合低相关)</option>
                         <option value="decay_recovery">失效恢复 (修复失效因子)</option>
-                        <option value="high_order">超维发现 (高阶非线性)</option>
+                        <option value="high_order">超维发现 (高阶非线�?</option>
                     </select>
                     <div id="goalDescription" class="af-desc-box">
-                        发现新的有效Alpha因子，提升组合收益
+                        发现新的有效Alpha因子，提升组合收�?
                     </div>
                 </div>
                 <div class="af-form-group">
-                    <label class="af-form-label">因子表达式 (Alpha Formula)</label>
+                    <label class="af-form-label">因子表达�?(Alpha Formula)</label>
                     <textarea class="af-form-textarea" id="alphaFormula" placeholder="例如: rank(Ts_ArgMax(SUMS(returns_0_1, 20), 2))"></textarea>
                     <div class="af-formula-wrap">
                         <span class="af-formula-label">常用模板:</span>
@@ -138,20 +145,20 @@
                     <label class="af-form-label">数据范围</label>
                     <div class="af-flex-row">
                         <input type="date" class="af-form-input" id="startDate" value="2024-01-01" class="af-date-input">
-                        <span class="text-muted">至</span>
+                        <span class="text-muted">�?/span>
                         <input type="date" class="af-form-input" id="endDate" value="2025-04-27" class="af-date-input">
                     </div>
                 </div>
                 <div class="af-form-group">
-                    <label class="af-form-label">搜索空间 (可选)</label>
+                    <label class="af-form-label">搜索空间 (可�?</label>
                     <div class="af-flex-row">
                         <select class="af-form-select" id="searchSpace" class="af-select-flex">
                             <option value="">默认搜索空间</option>
                             <option value="momentum">动量因子</option>
-                            <option value="mean_reversion">均值回归</option>
-                            <option value="volatility">波动率因子</option>
-                            <option value="volume">成交量因子</option>
-                            <option value="correlation">相关性因子</option>
+                            <option value="mean_reversion">均值回�?/option>
+                            <option value="volatility">波动率因�?/option>
+                            <option value="volume">成交量因�?/option>
+                            <option value="correlation">相关性因�?/option>
                         </select>
                     </div>
                 </div>
@@ -167,17 +174,17 @@
         </section>
 
         <section class="af-panel">
-            <h2 class="af-section-title">因子库</h2>
+            <h2 class="af-section-title">因子�?/h2>
             <div class="af-filter-wrap">
                 <div class="af-flex-row">
-                    <button class="btn-soft" data-af-action="load-factors" type="button">刷新因子库</button>
+                    <button class="btn-soft" data-af-action="load-factors" type="button">刷新因子�?/button>
                     <select class="af-form-select" id="filterRegime" class="af-select-auto">
-                        <option value="">全部状态</option>
+                        <option value="">全部状�?/option>
                         <option value="trending_up">上涨趋势</option>
                         <option value="trending_down">下跌趋势</option>
                         <option value="ranging">震荡</option>
-                        <option value="volatile">高波动</option>
-                        <option value="low_volatility">低波动</option>
+                        <option value="volatile">高波�?/option>
+                        <option value="low_volatility">低波�?/option>
                     </select>
                 </div>
             </div>
@@ -189,7 +196,7 @@
         <section class="af-panel">
             <h2 class="af-section-title">WorldQuant 101 Alphas</h2>
             <p class="af-muted-p">
-                经典 Alpha 表达式知识库，可作为 RD-Agent 因子生成的引导参考
+                经典 Alpha 表达式知识库，可作为 RD-Agent 因子生成的引导参�?
             </p>
             <div class="af-knowledge-section" id="alphasList"></div>
         </section>
@@ -202,16 +209,16 @@
 
     <div id="tab-validate" class="qa-is-hidden af-tab-content">
         <section class="af-panel">
-            <h2 class="af-section-title">Alpha 表达式验证</h2>
+            <h2 class="af-section-title">Alpha 表达式验�?/h2>
             <p class="af-muted-p">
                 验证因子表达式语法和语义
             </p>
             <div class="af-form-group">
-                <label class="af-form-label">因子表达式</label>
+                <label class="af-form-label">因子表达�?/label>
                 <textarea class="af-form-textarea" id="validateFormula" placeholder="例如: rank(Ts_ArgMax(SUMS(returns_0_1, 20), 2))"></textarea>
             </div>
             <button class="btn-brand" data-af-action="validate-formula" type="button" class="af-btn-md af-mt-16">
-                ✓ 验证表达式
+                �?验证表达�?
             </button>
             <div id="validateResult" class="af-result-mt"></div>
         </section>
@@ -219,12 +226,12 @@
 
     <div id="tab-correlation" class="qa-is-hidden af-tab-content">
         <section class="af-panel">
-            <h2 class="af-section-title">因子相关性分析</h2>
+            <h2 class="af-section-title">因子相关性分�?/h2>
             <p class="af-muted-p">
                 分析因子间相关性，寻找互补因子
             </p>
             <button class="btn-brand" data-af-action="load-correlation" type="button" class="af-btn-md">
-                加载相关性矩阵
+                加载相关性矩�?
             </button>
             <div id="correlationResult" class="af-result-mt"></div>
         </section>
@@ -234,10 +241,10 @@
         <section class="af-panel">
             <h2 class="af-section-title">增量学习 / Warm Start</h2>
             <p class="af-muted-p">
-                在线学习：每日增量训练，避免灾难性遗忘
+                在线学习：每日增量训练，避免灾难性遗�?
             </p>
             <button class="btn-brand" data-af-action="load-online-status" type="button" class="af-btn-md">
-                查看状态
+                查看状�?
             </button>
             <div id="onlineStatus" class="af-result-mt"></div>
         </section>
@@ -245,7 +252,7 @@
 
     <div id="tab-modelzoo" class="qa-is-hidden af-tab-content">
         <section class="af-panel">
-            <h2 class="af-section-title">Model Zoo - 多模型支持</h2>
+            <h2 class="af-section-title">Model Zoo - 多模型支�?/h2>
             <p class="af-muted-p">
                 支持线性模型、树模型、深度学习等多种模型
             </p>
@@ -260,11 +267,11 @@
         <section class="af-panel">
             <h2 class="af-section-title">影子测试 / Paper Trading</h2>
             <p class="af-muted-p">
-                新模型自动进入影子账户，三天验证偏差<5%才允许进入生产
+                新模型自动进入影子账户，三天验证偏差<5%才允许进入生�?
             </p>
             <div class="af-actions-row">
                 <button class="btn-brand" data-af-action="submit-paper" type="button">提交测试</button>
-                <button class="btn-soft" data-af-action="load-paper-status" type="button">查看状态</button>
+                <button class="btn-soft" data-af-action="load-paper-status" type="button">查看状�?/button>
             </div>
             <div id="paperStatus" class="af-result-mt"></div>
         </section>
@@ -274,7 +281,7 @@
         <section class="af-panel">
             <h2 class="af-section-title">Meta-Learner 模型自动选择</h2>
             <p class="af-muted-p">
-                根据市值和标的类型自动选择最优模型
+                根据市值和标的类型自动选择最优模�?
             </p>
             <div class="af-form-grid">
                 <div class="af-form-group">
@@ -282,14 +289,14 @@
                     <input class="af-form-input" id="modelSymbol" placeholder="例如: 600519" value="">
                 </div>
                 <div class="af-form-group">
-                    <label class="af-form-label">市值 (亿)</label>
-                    <input class="af-form-input" id="marketCap" type="number" placeholder="可选" value="">
+                    <label class="af-form-label">市�?(�?</label>
+                    <input class="af-form-input" id="marketCap" type="number" placeholder="可�? value="">
                 </div>
                 <div class="af-form-group">
-                    <label class="af-form-label">优先可解释性</label>
+                    <label class="af-form-label">优先可解释�?/label>
                     <select class="af-form-select" id="preferExplain">
-                        <option value="false">否 (性能优先)</option>
-                        <option value="true">是 (Linear 模型)</option>
+                        <option value="false">�?(性能优先)</option>
+                        <option value="true">�?(Linear 模型)</option>
                     </select>
                 </div>
             </div>
@@ -302,9 +309,9 @@
 
     <div id="tab-weekly" class="qa-is-hidden af-tab-content">
         <section class="af-panel">
-            <h2 class="af-section-title">自动化投研周会</h2>
+            <h2 class="af-section-title">自动化投研周�?/h2>
             <p class="af-muted-p">
-                每周五 15:00 自动执行：扫描失效因子 → 运行新实验 → 模型热切换
+                每周�?15:00 自动执行：扫描失效因�?�?运行新实�?�?模型热切�?
             </p>
             <div class="af-actions-row">
                 <button class="btn-brand" data-af-action="enable-weekly" type="button">启用周会</button>
@@ -317,12 +324,12 @@
 
     <div id="tab-pipeline" class="qa-is-hidden af-tab-content">
         <section class="af-panel">
-            <h2 class="af-section-title">模型蒸馏流水线</h2>
+            <h2 class="af-section-title">模型蒸馏流水�?/h2>
             <p class="af-muted-p">
-                完整流程：因子生成 → 回测 → 模型训练 → 验证 → 部署
+                完整流程：因子生�?�?回测 �?模型训练 �?验证 �?部署
             </p>
             <button class="btn-brand" data-af-action="load-pipeline" type="button" class="af-btn-md">
-                查看流水线
+                查看流水�?
             </button>
             <div id="pipelineStatus" class="af-result-mt"></div>
         </section>
@@ -333,9 +340,9 @@
 {% block extra_js %}
 <script nonce="{{ csp_nonce() }}">
     const goalDescriptions = {
-        'alpha_discovery': '发现新的有效Alpha因子，提升组合收益',
-        'regime_adaptation': '根据当前市场状态(牛市/熊市/震荡)动态调整策略',
-        'complementary': '寻找与现有组合低相关的因子，实现分散化',
+        'alpha_discovery': '发现新的有效Alpha因子，提升组合收�?,
+        'regime_adaptation': '根据当前市场状�?牛市/熊市/震荡)动态调整策�?,
+        'complementary': '寻找与现有组合低相关的因子，实现分散�?,
         'decay_recovery': '修复已失效的因子，恢复其预测能力',
         'high_order': '挖掘高阶非线性因子，发现非人类直觉的规律'
     };
@@ -382,7 +389,7 @@ async function loadPipelineStatus() {
         const tasks = data.tasks || [];
 
         if (tasks.length === 0) {
-            container.innerHTML = '<div class="empty-state">暂无流水线任务</div>';
+            container.innerHTML = '<div class="empty-state">暂无流水线任�?/div>';
             return;
         }
 
@@ -419,7 +426,7 @@ async function loadModelZoo() {
                 <div class="af-font-bold">${m.name}</div>
                 <div class="af-alpha-meta">
                     <span class="af-tag momentum">${m.model_type}</span>
-                    <span>可解释性: ${(m.interpretability || 0).toFixed(0)}%</span>
+                    <span>可解释�? ${(m.interpretability || 0).toFixed(0)}%</span>
                 </div>
             </div>
         `).join('');
@@ -440,7 +447,7 @@ async function loadPaperStatus() {
             <div class="af-alpha-card">
                 <div class="af-font-bold">影子测试队列</div>
                 <div class="af-mt-8 text-muted">
-                    状态: ${status.status || 'not_configured'}
+                    状�? ${status.status || 'not_configured'}
                 </div>
                 <div class="af-mt-8">
                     ${(status.queue || status.items || []).map(d => `
@@ -455,7 +462,7 @@ async function loadPaperStatus() {
 }
 
 async function submitPaperTrading() {
-    const modelId = prompt('请输入模型 ID:');
+    const modelId = prompt('请输入模�?ID:');
     if (!modelId) return;
 
     try {
@@ -469,7 +476,7 @@ async function submitPaperTrading() {
         });
         const raw = await resp.json();
         const data = unwrap(raw);
-        showToast('已提交: ' + (data.run_id || data.data?.run_id || ''), 'success');
+        showToast('已提�? ' + (data.run_id || data.data?.run_id || ''), 'success');
         loadPaperStatus();
     } catch(e) {
         showToast('提交失败: ' + e.message, 'error');
@@ -484,7 +491,7 @@ async function validateFormula() {
     }
 
     const container = document.getElementById('validateResult');
-    container.innerHTML = '<div class="af-experiment-card"><div class="text-muted">验证中…</div></div>';
+    container.innerHTML = '<div class="af-experiment-card"><div class="text-muted">验证中�?/div></div>';
 
     try {
         const resp = await fetch(`/api/v1/alpha-factory/validate?formula=${encodeURIComponent(formula)}`);
@@ -493,28 +500,28 @@ async function validateFormula() {
 
         if (!resp.ok || data.status === 'error') {
             const msg = (data.error && data.error.message) || `HTTP ${resp.status}`;
-            container.innerHTML = `<div class="af-experiment-card failed"><div class="af-text-danger">✕ 验证失败</div><div class="af-mt-8">${msg}</div></div>`;
+            container.innerHTML = `<div class="af-experiment-card failed"><div class="af-text-danger">�?验证失败</div><div class="af-mt-8">${msg}</div></div>`;
             return;
         }
 
         if (data.valid) {
             container.innerHTML = `
                 <div class="af-experiment-card success">
-                    <div class="af-text-success">✓ 表达式验证通过</div>
-                    <div class="af-mt-8 text-muted">复杂度: ${data.complexity || '-'}</div>
+                    <div class="af-text-success">�?表达式验证通过</div>
+                    <div class="af-mt-8 text-muted">复杂�? ${data.complexity || '-'}</div>
                 </div>
             `;
         } else {
             container.innerHTML = `
                 <div class="af-experiment-card failed">
-                    <div class="af-text-danger">✕ 验证失败</div>
+                    <div class="af-text-danger">�?验证失败</div>
                     <div class="af-mt-8">${(data.errors || []).join('<br>')}</div>
                     ${data.warnings?.length ? `<div class="af-mt-8 af-text-warn">警告: ${data.warnings.join('<br>')}</div>` : ''}
                 </div>
             `;
         }
     } catch(e) {
-        container.innerHTML = `<div class="af-experiment-card failed"><div class="af-text-danger">✕ 请求异常</div><div class="af-mt-8">${String(e)}</div></div>`;
+        container.innerHTML = `<div class="af-experiment-card failed"><div class="af-text-danger">�?请求异常</div><div class="af-mt-8">${String(e)}</div></div>`;
     }
 }
 
@@ -528,13 +535,13 @@ async function loadCorrelation() {
         const matrix = data.correlation_matrix || data.matrix || {};
 
         if (Object.keys(matrix).length === 0) {
-            container.innerHTML = '<div class="empty-state">暂无相关性数据</div>';
+            container.innerHTML = '<div class="empty-state">暂无相关性数�?/div>';
             return;
         }
 
         container.innerHTML = `
             <div class="af-alpha-card">
-                <div class="af-font-bold">因子相关性矩阵</div>
+                <div class="af-font-bold">因子相关性矩�?/div>
                 <div class="af-text-muted-sm af-mt-8">
                     因子数量: ${Object.keys(matrix).length}
                 </div>
@@ -555,7 +562,7 @@ async function loadOnlineStatus() {
         container.innerHTML = `
             <div class="af-alpha-card">
                 <div class="af-Weekly-badge ${data.enabled || data.status === 'active' ? 'enabled' : 'disabled'}">
-                    ${data.enabled || data.status === 'active' ? '✓ 在线学习已启用' : '✕ 在线学习未启用'}
+                    ${data.enabled || data.status === 'active' ? '�?在线学习已启�? : '�?在线学习未启�?}
                 </div>
                 <div class="af-mt-12">
                     <div>注册模型: ${data.models || 0}</div>
@@ -582,7 +589,7 @@ async function loadDashboard() {
                 <div class="af-stat-card"><div class="af-stat-num">${data.avg_sharpe != null ? (data.avg_sharpe || 0).toFixed(2) : '--'}</div><div class="af-stat-label">平均 Sharpe</div></div>
                 <div class="af-stat-card"><div class="af-stat-num">${data.active_count ?? '--'}</div><div class="af-stat-label">活跃因子</div></div>
                 <div class="af-stat-card"><div class="af-stat-num">${data.failed_count ?? '--'}</div><div class="af-stat-label">失败次数</div></div>
-                <div class="af-stat-card"><div class="af-stat-num">${data.is_weekly_enabled ? '已启用' : '未启用'}</div><div class="af-stat-label">投研周会</div></div>
+                <div class="af-stat-card"><div class="af-stat-num">${data.is_weekly_enabled ? '已启�? : '未启�?}</div><div class="af-stat-label">投研周会</div></div>
             </div>
         `;
     } catch(e) {
@@ -695,7 +702,7 @@ async function submitExperiment(evt) {
 
     const btn = evt.target;
     btn.disabled = true;
-    btn.textContent = '提交中...';
+    btn.textContent = '提交�?..';
 
     const goalLabels = {
         'alpha_discovery': 'Alpha 发现',
@@ -739,7 +746,7 @@ async function submitExperiment(evt) {
         document.getElementById('resultsPanel').classList.add('show');
         document.getElementById('experimentResults').innerHTML = `
             <div class="af-experiment-card">
-                <div class="af-font-bold">实验已提交</div>
+                <div class="af-font-bold">实验已提�?/div>
                 <div class="af-box-purple">
                     🎯 实验目标: <strong>${goalLabels[goal]}</strong>
                 </div>
@@ -768,7 +775,7 @@ async function loadWeeklyStatus() {
         const nextRun = data.weekly_meeting_next || data.next_run || 'N/A';
         container.innerHTML = `
             <div class="af-Weekly-badge ${isEnabled ? 'enabled' : 'disabled'}">
-                ${isEnabled ? '✓ 周会已启用' : '✕ 周会未启用'}
+                ${isEnabled ? '�?周会已启�? : '�?周会未启�?}
             </div>
             <div class="af-mt-16 text-muted">
                 下次运行: ${nextRun}
@@ -780,15 +787,15 @@ async function loadWeeklyStatus() {
 }
 
 async function enableWeeklyMeeting() {
-    showToast('周会启用功能待实现', 'info');
+    showToast('周会启用功能待实�?, 'info');
 }
 
 async function disableWeeklyMeeting() {
-    showToast('周会禁用功能待实现', 'info');
+    showToast('周会禁用功能待实�?, 'info');
 }
 
 async function runWeeklyScan() {
-    showToast('立即扫描功能待实现', 'info');
+    showToast('立即扫描功能待实�?, 'info');
 }
 
 document.addEventListener('DOMContentLoaded', function() {

@@ -3261,3 +3261,51 @@ Per `docs/06_Expert_Evolution_Guide.md`, P0 priorities: RBAC → Audit Chain →
 - `py_compile` ??
 - App ???856 routes???? warning
 - ??? `Alembic upgrade failed` warning ?? MySQL ??? `192.168.8.103` ??????????????????
+
+
+## 2026-06-21 - B-Plan Rollback: Switcher Gray-Release Infrastructure
+
+### Goal
+Roll back all M1+M2 302 redirects to render_template + switcher gray-release pattern, then continue M0 foundation tasks.
+
+### B-0: Switcher Infrastructure
+- `base.html`: `{% block spa_switcher %}` injection point + telemetry script loader
+- `Layout.tsx`: `enableBackToClassic` / `backToClassicUrl` props for SPA→Jinja back-link
+- `routes_v1_telemetry.py`: POST `/api/v1/switcher/click` endpoint
+- `frontend/src/lib/switcher-telemetry.ts`: SPA-side SDK (TypeScript)
+- `static/js/switcher_telemetry.js`: Jinja-side SDK (pure JS, `window.trackSwitcherClick`)
+- `tests/unit/test_switcher_telemetry.py`: 9/9 passing
+- `docs/spa-migration-runbook.md`: switcher enable runbook
+
+### B-1: Jinja Template Validation
+- All 38+6 Jinja templates confirmed present in `templates/` directory
+
+### B-2a: pages_admin.py - 17 Routes Rolled Back
+- All 17 redirect() calls restored to render_template()
+- 16 templates got `{% block spa_switcher %}` added (exception_reporter.html excluded - no SPA counterpart)
+
+### B-2b: pages_ai.py - 10 Routes Rolled Back
+- 10 redirect() calls restored to render_template()
+- 9 templates got `{% block spa_switcher %}` added (strategy_wizard.html uses inline injection)
+
+### B-2c: pages_market.py + pages_stock.py - 18 Routes Rolled Back
+- 3 market routes restored to render_template (global_radar, tdx_blocks, hot_sectors)
+- 7 static + 5 f-string + 3 static stock routes restored to render_template
+- `/share/decision/<share_token>` restored to SSR (ADR-0006: no switcher added)
+- 15 templates got `{% block spa_switcher %}` added
+
+### B-3: Group B Dual-Track Pages - 8 Switcher Links Added
+- 8 Jinja pages that co-exist with SPA counterparts got switcher links:
+  - backtest.html, alpha_factory.html, index.html, market_panorama.html,
+  - longhu_bang.html, signal_flag.html, experiment_reporter.html, login.html
+- (selection_result.html already had switcher from B-2c)
+
+### B-4: Dead Code Cleanup
+- Deleted `spa_redirects.py` (register_spa_redirects() never called anywhere)
+
+### Verification
+- All modified files pass py_compile
+- Group A: 45 routes rolled back (302 → render_template)
+- Group B: 8 dual-track pages got switcher links
+- `/share/decision` SSR restored per ADR-0006
+- Total: 30 templates modified with switcher blocks
