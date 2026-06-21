@@ -179,6 +179,9 @@ def create_app() -> Flask:
     from app.core.middleware.request_context import init_request_context_middleware
 
     init_request_context_middleware(app)
+    from app.presentation.api.auth_middleware import install as install_auth_middleware
+
+    install_auth_middleware(app)
     from app.core.middleware.api_rate_limit import init_api_rate_limit_middleware
 
     init_api_rate_limit_middleware(app)
