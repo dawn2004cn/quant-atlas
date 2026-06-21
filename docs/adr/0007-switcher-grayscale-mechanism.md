@@ -74,9 +74,17 @@
 - 阶段 1 期间用户态分裂——一部分在 Flask、一部分在 SPA——两套 UI 都要保持可用，调试 / 客服回应成本略增。
 - 埋点数据要有人定期看 + 决策切阶段（建议每页有"灰度负责人"）。
 
-### 中性
-- ADR-0006（`/share/*` SSR 例外）仍有效——`/share/*` 不参与 switcher 灰度（无 Flask 旧版可切换）。
-- 终态（M3 末）仍是"完全替换 Jinja，除 `/share/*` 外"——本 ADR 不改变终态目标。
+### 注意：适用范围变更
+
+本 ADR 最初设计为"仅适用于 M3+ 新迁移页面"，后经项目决策变更为"**所有迁移页面（含 M1+M2 已迁的 36+ 页）均走 switcher 灰度**"。这意味着：
+
+- M1+M2 已迁的 36+ 页 302 redirect 必须回滚为 render_template + switcher 入口
+- Group B（双轨并存页面）需加 switcher 链接（不需回滚，因为本来没 redirect）
+- `/share/decision/<token>` 保留 SSR（ADR-0006），**不加 switcher**
+
+详见 [B 方案执行计划](../../superpowers/plans/2026-06-21-rollback-plan-b.md)。
+
+终态（M3 末）仍是"完全替换 Jinja，除 `/share/*` 外"。
 
 ## 实施清单
 
