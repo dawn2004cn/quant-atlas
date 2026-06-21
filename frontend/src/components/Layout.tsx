@@ -65,6 +65,8 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "模拟观察单", to: "/signal-observations" },
       { label: "策略向导", to: "/strategy-wizard" },
       { label: "Alpha Factory", to: "/alpha-factory" },
+      { label: "因子仓库", to: "/factor-repository" },
+      { label: "因子演化", to: "/factor-evolution" },
       { label: "因子市场", to: "/marketplace", feature: "feature_alpha_marketplace" },
       { label: "实验报告", to: "/experiments" },
     ],

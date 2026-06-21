@@ -66,6 +66,11 @@ const ExpertTeamsPage = lazy(() => import("./pages/ExpertTeams").then((m) => ({ 
 const AgentCenterPage = lazy(() => import("./pages/AgentCenter").then((m) => ({ default: m.AgentCenterPage })));
 const DecisionReplaySpacePage = lazy(() => import("./pages/DecisionReplaySpace").then((m) => ({ default: m.DecisionReplaySpacePage })));
 
+/* Factor Pages */
+const FactorRepositoryPage = lazy(() => import("./pages/FactorRepository"));
+const FactorEvolutionPage = lazy(() => import("./pages/FactorEvolution"));
+const FactorDetailPage = lazy(() => import("./pages/FactorDetail"));
+
 /* Wraps a lazy-loaded page with Suspense + per-route ErrorBoundary */
 function LazyRoute({ children, label }: { children: React.ReactNode; label?: string }) {
   return (
@@ -150,6 +155,11 @@ export default function App() {
               <Route path="expert-teams" element={<LazyRoute label="ExpertTeams"><ExpertTeamsPage /></LazyRoute>} />
               <Route path="agent-center" element={<LazyRoute label="AgentCenter"><AgentCenterPage /></LazyRoute>} />
               <Route path="decision-replay" element={<LazyRoute label="DecisionReplaySpace"><DecisionReplaySpacePage /></LazyRoute>} />
+
+              {/* Factor Pages */}
+              <Route path="factor-repository" element={<LazyRoute label="FactorRepository"><FactorRepositoryPage /></LazyRoute>} />
+              <Route path="factor-evolution" element={<LazyRoute label="FactorEvolution"><FactorEvolutionPage /></LazyRoute>} />
+              <Route path="factor/:factorId" element={<LazyRoute label="FactorDetail"><FactorDetailPage /></LazyRoute>} />
 
               <Route path="*" element={<NotFoundPage />} />
             </Route>

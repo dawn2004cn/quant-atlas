@@ -196,6 +196,96 @@ export async function fetchAlphaFactors(): Promise<{ items: AlphaFactorItem[]; t
   return apiFetchV1("/alpha-factory/factors");
 }
 
+export async function fetchFactorRepository(params: {
+  page?: number;
+  limit?: number;
+  regime?: string;
+  search?: string;
+}): Promise<{
+  factors: AlphaFactorItem[];
+  total: number;
+  page: number;
+  limit: number;
+  avg_sharpe?: number;
+  active_count?: number;
+}> {
+  const q = new URLSearchParams();
+  if (params.page) q.set("page", String(params.page));
+  if (params.limit) q.set("limit", String(params.limit));
+  if (params.regime) q.set("regime", params.regime);
+  if (params.search) q.set("search", params.search);
+  return apiFetchV1(`/alpha-factory/factors?${q}`);
+}
+
+export async function fetchFactorLineage(params: {
+  limit?: number;
+}): Promise<{
+  nodes: Array<{
+    id: string;
+    factor_id?: string;
+    name?: string;
+    type?: string;
+    ic?: number;
+    ic_proxy?: boolean;
+    full_name?: string;
+    experiment_id?: string;
+    status?: string;
+  }>;
+  links: Array<{ source: string; target: string }>;
+}> {
+  const q = new URLSearchParams();
+  if (params.limit) q.set("limit", String(params.limit));
+  return apiFetchV1(`/alpha-factory/lineage?${q}`);
+}
+
+export async function fetchFactorDetail(factorId: string): Promise<{
+  factor_id: string;
+  formula?: string;
+  sharpe_ratio?: number;
+  max_drawdown?: number;
+  ic_mean?: number;
+  regime?: string;
+  backtest_result?: {
+    annual_return?: number;
+    sharpe_ratio?: number;
+    win_rate?: number;
+    profit_loss_ratio?: number;
+    max_drawdown?: number;
+    trade_count?: number;
+  };
+  ic_series?: Array<{ date: string; ic: number }>;
+  correlations?: Array<{ factor_id: string; name?: string; value: number }>;
+  created_at?: string;
+  data_range?: string;
+  source?: string;
+}> {
+  return apiFetchV1(`/alpha-factory/factors?factor_id=${encodeURIComponent(factorId)}`);
+}
+
+export async function evolveFactor(factorId: string): Promise<{ status?: string; job_id?: string }> {
+  return apiFetchV1("/alpha-factory/evolve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ factor_id: factorId }),
+  });
+}
+
+export async function submitFactorToVault(factorId: string): Promise<{ factor_id?: string }> {
+  return apiFetchV1("/alpha-factory/experiment/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ factor_id: factorId, save_to_vault: true }),
+  });
+}
+
+export async function analyzeExperiment(experimentId: string): Promise<{ status?: string }> {
+  return apiFetchV1("/alpha-factory/experiment/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ experiment_id: experimentId }),
+  });
+}
+
 export async function validateAlphaFormula(formula: string): Promise<ValidateResult> {
   const data = await apiFetch<{ data?: ValidateResult }>(
     `/api/v1/alpha-factory/validate?formula=${encodeURIComponent(formula)}`,
