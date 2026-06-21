@@ -12,6 +12,13 @@
 
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/run-history" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('run-history')">
+  试试新版 →
+</a>
+{% endblock %}
+
 
 
 {% block content %}

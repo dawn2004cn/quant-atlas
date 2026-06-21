@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/war-room" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('war-room')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-3" x-data="warRoom()" x-init="init()">
     <div class="mb-3">

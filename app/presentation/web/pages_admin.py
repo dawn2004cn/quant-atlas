@@ -7,7 +7,6 @@ from flask import (
     Response,
     abort,
     make_response,
-    redirect,
     render_template,
     request,
     url_for,
@@ -29,19 +28,19 @@ def register_pages(blueprint: Blueprint) -> None:
     @login_required
     @admin_required()
     def collaboration_workspace():
-        return redirect("/app/collaboration-workspace", code=302)
+        return render_template("collaboration_workspace.html")
 
     @blueprint.route("/task-center")
     @login_required
     @admin_required()
     def task_center():
-        return redirect("/app/task-center", code=302)
+        return render_template("task_center.html")
 
     @blueprint.route("/alert-center")
     @login_required
     @admin_required()
     def alert_center():
-        return redirect("/app/alert-center", code=302)
+        return render_template("alert_center.html")
 
     @blueprint.route("/shadow-account")
     @login_required
@@ -53,13 +52,13 @@ def register_pages(blueprint: Blueprint) -> None:
     @login_required
     @admin_required()
     def expert_teams():
-        return redirect("/app/expert-teams", code=302)
+        return render_template("expert_teams.html")
 
     @blueprint.route("/run-history")
     @login_required
     @admin_required()
     def run_history():
-        return redirect("/app/run-history", code=302)
+        return render_template("run_history.html")
 
     @blueprint.route("/quant-lab")
     @login_required
@@ -71,53 +70,53 @@ def register_pages(blueprint: Blueprint) -> None:
     @login_required
     @admin_required()
     def agent_center():
-        return redirect("/app/agent-center", code=302)
+        return render_template("agent_center.html")
 
     @blueprint.route("/swarm-dashboard")
     @login_required
     @admin_required()
     @require_strategic_feature("swarm_topology")
     def swarm_dashboard():
-        return redirect("/app/swarm-dashboard", code=302)
+        return render_template("swarm_dashboard.html")
 
     @blueprint.route("/swarm-designer")
     @login_required
     @admin_required()
     @require_strategic_feature("swarm_topology")
     def swarm_designer():
-        return redirect("/app/swarm-designer", code=302)
+        return render_template("swarm_designer.html")
 
     @blueprint.route("/swarm-designer/flow")
     @login_required
     @admin_required()
     @require_strategic_feature("swarm_topology")
     def swarm_designer_flow():
-        return redirect("/app/swarm-designer", code=302)
+        return render_template("swarm_designer.html")
 
     @blueprint.route("/research-canvas")
     @login_required
     @admin_required()
     def research_canvas():
-        return redirect("/app/research-canvas", code=302)
+        return render_template("research_canvas.html")
 
     @blueprint.route("/war-room")
     @login_required
     @admin_required()
     @require_strategic_feature("war_room")
     def war_room():
-        return redirect("/app/war-room", code=302)
+        return render_template("war_room.html")
 
     @blueprint.route("/voice-briefing")
     @login_required
     def voice_briefing():
-        return redirect("/app/voice-briefing", code=302)
+        return render_template("voice_briefing.html")
 
     @blueprint.route("/decision-replay")
     @login_required
     @admin_required()
     @require_strategic_feature("decision_theater")
     def decision_replay_space():
-        return redirect("/app/decision-replay", code=302)
+        return render_template("decision_replay_space.html")
 
     @blueprint.route("/experiment-reporter")
     @login_required
@@ -159,7 +158,7 @@ def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/moments")
     @login_required
     def moments():
-        return redirect("/app/moments", code=302)
+        return render_template("moments.html")
 
     @blueprint.route("/uploads/<path:filename>")
     @login_required
@@ -197,17 +196,19 @@ def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/yanbao-hub")
     @login_required
     def yanbao_hub():
-        return redirect("/app/yanbao-hub", code=302)
+        settings = get_settings()
+        return render_template("yanbao_hub.html", ux_env_hints=_ux_env_hints(settings))
 
     @blueprint.route("/message-center")
     @login_required
     def message_center():
-        return redirect("/app/message-center", code=302)
+        settings = get_settings()
+        return render_template("message_center.html", ux_env_hints=_ux_env_hints(settings))
 
     @blueprint.route("/task/<task_id>")
     @login_required
     def task_detail(task_id: str):
-        return redirect(f"/app/task/{task_id}", code=302)
+        return render_template("task_detail.html", task_id=task_id)
 
     @blueprint.route("/avatars/pm/<manager_id>")
     @login_required

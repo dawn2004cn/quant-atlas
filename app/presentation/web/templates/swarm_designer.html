@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/swarm.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/swarm-designer" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('swarm-designer')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-3" x-data="swarmDesigner()" x-init="init()">
     <div class="mb-3">

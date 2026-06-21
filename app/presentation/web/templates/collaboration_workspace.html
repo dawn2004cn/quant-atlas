@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/collaboration-workspace" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('collaboration-workspace')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <h1 class="page-title">🤝 协作投研工作区</h1>

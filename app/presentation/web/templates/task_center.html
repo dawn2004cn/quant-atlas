@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/task-center" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('task-center')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="task-center" id="mainContent">
     <div class="task-hero">

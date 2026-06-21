@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/message-center" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('message-center')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div id="mcGlobalError" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger" role="alert"></div>
 {% for h in ux_env_hints|default([]) %}

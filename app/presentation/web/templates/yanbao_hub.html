@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/yanbao-hub" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('yanbao-hub')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div id="ybGlobalError" class="qc-ux-banner qc-ux-banner--danger qa-is-hidden" role="alert"></div>
 {% for h in ux_env_hints|default([]) %}

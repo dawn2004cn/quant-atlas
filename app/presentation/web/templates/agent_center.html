@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/agent-center" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('agent-center')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="agent-center-page">
 <div class="agent-hero">

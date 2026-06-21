@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/voice-briefing" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('voice-briefing')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-3" x-data="voiceBriefing()" x-init="init()">
     <div class="mb-3">

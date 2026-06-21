@@ -192,6 +192,8 @@
                 </a>
                 {% endif %}
             </div>
+            {% block spa_switcher %}{% endblock %}
+            <script src="{{ url_for('static', filename='js/switcher_telemetry.js') }}" nonce="{{ csp_nonce() }}"></script>
         </nav>
         <div class="qc-mobile-lane">
             {% if current_user.is_authenticated %}

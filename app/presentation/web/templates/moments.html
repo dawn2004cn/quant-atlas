@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/moments" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('moments')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="moments moments--feed-first">
   <section class="section-shell card moments-hero">
