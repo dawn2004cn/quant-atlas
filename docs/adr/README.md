@@ -28,6 +28,7 @@
 | [0004](0004-playwright-ci-strategy.md) | Playwright 同时跑在 CI 与本地 | Accepted | PR 必过 E2E，迁移期回归防线 |
 | [0005](0005-existing-spa-pages-coverage.md) | 已迁 11 个 SPA 页面补冒烟 E2E | Accepted | 16–21 条 case，迁移期保护 shared 资源 |
 | [0006](0006-public-share-ssr-exception.md) | `/share/*` 永久保留 Jinja SSR | Accepted | 唯一刻意保留的 SSR 出口，SEO + 首屏优先 |
+| [0007](0007-switcher-grayscale-mechanism.md) | Switcher 灰度机制 | Accepted | Flask 与 SPA 渐进双轨切换，三阶段：switcher → 302 → 301 |
 
 ## 写作规范
 

@@ -54,30 +54,56 @@ SPA 已经迈出第一步：
 - SPA 始终位于 `/app/*`，**保持现状**
 - 选择 `/app/*` 而非根路径的理由：未来若需要把 SPA 拆出 Flask（例如 CDN 托管 + 独立 API 服务器），迁移成本接近零
 
-### 2.2 老 Jinja URL 处置（302 灰度 -> 301 永久）
+### 2.2 老 Jinja URL 处置（switcher -> 302 -> 301 三阶段灰度）
 
-每个 Jinja 页面迁完后，对应的 Flask 路由实现替换为重定向到 `/app/<对应路径>`，分两阶段：
+**方向调整（2026-06-21）**：用户要求"Flask 右上做新版 SPA 切换、Flask 也保留"，原计划"302 一周 -> 301"调整为三阶段灰度。详见 [ADR-0007](../../adr/0007-switcher-grayscale-mechanism.md)。
 
-- **第一阶段（灰度一周）**：返回 `302 Found`。浏览器不缓存，每次仍命中服务器，便于观察跳转目标是否正确、访问量是否符合预期、是否有外部系统依赖被打断
-- **第二阶段（永久）**：切换为 `301 Moved Permanently`。浏览器永久缓存，外链/书签/搜索引擎索引随之迁移
+每个 Jinja 页面迁完后经历三个阶段，最终仍切到 SPA：
 
-**为什么不直接 301**：301 会被浏览器强缓存，一旦 `Location` 写错，老用户的浏览器即使在服务器修复后仍会跳到错误地址，必须清浏览器缓存才能恢复。302 灰度是廉价的工程保险。
+- **阶段 1（switcher 入口，1–2 周）**：Flask 旧版页面右上角加"试试新版 →"链接，指向对应 `/app/<路径>`。**默认仍在 Flask**，用户主动尝鲜。SPA 对应页面右下角同时加"回到经典版 ←"小链接，让用户能自由回跳。埋点收集主动切换率、转化稳定率、SPA 错误率。
+- **阶段 2（302 灰度，1 周）**：满足任一阈值（主动切换率 ≥ 30% / 转化稳定率 ≥ 60% / SPA 错误率 < 0.5%）即可进入。Flask 该页 `302 Found` 重定向到 SPA。SPA 回跳口保留兜底。
+- **阶段 3（301 永久）**：阶段 2 一周内无重大回滚，切 `301 Moved Permanently`。SPA 回跳口移除。
+
+**为什么三阶段而非直接 302/301**：
+- 阶段 1 提供"用户主动选择信号"——这是判断 SPA 新版体感是否真正更好的关键依据。直接 302 是被动切换，无法获得这个信号。
+- 阶段 1 的回跳口让用户能从 SPA 退回 Flask，发现问题可立即反馈而非弃用产品。
+- 301 强缓存的风险（写错 Location 老用户清缓存才能恢复）仍由阶段 2 的 302 兜底。
 
 **Flask 实现示例**：
 
 ```python
-# 灰度阶段（302）
+# 阶段 1（switcher 入口）：Jinja 模板覆写 spa_switcher 块
+# templates/pages/dashboard.html
+{% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/dashboard" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick('dashboard')">
+  试试新版 →
+</a>
+{% endblock %}
+
+# 阶段 2（302 灰度）
 from flask import redirect
 
 @blueprint.route("/dashboard")
 def dashboard():
     return redirect("/app/dashboard", code=302)
 
-# 灰度通过后切换为永久（301）
+# 阶段 3（301 永久）
 @blueprint.route("/dashboard")
 def dashboard():
     return redirect("/app/dashboard", code=301)
 ```
+
+#### 2.2.1 Switcher 基础设施（M0 任务 0.5 预埋）
+
+M0 一次性预埋以下基础设施，M1+ 每页只需 0.5h 即可启用 switcher：
+
+- **Jinja 注入点**：`templates/base.html` 的 `<nav class="app-nav">` 末尾加 `{% block spa_switcher %}{% endblock %}` 空块。每个迁移页面在自己的 Jinja 模板里覆写此块即可。
+- **SPA 注入点**：`frontend/src/components/Layout.tsx` 加 `enableBackToClassic` prop + `backToClassicUrl` prop，子页面 wrap 时启用回跳口。
+- **埋点端点**：`POST /api/v1/telemetry/switcher`，接受 `{event, page, user_id}`，写入 `instance/telemetry.jsonl`（轻量 JSONL，无需数据库）。
+- **前端 SDK**：`frontend/src/lib/switcher-telemetry.ts` 暴露 `trackSwitcherClick()` / `trackBackToClassic()`，Jinja 端通过 `window.trackSwitcherClick` 暴露同一函数。
+
 
 ### 2.3 特殊路径
 
@@ -331,7 +357,7 @@ docs/events.md 列出所有事件，每条一段：
 | 6 | 流式契约 | A+C 双轨认证 + 渐进事件契约（pydantic event model + events.md） |
 | 7 | 测试策略 | B Playwright 关键路径 E2E |
 | 8 | 里程碑 | C 五里程碑（M0 地基 -> M1 核心流 -> M2 次核心+流式 -> M3 长尾收尾 -> M4 契约固化+Flutter SDK 试产） |
-| 9 | 重定向 | A 每页先 302 灰度一周，再切 301 |
+| 9 | 重定向 | 三阶段灰度（switcher 1–2 周 -> 302 一周 -> 301 永久），见 ADR-0007 |
 | 10 | M3 截止 | 2 天硬截止 |
 | 11 | templates/ 处置 | 全部保留，迁完页面冻结模板（不再演进） |
 

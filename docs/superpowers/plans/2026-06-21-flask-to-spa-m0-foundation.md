@@ -37,6 +37,90 @@ git commit -m "docs: M0 ADR 0001-0006 (JWT, OpenAPI, refresh, Playwright, SPA co
 
 ---
 
+## 任务 0.5：Switcher 基础设施预埋（ADR-0007 触发）
+
+**触发**：用户在 ADR 评审后追加"Flask 右上做新版 SPA 切换、Flask 也保留"的方向调整，决议三阶段灰度（switcher → 302 → 301）。M0 完整预埋基础设施，M1+ 每页只填入 URL 即可启用。
+
+**预期工期**：0.5 天
+
+**文件：**
+
+- 修改 `app/presentation/web/templates/base.html`（line 29 `<nav class="app-nav">` 内末尾追加 `{% block spa_switcher %}{% endblock %}`）
+- 修改 `frontend/src/components/Layout.tsx`（追加 `SpaSwitcherContext` Provider + `useSpaSwitcher()` hook）
+- 创建 `frontend/src/lib/switcher-telemetry.ts`（埋点 SDK helper）
+- 创建 `app/presentation/api/routes_v1_telemetry.py`（埋点端点）
+- 创建 `tests/unit/test_switcher_telemetry.py`（单元测试）
+- 创建 `tests/e2e/switcher.spec.ts`（E2E 测试占位，M1 第一页迁移时启用）
+- 更新 `docs/spa-migration-runbook.md`（新文件，含"如何为新页面启用 switcher"小节）
+
+**步骤：**
+
+1. **Jinja 注入点**：在 `app/presentation/web/templates/base.html` 第 29 行 `<nav class="app-nav">` 内末尾追加：
+   ```jinja
+   {% block spa_switcher %}{% endblock %}
+   ```
+   默认空块，M1+ 每个迁移页面在自己的 Jinja 模板里重写：
+   ```jinja
+   {% block spa_switcher %}
+   <a href="/app/dashboard" class="spa-switcher-link"
+      data-switcher-page="dashboard"
+      onclick="window.trackSwitcherClick && window.trackSwitcherClick('dashboard')">
+     试试新版 →
+   </a>
+   {% endblock %}
+   ```
+
+2. **SPA 注入点**：在 `frontend/src/components/Layout.tsx` 添加 `SpaSwitcherContext`，子页面可通过 props 启用回跳口：
+   ```tsx
+   <Layout enableBackToClassic backToClassicUrl="/dashboard">
+     <DashboardPage />
+   </Layout>
+   ```
+   Layout 内部根据 `enableBackToClassic` 在右下角渲染"回到经典版 ←"链接。
+
+3. **埋点端点**：`app/presentation/api/routes_v1_telemetry.py` 实现 `POST /api/v1/telemetry/switcher`：
+   - 接受 `{event: "switch_to_spa"|"back_to_classic", page: str, user_id: str|null}`
+   - 写入 `instance/telemetry.jsonl`（一行一记录，含 timestamp）
+   - 无需鉴权（埋点 fire-and-forget），但有 IP 限流（每秒 10 条/IP）
+   - 注册到 v1 蓝图，与其他 API 路由一致
+
+4. **前端 SDK**：`frontend/src/lib/switcher-telemetry.ts` 导出：
+   ```ts
+   export function trackSwitcherClick(page: string): void;
+   export function trackBackToClassic(page: string): void;
+   ```
+   实现：fetch POST `/api/v1/telemetry/switcher`，失败静默（埋点不阻塞用户）。
+   **额外**：在 Jinja 端也注入 `window.trackSwitcherClick`，让 Jinja 页面的 switcher 链接 onclick 能直接调用。
+
+5. **单元测试** `tests/unit/test_switcher_telemetry.py`：
+   - 端点接受合法 POST，写入 JSONL，返回 204
+   - 端点拒绝非法事件类型，返回 400
+   - IP 限流生效（连续 11 条返回 429）
+
+6. **E2E 测试占位** `tests/e2e/switcher.spec.ts`：写一个 `test.skip()` 占位，注释说明"M1 第一页迁移时启用，验证 switcher → 跳转 → 回跳完整链路"。
+
+7. **Runbook 文档**：`docs/spa-migration-runbook.md` 新建，含三个小节：
+   - "如何为新页面启用 switcher"（Jinja `{% block %}` + SPA `<Layout enableBackToClassic>` 两步示例）
+   - "如何查看埋点数据"（`cat instance/telemetry.jsonl | jq` 命令示例）
+   - "三阶段切换条件"（从 ADR-0007 摘要：主动切换率 ≥ 30% / 转化稳定率 ≥ 60% / SPA 错误率 < 0.5%）
+
+**验证准则：**
+
+- [ ] `python -c "import app; print('ok')"` 通过（埋点端点注册不破坏 app 启动）
+- [ ] 跑 base.html 模板单测：渲染默认 base.html 不报错，且 `{% block spa_switcher %}` 占位符存在
+- [ ] 跑 `tests/unit/test_switcher_telemetry.py` 全绿
+- [ ] 前端 `npm run typecheck` 通过（Layout 接口变更不破坏现有 11 页 SPA）
+- [ ] 手动验证：在浏览器打开 `/` Flask 首页，DevTools 看到 `<nav class="app-nav">` 末尾有空块（HTML 注释占位即可）
+- [ ] 手动验证：访问 `/app/dashboard`，DevTools 看到 SPA 加载正常，无 console error
+
+**预期产出：**
+
+M1+ 每个迁移页面只需 0.5h 即可启用 switcher（填两处 URL），不再重新做基础设施。
+
+**任务 0.5 不通过则不进入任务 1。**
+
+---
+
 ## 任务 1：JWT 服务
 
 **文件：**
