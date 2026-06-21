@@ -220,6 +220,11 @@
         global.document.addEventListener('qa:focus-change', function () {
             decorateFocusLinks();
         });
+        global.document.addEventListener('qa:page-swapped', function () {
+            wireGlobalBar();
+            var main = global.document.getElementById('mainContent');
+            decorateFocusLinks(main || global.document);
+        });
     }
 
     if (global.document.readyState === 'loading') {

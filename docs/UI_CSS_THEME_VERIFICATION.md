@@ -56,7 +56,20 @@ python -m pytest tests/smoke/test_template_inline_styles.py tests/smoke/test_dua
 ruff check scripts/check_template_inline_styles.py
 ```
 
-## 自动化结构验收（2026-06-20）
+## 壳层导航（2026-06-21）
+
+Flask 经典页启用 `shell_nav.js`：仅替换 `#mainContent`，顶栏/页脚不刷新；hover prefetch HTML + 页级 CSS。
+
+| 检查项 | 预期 |
+|--------|------|
+| 操盘台 ↔ 回测 ↔ 个股 | 顶栏不闪白/闪黑，不整页 reload |
+| 主题切换 | 即时变亮/变暗（无 0.3s 背景过渡） |
+| 浏览器后退 | 内容区恢复上一页 |
+| 复杂页脚本异常 | 链接加 `data-shell-nav="off"` |
+
+已迁 SPA 的页面优先走 `/app/*`（更快）。
+
+---
 
 以下项由 `tests/smoke/test_dual_theme_pages.py` 覆盖，**不等同于**视觉走查：
 

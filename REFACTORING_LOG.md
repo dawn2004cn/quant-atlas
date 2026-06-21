@@ -4,6 +4,27 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-06-21 (壳层导航 + 主题闪屏修复)
+
+### 问题
+切页整页白/黑屏、整页 reload 慢、Light/Dark 切换因 `body transition 0.3s` 体感慢。
+
+### 交付
+- **`static/js/shell_nav.js`**：同源链接仅替换 `#mainContent`；顶栏/页脚不刷新；hover prefetch
+- **`base.html`**：主题脚本即时写 `html` 背景色；`data-nav-endpoint` 同步导航 active
+- **`base_app.js` / `common.css`**：主题切换即时；移除 body 背景 transition
+
+### opt-out
+链接 `data-shell-nav="off"` 强制整页刷新。
+
+### 2026-06-21 增强
+- prefetch 时 `rel=preload` 页级 CSS；`reinitAfterSwap` 滚动置顶 + jQuery `qa:page-swapped`
+- `focus_context.js` 监听 `qa:page-swapped` 重绑焦点栏
+- `base.html` preload workbench/stock-detail/strategy/market 四套页 CSS
+- tail 脚本每次导航重新执行（移除 duplicate-src 跳过）
+
+---
+
 ## 2026-06-21 (Flask → SPA 迁移：M1 + M2 批量完成)
 
 ### 背景
@@ -3224,3 +3245,19 @@ Per `docs/06_Expert_Evolution_Guide.md`, P0 priorities: RBAC → Audit Chain →
 - All modified files pass py_compile
 - All tests green (21 error handler tests)
 - App boots with 0 new warnings
+
+
+## 2026-06-21 - p0_infrastructure.py ????? + ????
+
+### ??
+- `p0_infrastructure.py` ? `upgrade()` ???? `op.create_table()` ?? 4 ??? 1 ? `add_column()`????????? `(1050, "Table 'audit_events' already exists")`
+- ?? `schema_bootstrap.py` ? create_all ??????????? warning ????
+- ????? `from_env` ??? `alembic/env.py` ???????`AppSettings.from_env()` ? `get_settings()`?
+
+### ??
+- **`alembic/versions/p0_infrastructure.py`**: `upgrade()` ???? `op.get_bind()` + `sa.inspect(conn)`???? `create_table()` ? `add_column()` ??? `inspector.has_table()` / ?????????????
+
+### ??
+- `py_compile` ??
+- App ???856 routes???? warning
+- ??? `Alembic upgrade failed` warning ?? MySQL ??? `192.168.8.103` ??????????????????

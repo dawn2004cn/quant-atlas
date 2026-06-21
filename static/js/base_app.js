@@ -18,7 +18,11 @@ function toggleTheme() {
     var isDark = html.getAttribute('data-theme') === 'dark';
     var newTheme = isDark ? 'light' : 'dark';
     html.setAttribute('data-theme', newTheme);
+    html.style.colorScheme = newTheme;
     localStorage.setItem('theme', newTheme);
+    if (window.QAShellNav && window.QAShellNav.applyHtmlThemeColors) {
+        window.QAShellNav.applyHtmlThemeColors(newTheme);
+    }
 }
 
 /* Theme icons follow [data-theme] via common.css — no per-icon display toggling. */
