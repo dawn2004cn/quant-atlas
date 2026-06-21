@@ -1,4 +1,10 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/hot-sectors" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('hot-sectors')">
+  �����°� ��
+</a>
+{% endblock %}
 
 {% block title %}热点板块 - Quant Atlas{% endblock %}
 
@@ -13,44 +19,44 @@
       <div class="hero-caption">Hot Sectors Monitor</div>
       <h1 class="page-title">热点板块</h1>
       <p class="page-subtitle">
-        多源板块监控：<strong>东方财富</strong>、<strong>同花顺</strong>（<a href="https://q.10jqka.com.cn/gn/" target="_blank" rel="noopener">概念</a> /
+        多源板块监控�?strong>东方财富</strong>�?strong>同花�?/strong>�?a href="https://q.10jqka.com.cn/gn/" target="_blank" rel="noopener">概念</a> /
         <a href="https://q.10jqka.com.cn/dy/" target="_blank" rel="noopener">地域</a> /
         <a href="https://q.10jqka.com.cn/thshy/" target="_blank" rel="noopener">行业</a> /
-        <a href="https://q.10jqka.com.cn/zjhhy/" target="_blank" rel="noopener">证监会行业</a>）、
-        <strong>开盘啦</strong>、<strong>选股通</strong>；通达信见 <a href="/tdx-blocks">通达信板块</a>。
-        参考：<a href="https://mp.weixin.qq.com/s?__biz=MzI5NDAzNzExNw==&mid=2247489097&idx=1&sn=f63e6502cc957ad14188cd5867eb0995" target="_blank" rel="noopener">开盘啦板块概念地区成分股</a>
+        <a href="https://q.10jqka.com.cn/zjhhy/" target="_blank" rel="noopener">证监会行�?/a>）�?
+        <strong>开盘啦</strong>�?strong>选股�?/strong>；通达信见 <a href="/tdx-blocks">通达信板�?/a>�?
+        参考：<a href="https://mp.weixin.qq.com/s?__biz=MzI5NDAzNzExNw==&mid=2247489097&idx=1&sn=f63e6502cc957ad14188cd5867eb0995" target="_blank" rel="noopener">开盘啦板块概念地区成分�?/a>
       </p>
     </div>
     <div class="filter-bar">
       <select id="kindSel" class="select-soft">
-        <option value="all">全部数据源</option>
+        <option value="all">全部数据�?/option>
         <option value="em">东方财富</option>
-        <option value="ths">同花顺（四类）</option>
+        <option value="ths">同花顺（四类�?/option>
         <option value="csrc">证监会行业（同花顺）</option>
         <option value="kpl">开盘啦</option>
-        <option value="xgt">选股通概念</option>
-        <option value="concept">概念（东财+THS+开盘啦+选股通）</option>
-        <option value="region">地区（同花顺+开盘啦）</option>
+        <option value="xgt">选股通概�?/option>
+        <option value="concept">概念（东�?THS+开盘啦+选股通）</option>
+        <option value="region">地区（同花顺+开盘啦�?/option>
         <option value="industry">行业</option>
       </select>
       <select id="sourceSel" class="select-soft" title="数据来源">
-        <option value="auto">自动（优先 MySQL）</option>
-        <option value="mysql">仅 MySQL</option>
+        <option value="auto">自动（优�?MySQL�?/option>
+        <option value="mysql">�?MySQL</option>
         <option value="live">实时拉取</option>
       </select>
       <select id="snapshotSel" class="select-soft select-soft--wide" title="历史快照">
-        <option value="">最新快照</option>
+        <option value="">最新快�?/option>
       </select>
       <button type="button" class="btn-brand" id="btnRefresh">刷新</button>
       <button type="button" class="btn-soft" id="btnIngest" title="多源榜单入库；需 MySQL">入库 MySQL</button>
-      <button type="button" class="btn-soft" id="btnIngestThs" title="同花顺概念/地域/行业/证监会行业及成分股">入库同花顺</button>
+      <button type="button" class="btn-soft" id="btnIngestThs" title="同花顺概�?地域/行业/证监会行业及成分�?>入库同花�?/button>
       <span class="text-muted market-meta-hint" id="lastUpdate"></span>
     </div>
   </div>
   <div id="hsFreshnessStrip" class="qc-freshness-strip market-freshness-strip qa-is-hidden" aria-live="polite"></div>
 
   <div id="sectorsBox" class="table-container">
-    <div class="loading-state">正在加载热点板块…</div>
+    <div class="loading-state">正在加载热点板块�?/div>
   </div>
 </section>
 {% endblock %}
@@ -68,8 +74,8 @@ function extractApiItems(res){
 }
 function formatAmount(amount) {
   var n = Number(amount) || 0;
-  if (n >= 1e8) return (n / 1e8).toFixed(2) + '亿';
-  if (n >= 1e4) return (n / 1e4).toFixed(2) + '万';
+  if (n >= 1e8) return (n / 1e8).toFixed(2) + '�?;
+  if (n >= 1e4) return (n / 1e4).toFixed(2) + '�?;
   return n.toFixed(0);
 }
 function changeClass(pct) {
@@ -105,7 +111,7 @@ function loadSnapshots() {
 
 function loadSectors() {
   var kind = $('#kindSel').val() || 'all';
-  $('#sectorsBox').html('<div class="loading-state">加载中…</div>');
+  $('#sectorsBox').html('<div class="loading-state">加载中�?/div>');
   var source = $('#sourceSel').val() || 'auto';
   var snapshotAt = $('#snapshotSel').val() || '';
   var url = '/api/v1/hot-sectors?limit=60&kind=' + encodeURIComponent(kind) + '&source=' + encodeURIComponent(source);
@@ -114,15 +120,15 @@ function loadSectors() {
     var items = (res.data && res.data.sectors) ? res.data.sectors : extractApiItems(res);
     var warnings = (res.data && res.data.warnings) ? res.data.warnings : [];
     if (!items.length) {
-      var hint = ($('#sourceSel').val() === 'mysql') ? 'MySQL 无快照，请先点击「入库 MySQL」' : '暂无板块数据（可切换「实时拉取」+「东方财富」，或先入库）';
-      if (warnings.length) { hint += ' — ' + warnings.join('; '); }
+      var hint = ($('#sourceSel').val() === 'mysql') ? 'MySQL 无快照，请先点击「入�?MySQL�? : '暂无板块数据（可切换「实时拉取�?「东方财富」，或先入库�?;
+      if (warnings.length) { hint += ' �?' + warnings.join('; '); }
       $('#sectorsBox').html('<div class="empty-state">' + esc(hint) + '</div>');
       return;
     }
     currentSnapshotAt = (res.data && res.data.snapshot_at) ? res.data.snapshot_at : snapshotAt;
     var mode = (res.data && res.data.source_mode) ? res.data.source_mode : source;
     var ts = currentSnapshotAt || (res.data && res.data.updated_at) || '';
-    var warnTxt = warnings.length ? (' · ⚠ ' + warnings.join('; ')) : '';
+    var warnTxt = warnings.length ? (' · �?' + warnings.join('; ')) : '';
     $('#lastUpdate').text('[' + mode + '] ' + (ts || new Date().toLocaleTimeString()) + warnTxt);
     if (window.QAUserCenter && res.data) {
       QAUserCenter.renderHotSectorFreshness(document.getElementById('hsFreshnessStrip'), {
@@ -137,7 +143,7 @@ function loadSectors() {
 
     var html = '<div class="row"><div class="col-lg-6"><div class="blocks-list tdx-scroll">';
     html += '<table class="table" id="sectorsTable" tabindex="0"><thead><tr>';
-    html += '<th>#</th><th>板块</th><th>涨幅</th><th>涨股比</th><th>龙头</th><th>龙头涨幅</th><th>来源</th></tr></thead><tbody>';
+    html += '<th>#</th><th>板块</th><th>涨幅</th><th>涨股�?/th><th>龙头</th><th>龙头涨幅</th><th>来源</th></tr></thead><tbody>';
     items.forEach(function(x, idx) {
       var pct = Number(x.change_pct) || 0;
       var active = idx === 0 ? ' class="active-row"' : '';
@@ -168,7 +174,7 @@ function loadSectors() {
     var msg = textStatus === 'timeout'
       ? '请求超时（多源并行拉取较慢，请选「东方财富」或「仅 MySQL」）'
       : ((xhr.responseJSON && xhr.responseJSON.error && xhr.responseJSON.error.message) || ('HTTP ' + (xhr.status || textStatus)));
-    $('#sectorsBox').html('<div class="empty-state">加载失败：' + esc(msg) + '</div>');
+    $('#sectorsBox').html('<div class="empty-state">加载失败�? + esc(msg) + '</div>');
   });
 }
 
@@ -179,7 +185,7 @@ function showMembers(sectorCode, sectorName, boardKind, provider) {
     $box.html('<div class="empty-state">请选择左侧板块</div>');
     return;
   }
-  $box.html('<div class="loading-state">加载成分股…</div>');
+  $box.html('<div class="loading-state">加载成分股�?/div>');
   var source = $('#sourceSel').val() || 'auto';
   var url = '/api/v1/hot-sectors/' + encodeURIComponent(sectorCode) + '/members?limit=80&source=' + encodeURIComponent(source);
   url += '&board_kind=' + encodeURIComponent(boardKind || 'concept');
@@ -189,7 +195,7 @@ function showMembers(sectorCode, sectorName, boardKind, provider) {
   $.getJSON(url).done(function(res) {
     var items = (res.data && res.data.items) ? res.data.items : extractApiItems(res);
     if (!items.length) {
-      $box.html('<div class="empty-state">暂无成分股（非交易时段开盘啦可能为空）</div>');
+      $box.html('<div class="empty-state">暂无成分股（非交易时段开盘啦可能为空�?/div>');
       return;
     }
     var symbols = items.slice(0, 60).map(function(x) {
@@ -197,7 +203,7 @@ function showMembers(sectorCode, sectorName, boardKind, provider) {
     });
     var quoteUrl = '/api/v1/markets/CN/quotes?';
     symbols.forEach(function(s) { quoteUrl += 'symbol=' + encodeURIComponent(s) + '&'; });
-    $box.html('<div class="loading-state">加载行情…</div>');
+    $box.html('<div class="loading-state">加载行情�?/div>');
     $.get(quoteUrl).done(function(quoteRes) {
       var quoteMap = {};
       var stocks = quoteRes && (quoteRes.data || quoteRes.stocks);
@@ -212,15 +218,15 @@ function showMembers(sectorCode, sectorName, boardKind, provider) {
       renderMembers(items, {}, sectorName);
     });
   }).fail(function() {
-    $box.html('<div class="empty-state">成分股加载失败</div>');
+    $box.html('<div class="empty-state">成分股加载失�?/div>');
   });
 }
 
 function renderMembers(items, quoteMap, blockName) {
-  var html = '<div class="panel-head"><div><h3 class="panel-title">成分股 · ' + esc(blockName) + '</h3>';
-  html += '<div class="panel-subtitle">共 ' + items.length + ' 只（按涨跌幅排序，展示前 80）</div></div></div>';
+  var html = '<div class="panel-head"><div><h3 class="panel-title">成分�?· ' + esc(blockName) + '</h3>';
+  html += '<div class="panel-subtitle">�?' + items.length + ' 只（按涨跌幅排序，展示前 80�?/div></div></div>';
   html += '<div class="table-container tdx-scroll"><table class="table"><thead><tr>';
-  html += '<th>代码</th><th>名称</th><th>价格</th><th>涨跌幅</th><th>成交额</th><th>链路</th></tr></thead><tbody>';
+  html += '<th>代码</th><th>名称</th><th>价格</th><th>涨跌�?/th><th>成交�?/th><th>链路</th></tr></thead><tbody>';
   items.slice(0, 80).forEach(function(x) {
     var sym = String(x.symbol || '');
     var symNorm = sym;
@@ -230,13 +236,13 @@ function renderMembers(items, quoteMap, blockName) {
     var changePct = q.change_pct != null ? Number(q.change_pct) : (x.change_pct != null ? Number(x.change_pct) : null);
     var amount = q.amount != null ? Number(q.amount) : (x.amount != null ? Number(x.amount) : 0);
     var route = symNorm || sym;
-    var leaderMark = x.is_leader ? ' ★' : '';
+    var leaderMark = x.is_leader ? ' �? : '';
     html += '<tr><td><code>' + esc(symNorm || sym) + '</code></td>';
     html += '<td><a href="/stock/' + encodeURIComponent(route) + '">' + esc(x.name || q.name || '') + leaderMark + '</a></td>';
     html += '<td>' + (price != null ? ('¥' + price.toFixed(2)) : '--') + '</td>';
     html += '<td class="' + changeClass(changePct) + '">' + formatPct(changePct) + '</td>';
     html += '<td>' + formatAmount(amount) + '</td>';
-    html += '<td><a class="btn-soft btn-sm" href="/stock/' + encodeURIComponent(route) + '?m=CN#decision-brief-strip">简报</a></td></tr>';
+    html += '<td><a class="btn-soft btn-sm" href="/stock/' + encodeURIComponent(route) + '?m=CN#decision-brief-strip">简�?/a></td></tr>';
   });
   html += '</tbody></table></div>';
   $('#membersBox').html(html);

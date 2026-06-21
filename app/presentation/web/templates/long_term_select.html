@@ -1,4 +1,10 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/long-term-select" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('long-term-select')">
+  �����°� ��
+</a>
+{% endblock %}
 
 {% block title %}中长线选股 - Quant Atlas{% endblock %}
 
@@ -20,15 +26,15 @@
 <section class="qc-ux-onboarding" aria-label="中长线选股提示">
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">结果先入观察单</div>
-        <p class="qc-ux-step-desc">中长线更需要记录假设与触发条件；建议把候选先放进观察单，再写买卖计划与复盘。</p>
-        <a class="btn-brand btn-sm" href="{{ url_for('pages.signal_observations') }}">观察单</a>
+        <div class="qc-ux-step-title">结果先入观察�?/div>
+        <p class="qc-ux-step-desc">中长线更需要记录假设与触发条件；建议把候选先放进观察单，再写买卖计划与复盘�?/p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.signal_observations') }}">观察�?/a>
         <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">自选股</a>
     </div>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">2</span>
-        <div class="qc-ux-step-title">用回测校验</div>
-        <p class="qc-ux-step-desc">选股只是候选池；建议用回测做压力测试，再决定是否纳入交易执行。</p>
+        <div class="qc-ux-step-title">用回测校�?/div>
+        <p class="qc-ux-step-desc">选股只是候选池；建议用回测做压力测试，再决定是否纳入交易执行�?/p>
         <a class="btn-soft btn-sm" href="{{ url_for('pages.backtest') }}">策略回测</a>
     </div>
 </section>
@@ -39,7 +45,7 @@
         <h1 class="page-title">中长线选股</h1>
         <p class="page-subtitle">基于多种技术指标和基本面分析的中长线选股系统，帮助投资者发现具有长期增长潜力的优质股票</p>
         <div class="lts-hero-links">
-            <a href="{{ url_for('pages.stock_selector') }}" class="btn-soft">🎯 选股器</a>
+            <a href="{{ url_for('pages.stock_selector') }}" class="btn-soft">🎯 选股�?/a>
             <a href="{{ url_for('pages.alpha_factory') }}" class="btn-soft">🧬 Alpha Factory</a>
             <a href="{{ url_for('pages.backtest') }}" class="btn-soft">📈 策略回测</a>
         </div>
@@ -50,7 +56,7 @@
             <div>
                 <label class="label">市场</label>
                 <select id="marketSelect" class="select-soft">
-                    <option value="CN">A股</option>
+                    <option value="CN">A�?/option>
                     <option value="US">美股市场</option>
                     <option value="HK">港股市场</option>
                 </select>
@@ -58,10 +64,10 @@
             <div>
                 <label class="label">选股数量</label>
                 <select id="topNSelect" class="select-soft">
-                    <option value="5">5 只</option>
-                    <option value="10" selected>10 只</option>
-                    <option value="15">15 只</option>
-                    <option value="20">20 只</option>
+                    <option value="5">5 �?/option>
+                    <option value="10" selected>10 �?/option>
+                    <option value="15">15 �?/option>
+                    <option value="20">20 �?/option>
                 </select>
             </div>
             <div>
@@ -69,20 +75,20 @@
                 <select id="strategySelect" class="select-soft">
                     <option value="classic">经典策略</option>
                     <option value="tdx">TDX 指标策略</option>
-                    <option value="dualma">双均线策略</option>
-                    <option value="volumebreakout">成交量突破</option>
+                    <option value="dualma">双均线策�?/option>
+                    <option value="volumebreakout">成交量突�?/option>
                     <option value="emamacd">EMA + MACD</option>
-                    <option value="bollingerrsi">布林带 + RSI</option>
+                    <option value="bollingerrsi">布林�?+ RSI</option>
                     <option value="stochastic">随机指标</option>
                     <option value="tau">TAU 策略</option>
                 </select>
             </div>
             <div>
-                <label class="label">数据源</label>
+                <label class="label">数据�?/label>
                 <select id="dataSourceSelect" class="select-soft" title="qlib_factors / model_score 见路线图阶段3">
                     <option value="legacy" selected>经典引擎 legacy</option>
-                    <option value="qlib_factors">Qlib 因子截面（需 ENABLE_QLIB）</option>
-                    <option value="model_score">模型打分（legacy 预筛 + 动量排序）</option>
+                    <option value="qlib_factors">Qlib 因子截面（需 ENABLE_QLIB�?/option>
+                    <option value="model_score">模型打分（legacy 预筛 + 动量排序�?/option>
                 </select>
             </div>
             <div class="lts-form-row">
@@ -107,7 +113,7 @@
                             <th>代码</th>
                             <th>名称</th>
                             <th>价格</th>
-                            <th>涨跌幅</th>
+                            <th>涨跌�?/th>
                             <th>评分</th>
                             <th>评级</th>
                             <th>信号</th>
@@ -122,7 +128,7 @@
             <div class="panel-head">
                 <div>
                     <h2 class="panel-title">投资报告</h2>
-                    <div class="panel-subtitle">基于选股结果生成的投资建议</div>
+                    <div class="panel-subtitle">基于选股结果生成的投资建�?/div>
                 </div>
             </div>
             <div id="reportArea" class="report-card empty-state">点击生成报告按钮查看详细分析</div>
@@ -143,7 +149,7 @@ function fmt(val, digits = 2) {
 function renderSelectionResult(candidates) {
     $('#selectionResult').show();
     $('#generateReportBtn').show();
-    $('#resultMeta').text(`共 ${candidates.length} 只股票，基于技术指标和基本面分析`);
+    $('#resultMeta').text(`�?${candidates.length} 只股票，基于技术指标和基本面分析`);
     if (!candidates.length) {
         $('#resultTable').html('<tr><td colspan="8" class="text-center text-muted">暂无选股结果</td></tr>');
         return;
@@ -157,7 +163,7 @@ function renderSelectionResult(candidates) {
             <td>${fmt(stock.score, 0)}</td>
             <td>${stock.rating || '--'}</td>
             <td>${(stock.buy_signals || []).slice(0, 2).map(signal => `<span class="signal-pill">${signal}</span>`).join('') || `<span class="signal-pill">${stock.reason || '综合分析'}</span>`}</td>
-            <td>${qcWatchlistButton(stock.code, stock.name || stock.code, '加自选', 'btn-soft btn-sm')}</td>
+            <td>${qcWatchlistButton(stock.code, stock.name || stock.code, '加自�?, 'btn-soft btn-sm')}</td>
         </tr>
     `).join(''));
 }
@@ -190,7 +196,7 @@ $(function() {
             data_source: $('#dataSourceSelect').val(),
         };
         const $btn = $(this);
-        $btn.prop('disabled', true).text('选股中...');
+        $btn.prop('disabled', true).text('选股�?..');
         $.ajax({
             url: '/api/v1/long-term-select',
             method: 'POST',
@@ -199,7 +205,7 @@ $(function() {
             success: function(res) {
                 lastSelectionResult = res.candidates || res.data || [];
                 renderSelectionResult(lastSelectionResult);
-                $('#reportArea').addClass('empty-state').text('选股完成，点击生成报告查看详细分析');
+                $('#reportArea').addClass('empty-state').text('选股完成，点击生成报告查看详细分�?);
             },
             error: function() {
                 showToast('选股失败，请重试', 'error');
@@ -216,7 +222,7 @@ $(function() {
             return;
         }
         const $btn = $(this);
-        $btn.prop('disabled', true).text('生成中...');
+        $btn.prop('disabled', true).text('生成�?..');
         $.ajax({
             url: '/api/v1/long-term-report',
             method: 'POST',

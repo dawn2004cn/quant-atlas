@@ -1,6 +1,12 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/strategy-snapshots" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('strategy-snapshots')">
+  �����°� ��
+</a>
+{% endblock %}
 
-{% block title %}策略快照与回滚 | Quant Atlas{% endblock %}
+{% block title %}策略快照与回�?| Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
@@ -10,7 +16,7 @@
 <div class="container-fluid py-3">
     <div class="snap-hero">
         <h1 class="h2 mb-2">📸 快照中心</h1>
-        <p class="text-muted mb-0">部署快照用于策略回滚；决策快照封存个股简报与当时行情，供研究员复盘分享。</p>
+        <p class="text-muted mb-0">部署快照用于策略回滚；决策快照封存个股简报与当时行情，供研究员复盘分享�?/p>
     </div>
 
     <div class="snap-tabs" role="tablist">
@@ -24,7 +30,7 @@
         <div class="card-body">
             <div class="snap-toolbar">
                 <div>
-                    <label class="form-label small mb-1">策略名</label>
+                    <label class="form-label small mb-1">策略�?/label>
                     <input type="text" class="form-control form-control-sm" id="createName" placeholder="momentum_v1">
                 </div>
                 <div>
@@ -33,7 +39,7 @@
                 </div>
                 <div class="ssnap-filter-min">
                     <label class="form-label small mb-1">备注</label>
-                    <input type="text" class="form-control form-control-sm" id="createNotes" placeholder="可选">
+                    <input type="text" class="form-control form-control-sm" id="createNotes" placeholder="可�?>
                 </div>
                 <button class="btn btn-sm btn-primary" id="createBtn" type="button">创建快照</button>
             </div>
@@ -41,7 +47,7 @@
     </div>
 
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-        <input type="text" class="form-control form-control-sm ssnap-name-filter" id="filterName" placeholder="按策略名筛选">
+        <input type="text" class="form-control form-control-sm ssnap-name-filter" id="filterName" placeholder="按策略名筛�?>
         <button class="btn btn-sm btn-outline-secondary" id="refreshBtn" type="button">刷新列表</button>
     </div>
 
@@ -58,10 +64,10 @@
     <div id="decisionPanel" class="panel-hidden">
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-                <p class="text-muted small mb-2">在个股详情「决策简报」区点击「生成快照」后，会出现在此列表。团队成员登录后可通过链接查看封存时刻的市场全景。</p>
+                <p class="text-muted small mb-2">在个股详情「决策简报」区点击「生成快照」后，会出现在此列表。团队成员登录后可通过链接查看封存时刻的市场全景�?/p>
                 <div class="d-flex flex-wrap gap-2 align-items-end">
                     <div>
-                        <label class="form-label small mb-1">按代码筛选</label>
+                        <label class="form-label small mb-1">按代码筛�?/label>
                         <input type="text" class="form-control form-control-sm ssnap-symbol-filter" id="decisionFilterSymbol" placeholder="600519">
                     </div>
                     <button class="btn btn-sm btn-outline-secondary" id="refreshDecisionBtn" type="button">刷新</button>
@@ -77,7 +83,7 @@
 {% block extra_js %}
 <script nonce="{{ csp_nonce() }}">
 function formatTime(ts) {
-    if (!ts) return '—';
+    if (!ts) return '�?;
     try {
         const d = new Date(ts);
         return Number.isNaN(d.getTime()) ? ts : d.toLocaleString('zh-CN');
@@ -98,8 +104,8 @@ function renderSnapshot(item) {
         '</div>' +
         '<div class="snap-meta">' +
             '<span>版本: ' + (rev.vcs || '?') + ' / ' + (rev.revision || '?') + '</span>' +
-            '<span>Profile: ' + (item.deploy_profile || '—') + '</span>' +
-            '<span>部署者: ' + (item.deployed_by || '—') + '</span>' +
+            '<span>Profile: ' + (item.deploy_profile || '�?) + '</span>' +
+            '<span>部署�? ' + (item.deployed_by || '�?) + '</span>' +
         '</div>' +
         (item.notes ? '<div class="small text-muted mt-2">' + item.notes + '</div>' : '') +
         '<div class="snap-actions">' +
@@ -114,7 +120,7 @@ async function loadSnapshots() {
     const errorEl = document.getElementById('loadError');
     const listEl = document.getElementById('snapList');
     errorEl.classList.add('d-none');
-    listEl.innerHTML = '<div class="text-muted text-center py-4">加载中…</div>';
+    listEl.innerHTML = '<div class="text-muted text-center py-4">加载中�?/div>';
 
     const name = document.getElementById('filterName').value.trim();
     const params = new URLSearchParams({ limit: '50' });
@@ -126,7 +132,7 @@ async function loadSnapshots() {
         const payload = await response.json();
         const rows = (payload.status === 'success' || payload.ok) ? (payload.data ?? []) : [];
         if (!rows.length) {
-            listEl.innerHTML = '<div class="text-muted text-center py-4">暂无快照，请先创建。</div>';
+            listEl.innerHTML = '<div class="text-muted text-center py-4">暂无快照，请先创建�?/div>';
             return;
         }
         listEl.innerHTML = rows.map(renderSnapshot).join('');
@@ -137,7 +143,7 @@ async function loadSnapshots() {
         });
     } catch (e) {
         window.qcLogError('strategy_snapshots load failed', e);
-        errorEl.textContent = '快照列表加载失败，请确认已登录。';
+        errorEl.textContent = '快照列表加载失败，请确认已登录�?;
         errorEl.classList.remove('d-none');
         listEl.innerHTML = '';
     }
@@ -169,11 +175,11 @@ async function createSnapshot() {
 }
 
 async function rollbackSnapshot(snapshotId, applySettings, applyCode) {
-    let msg = '确认将此快照标记为 active 基线？';
+    let msg = '确认将此快照标记�?active 基线�?;
     if (applyCode) {
-        msg = '确认完整回滚（写回 settings + git/svn checkout）？生产环境需 STRATEGY_SNAPSHOT_FORCE_CODE_CHECKOUT=1。';
+        msg = '确认完整回滚（写�?settings + git/svn checkout）？生产环境需 STRATEGY_SNAPSHOT_FORCE_CODE_CHECKOUT=1�?;
     } else if (applySettings) {
-        msg = '确认回滚并写回 config/settings.json？当前 settings 会先备份为 .bak 文件。';
+        msg = '确认回滚并写�?config/settings.json？当�?settings 会先备份�?.bak 文件�?;
     }
     if (!window.confirm(msg)) return;
 
@@ -199,7 +205,7 @@ async function rollbackSnapshot(snapshotId, applySettings, applyCode) {
 function renderDecisionSnapshot(item) {
     const brief = item.decision_brief || {};
     const ev = brief.supporting_evidence || {};
-    const verdict = brief.verdict || ev.one_line_verdict || '—';
+    const verdict = brief.verdict || ev.one_line_verdict || '�?;
     const path = item.share_path || ('/decision-snapshot/' + item.id);
     const publicPath = item.share_public_path || '';
     const fullUrl = window.location.origin + path;
@@ -210,8 +216,8 @@ function renderDecisionSnapshot(item) {
             '<div class="text-muted small">' + item.symbol + ' · ' + (item.market || 'CN') + ' · 结论 ' + verdict + '</div></div>' +
             '<div class="text-muted small">' + formatTime(item.created_at) + '</div>' +
         '</div>' +
-        '<div class="snap-meta"><span>创建者: ' + (item.created_by || '—') + '</span>' +
-        '<span>因子数: ' + ((ev.factors || []).length) + '</span></div>' +
+        '<div class="snap-meta"><span>创建�? ' + (item.created_by || '�?) + '</span>' +
+        '<span>因子�? ' + ((ev.factors || []).length) + '</span></div>' +
         (item.notes ? '<div class="small text-muted mt-2">' + item.notes + '</div>' : '') +
         '<div class="snap-actions">' +
             '<a class="btn btn-sm btn-primary" href="' + path + '">打开复盘</a>' +
@@ -224,7 +230,7 @@ async function loadDecisionSnapshots() {
     const errorEl = document.getElementById('decisionLoadError');
     const listEl = document.getElementById('decisionSnapList');
     errorEl.classList.add('d-none');
-    listEl.innerHTML = '<div class="text-muted text-center py-4">加载中…</div>';
+    listEl.innerHTML = '<div class="text-muted text-center py-4">加载中�?/div>';
     const sym = document.getElementById('decisionFilterSymbol').value.trim();
     const params = new URLSearchParams({ limit: '40' });
     if (sym) params.set('symbol', sym);
@@ -234,7 +240,7 @@ async function loadDecisionSnapshots() {
         const payload = await response.json();
         const rows = (payload.status === 'success' || payload.ok) ? (payload.data ?? []) : [];
         if (!rows.length) {
-            listEl.innerHTML = '<div class="text-muted text-center py-4">暂无决策快照。请从个股详情页「决策简报」生成。</div>';
+            listEl.innerHTML = '<div class="text-muted text-center py-4">暂无决策快照。请从个股详情页「决策简报」生成�?/div>';
             return;
         }
         listEl.innerHTML = rows.map(renderDecisionSnapshot).join('');
@@ -242,7 +248,7 @@ async function loadDecisionSnapshots() {
             btn.addEventListener('click', function () {
                 const url = btn.getAttribute('data-url') || '';
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(url).then(function () { alert('链接已复制'); });
+                    navigator.clipboard.writeText(url).then(function () { alert('链接已复�?); });
                 } else {
                     prompt('复制链接', url);
                 }

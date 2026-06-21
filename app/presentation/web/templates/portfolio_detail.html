@@ -1,4 +1,10 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/portfolio-detail" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('portfolio-detail')">
+  �����°� ��
+</a>
+{% endblock %}
 
 {% block title %}投资组合 - {{ portfolio_id }}{% endblock %}
 
@@ -15,13 +21,13 @@
             <label class="pf-form-label">上传 Excel 文件</label>
             <input type="file" id="tradeFile" accept=".xls,.xlsx" class="pf-file-input">
             <div class="import-help">
-                Excel 格式要求包含列：交易日期、股票代码、方向(买/卖)、价格、数量、金额、手续费<br>
-                示例：2026-04-23, 600519, 买, 1500.00, 100, 150000, 50
+                Excel 格式要求包含列：交易日期、股票代码、方�?�?�?、价格、数量、金额、手续费<br>
+                示例�?026-04-23, 600519, �? 1500.00, 100, 150000, 50
             </div>
         </div>
         <div class="pf-import-field">
-            <label class="pf-form-label-sm">或手动输入交易记录</label>
-            <textarea class="import-textarea" id="importTrades" placeholder="日期,代码,方向,价格,数量&#10;2026-04-23,600519,买,1500,100&#10;2026-04-25,000001,卖,12.5,50"></textarea>
+            <label class="pf-form-label-sm">或手动输入交易记�?/label>
+            <textarea class="import-textarea" id="importTrades" placeholder="日期,代码,方向,价格,数量&#10;2026-04-23,600519,�?1500,100&#10;2026-04-25,000001,�?12.5,50"></textarea>
         </div>
         <button class="btn-brand" type="button" data-pd-action="do-import">确认导入</button>
     </div>
@@ -42,7 +48,7 @@
             </div>
             <div class="portfolio-stat">
                 <div class="portfolio-stat-value" id="totalValue">--</div>
-                <div class="portfolio-stat-label">组合市值</div>
+                <div class="portfolio-stat-label">组合市�?/div>
             </div>
             <div class="portfolio-stat">
                 <div class="portfolio-stat-value" id="holdingsCount">--</div>
@@ -50,12 +56,12 @@
             </div>
         </div>
         <div class="portfolio-actions">
-            <button class="btn-brand" type="button" data-pd-action="rebalance">⚖️ 再平衡</button>
+            <button class="btn-brand" type="button" data-pd-action="rebalance">⚖️ 再平�?/button>
             <button class="btn-soft" type="button" data-pd-action="export-positions">📥 导出持仓</button>
             <button class="btn-soft" type="button" data-pd-action="show-import">📥 导入交易</button>
             <button class="btn-soft" type="button" data-pd-action="load-trades">📋 交易记录</button>
             <button class="btn-soft" type="button" data-pd-action="refresh">🔄 刷新</button>
-            <a class="btn-soft" href="{{ url_for('pages.investment_managers') }}">← 返回投资经理</a>
+            <a class="btn-soft" href="{{ url_for('pages.investment_managers') }}">�?返回投资经理</a>
             <a class="btn-soft" href="{{ url_for('pages.backtest') }}">📈 组合回测</a>
         </div>
     </div>
@@ -63,7 +69,7 @@
     <div class="portfolio-section">
         <div class="portfolio-section-title">📊 收益走势</div>
         <div class="performance-chart" id="performanceChart">
-            <div class="empty-state">加载中...</div>
+            <div class="empty-state">加载�?..</div>
         </div>
     </div>
 
@@ -77,7 +83,7 @@
                         <th>名称</th>
                         <th>股数</th>
                         <th>占比</th>
-                        <th>市值</th>
+                        <th>市�?/th>
                         <th>成本</th>
                         <th>现价</th>
                         <th>盈亏%</th>
@@ -86,7 +92,7 @@
                     </tr>
                 </thead>
                 <tbody id="holdingsList">
-                    <tr><td colspan="8" class="loading-state">加载中...</td></tr>
+                    <tr><td colspan="8" class="loading-state">加载�?..</td></tr>
                 </tbody>
             </table>
         </div>
@@ -116,11 +122,11 @@
             </div>
             <div class="risk-metric">
                 <div class="risk-metric-value" id="maxDrawdown">--</div>
-                <div class="risk-metric-label">最大回撤</div>
+                <div class="risk-metric-label">最大回�?/div>
             </div>
             <div class="risk-metric">
                 <div class="risk-metric-value" id="volatility">--</div>
-                <div class="risk-metric-label">波动率</div>
+                <div class="risk-metric-label">波动�?/div>
             </div>
             <div class="risk-metric">
                 <div class="risk-metric-value" id="beta">--</div>
@@ -178,7 +184,7 @@ function loadTrades() {
     $.get('/api/v1/portfolio/trades', function(res) {
         const data = res.data || res;
         if ((data.trades || []).length === 0) {
-            showToast('暂无交易记录，请先导入', 'info');
+            showToast('暂无交易记录，请先导�?, 'info');
         }
     });
 }
@@ -247,7 +253,7 @@ function renderPerformance(perf) {
                 <polyline points="${points}" fill="none" stroke="${isPositive ? '#10b981' : '#ef4444'}" stroke-width="2" vector-effect="non-scaling-stroke" />
             </svg>
             <div class="pf-perf-footer">
-                <span>${perf[0]?.date || '开始'}</span>
+                <span>${perf[0]?.date || '开�?}</span>
                 <span class="pf-alloc-weight ${isPositive ? 'text-positive' : 'text-negative'}">${perf[perf.length-1]?.value >= 0 ? '+' : ''}${(perf[perf.length-1]?.value || 0).toFixed(2)}%</span>
                 <span>${perf[perf.length-1]?.date || '现在'}</span>
             </div>
@@ -268,7 +274,7 @@ function renderAllocation(data) {
     }
     $('#assetChart').html(`
         <div class="pf-alloc-row">
-            <span class="pf-alloc-name">A股</span>
+            <span class="pf-alloc-name">A�?/span>
             <span class="pf-alloc-weight text-brand">100%</span>
         </div>
     `);
@@ -327,26 +333,26 @@ function rebalance() {
     const rows = $('#holdingsList tr').filter(function() { return $(this).find('td').length > 1; });
     const symbols = rows.map(function() { 
         const txt = $(this).find('td:first').text().trim();
-        return txt && txt !== '暂无持仓' && txt !== '加载中...' ? txt : null; 
+        return txt && txt !== '暂无持仓' && txt !== '加载�?..' ? txt : null; 
     }).get().filter(Boolean);
     if (!symbols.length) { showToast('请先加载持仓数据', 'warn'); return; }
-    showToast('正在计算最优组合...', 'info');
+    showToast('正在计算最优组�?..', 'info');
     $.getJSON(`/api/v1/portfolio/rebalance?symbols=${encodeURIComponent(symbols.join(','))}&threshold=3&cash=100000`)
         .done(function(res) {
             const r = res.rebalance || res.data?.rebalance || {};
             const actions = r.actions || [];
             if (actions.length) {
-                showToast(`生成了 ${actions.length} 条调仓指令`, 'success');
+                showToast(`生成�?${actions.length} 条调仓指令`, 'success');
                 renderHoldings(r.holdings || []);
             } else {
                 showToast('当前组合无需调仓', 'info');
             }
         })
-        .fail(function() { showToast('再平衡请求失败', 'error'); });
+        .fail(function() { showToast('再平衡请求失�?, 'error'); });
 }
 
 function exportPositions() {
-    const rows = [['代码', '名称', '占比(%)', '市值', '成本', '现价', '盈亏(%)']];
+    const rows = [['代码', '名称', '占比(%)', '市�?, '成本', '现价', '盈亏(%)']];
     $('#holdingsList tr').each(function() {
         const cells = $(this).find('td');
         if (cells.length >= 7) {
@@ -361,7 +367,7 @@ function exportPositions() {
             ]);
         }
     });
-    if (rows.length <= 1) { showToast('无数据导出', 'warn'); return; }
+    if (rows.length <= 1) { showToast('无数据导�?, 'warn'); return; }
     const csv = rows.map(r => r.join(',')).join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -402,7 +408,7 @@ function doImportTrades() {
                 trades.push({
                     trade_date: parts[0],
                     symbol: parts[1].toUpperCase(),
-                    direction: parts[2] === '买' ? 'BUY' : 'SELL',
+                    direction: parts[2] === '�? ? 'BUY' : 'SELL',
                     price: parseFloat(parts[3]) || 0,
                     quantity: parseInt(parts[4]) || 0,
                     amount: parseFloat(parts[4]) * parseFloat(parts[3]),
@@ -438,7 +444,7 @@ $(function() {
         else if (action === 'export-positions') exportPositions();
         else if (action === 'show-import') $('#importModal').show();
         else if (action === 'load-trades') loadTrades();
-        else if (action === 'refresh') { loadPortfolio(); showToast('已刷新', 'success'); }
+        else if (action === 'refresh') { loadPortfolio(); showToast('已刷�?, 'success'); }
     });
 });
 </script>

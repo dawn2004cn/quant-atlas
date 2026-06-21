@@ -1,4 +1,10 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/strategy-compare" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('strategy-compare')">
+  �����°� ��
+</a>
+{% endblock %}
 
 {% block title %}策略对比 - Quant Atlas{% endblock %}
 
@@ -13,7 +19,7 @@
             <div class="hero-caption">Strategy Comparison</div>
             <h1 class="page-title">📊 策略对比分析</h1>
         </div>
-        <a class="btn-soft" href="/run-history">← 返回历史</a>
+        <a class="btn-soft" href="/run-history">�?返回历史</a>
     </div>
     
     <div class="section-shell mb-6 sc-compare-hero">
@@ -56,7 +62,7 @@ function pctNum(value) {
 
 function loadStrategyCompare() {
     const cfg = parseCompareParams();
-    $('#compareCards').html('<div class="empty-state">正在回测对比策略…</div>');
+    $('#compareCards').html('<div class="empty-state">正在回测对比策略�?/div>');
     fetch('/api/v1/strategies/backtest/compare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -85,7 +91,7 @@ function loadStrategyCompare() {
                 error: row.error,
             }));
             if (!strategies.length) {
-                $('#compareCards').html('<div class="empty-state">无对比结果</div>');
+                $('#compareCards').html('<div class="empty-state">无对比结�?/div>');
                 return;
             }
             renderCompareCards();
@@ -117,14 +123,14 @@ function renderCompareCards() {
             <div class="compare-card-header">
                 <div>
                     <span class="strategy-name">${s.name}</span>
-                    ${idx === 0 ? '<span class="winner-badge ml-2">收益最高</span>' : ''}
+                    ${idx === 0 ? '<span class="winner-badge ml-2">收益最�?/span>' : ''}
                 </div>
-                <span class="strategy-badge">${s.trades} 笔交易</span>
+                <span class="strategy-badge">${s.trades} 笔交�?/span>
             </div>
             <div class="compare-metrics">
                 <div class="metric-box ${s.returns === bestReturn ? 'highlight' : ''}">
                     <div class="metric-val ${s.returns >= 0 ? 'positive' : 'negative'}">${s.returns > 0 ? '+' : ''}${s.returns}%</div>
-                    <div class="metric-label">总收益</div>
+                    <div class="metric-label">总收�?/div>
                 </div>
                 <div class="metric-box ${s.sharpe === bestSharpe ? 'highlight' : ''}">
                     <div class="metric-val">${s.sharpe}</div>
@@ -132,7 +138,7 @@ function renderCompareCards() {
                 </div>
                 <div class="metric-box">
                     <div class="metric-val negative">${s.maxdd}%</div>
-                    <div class="metric-label">最大回撤</div>
+                    <div class="metric-label">最大回�?/div>
                 </div>
                 <div class="metric-box ${s.winrate === bestWinrate ? 'highlight' : ''}">
                     <div class="metric-val">${s.winrate}%</div>
@@ -174,7 +180,7 @@ function renderCompareChart() {
         tooltip: { trigger: 'axis' },
         grid: { top: 20, bottom: 30, left: 50, right: 30 },
         xAxis: { type: 'category', data: dates, boundaryGap: false },
-        yAxis: { type: 'value', scale: true, name: '净值' },
+        yAxis: { type: 'value', scale: true, name: '净�? },
         series: series
     });
     

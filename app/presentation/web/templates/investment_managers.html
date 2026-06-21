@@ -1,6 +1,12 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/investment-managers" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('investment-managers')">
+  �����°� ��
+</a>
+{% endblock %}
 
-{% block title %}投资经理收益榜 - Quant Atlas{% endblock %}
+{% block title %}投资经理收益�?- Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/portfolio.css') }}">
@@ -10,30 +16,30 @@
 <div class="pm-grid">
   <section class="section-shell pm-head">
     <div class="hero-caption">Portfolio Managers</div>
-    <h1 class="page-title">投资经理收益排行榜</h1>
-    <p class="page-subtitle">100 个策略 = 100 位投资经理，每位管理 1000w，按信号 + 风控纪律交易，交易与持仓全可回溯。</p>
+    <h1 class="page-title">投资经理收益排行�?/h1>
+    <p class="page-subtitle">100 个策�?= 100 位投资经理，每位管理 1000w，按信号 + 风控纪律交易，交易与持仓全可回溯�?/p>
     <div class="im-hero-links">
-        <a href="{{ url_for('pages.moments') }}" class="btn-soft">👥 朋友圈</a>
+        <a href="{{ url_for('pages.moments') }}" class="btn-soft">👥 朋友�?/a>
         <a href="{{ url_for('pages.ai_research_report') }}" class="btn-soft">📊 AI报告</a>
         <a href="{{ url_for('pages.backtest') }}" class="btn-soft">📈 策略回测</a>
-        <button class="btn-soft" type="button" data-im-action="show-challenge">🏆 挑战赛</button>
+        <button class="btn-soft" type="button" data-im-action="show-challenge">🏆 挑战�?/button>
     </div>
     
-    <!-- 挑战赛横幅 -->
+    <!-- 挑战赛横�?-->
     <div class="qa-is-hidden mt-3 p-3 bg-light border rounded" id="activeChallenges">
-        <h6 class="mb-2">🎯 进行中的挑战赛</h6>
+        <h6 class="mb-2">🎯 进行中的挑战�?/h6>
         <div id="challengeList"></div>
     </div>
     <p class="text-muted im-intro">
-      经理档案、入市排期与每日模拟由<strong>后台 Celery</strong>执行（配置项 <code>INVESTMENT_MANAGERS_CELERY_BEAT=1</code> 且 Beat 在每日约 15:35 投递任务，Worker 拉取后落库）。表中<strong>成交笔数</strong>来自模拟写入的流水；全为 0 时多为尚未到定时任务或 Worker 未运行，亦可由运维调用 API <code>POST /api/v1/investment-managers/quick-warmup?sync=1</code> 同步跑一次。
+      经理档案、入市排期与每日模拟�?strong>后台 Celery</strong>执行（配置项 <code>INVESTMENT_MANAGERS_CELERY_BEAT=1</code> �?Beat 在每日约 15:35 投递任务，Worker 拉取后落库）。表�?strong>成交笔数</strong>来自模拟写入的流水；全为 0 时多为尚未到定时任务�?Worker 未运行，亦可由运维调�?API <code>POST /api/v1/investment-managers/quick-warmup?sync=1</code> 同步跑一次�?
     </p>
     <div class="pm-controls im-controls-mt">
       <span class="badge-pill">周期</span>
       <select id="period" class="select-soft im-period-select">
-        <option value="day">日收益</option>
-        <option value="week">周收益</option>
-        <option value="month">月收益</option>
-        <option value="year">年收益</option>
+        <option value="day">日收�?/option>
+        <option value="week">周收�?/option>
+        <option value="month">月收�?/option>
+        <option value="year">年收�?/option>
       </select>
       <span class="text-muted" id="hint"></span>
     </div>
@@ -47,15 +53,15 @@
             <th>#</th>
             <th></th>
             <th>投资经理</th>
-            <th>老中青</th>
+            <th>老中�?/th>
             <th>策略</th>
-            <th>状态</th>
+            <th>状�?/th>
             <th>入市</th>
             <th>收益</th>
-            <th>净值</th>
+            <th>净�?/th>
             <th>净值日</th>
             <th>成交笔数</th>
-            <th>最近成交</th>
+            <th>最近成�?/th>
             <th>操作</th>
           </tr>
         </thead>
@@ -74,7 +80,7 @@ function setHint(t){ $('#hint').text(t||''); }
 
 function loadBoard(){
   const period = $('#period').val();
-  setHint('加载中...');
+  setHint('加载�?..');
   $.getJSON('/api/v1/investment-managers/leaderboard', { period })
    .done(res => {
       const data = (res.data||res)||{};
@@ -83,7 +89,7 @@ function loadBoard(){
       const totalTrades = Number(agg.total_trades||0);
       const withTrades = Number(agg.managers_with_trades||0);
       $('#rows').html(items.map((it, idx) => {
-        const act = Number(it.active||0) ? '已入市' : '未入市';
+        const act = Number(it.active||0) ? '已入�? : '未入�?;
         const ret = Number(it.return_pct||0);
         const cls = ret>=0 ? 'positive' : 'negative';
         const av = it.avatar_url || ('/avatars/pm/'+encodeURIComponent(it.manager_id||''));
@@ -108,9 +114,9 @@ function loadBoard(){
         </tr>`;
       }).join('') || '<tr><td colspan="13" class="text-center text-muted">暂无数据</td></tr>');
       if (items.length && totalTrades === 0) {
-        setHint(`共 ${items.length} 位 · 成交 0 笔：等待 Celery 定时任务或检查 Worker/Beat`);
+        setHint(`�?${items.length} �?· 成交 0 笔：等待 Celery 定时任务或检�?Worker/Beat`);
       } else {
-        setHint(`共 ${items.length} 位 · 累计成交 ${totalTrades} 笔（${withTrades} 位经理有成交）`);
+        setHint(`�?${items.length} �?· 累计成交 ${totalTrades} 笔（${withTrades} 位经理有成交）`);
       }
    })
    .fail(()=> setHint('加载失败'));
@@ -134,7 +140,7 @@ async function loadChallenges() {
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
                     <div>
                         <strong>${c.name}</strong>
-                        <span class="badge bg-${c.status === 'active' ? 'success' : 'secondary'}">${c.status === 'active' ? '进行中' : '未开始'}</span>
+                        <span class="badge bg-${c.status === 'active' ? 'success' : 'secondary'}">${c.status === 'active' ? '进行�? : '未开�?}</span>
                     </div>
                     <small>参赛人数: ${c.participant_count || 0}</small>
                 </div>

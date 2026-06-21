@@ -1,4 +1,10 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/decision-snapshot" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('decision-snapshot')">
+  �����°� ��
+</a>
+{% endblock %}
 
 {% block title %}决策快照 · {{ snapshot_id }}{% endblock %}
 
@@ -7,7 +13,7 @@
     <div class="panel-head d-flex flex-wrap justify-content-between gap-2">
         <div>
             <h1 class="panel-title mb-0">决策快照复盘</h1>
-            <div class="panel-subtitle text-muted">封存时刻的市场全景，非实时行情</div>
+            <div class="panel-subtitle text-muted">封存时刻的市场全景，非实时行�?/div>
         </div>
         <div class="d-flex gap-2">
             <button type="button" class="btn-soft btn-sm" id="copyShareBtn">复制分享链接</button>
@@ -15,7 +21,7 @@
             <a class="btn-soft btn-sm" href="/strategy-snapshots?tab=decision">快照列表</a>
         </div>
     </div>
-    <div id="snapshotMeta" class="text-muted text-sm mt-2">加载中…</div>
+    <div id="snapshotMeta" class="text-muted text-sm mt-2">加载中�?/div>
     <div id="snapshotBrief" class="mt-3"></div>
     <div id="snapshotReports" class="mt-3"></div>
     <div id="snapshotEvidence" class="mt-3"></div>
@@ -53,7 +59,7 @@ function renderEvidence(ev) {
         box.innerHTML = '';
         return;
     }
-    box.innerHTML = '<h3 class="panel-title">证据链（封存）</h3>' + ev.factors.map(function (f) {
+    box.innerHTML = '<h3 class="panel-title">证据链（封存�?/h3>' + ev.factors.map(function (f) {
         const pct = f.percentile_250d != null ? ' · 分位 ' + f.percentile_250d + '%' : '';
         return '<div class="assistant-card mt-2"><strong>' + escHtml(f.name) + '</strong> ' +
             escHtml(f.value) + escHtml(f.unit || '') + pct +
@@ -65,7 +71,7 @@ function renderBrief(brief) {
     const h = brief.header || {};
     document.getElementById('snapshotBrief').innerHTML =
         '<div class="assistant-card"><strong>' + escHtml(h.name || brief.symbol) + '</strong>' +
-        '<div class="mt-2">结论：<span class="ra-pill">' + escHtml(brief.verdict || (brief.supporting_evidence || {}).one_line_verdict || '—') + '</span></div>' +
+        '<div class="mt-2">结论�?span class="ra-pill">' + escHtml(brief.verdict || (brief.supporting_evidence || {}).one_line_verdict || '�?) + '</span></div>' +
         '<div class="text-muted text-sm mt-2">价格 ' + escHtml(h.price) + ' · 涨跌 ' + escHtml(h.change_pct) + '%</div></div>';
     const ev = brief.supporting_evidence || {};
     renderReports(ev.report_citations || []);
@@ -94,7 +100,7 @@ fetch('/api/v1/decision/snapshots/' + encodeURIComponent(SNAP_ID), { credentials
                 const text = urls.join('\n');
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(text).then(function () {
-                        alert('已复制复盘链接' + (snap.share_public_path ? '与只读外链' : ''));
+                        alert('已复制复盘链�? + (snap.share_public_path ? '与只读外�? : ''));
                     });
                 } else {
                     prompt('复制链接', text);

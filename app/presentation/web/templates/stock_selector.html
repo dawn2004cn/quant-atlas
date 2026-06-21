@@ -1,4 +1,10 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/stock-selector" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('stock-selector')">
+  �����°� ��
+</a>
+{% endblock %}
 
 {% block title %}选股中心 - Quant Atlas{% endblock %}
 
@@ -20,15 +26,15 @@
 <section class="qc-ux-onboarding" aria-label="选股中心使用提示">
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">先跑一轮 TopN</div>
-        <p class="qc-ux-step-desc">先用默认参数跑通一次，再根据白盒漏斗逐步调整筛选逻辑，避免“上来就调参”。</p>
+        <div class="qc-ux-step-title">先跑一�?TopN</div>
+        <p class="qc-ux-step-desc">先用默认参数跑通一次，再根据白盒漏斗逐步调整筛选逻辑，避免“上来就调参”�?/p>
         <a class="btn-brand btn-sm" href="{{ url_for('pages.backtest') }}">回测验证</a>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">加入观察单</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">加入观察�?/a>
     </div>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">2</span>
         <div class="qc-ux-step-title">数据源与异步</div>
-        <p class="qc-ux-step-desc">部分数据源依赖 Qlib/模型评分或异步任务；异常先看集成中枢与消息中心。</p>
+        <p class="qc-ux-step-desc">部分数据源依�?Qlib/模型评分或异步任务；异常先看集成中枢与消息中心�?/p>
         <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
         <a class="btn-soft btn-sm" href="{{ url_for('pages.message_center') }}">消息中心</a>
     </div>
@@ -41,7 +47,7 @@
         <p class="page-subtitle">运行短线、中线或长线选股策略，并生成报告</p>
         <div class="ss-hero-links">
             <a href="{{ url_for('pages.alpha_factory') }}" class="btn-soft">🧬 Alpha Factory</a>
-            <a href="{{ url_for('pages.factor_repository') }}" class="btn-soft">📚 因子库</a>
+            <a href="{{ url_for('pages.factor_repository') }}" class="btn-soft">📚 因子�?/a>
             <a href="{{ url_for('pages.backtest') }}" class="btn-soft">📈 策略回测</a>
         </div>
     </section>
@@ -70,14 +76,14 @@
                 <div>
                     <label class="label" for="marketSelect">市场</label>
                     <select id="marketSelect" class="select-soft">
-                        <option value="CN" selected>A股</option>
+                        <option value="CN" selected>A�?/option>
                         <option value="US">美股</option>
                         <option value="HK">港股</option>
                         <option value="CRYPTO">加密</option>
                     </select>
                 </div>
                 <div>
-                    <label class="label" for="dataSourceSelect">数据源</label>
+                    <label class="label" for="dataSourceSelect">数据�?/label>
                     <select id="dataSourceSelect" class="select-soft">
                         <option value="legacy" selected>legacy</option>
                         <option value="qlib_factors">qlib_factors</option>
@@ -95,7 +101,7 @@
         <div class="panel-head">
             <div>
                 <h2 class="panel-title">策略白盒</h2>
-                <div class="panel-subtitle">把选股逻辑、参数和过滤路径直接呈现出来，先让用户理解，再让用户运行。</div>
+                <div class="panel-subtitle">把选股逻辑、参数和过滤路径直接呈现出来，先让用户理解，再让用户运行�?/div>
             </div>
             <a class="btn-soft" href="{{ url_for('pages.architecture_roadmap') }}">查看演进计划</a>
         </div>
@@ -105,15 +111,15 @@
                 <div class="explain-grid">
                     <div class="explain-card">
                         <div class="explain-title">时间维度</div>
-                        <p class="explain-copy" id="selectorTypeExplain">长线更偏基本面和低换手，中短线更偏量价信号。</p>
+                        <p class="explain-copy" id="selectorTypeExplain">长线更偏基本面和低换手，中短线更偏量价信号�?/p>
                     </div>
                     <div class="explain-card">
                         <div class="explain-title">Top N</div>
-                        <p class="explain-copy" id="topNExplain">Top N 越小，结果越聚焦，但也更容易错过边缘机会。</p>
+                        <p class="explain-copy" id="topNExplain">Top N 越小，结果越聚焦，但也更容易错过边缘机会�?/p>
                     </div>
                     <div class="explain-card">
-                        <div class="explain-title">数据源</div>
-                        <p class="explain-copy" id="dataSourceExplain">legacy 适合稳定兜底，qlib_factors 适合因子研究，model_score 适合模型排序。</p>
+                        <div class="explain-title">数据�?/div>
+                        <p class="explain-copy" id="dataSourceExplain">legacy 适合稳定兜底，qlib_factors 适合因子研究，model_score 适合模型排序�?/p>
                     </div>
                 </div>
             </div>
@@ -125,14 +131,14 @@
         <div class="panel-head">
             <div>
                 <h2 class="panel-title">🧱 投研乐高</h2>
-                <div class="panel-subtitle">可视化拖拽选股逻辑，像玩乐高一样搭建您的私人策略</div>
+                <div class="panel-subtitle">可视化拖拽选股逻辑，像玩乐高一样搭建您的私人策�?/div>
             </div>
-            <button class="btn-brand btn-sm" data-ss-action="open-lego" type="button">打开编辑器</button>
+            <button class="btn-brand btn-sm" data-ss-action="open-lego" type="button">打开编辑�?/button>
         </div>
         <div id="legoPresets" class="mt-3">
             <div class="ss-preset-row">
                 <span class="badge-soft" data-ss-action="lego-preset" data-preset="金叉反转" role="button" tabindex="0" class="ss-badge-preset">金叉反转</span>
-                <span class="badge-soft" data-ss-action="lego-preset" data-preset="低估值" role="button" tabindex="0" class="ss-badge-preset">低估值</span>
+                <span class="badge-soft" data-ss-action="lego-preset" data-preset="低估�? role="button" tabindex="0" class="ss-badge-preset">低估�?/span>
                 <span class="badge-soft" data-ss-action="lego-preset" data-preset="动量突破" role="button" tabindex="0" class="ss-badge-preset">动量突破</span>
                 <span class="badge-soft" data-ss-action="lego-preset" data-preset="业绩反转" role="button" tabindex="0" class="ss-badge-preset">业绩反转</span>
                 <span class="badge-soft" data-ss-action="lego-preset" data-preset="北向资金" role="button" tabindex="0" class="ss-badge-preset">北向资金</span>
@@ -177,7 +183,7 @@ $.ajax({
             contentType: 'application/json',
             beforeSend: function() {
                 $('#selectorResult').show();
-                $('#resultContainer').html('<div class="empty-state">选股中，请稍候...</div>');
+                $('#resultContainer').html('<div class="empty-state">选股中，请稍�?..</div>');
                 $('#generateReportBtn').hide();
             },
             data: JSON.stringify({
@@ -189,7 +195,7 @@ $.ajax({
             success: function(res) {
                 lastResults = res.data || res.results || [];
                 var meta = res.meta || {};
-                var strategyInfo = '策略: ' + (meta.strategy || 'unknown') + ' | 数据源: ' + (meta.data_source || 'legacy');
+                var strategyInfo = '策略: ' + (meta.strategy || 'unknown') + ' | 数据�? ' + (meta.data_source || 'legacy');
                 $('#strategyInfo').text(strategyInfo);
                 displaySelectorResult(lastResults);
             },
@@ -203,7 +209,7 @@ $.ajax({
 
     function displaySelectorResult(data) {
         $('#selectorResult').show();
-        $('#resultSummary').text(`共 ${data.length} 只股票`);
+        $('#resultSummary').text(`�?${data.length} 只股票`);
         
         var strategyInfo = '';
         $('#strategyInfo').text(strategyInfo);
@@ -238,7 +244,7 @@ $.ajax({
                     <td>${stock.score.toFixed(2)}</td>
                     <td>${stock.rating}</td>
                     <td>${(stock.buy_signals || []).join(', ')}</td>
-                    <td>${qcWatchlistButton(stock.code, stock.name || stock.code, '加自选', 'btn-soft btn-sm')}</td>
+                    <td>${qcWatchlistButton(stock.code, stock.name || stock.code, '加自�?, 'btn-soft btn-sm')}</td>
                 </tr>
             `;
         });
@@ -273,7 +279,7 @@ function openLegoEditor() {
 function applyLegoPreset(preset) {
     const presets = {
         '金叉反转': { strategy: 'ma_cross', params: { short: 5, long: 20 } },
-        '低估值': { strategy: 'value', params: { pe: 20, pb: 2 } },
+        '低估�?: { strategy: 'value', params: { pe: 20, pb: 2 } },
         '动量突破': { strategy: 'momentum', params: { period: 20, threshold: 5 } },
         '业绩反转': { strategy: 'earnings', params: { growth: 20 } },
         '北向资金': { strategy: 'northbound', params: { days: 5, amount: 100000000 } },
@@ -284,7 +290,7 @@ function applyLegoPreset(preset) {
         $('#dataSourceSelect').val(config.strategy === 'value' ? 'legacy' : 'qlib_factors');
         $('#topN').val(config.strategy === 'momentum' ? 10 : 5);
         updateWhitebox(config);
-        showToast(`已应用「${preset}」策略，点击运行开始选股`, 'success');
+        showToast(`已应用�?{preset}」策略，点击运行开始选股`, 'success');
     }
 }
 
@@ -295,14 +301,14 @@ function updateWhitebox(presetConfig) {
     const dataSource = $('#dataSourceSelect').val() || 'legacy';
     const labels = { long: 'long_term_value', mid: 'mid_term_rotation', short: 'short_term_momentum' };
     const typeCopy = {
-        long: '长线更偏基本面、估值安全边际和稳定现金流。',
-        mid: '中线更偏行业轮动、趋势延续和资金确认。',
-        short: '短线更偏成交放量、动量突破和风险快速止损。'
+        long: '长线更偏基本面、估值安全边际和稳定现金流�?,
+        mid: '中线更偏行业轮动、趋势延续和资金确认�?,
+        short: '短线更偏成交放量、动量突破和风险快速止损�?
     };
     const sourceCopy = {
-        legacy: 'legacy 使用现有稳定规则，适合兜底和日常选股。',
-        qlib_factors: 'qlib_factors 使用因子数据，更适合研究和回测联动。',
-        model_score: 'model_score 使用模型分数排序，更适合批量候选压缩。'
+        legacy: 'legacy 使用现有稳定规则，适合兜底和日常选股�?,
+        qlib_factors: 'qlib_factors 使用因子数据，更适合研究和回测联动�?,
+        model_score: 'model_score 使用模型分数排序，更适合批量候选压缩�?
     };
     const strategy = presetConfig ? presetConfig.strategy : labels[type];
     const params = presetConfig ? presetConfig.params : {
@@ -324,7 +330,7 @@ function updateWhitebox(presetConfig) {
     };
     $('#selectorDslPreview').text(JSON.stringify(dsl, null, 2));
     $('#selectorTypeExplain').text(typeCopy[type]);
-    $('#topNExplain').text(`当前返回 Top ${topN}。建议先看 Top ${Math.min(topN, 10)} 的解释，再进入回测验证。`);
+    $('#topNExplain').text(`当前返回 Top ${topN}。建议先�?Top ${Math.min(topN, 10)} 的解释，再进入回测验证。`);
     $('#dataSourceExplain').text(sourceCopy[dataSource]);
     renderFunnel(type, topN, dataSource);
 }
@@ -336,11 +342,11 @@ function renderFunnel(type, topN, dataSource) {
     const risk = Math.max(topN, Math.round(signal * (type === 'short' ? 0.28 : 0.34)));
     const finalCount = Math.min(topN, risk);
     const steps = [
-        ['市场股票池', base],
-        ['质量与流动性过滤', quality],
+        ['市场股票�?, base],
+        ['质量与流动性过�?, quality],
         ['策略信号命中', signal],
-        ['风险门禁后候选', risk],
-        ['最终输出', finalCount]
+        ['风险门禁后候�?, risk],
+        ['最终输�?, finalCount]
     ];
     $('#selectorFunnel').html(steps.map(([name, count]) => {
         const pct = Math.max(4, Math.round(count / base * 100));

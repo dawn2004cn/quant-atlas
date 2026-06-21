@@ -1,6 +1,12 @@
 {% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/global-radar" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('global-radar')">
+  �����°� ��
+</a>
+{% endblock %}
 
-{% block title %}全球资产透视塔 - Quant Atlas{% endblock %}
+{% block title %}全球资产透视�?- Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
@@ -20,15 +26,15 @@
 <section class="qc-ux-onboarding" aria-label="全球雷达使用提示">
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">先看“环境”</div>
-        <p class="qc-ux-step-desc">全球雷达适合发现异动与主题扩散；落到交易前建议回操盘台/观察单写清买卖计划。</p>
-        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">观察单</a>
+        <div class="qc-ux-step-title">先看“环境�?/div>
+        <p class="qc-ux-step-desc">全球雷达适合发现异动与主题扩散；落到交易前建议回操盘�?观察单写清买卖计划�?/p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘�?/a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">观察�?/a>
     </div>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">2</span>
         <div class="qc-ux-step-title">异常先自检</div>
-        <p class="qc-ux-step-desc">全球行情依赖外部数据适配与网络；如缺失或超时，优先到集成中枢确认状态。</p>
+        <p class="qc-ux-step-desc">全球行情依赖外部数据适配与网络；如缺失或超时，优先到集成中枢确认状态�?/p>
         <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
     </div>
 </section>
@@ -36,9 +42,9 @@
 <div class="section-shell">
     <div class="radar-hero">
         <div class="hero-caption">🌏 Global Multi-Asset Radar</div>
-        <h1 class="page-title">全球资产透视塔</h1>
+        <h1 class="page-title">全球资产透视�?/h1>
         <p class="page-subtitle">
-            一站式监控 A股 / 港股 / 美股 / 加密货币 实时行情，展示 OpenBB 适配器的全球化数据能力
+            一站式监控 A�?/ 港股 / 美股 / 加密货币 实时行情，展�?OpenBB 适配器的全球化数据能�?
         </p>
         <div id="radarCnFreshness" class="qc-freshness-strip unknown radar-freshness qa-is-hidden" role="status"></div>
         <div class="radar-quick-stats">
@@ -56,7 +62,7 @@
             </div>
             <div class="radar-stat-cell">
                 <div class="radar-stat-value" id="lastUpdate">--</div>
-                <div class="radar-stat-label">最后更新</div>
+                <div class="radar-stat-label">最后更�?/div>
             </div>
         </div>
     </div>
@@ -66,7 +72,7 @@
     <div class="panel-head">
         <div>
             <h2 class="panel-title">🔗 全球联动快手</h2>
-            <div class="panel-subtitle">美股映射A股逻辑：隔夜美股大涨后，A股相关板块联动机会</div>
+            <div class="panel-subtitle">美股映射A股逻辑：隔夜美股大涨后，A股相关板块联动机�?/div>
         </div>
     </div>
     <div id="lagEffectGrid" class="grid gap-3 radar-lag-grid">
@@ -78,12 +84,12 @@
     <div class="panel-head">
         <div>
             <h2 class="panel-title">📡 舆情信噪比过滤器</h2>
-            <div class="panel-subtitle">AI 智能识别新闻质量，过滤无效噪音，只看真正影响股价的干货</div>
+            <div class="panel-subtitle">AI 智能识别新闻质量，过滤无效噪音，只看真正影响股价的干�?/div>
         </div>
-        <button class="btn-brand btn-sm" type="button" data-gr-action="run-signal-filter">开始过滤</button>
+        <button class="btn-brand btn-sm" type="button" data-gr-action="run-signal-filter">开始过�?/button>
     </div>
     <div id="signalFilterResult">
-        <div class="text-sm text-muted p-4 text-center">点击上方按钮，AI 将自动过滤今日无效新闻</div>
+        <div class="text-sm text-muted p-4 text-center">点击上方按钮，AI 将自动过滤今日无效新�?/div>
     </div>
 </section>
 
@@ -91,7 +97,7 @@
     <div class="panel-head">
         <div>
             <h2 class="panel-title">💥 突发事件冲击波计算器</h2>
-            <div class="panel-subtitle">模拟突发事件对您自选股的资产减值/增值预估</div>
+            <div class="panel-subtitle">模拟突发事件对您自选股的资产减�?增值预�?/div>
         </div>
         <div class="radar-toolbar-row radar-toolbar-row--event">
             <select id="eventType" class="form-control radar-select-narrow">
@@ -100,52 +106,52 @@
                 <option value="war">地缘冲突</option>
                 <option value="ban">行业禁令</option>
             </select>
-            <button class="btn-brand btn-sm" type="button" data-gr-action="simulate-event-impact">开始模拟</button>
+            <button class="btn-brand btn-sm" type="button" data-gr-action="simulate-event-impact">开始模�?/button>
         </div>
     </div>
     <div id="eventImpactResult">
-        <div class="text-sm text-muted p-4 text-center">选择上方事件类型，点击开始模拟</div>
+        <div class="text-sm text-muted p-4 text-center">选择上方事件类型，点击开始模�?/div>
     </div>
 </section>
 
 <div class="radar-market-tabs">
     <button class="btn-soft market-tab active" type="button" data-gr-action="switch-market" data-market="all">🌏 全部</button>
-    <button class="btn-soft market-tab" type="button" data-gr-action="switch-market" data-market="CN">🇨🇳 A股</button>
+    <button class="btn-soft market-tab" type="button" data-gr-action="switch-market" data-market="CN">🇨🇳 A�?/button>
     <button class="btn-soft market-tab" type="button" data-gr-action="switch-market" data-market="HK">🇭🇰 港股</button>
     <button class="btn-soft market-tab" type="button" data-gr-action="switch-market" data-market="US">🇺🇸 美股</button>
-    <button class="btn-soft market-tab" type="button" data-gr-action="switch-market" data-market="CRYPTO">₿ 加密</button>
+    <button class="btn-soft market-tab" type="button" data-gr-action="switch-market" data-market="CRYPTO">�?加密</button>
     <input type="text" id="assetSearch" class="form-control radar-search-input" placeholder="🔍 搜索代码/名称...">
 </div>
 
 <div class="radar-filter-bar">
     <button class="btn-soft filter-chip active" type="button" id="btn-list" data-gr-action="set-view" data-view="list">📋 列表</button>
-    <button class="btn-soft filter-chip" type="button" id="btn-heatmap" data-gr-action="set-view" data-view="heatmap">🔥 热力图</button>
+    <button class="btn-soft filter-chip" type="button" id="btn-heatmap" data-gr-action="set-view" data-view="heatmap">🔥 热力�?/button>
     <button class="btn-soft filter-chip" type="button" id="btn-cards" data-gr-action="set-view" data-view="cards">🃏 卡片</button>
     <select id="sortBy" class="form-control radar-select-narrow">
         <option value="change">按涨跌幅</option>
         <option value="volume">按成交量</option>
-        <option value="price">按价格</option>
-        <option value="name">按名称</option>
+        <option value="price">按价�?/option>
+        <option value="name">按名�?/option>
     </select>
     <button class="btn-brand" type="button" data-gr-action="load-all-markets">🔄 刷新</button>
 </div>
 
 <div class="radar-grid">
     <div class="radar-section" id="sec-CN">
-        <div class="radar-section-title"><span class="flag">🇨🇳</span> A股市场</div>
-        <div id="cnAssets"><div class="loading-tile">加载中...</div></div>
+        <div class="radar-section-title"><span class="flag">🇨🇳</span> A股市�?/div>
+        <div id="cnAssets"><div class="loading-tile">加载�?..</div></div>
     </div>
     <div class="radar-section" id="sec-HK">
         <div class="radar-section-title"><span class="flag">🇭🇰</span> 港股市场</div>
-        <div id="hkAssets"><div class="loading-tile">加载中...</div></div>
+        <div id="hkAssets"><div class="loading-tile">加载�?..</div></div>
     </div>
     <div class="radar-section" id="sec-US">
         <div class="radar-section-title"><span class="flag">🇺🇸</span> 美股市场</div>
-        <div id="usAssets"><div class="loading-tile">加载中...</div></div>
+        <div id="usAssets"><div class="loading-tile">加载�?..</div></div>
     </div>
     <div class="radar-section" id="sec-CRYPTO">
-        <div class="radar-section-title"><span class="flag">₿</span> 加密市场</div>
-        <div id="cryptoAssets"><div class="loading-tile">加载中...</div></div>
+        <div class="radar-section-title"><span class="flag">�?/span> 加密市场</div>
+        <div id="cryptoAssets"><div class="loading-tile">加载�?..</div></div>
     </div>
 </div>
 {% endblock %}
@@ -233,7 +239,7 @@ function formatAmount(value) {
 
 function renderAssetList(containerId, data, market = 'CN') {
     const container = document.getElementById(containerId);
-    if (!data || data.length === 0) { container.innerHTML = '<div class="loading-tile">无数据</div>'; return; }
+    if (!data || data.length === 0) { container.innerHTML = '<div class="loading-tile">无数�?/div>'; return; }
     container.innerHTML = data.map(item => {
         const chg = parseFloat(item.change_pct || item.change || 0);
         const isPos = chg >= 0;
@@ -250,7 +256,7 @@ function renderAssetList(containerId, data, market = 'CN') {
 
 function renderHeatmap(containerId, data, market = 'CN') {
     const container = document.getElementById(containerId);
-    if (!data || data.length === 0) { container.innerHTML = '<div class="loading-tile">无数据</div>'; return; }
+    if (!data || data.length === 0) { container.innerHTML = '<div class="loading-tile">无数�?/div>'; return; }
     container.innerHTML = data.map(item => {
         const chg = parseFloat(item.change_pct || item.change || 0);
         const code = item.symbol || item.code || '';
@@ -265,7 +271,7 @@ function renderHeatmap(containerId, data, market = 'CN') {
 
 function renderAssetCards(containerId, data, market = 'CN') {
     const container = document.getElementById(containerId);
-    if (!data || data.length === 0) { container.innerHTML = '<div class="loading-tile">无数据</div>'; return; }
+    if (!data || data.length === 0) { container.innerHTML = '<div class="loading-tile">无数�?/div>'; return; }
     const currency = market === 'CN' ? '¥' : market === 'HK' ? 'HK$' : market === 'US' ? '$' : '';
     container.innerHTML = `<div class="heatmap-cards-grid">` +
         data.map(item => {
@@ -403,12 +409,12 @@ $(function() {
 
 function loadLagEffect() {
     const mappings = [
-        { us: 'NVDA', cn: ['300476','300308','002475'], name: 'AI算力/光模块', correlation: '高' },
-        { us: 'TSLA', cn: ['002594','300750','688008'], name: '新能源车/锂电', correlation: '高' },
-        { us: 'AAPL', cn: ['000725','002475','300867'], name: '消费电子/果链', correlation: '中' },
-        { us: 'AMD', cn: ['688521','603986','300223'], name: '芯片/半导体', correlation: '中' },
-        { us: 'META', cn: ['300059','300033','688111'], name: '互联网/元宇宙', correlation: '低' },
-        { us: 'BTC-USD', cn: ['300467','300363','688008'], name: '数字经济/Web3', correlation: '中' },
+        { us: 'NVDA', cn: ['300476','300308','002475'], name: 'AI算力/光模�?, correlation: '�? },
+        { us: 'TSLA', cn: ['002594','300750','688008'], name: '新能源车/锂电', correlation: '�? },
+        { us: 'AAPL', cn: ['000725','002475','300867'], name: '消费电子/果链', correlation: '�? },
+        { us: 'AMD', cn: ['688521','603986','300223'], name: '芯片/半导�?, correlation: '�? },
+        { us: 'META', cn: ['300059','300033','688111'], name: '互联�?元宇�?, correlation: '�? },
+        { us: 'BTC-USD', cn: ['300467','300363','688008'], name: '数字经济/Web3', correlation: '�? },
     ];
 
     $('#lagEffectGrid').html('<div class="text-sm text-muted p-4">正在读取真实涨跌幅并计算联动预期...</div>');
@@ -429,8 +435,8 @@ function loadLagEffect() {
             const usChg = (r.usChange == null || Number.isNaN(r.usChange)) ? null : Number(r.usChange);
             const cnPot = (r.cnPotential == null || Number.isNaN(r.cnPotential)) ? null : Number(r.cnPotential);
             const leftColor = usChg == null ? 'var(--muted)' : (usChg >= 0 ? 'var(--positive)' : 'var(--negative)');
-            const usText = usChg == null ? '—' : `${usChg >= 0 ? '+' : ''}${usChg.toFixed(2)}%`;
-            const cnText = cnPot == null ? '—' : `${cnPot >= 0 ? '+' : ''}${cnPot.toFixed(2)}%`;
+            const usText = usChg == null ? '�? : `${usChg >= 0 ? '+' : ''}${usChg.toFixed(2)}%`;
+            const cnText = cnPot == null ? '�? : `${cnPot >= 0 ? '+' : ''}${cnPot.toFixed(2)}%`;
             const cnColor = cnPot == null ? 'var(--muted)' : (cnPot >= 0 ? 'var(--positive)' : 'var(--negative)');
             return `
                 <div class="obs-card" style="border-left:3px solid ${leftColor}">
@@ -439,7 +445,7 @@ function loadLagEffect() {
                             <div class="font-bold">${r.name}</div>
                             <div class="text-xs text-muted mt-1">映射标的: ${r.us}</div>
                         </div>
-                        <span class="obs-badge" style="background: ${r.correlation === '高' ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)'}; color: ${r.correlation === '高' ? 'var(--positive)' : 'var(--muted)'}">${r.correlation}相关</span>
+                        <span class="obs-badge" style="background: ${r.correlation === '�? ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)'}; color: ${r.correlation === '�? ? 'var(--positive)' : 'var(--muted)'}">${r.correlation}相关</span>
                     </div>
                     <div class="obs-tags mt-2">
                         <span class="obs-tag">${r.us} ${usText}</span>
@@ -454,7 +460,7 @@ function loadLagEffect() {
 loadLagEffect();
 
 function runSignalFilter() {
-    $('#signalFilterResult').html('<div class="text-sm p-4">正在拉取真实滚动快讯并做信噪比筛选...</div>');
+    $('#signalFilterResult').html('<div class="text-sm p-4">正在拉取真实滚动快讯并做信噪比筛�?..</div>');
     fetch('/api/v1/markets/CN/headlines?limit=60')
         .then(r => r.json().then(j => ({ ok: r.ok, status: r.status, json: j })))
         .then(({ ok, status, json }) => {
@@ -465,17 +471,17 @@ function runSignalFilter() {
             const d = (json.data || {});
             const items = Array.isArray(d.items) ? d.items : (Array.isArray(d) ? d : []);
             const rules = [
-                { type: 'danger', icon: '🔴', title: '利空', kw: ['业绩预告', '下修', '减持', '立案', '罚', '诉讼', '爆雷', '亏损', '暴跌'] },
+                { type: 'danger', icon: '🔴', title: '利空', kw: ['业绩预告', '下修', '减持', '立案', '�?, '诉讼', '爆雷', '亏损', '暴跌'] },
                 { type: 'positive', icon: '🟢', title: '利好', kw: ['中标', '订单', '上调', '回购', '增持', '突破', '涨价', '签约', '并购'] },
-                { type: 'warning', icon: '🟡', title: '偏噪音', kw: ['传闻', '辟谣', '网传', '媒体称', '业内人士', '小道消息'] },
+                { type: 'warning', icon: '🟡', title: '偏噪�?, kw: ['传闻', '辟谣', '网传', '媒体�?, '业内人士', '小道消息'] },
             ];
             function esc(s) { return $('<div/>').text(String(s || '')).html(); }
             const picked = items.slice(0, 30).map(it => {
                 const t = String(it.title || it.headline || it.text || '');
                 const hit = rules.find(r => r.kw.some(k => t.includes(k)));
                 const kind = hit ? hit.type : 'info';
-                const icon = hit ? hit.icon : '⚪';
-                const label = hit ? hit.title : '中性';
+                const icon = hit ? hit.icon : '�?;
+                const label = hit ? hit.title : '中�?;
                 const source = it.source || it.provider || it.site || '';
                 const url = it.url || it.href || '';
                 return { kind, icon, label, title: t, source, url };
@@ -492,19 +498,19 @@ function runSignalFilter() {
                                     ${f.url ? `<div class="text-xs mt-2"><a class="btn-soft btn-sm" href="${esc(f.url)}" target="_blank" rel="noopener">打开原文</a></div>` : ''}
                                 </div>
                             </div>
-                            <div class="text-xs text-muted mt-2">来源: ${esc(f.source || '—')}</div>
+                            <div class="text-xs text-muted mt-2">来源: ${esc(f.source || '�?)}</div>
                         </div>
                     `).join('')}
                     <div class="text-sm gr-hint-green">
                         <strong>💡 今日信噪比（启发式）:</strong>
-                        ${effective.length} 条“利好/利空” / ${picked.length} 条快讯 = <strong class="text-positive">${picked.length ? (effective.length / picked.length * 100).toFixed(1) : '0.0'}%</strong>
+                        ${effective.length} 条“利�?利空�?/ ${picked.length} 条快�?= <strong class="text-positive">${picked.length ? (effective.length / picked.length * 100).toFixed(1) : '0.0'}%</strong>
                     </div>
                 </div>
             `);
         })
         .catch(err => {
             $('#signalFilterResult').html(
-                `<div class="text-sm p-4 text-negative">加载失败：${String(err && err.message ? err.message : err)}</div>` +
+                `<div class="text-sm p-4 text-negative">加载失败�?{String(err && err.message ? err.message : err)}</div>` +
                 `<div class="text-sm p-4"><button type="button" class="btn-brand btn-sm" data-gr-action="run-signal-filter">重试</button> <a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a></div>`
             );
         });
@@ -512,7 +518,7 @@ function runSignalFilter() {
 
 function simulateEventImpact() {
     const eventType = $('#eventType').val();
-    $('#eventImpactResult').html('<div class="text-sm p-4">🤖 正在计算冲击波影响...</div>');
+    $('#eventImpactResult').html('<div class="text-sm p-4">🤖 正在计算冲击波影�?..</div>');
 
     fetch('/api/v1/watchlist/quotes?page=1&page_size=50&sort=change_pct&order=desc')
         .then(r => r.json().then(j => ({ ok: r.ok, status: r.status, json: j })))
@@ -525,17 +531,17 @@ function simulateEventImpact() {
             const stocks = Array.isArray(d.stocks) ? d.stocks : [];
             if (stocks.length === 0) {
                 $('#eventImpactResult').html(
-                    '<div class="text-sm p-4 text-muted">您的自选为空：冲击波会优先基于自选进行估算。</div>' +
-                    '<div class="text-sm p-4"><a class="btn-brand btn-sm" href="/self-stocks">去添加自选</a></div>'
+                    '<div class="text-sm p-4 text-muted">您的自选为空：冲击波会优先基于自选进行估算�?/div>' +
+                    '<div class="text-sm p-4"><a class="btn-brand btn-sm" href="/self-stocks">去添加自�?/a></div>'
                 );
                 return;
             }
             const eventNames = { oil: '原油暴涨 30%', rate: '央行降息', war: '地缘冲突', ban: '行业禁令' };
             const rules = {
-                oil: { pos: ['石油', '天然气', '煤', '油服'], neg: ['航空', '航运', '化工'], note: '能源价格冲击（启发式）' },
-                rate: { pos: ['银行', '保险', '券商', '地产'], neg: [], note: '利率下行（启发式）' },
-                war: { pos: ['军工', '黄金'], neg: ['航空', '旅游', '消费'], note: '风险偏好变化（启发式）' },
-                ban: { pos: ['国产替代', '半导体'], neg: ['苹果', '出口'], note: '监管/禁令冲击（启发式）' },
+                oil: { pos: ['石油', '天然�?, '�?, '油服'], neg: ['航空', '航运', '化工'], note: '能源价格冲击（启发式�? },
+                rate: { pos: ['银行', '保险', '券商', '地产'], neg: [], note: '利率下行（启发式�? },
+                war: { pos: ['军工', '黄金'], neg: ['航空', '旅游', '消费'], note: '风险偏好变化（启发式�? },
+                ban: { pos: ['国产替代', '半导�?], neg: ['苹果', '出口'], note: '监管/禁令冲击（启发式�? },
             };
             const r = rules[eventType] || rules.oil;
             const picked = stocks.slice(0, 18).map(s => {
@@ -546,14 +552,14 @@ function simulateEventImpact() {
                 const negHit = r.neg.some(k => tag.includes(k));
                 let impact = 0;
                 let reason = r.note;
-                if (posHit && !negHit) { impact = 6; reason = '受益：' + r.pos.find(k => tag.includes(k)); }
-                else if (negHit && !posHit) { impact = -6; reason = '受损：' + r.neg.find(k => tag.includes(k)); }
+                if (posHit && !negHit) { impact = 6; reason = '受益�? + r.pos.find(k => tag.includes(k)); }
+                else if (negHit && !posHit) { impact = -6; reason = '受损�? + r.neg.find(k => tag.includes(k)); }
                 else { impact = 0; reason = '中性：缺少明确行业映射'; }
                 return { code: s.code || s.symbol || '', name: s.name || s.code || '', impact, reason };
             });
             $('#eventImpactResult').html(`
                 <div class="gr-grid-gap-sm">
-                    <div class="text-sm mb-2">📌 模拟场景: <strong>${eventNames[eventType]}</strong>（基于自选行情与行业标签的启发式估算）</div>
+                    <div class="text-sm mb-2">📌 模拟场景: <strong>${eventNames[eventType]}</strong>（基于自选行情与行业标签的启发式估算�?/div>
                     ${picked.map(x => `
                         <div class="trade-plan-panel gr-flex-row-center">
                             <div>
@@ -563,13 +569,13 @@ function simulateEventImpact() {
                             <span class="badge-soft" style="background:${x.impact > 0 ? 'rgba(16,185,129,0.15)' : x.impact < 0 ? 'rgba(239,68,68,0.15)' : 'rgba(107,114,128,0.15)'}; color:${x.impact > 0 ? 'var(--positive)' : x.impact < 0 ? 'var(--negative)' : 'var(--muted)'}">${x.impact > 0 ? '+' : ''}${x.impact}%</span>
                         </div>
                     `).join('')}
-                    <div class="text-xs text-muted mt-2">💡 估算用于研究与风险教育，不构成投资建议。</div>
+                    <div class="text-xs text-muted mt-2">💡 估算用于研究与风险教育，不构成投资建议�?/div>
                 </div>
             `);
         })
         .catch(err => {
             $('#eventImpactResult').html(
-                `<div class="text-sm p-4 text-negative">加载失败：${String(err && err.message ? err.message : err)}</div>` +
+                `<div class="text-sm p-4 text-negative">加载失败�?{String(err && err.message ? err.message : err)}</div>` +
                 `<div class="text-sm p-4"><button type="button" class="btn-brand btn-sm" data-gr-action="simulate-event-impact">重试</button> <a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a></div>`
             );
         });

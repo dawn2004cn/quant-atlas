@@ -70,7 +70,8 @@ def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/global-radar")
     @login_required
     def global_radar():
-        return redirect("/app/global-radar", code=302)
+        settings = get_settings()
+        return render_template("global_radar.html", ux_env_hints=_ux_env_hints(settings))
 
     @blueprint.route("/market-panorama/<market>")
     @login_required
@@ -85,7 +86,8 @@ def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/tdx-blocks")
     @login_required
     def tdx_blocks():
-        return redirect("/app/tdx-blocks", code=302)
+        settings = get_settings()
+        return render_template("tdx_blocks.html", ux_env_hints=_ux_env_hints(settings))
 
     @blueprint.route("/backtest")
     @login_required
@@ -110,7 +112,8 @@ def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/hot-sectors")
     @login_required
     def hot_sectors():
-        return redirect("/app/hot-sectors", code=302)
+        settings = get_settings()
+        return render_template("hot_sectors.html", ux_env_hints=_ux_env_hints(settings))
 
     @blueprint.route("/architecture-roadmap")
     @login_required
