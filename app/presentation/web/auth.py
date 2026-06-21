@@ -6,7 +6,7 @@ import secrets
 import time
 from typing import TYPE_CHECKING
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for, current_app
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for, current_app
 from flask_login import current_user, login_required, login_user, logout_user
 from markupsafe import escape
 
@@ -121,6 +121,20 @@ def create_auth_blueprint(
                 session["_session_created"] = time.time()
                 remember = request.form.get("remember_me") == "on"
                 login_user(SessionUser.from_entity(user), remember=remember)
+                if request.accept_mimetypes.best == "application/json" or request.is_json:
+                    from app.infrastructure.auth.jwt_token_service import create_access_token
+                    access_token, expires_in = create_access_token(
+                        user_id=user.user_id,
+                        username=user.username,
+                        role=getattr(user, "role", "viewer"),
+                    )
+                    return jsonify({
+                        "access_token": access_token,
+                        "token_type": "Bearer",
+                        "expires_in": expires_in,
+                        "user_id": user.user_id,
+                        "username": user.username,
+                    })
                 return redirect(url_for("pages.dashboard"))
 
             if not current_app.config.get("TESTING", False):
