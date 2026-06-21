@@ -3391,3 +3391,28 @@ Establish JWT auth, OpenAPI docs, E2E tests, CI checks, and frontend API type ge
 - App boots cleanly with auth middleware
 - CI `openapi-check` job ready
 
+---
+
+## 2026-06-21 - SPA Visual Alignment + M1 Factor/DataLake Pages
+
+### SPA Visual Alignment (Flask Style)
+- **dark.css/light.css**: expanded tokens — 6 surface levels (surface, surface-2, surface-3, strong, elevated, border), 3 shadow levels, line/focus/nav/chart tokens, radius scale (xs/sm/md/lg/xl/pill), font-display
+- **index.css**: gradient background (radial green+blue blobs), `.glass-panel` with backdrop-blur, `.skeleton` shimmer animation, `.btn-brand` gradient, `.badge-soft`, `.section-shell`, `.hero-caption`, `.page-title`, focus-visible ring, responsive breakpoints
+- **Layout.tsx**: Flask-style 4-group dropdown navigation (操盘台/研究/策略/我的) with 30+ items, mobile hamburger nav, brand badge, feature-gated items
+
+### M1 Factor Pages
+- **FactorRepository.tsx**: paginated card grid with search + regime filter, stat cards (total/sharpe/active)
+- **FactorEvolution.tsx**: canvas-based force-directed lineage topology graph with node drag/pan/zoom, sidebar stats, evolve/submit/backtest actions
+- **FactorDetail.tsx**: factor detail with IC bar chart, backtest metrics grid (6 items), correlation list, metadata section
+- **api.ts**: 6 new functions (fetchFactorRepository, fetchFactorLineage, fetchFactorDetail, evolveFactor, submitFactorToVault, analyzeExperiment)
+- Routes: `/factor-repository`, `/factor-evolution`, `/factor/:factorId`
+
+### M1 Data Lake Health
+- **DataLakeHealth.tsx**: 3-panel health monitor (SQLite lake, QuestDB timeseries, WebSocket realtime) with 5s auto-refresh, sync/backfill progress bars, migration panel with log output
+- Route: `/data-lake-health`
+
+### Verified
+- Frontend builds clean (194 modules, ~3s, zero warnings)
+- All factor/data-lake routes registered
+- Nav links added to Layout.tsx dropdown groups
+
