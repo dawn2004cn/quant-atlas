@@ -7,11 +7,16 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy-wizard.css') }}">
+    <script src="{{ url_for('static', filename='js/switcher_telemetry.js') }}"></script>
 </head>
 <body>
     <div id="wizard-toast" class="wizard-toast" role="alert"></div>
     <div class="wizard-container">
         <h1>策略向导</h1>
+        <a href="/app/strategy-wizard" class="spa-switcher-link"
+           onclick="window.trackSwitcherClick && window.trackSwitcherClick('strategy-wizard')">
+          试试新版 →
+        </a>
         <p>用 4 步创建一个可预览、可落地的量化策略。</p>
 
         <div class="step-indicator">

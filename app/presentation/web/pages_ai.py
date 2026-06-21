@@ -27,7 +27,7 @@ def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/ai-hedge-fund")
     @login_required
     def ai_hedge_fund():
-        return redirect("/app/ai-hedge-fund", code=302)
+        return render_template("ai_hedge_fund.html")
 
     @blueprint.route("/alpha-factory")
     @login_required
@@ -47,42 +47,42 @@ def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/ai-committee")
     @login_required
     def ai_investment_committee():
-        return redirect("/app/ai-investment-committee", code=302)
+        return render_template("ai_investment_committee.html")
 
     @blueprint.route("/ai-committee-dashboard")
     @login_required
     def ai_committee_dashboard():
-        return redirect("/app/ai-committee-dashboard", code=302)
+        return render_template("ai_committee_dashboard.html")
 
     @blueprint.route("/ai-committee-selection")
     @login_required
     def ai_committee_selection():
-        return redirect("/app/ai-committee-selection", code=302)
+        return render_template("ai_committee_selection.html")
 
     @blueprint.route("/nl-strategy")
     @login_required
     def nl_strategy():
-        return redirect("/app/nl-strategy", code=302)
+        return render_template("nl_strategy.html")
 
     @blueprint.route("/ai-analysis")
     @login_required
     def ai_analysis():
-        return redirect("/app/ai-analysis", code=302)
+        return render_template("ai_analysis.html")
 
     @blueprint.route("/ai-research-report")
     @login_required
     def ai_research_report():
-        return redirect("/app/ai-research-report", code=302)
+        return render_template("ai_research_report.html")
 
     @blueprint.route("/ai-chat")
     @login_required
     def ai_chat():
-        return redirect("/app/ai-chat", code=302)
+        return render_template("ai_chat.html")
 
     @blueprint.route("/research-pipeline")
     @login_required
     def research_pipeline():
-        return redirect("/app/research-pipeline", code=302)
+        return render_template("research_pipeline.html")
 
     @blueprint.route("/factor-repository")
     @login_required
@@ -129,7 +129,7 @@ def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/strategy-wizard")
     @login_required
     def strategy_wizard():
-        return redirect("/app/strategy-wizard", code=302)
+        return render_template("strategy_wizard.html")
 
     @blueprint.route("/data-lake-health")
     @login_required

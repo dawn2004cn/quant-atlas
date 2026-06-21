@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/ai-committee-dashboard" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('ai-committee-dashboard')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="committee-dashboard">
     <!-- 顶部英雄区 -->

@@ -5,6 +5,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/ai-research-report" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('ai-research-report')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="section-shell aireport-hero">
     <div class="hero-caption">TradingAgents</div>

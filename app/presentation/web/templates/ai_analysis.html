@@ -6,6 +6,13 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
 {% endblock %}
 
+{% block spa_switcher %}
+<a href="/app/ai-analysis" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('ai-analysis')">
+  试试新版 →
+</a>
+{% endblock %}
+
 {% block content %}
 <div id="aiGlobalError" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger" role="alert"></div>
 {% for h in ux_env_hints|default([]) %}
