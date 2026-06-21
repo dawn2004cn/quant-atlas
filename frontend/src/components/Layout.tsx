@@ -69,6 +69,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "因子演化", to: "/factor-evolution" },
       { label: "因子市场", to: "/marketplace", feature: "feature_alpha_marketplace" },
       { label: "实验报告", to: "/experiments" },
+      { label: "数据湖健康", to: "/data-lake-health" },
     ],
   },
   {
