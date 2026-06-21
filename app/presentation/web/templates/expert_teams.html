@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}AI 专家团队 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/portfolio.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="section-shell">
+    <div class="hero-caption">Multi-Agent Swarm</div>
+    <h1 class="page-title">🤖 AI 专家团队</h1>
+    <p class="page-subtitle">29 个预置多智能体团队，覆盖投资、交易、风险各类场景</p>
+    
+    <div class="et-toolbar">
+        <input type="text" id="searchTeam" class="form-input et-search" placeholder="🔍 搜索团队...">
+        <select id="categoryFilter" class="form-input et-filter">
+            <option value="">全部分类</option>
+            <option value="equity">股票研究</option>
+            <option value="quant">量化策略</option>
+            <option value="risk">风险管理</option>
+            <option value="macro">宏观策略</option>
+            <option value="crypto">加密货币</option>
+            <option value="derivatives">衍生品</option>
+            <option value="credit">信用研究</option>
+            <option value="sector">行业轮动</option>
+            <option value="social">社交alpha</option>
+            <option value="fund">基金筛选</option>
+            <option value="event">事件驱动</option>
+            <option value="commodity">商品研究</option>
+            <option value="convertible">可转债</option>
+            <option value="technical">技术分析</option>
+            <option value="pairs">配对交易</option>
+            <option value="etf">ETF配置</option>
+        </select>
+    </div>
+    
+    <div class="category-title">📊 股票研究 <span class="category-count">4</span></div>
+    <div class="team-grid" id="equityTeams">
+        <div class="team-card equity" data-et-action="open-run" data-team-id="equity_research_team" data-team-name="股票研究团队" data-team-desc="深入分析个股基本面、行业趋势和财务数据" role="button" tabindex="0">
+            <div class="team-icon">📈</div>
+            <div class="team-name">股票研究团队</div>
+            <div class="team-desc">深入分析个股基本面、行业趋势和财务数据</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 5-10min</span></div>
+        </div>
+        <div class="team-card equity" data-et-action="open-run" data-team-id="fundamental_research_team" data-team-name="基本面研究团队" data-team-desc="专注价值分析，评估公司内在价值和成长潜力" role="button" tabindex="0">
+            <div class="team-icon">💎</div>
+            <div class="team-name">基本面研究团队</div>
+            <div class="team-desc">专注价值分析，评估公司内在价值和成长潜力</div>
+            <div class="team-meta"><span>👥 4 Agents</span><span>⏱️ 8-15min</span></div>
+        </div>
+        <div class="team-card equity" data-et-action="open-run" data-team-id="earnings_research_desk" data-team-name="财报研究台" data-team-desc="深度解读财报，识别盈利质量和潜在风险" role="button" tabindex="0">
+            <div class="team-icon">📋</div>
+            <div class="team-name">财报研究台</div>
+            <div class="team-desc">深度解读财报，识别盈利质量和潜在风险</div>
+            <div class="team-meta"><span>👥 2 Agents</span><span>⏱️ 3-5min</span></div>
+        </div>
+        <div class="team-card equity" data-et-action="open-run" data-team-id="sentiment_intelligence_team" data-team-name="情绪 intelligence 团队" data-team-desc="监控舆情，提取市场情绪信号和热点话题" role="button" tabindex="0">
+            <div class="team-icon">🗣️</div>
+            <div class="team-name">情绪 intelligence 团队</div>
+            <div class="team-desc">监控舆情，提取市场情绪信号和热点话题</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 5-8min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">🧮 量化策略 <span class="category-count">4</span></div>
+    <div class="team-grid" id="quantTeams">
+        <div class="team-card quant" data-et-action="open-run" data-team-id="quant_strategy_desk" data-team-name="量化策略台" data-team-desc="设计、回测和优化量化交易策略" role="button" tabindex="0">
+            <div class="team-icon">⚡</div>
+            <div class="team-name">量化策略台</div>
+            <div class="team-desc">设计、回测和优化量化交易策略</div>
+            <div class="team-meta"><span>👥 4 Agents</span><span>⏱️ 10-20min</span></div>
+        </div>
+        <div class="team-card quant" data-et-action="open-run" data-team-id="ml_quant_lab" data-team-name="ML 量化实验室" data-team-desc="机器学习驱动的因子挖掘和策略开发" role="button" tabindex="0">
+            <div class="team-icon">🤖</div>
+            <div class="team-name">ML 量化实验室</div>
+            <div class="team-desc">机器学习驱动的因子挖掘和策略开发</div>
+            <div class="team-meta"><span>👥 5 Agents</span><span>⏱️ 15-30min</span></div>
+        </div>
+        <div class="team-card quant" data-et-action="open-run" data-team-id="statistical_arbitrage_desk" data-team-name="统计套利台" data-team-desc="配对交易、均值回归等统计套利策略" role="button" tabindex="0">
+            <div class="team-icon">📊</div>
+            <div class="team-name">统计套利台</div>
+            <div class="team-desc">配对交易、均值回归等统计套利策略</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 8-12min</span></div>
+        </div>
+        <div class="team-card quant" data-et-action="open-run" data-team-id="factor_research_committee" data-team-name="因子研究委员会" data-team-desc="因子有效性评估和组合优化" role="button" tabindex="0">
+            <div class="team-icon">🧬</div>
+            <div class="team-name">因子研究委员会</div>
+            <div class="team-desc">因子有效性评估和组合优化</div>
+            <div class="team-meta"><span>👥 4 Agents</span><span>⏱️ 10-15min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">🛡️ 风险管理 <span class="category-count">2</span></div>
+    <div class="team-grid" id="riskTeams">
+        <div class="team-card risk" data-et-action="open-run" data-team-id="risk_committee" data-team-name="风险委员会" data-team-desc="全面评估组合风险，识别潜在威胁" role="button" tabindex="0">
+            <div class="team-icon">⚠️</div>
+            <div class="team-name">风险委员会</div>
+            <div class="team-desc">全面评估组合风险，识别潜在威胁</div>
+            <div class="team-meta"><span>👥 4 Agents</span><span>⏱️ 5-10min</span></div>
+        </div>
+        <div class="team-card risk" data-et-action="open-run" data-team-id="portfolio_review_board" data-team-name="组合审查委员会" data-team-desc="定期审查持仓，评估风险敞口" role="button" tabindex="0">
+            <div class="team-icon">🔍</div>
+            <div class="team-name">组合审查委员会</div>
+            <div class="team-desc">定期审查持仓，评估风险敞口</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 3-5min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">🌍 宏观策略 <span class="category-count">3</span></div>
+    <div class="team-grid" id="macroTeams">
+        <div class="team-card macro" data-et-action="open-run" data-team-id="macro_strategy_forum" data-team-name="宏观策略论坛" data-team-desc="分析宏观经济趋势和地缘政治影响" role="button" tabindex="0">
+            <div class="team-icon">🌐</div>
+            <div class="team-name">宏观策略论坛</div>
+            <div class="team-desc">分析宏观经济趋势和地缘政治影响</div>
+            <div class="team-meta"><span>👥 4 Agents</span><span>⏱️ 10-15min</span></div>
+        </div>
+        <div class="team-card macro" data-et-action="open-run" data-team-id="global_allocation_committee" data-team-name="全球配置委员会" data-team-desc="跨资产类别最优配置方案" role="button" tabindex="0">
+            <div class="team-icon">🌎</div>
+            <div class="team-name">全球配置委员会</div>
+            <div class="team-desc">跨资产类别最优配置方案</div>
+            <div class="team-meta"><span>👥 5 Agents</span><span>⏱️ 15-20min</span></div>
+        </div>
+        <div class="team-card macro" data-et-action="open-run" data-team-id="macro_rates_fx_desk" data-team-name="宏观利率外汇台" data-team-desc="利率汇率分析，跨境资本流动" role="button" tabindex="0">
+            <div class="team-icon">💱</div>
+            <div class="team-name">宏观利率外汇台</div>
+            <div class="team-desc">利率汇率分析，跨境资本流动</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 8-12min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">₿ 加密货币 <span class="category-count">2</span></div>
+    <div class="team-grid" id="cryptoTeams">
+        <div class="team-card crypto" data-et-action="open-run" data-team-id="crypto_trading_desk" data-team-name="加密货币交易台" data-team-desc="数字资产量化交易和套利" role="button" tabindex="0">
+            <div class="team-icon">₿</div>
+            <div class="team-name">加密货币交易台</div>
+            <div class="team-desc">数字资产量化交易和套利</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 5-10min</span></div>
+        </div>
+        <div class="team-card crypto" data-et-action="open-run" data-team-id="crypto_research_lab" data-team-name="加密货币研究实验室" data-team-desc="链上数据和DeFi协议分析" role="button" tabindex="0">
+            <div class="team-icon">🔗</div>
+            <div class="team-name">加密货币研究实验室</div>
+            <div class="team-desc">链上数据和DeFi协议分析</div>
+            <div class="team-meta"><span>👥 4 Agents</span><span>⏱️ 8-12min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">📐 衍生品 <span class="category-count">1</span></div>
+    <div class="team-grid" id="derivativesTeams">
+        <div class="team-card derivatives" data-et-action="open-run" data-team-id="derivatives_strategy_desk" data-team-name="衍生品策略台" data-team-desc="期权、期货结构化策略设计" role="button" tabindex="0">
+            <div class="team-icon">🎯</div>
+            <div class="team-name">衍生品策略台</div>
+            <div class="team-desc">期权、期货结构化策略设计</div>
+            <div class="team-meta"><span>👥 4 Agents</span><span>⏱️ 10-15min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">🏦 信用研究 <span class="category-count">1</span></div>
+    <div class="team-grid" id="creditTeams">
+        <div class="team-card credit" data-et-action="open-run" data-team-id="credit_research_team" data-team-name="信用研究团队" data-team-desc="债券信用分析，违约概率评估" role="button" tabindex="0">
+            <div class="team-icon">📑</div>
+            <div class="team-name">信用研究团队</div>
+            <div class="team-desc">债券信用分析，违约概率评估</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 8-12min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">🏭 行业轮动 <span class="category-count">1</span></div>
+    <div class="team-grid" id="sectorTeams">
+        <div class="team-card sector" data-et-action="open-run" data-team-id="sector_rotation_team" data-team-name="行业轮动团队" data-team-desc="行业景气度监控，轮动信号识别" role="button" tabindex="0">
+            <div class="team-icon">🔄</div>
+            <div class="team-name">行业轮动团队</div>
+            <div class="team-desc">行业景气度监控，轮动信号识别</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 5-10min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title"> social Alpha <span class="category-count">1</span></div>
+    <div class="team-grid" id="socialTeams">
+        <div class="team-card social" data-et-action="open-run" data-team-id="social_alpha_team" data-team-name="社交Alpha团队" data-team-desc="社交媒体情绪挖掘，跟风资金追踪" role="button" tabindex="0">
+            <div class="team-icon">📱</div>
+            <div class="team-name">社交Alpha团队</div>
+            <div class="team-desc">社交媒体情绪挖掘，跟风资金追踪</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 5-8min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">👨‍💼 基金筛选 <span class="category-count">1</span></div>
+    <div class="team-grid" id="fundTeams">
+        <div class="team-card fund" data-et-action="open-run" data-team-id="fund_selection_panel" data-team-name="基金筛选面板" data-team-desc="公募私募基金量化筛选，业绩归因" role="button" tabindex="0">
+            <div class="team-icon">👥</div>
+            <div class="team-name">基金筛选面板</div>
+            <div class="team-desc">公募私募基金量化筛选，业绩归因</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 8-12min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">⚡ 事件驱动 <span class="category-count">1</span></div>
+    <div class="team-grid" id="eventTeams">
+        <div class="team-card event" data-et-action="open-run" data-team-id="event_driven_task_force" data-team-name="事件驱动特战队" data-team-desc="财报季、并购重组事件投资策略" role="button" tabindex="0">
+            <div class="team-icon">🔥</div>
+            <div class="team-name">事件驱动特战队</div>
+            <div class="team-desc">财报季、并购重组事件投资策略</div>
+            <div class="team-meta"><span>👥 4 Agents</span><span>⏱️ 5-10min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">🌾 商品研究 <span class="category-count">1</span></div>
+    <div class="team-grid" id="commodityTeams">
+        <div class="team-card commodity" data-et-action="open-run" data-team-id="commodity_research_team" data-team-name="商品研究团队" data-team-desc="大宗商品供需分析，价格预测" role="button" tabindex="0">
+            <div class="team-icon">🌾</div>
+            <div class="team-name">商品研究团队</div>
+            <div class="team-desc">大宗商品供需分析，价格预测</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 8-12min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">📝 可转债 <span class="category-count">1</span></div>
+    <div class="team-grid" id="convertibleTeams">
+        <div class="team-card convertible" data-et-action="open-run" data-team-id="convertible_bond_team" data-team-name="可转债团队" data-team-desc="可转债定价、套利和条款博弈" role="button" tabindex="0">
+            <div class="team-icon">📄</div>
+            <div class="team-name">可转债团队</div>
+            <div class="team-desc">可转债定价、套利和条款博弈</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 10-15min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">📈 技术分析 <span class="category-count">1</span></div>
+    <div class="team-grid" id="technicalTeams">
+        <div class="team-card technical" data-et-action="open-run" data-team-id="technical_analysis_panel" data-team-name="技术分析面板" data-team-desc="图表形态识别，自动画线提示" role="button" tabindex="0">
+            <div class="team-icon">📊</div>
+            <div class="team-name">技术分析面板</div>
+            <div class="team-desc">图表形态识别，自动画线提示</div>
+            <div class="team-meta"><span>👥 2 Agents</span><span>⏱️ 3-5min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">🔗 配对交易 <span class="category-count">1</span></div>
+    <div class="team-grid" id="pairsTeams">
+        <div class="team-card pairs" data-et-action="open-run" data-team-id="pairs_research_lab" data-team-name="配对交易实验室" data-team-desc="跨品种、跨期统计套利研究" role="button" tabindex="0">
+            <div class="team-icon">🔗</div>
+            <div class="team-name">配对交易实验室</div>
+            <div class="team-desc">跨品种、跨期统计套利研究</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 8-12min</span></div>
+        </div>
+    </div>
+    
+    <div class="category-title">📊 ETF配置 <span class="category-count">1</span></div>
+    <div class="team-grid" id="etfTeams">
+        <div class="team-card etf" data-et-action="open-run" data-team-id="etf_allocation_desk" data-team-name="ETF配置台" data-team-desc="ETF轮动、套利和组合配置" role="button" tabindex="0">
+            <div class="team-icon">📈</div>
+            <div class="team-name">ETF配置台</div>
+            <div class="team-desc">ETF轮动、套利和组合配置</div>
+            <div class="team-meta"><span>👥 3 Agents</span><span>⏱️ 5-10min</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="run-modal" id="runModal">
+    <div class="run-modal-content">
+        <div class="et-modal-head">
+            <h3 id="runModalTitle" class="et-modal-title">运行团队</h3>
+            <button class="btn-soft" data-et-action="close-modal" type="button">✕</button>
+        </div>
+        
+        <div class="form-group">
+            <label class="et-label">股票代码</label>
+            <input type="text" id="runSymbol" class="form-input" placeholder="如: 600519">
+        </div>
+        
+        <div class="form-group">
+            <label class="et-label">研究主题 (可选)</label>
+            <input type="text" id="runTopic" class="form-input" placeholder="如: 分析新能源板块前景">
+        </div>
+        
+        <div class="et-modal-actions">
+            <button class="btn-soft" data-et-action="close-modal" type="button" class="et-btn-flex">取消</button>
+            <button class="btn-brand" data-et-action="run-team" type="button" class="et-btn-flex">🚀 启动</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+let currentTeam = null;
+
+function filterTeams() {
+    const search = $('#searchTeam').val().toLowerCase();
+    const category = $('#categoryFilter').val();
+    
+    $('.team-card').each(function() {
+        const name = $(this).find('.team-name').text().toLowerCase();
+        const desc = $(this).find('.team-desc').text().toLowerCase();
+        const cardClass = $(this).attr('class');
+        
+        const matchSearch = name.includes(search) || desc.includes(search);
+        const matchCategory = !category || cardClass.includes(category);
+        
+        $(this).toggle(matchSearch && matchCategory);
+    });
+    
+    $('.category-title').each(function() {
+        const count = $(this).next('.team-grid').find('.team-card:visible').length;
+        $(this).toggle(count > 0);
+    });
+}
+
+function openRunModal(teamId, teamName, teamDesc) {
+    currentTeam = teamId;
+    $('#runModalTitle').text('运行 ' + teamName);
+    $('#runModal').addClass('open');
+}
+
+function closeRunModal() {
+    $('#runModal').removeClass('open');
+}
+
+async function runTeam() {
+    const symbol = $('#runSymbol').val().trim();
+    const topic = $('#runTopic').val().trim();
+    
+    if (!symbol) {
+        showToast('请输入股票代码', 'warning');
+        return;
+    }
+    
+    closeRunModal();
+    showToast('🤖 正在启动 ' + currentTeam + '...', 'info');
+    
+    try {
+        const res = await fetch('/api/v1/agent-swarm/swarm/run', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                preset: currentTeam,
+                symbol: symbol,
+                topic: topic || '分析这只股票'
+            })
+        });
+        
+        const result = await res.json();
+        const payload = result.data ?? result;
+        const runId = payload.run_id || payload.id;
+        
+        if (runId) {
+            showToast('✅ 团队已启动，跳转查看结果...', 'success');
+            setTimeout(() => {
+                location.href = '/research-pipeline?run_id=' + runId;
+            }, 1500);
+        } else if (result.status === 'error' && result.error) {
+            throw new Error(result.error.message || '启动失败');
+        } else {
+            throw new Error(result.error || '启动失败');
+        }
+    } catch(e) {
+        showToast('启动失败: ' + e.message, 'error');
+    }
+}
+
+function handleEtAction(event) {
+    const el = event.target.closest('[data-et-action]');
+    if (!el) return;
+    const action = el.dataset.etAction;
+    if (action === 'open-run') {
+        openRunModal(el.dataset.teamId || '', el.dataset.teamName || '', el.dataset.teamDesc || '');
+    } else if (action === 'close-modal') closeRunModal();
+    else if (action === 'run-team') runTeam();
+}
+document.addEventListener('click', handleEtAction);
+document.getElementById('categoryFilter')?.addEventListener('change', filterTeams);
+document.getElementById('searchTeam')?.addEventListener('keyup', filterTeams);
+
+</script>
+{% endblock %}

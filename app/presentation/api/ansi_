@@ -1,0 +1,13 @@
+import os, re
+base = r"E:\project\workspace\myrepo\quant-atlas\app\presentation\web\templates"
+src = os. path. join(base, "self_ht_ht")
+out = os. path. join(base, "self_ht_ht_clean")
+with open(src, encoding="utf-8") as fh: lines = fh. read().split("\n")
+seen = set()
+outlines = []
+for line in lines:
+    s = line. strip()
+    if s == "{% extends \"base.ht
+    lines. append(line)content = "\n".join(outlines)
+print(len(content), content. count("\n"))
+with open(out, "w", encoding="utf-8") as fh: fh. write(content)

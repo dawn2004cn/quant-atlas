@@ -1,0 +1,233 @@
+/**
+ * pages/truth.css — 数据真相水滴（独立页）
+ * Depends on: zen-finance.css
+ */
+
+:root {
+            --bg: #0a0e17;
+            --card-bg: #111827;
+            --cyan: #06b6d4;
+            --blue: #3b82f6;
+            --green: #22c55e;
+            --yellow: #eab308;
+            --red: #ef4444;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 900px;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--cyan);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        /* ── The Droplet ──────────────────────────────── */
+        .droplet-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .droplet-wrapper {
+            position: relative;
+            width: 280px;
+            height: 340px;
+        }
+
+        .droplet-svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 30px rgba(6, 182, 212, 0.3));
+        }
+
+        .droplet-fill {
+            transition: fill 0.8s ease, d 0.8s ease;
+        }
+
+        .droplet-glow {
+            animation: glow-pulse 3s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.15; }
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        .ripple-ring {
+            animation: ripple 2s ease-out infinite;
+            transform-origin: 140px 160px;
+        }
+
+        .ripple-ring:nth-child(2) { animation-delay: 0.7s; }
+        .ripple-ring:nth-child(3) { animation-delay: 1.4s; }
+
+        .score-label {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            z-index: 2;
+        }
+
+        .score-label small {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 400;
+            opacity: 0.8;
+        }
+
+        /* ── Source Cards ─────────────────────────────── */
+        .source-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .source-card {
+            background: var(--card-bg);
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 1.2rem;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .source-card.ok { border-color: var(--green); }
+        .source-card.warn { border-color: var(--yellow); }
+        .source-card.err { border-color: var(--red); }
+
+        .source-name {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.3rem;
+        }
+
+        .source-score {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .source-card.ok .source-score { color: var(--green); }
+        .source-card.warn .source-score { color: var(--yellow); }
+        .source-card.err .source-score { color: var(--red); }
+
+        .source-status {
+            font-size: 0.75rem;
+            margin-top: 0.3rem;
+            color: var(--text-muted);
+        }
+
+        /* ── Heal Log ─────────────────────────────────── */
+        .heal-panel {
+            background: var(--card-bg);
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 1.2rem;
+        }
+
+        .heal-panel h3 {
+            font-size: 0.95rem;
+            margin-bottom: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .heal-log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .heal-entry {
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        .heal-entry .time { color: var(--text-muted); }
+        .heal-entry .action-ok { color: var(--green); }
+        .heal-entry .action-err { color: var(--red); }
+
+        /* ── Controls ─────────────────────────────────── */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover { opacity: 0.85; }
+
+        .btn-primary {
+            background: var(--blue);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-scan {
+            background: var(--cyan);
+            color: #000;
+        }
+
+        /* ── Auto-refresh indicator ───────────────────── */
+        .refresh-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: var(--cyan);
+            transition: width 1s linear;
+        }

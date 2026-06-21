@@ -1,0 +1,32 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+    - id: check-yaml
+    - id: check-added-large-files
+    - id: check-merge-conflict
+    - id: detect-private-key
+
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.9
+  hooks:
+    - id: ruff
+      args: [--fix, --exit-non-zero-on-fix]
+
+- repo: local
+  hooks:
+    - id: py-compile
+      name: Python compile check
+      entry: python -m compileall -q app/ tests/
+      language: system
+      types: [python]
+      pass_filenames: false
+
+    - id: contract-audit
+      name: Contract Audit
+      entry: python scripts/audit_contracts.py app/application/services
+      language: system
+      types: [python]
+      pass_filenames: false

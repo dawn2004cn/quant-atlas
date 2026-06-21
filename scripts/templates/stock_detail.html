@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Detail - {{ code }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 id="stock-name">Loading...</h1>
+            <p>Code: {{ code }}</p>
+            <div id="stock-details" class="mb-3"></div>
+        </div>
+        <div class="col-md-4">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="stock-search" placeholder="输入股票代码" aria-label="股票代码" aria-describedby="search-button">
+                <button class="btn btn-primary" type="button" id="search-button">切换股票</button>
+            </div>
+        </div>
+    </div>
+    <div id="kline-chart" style="width: 100%; height: 800px;"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.3.2/dist/echarts.min.js"></script>
+<script>
+    $(document).ready(function() {
+        const code = "{{ code }}";
+        
+        
+        
+        // 股票切换功能
+        $('#search-button').click(function() {
+            const newCode = $('#stock-search').val().trim();
+            if (newCode) {
+                window.location.href = `/stock/${newCode}`;
+            }
+        });
+        
+        $('#stock-search').keypress(function(e) {
+            if (e.which === 13) {
+                $('#search-button').click();
+            }
+        });
+        
+        $.get(`/api/v1/stocks/CN/${code}`, function(res) {
+                const profile = (res.stock && res.stock.profile) || res.profile || {};
+                const realtime = profile.realtime || {};
+                const detail = profile.detail || {};
+                const stock = {
+                    name: realtime.name || detail.name || code,
+                    price: realtime.price || detail.price || 0,
+                    change_pct: realtime.change_pct || detail.change_pct || 0
+                };
+                $('#stock-name').text(stock.name);
+                let detailsHtml = `
+                    <p class="lead mb-1">当前价：<strong>${stock.price}</strong></p>
+                    <p class="text-muted mb-0">涨跌幅：<span class="${stock.change_pct >= 0 ? 'text-danger' : 'text-success'}">${stock.change_pct}%</span></p>
+                `;
+                $('#stock-details').html(detailsHtml);
+        });
+
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setFullYear(endDate.getFullYear() - 1);
+        const start = startDate.toISOString().split('T')[0];
+        const end = endDate.toISOString().split('T')[0];
+
+        $.get(`/api/v1/stocks/CN/${code}/history?start=${start}&end=${end}`, function(res) {
+            renderChart(res.history || []);
+        });
+
+        function renderChart(data) {
+            if (!data || data.length === 0) {
+                $('#kline-chart').html('<div class="text-center text-muted py-5">鏆傛棤鍘嗗彶鏁版嵁</div>');
+                return;
+            }
+            const chart = echarts.init(document.getElementById('kline-chart'));
+
+            data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            const dates = data.map(item => item.date);
+            const klineData = data.map(item => [item.open, item.close, item.low, item.high]);
+            const volumes = data.map(item => item.volume || 0);
+            const amounts = data.map(item => item.amount || 0);
+
+            // 计算MA指标
+            const ma5 = calculateMA(5, data);
+            const ma10 = calculateMA(10, data);
+            const ma20 = calculateMA(20, data);
+            const ma30 = calculateMA(30, data);
+            const ma60 = calculateMA(60, data);
+            const ma120 = calculateMA(120, data);
+
+            // 计算MACD指标
+            const macdData = calculateMACD(data);
+            
+            // 计算KDJ指标
+            const kdjData = calculateKDJ(data);
+
+            const option = {
+                backgroundColor: '#ffffff',
+                animation: false,
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross' },
+                    borderWidth: 1,
+                    borderColor: '#ccc',
+                    padding: 10,
+                    textStyle: { fontSize: 12 },
+                    position: (pos, params, el, elRect, size) => ({
+                        top: 10,
+                        left: pos[0] - size.contentSize[0] / 2
+                    })
+                },
+                axisPointer: {
+                    link: [{ xAxisIndex: 'all' }],
+                    label: { backgroundColor: '#777' }
+                },
+                toolbox: {
+                    feature: {
+                        dataZoom: { yAxisIndex: false },
+                        brush: { xAxisIndex: 'all' },
+                        restore: {}
+                    },
+                    right: 10,
+                    top: 10
+                },
+                legend: {
+                    data: ['K 线', 'MA5', 'MA10', 'MA20', 'MA30', 'MA60', 'MA120', '成交量', '成交额', 'MACD-DIF', 'MACD-DEA', 'MACD-HIST', 'KDJ-K', 'KDJ-D', 'KDJ-J'],
+                    bottom: 10,
+                    left: 'center'
+                },
+                grid: [
+                    { left: '10%', right: '8%', height: '40%', top: '10%' },
+                    { left: '10%', right: '8%', top: '55%', height: '12%' },
+                    { left: '10%', right: '8%', top: '70%', height: '12%' },
+                    { left: '10%', right: '8%', top: '85%', height: '12%' }
+                ],
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: dates,
+                        scale: true,
+                        boundaryGap: false,
+                        axisLine: { onZero: false },
+                        splitLine: { show: false },
+                        splitNumber: 20,
+                        min: 'dataMin',
+                        max: 'dataMax',
+                        axisPointer: { z: 100 }
+                    },
+                    {
+                        type: 'category',
+                        gridIndex: 1,
+                        data: dates,
+                        boundaryGap: false,
+                        axisLine: { onZero: false },
+                        axisTick: { show: false },
+                        axisLabel: { show: false },
+                        splitLine: { show: false },
+                        axisPointer: { type: 'shadow' }
+                    },
+                    {
+                        type: 'category',
+                        gridIndex: 2,
+                        data: dates,
+                        boundaryGap: false,
+                        axisLine: { onZero: false },
+                        axisTick: { show: false },
+                        axisLabel: { show: false },
+                        splitLine: { show: false },
+                        axisPointer: { type: 'shadow' }
+                    },
+                    {
+                        type: 'category',
+                        gridIndex: 3,
+                        data: dates,
+                        boundaryGap: false,
+                        axisLine: { onZero: false },
+                        axisTick: { show: false },
+                        axisLabel: { show: false },
+                        splitLine: { show: false },
+                        axisPointer: { type: 'shadow' }
+                    }
+                ],
+                yAxis: [
+                    {
+                        scale: true,
+                        splitArea: { show: true, areaStyle: { color: ['#f8f8f8', '#fff'] } },
+                        splitLine: { lineStyle: { color: '#e0e0e0' } }
+                    },
+                    {
+                        scale: true,
+                        gridIndex: 1,
+                        splitNumber: 2,
+                        axisLabel: { show: false },
+                        axisLine: { show: false },
+                        axisTick: { show: false },
+                        splitLine: { show: false }
+                    },
+                    {
+                        scale: true,
+                        gridIndex: 2,
+                        splitNumber: 4,
+                        axisLabel: { show: false },
+                        axisLine: { show: false },
+                        axisTick: { show: false },
+                        splitLine: { show: true, lineStyle: { color: '#e0e0e0' } }
+                    },
+                    {
+                        scale: true,
+                        gridIndex: 3,
+                        splitNumber: 4,
+                        axisLabel: { show: false },
+                        axisLine: { show: false },
+                        axisTick: { show: false },
+                        splitLine: { show: true, lineStyle: { color: '#e0e0e0' } }
+                    }
+                ],
+                dataZoom: [
+                    { type: 'inside', xAxisIndex: [0, 1, 2, 3], start: 50, end: 100 },
+                    { show: true, xAxisIndex: [0, 1, 2, 3], type: 'slider', bottom: 30, start: 50, end: 100 }
+                ],
+                series: [
+                    {
+                        name: 'K 线',
+                        type: 'candlestick',
+                        data: klineData,
+                        itemStyle: {
+                            color: '#ef232a',
+                            color0: '#14b143',
+                            borderColor: '#ef232a',
+                            borderColor0: '#14b143'
+                        },
+                        emphasis: { itemStyle: { color: '#ff6b6b', color0: '#5dd684' } }
+                    },
+                    {
+                        name: 'MA5',
+                        type: 'line',
+                        data: ma5,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#ffd700' },
+                        showSymbol: false
+                    },
+                    {
+                        name: 'MA10',
+                        type: 'line',
+                        data: ma10,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#00ced1' },
+                        showSymbol: false
+                    },
+                    {
+                        name: 'MA20',
+                        type: 'line',
+                        data: ma20,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#ff69b4' },
+                        showSymbol: false
+                    },
+                    {
+                        name: 'MA30',
+                        type: 'line',
+                        data: ma30,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#9370db' },
+                        showSymbol: false
+                    },
+                    {
+                        name: 'MA60',
+                        type: 'line',
+                        data: ma60,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#ff8c00' },
+                        showSymbol: false
+                    },
+                    {
+                        name: 'MA120',
+                        type: 'line',
+                        data: ma120,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#4682b4' },
+                        showSymbol: false
+                    },
+                    {
+                        name: '成交量',
+                        type: 'bar',
+                        xAxisIndex: 1,
+                        yAxisIndex: 1,
+                        data: volumes,
+                        itemStyle: {
+                            color: (params) => {
+                                const dataIndex = params.dataIndex;
+                                const open = data[dataIndex]?.open || 0;
+                                const close = data[dataIndex]?.close || 0;
+                                return close >= open ? '#ef232a' : '#14b143';
+                            }
+                        }
+                    },
+                    {
+                        name: '成交额',
+                        type: 'bar',
+                        xAxisIndex: 1,
+                        yAxisIndex: 1,
+                        data: amounts,
+                        itemStyle: {
+                            color: (params) => {
+                                const dataIndex = params.dataIndex;
+                                const open = data[dataIndex]?.open || 0;
+                                const close = data[dataIndex]?.close || 0;
+                                return close >= open ? 'rgba(239, 35, 42, 0.3)' : 'rgba(20, 177, 67, 0.3)';
+                            }
+                        }
+                    },
+                    {
+                        name: 'MACD-DIF',
+                        type: 'line',
+                        xAxisIndex: 2,
+                        yAxisIndex: 2,
+                        data: macdData.dif,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#ff6b6b' },
+                        showSymbol: false
+                    },
+                    {
+                        name: 'MACD-DEA',
+                        type: 'line',
+                        xAxisIndex: 2,
+                        yAxisIndex: 2,
+                        data: macdData.dea,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#4ecdc4' },
+                        showSymbol: false
+                    },
+                    {
+                        name: 'MACD-HIST',
+                        type: 'bar',
+                        xAxisIndex: 2,
+                        yAxisIndex: 2,
+                        data: macdData.hist,
+                        itemStyle: {
+                            color: (params) => {
+                                return params.value >= 0 ? '#ff6b6b' : '#4ecdc4';
+                            }
+                        }
+                    },
+                    {
+                        name: 'KDJ-K',
+                        type: 'line',
+                        xAxisIndex: 3,
+                        yAxisIndex: 3,
+                        data: kdjData.k,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#ff6b6b' },
+                        showSymbol: false
+                    },
+                    {
+                        name: 'KDJ-D',
+                        type: 'line',
+                        xAxisIndex: 3,
+                        yAxisIndex: 3,
+                        data: kdjData.d,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#4ecdc4' },
+                        showSymbol: false
+                    },
+                    {
+                        name: 'KDJ-J',
+                        type: 'line',
+                        xAxisIndex: 3,
+                        yAxisIndex: 3,
+                        data: kdjData.j,
+                        smooth: true,
+                        lineStyle: { width: 1, color: '#ffe66d' },
+                        showSymbol: false
+                    }
+                ]
+            };
+
+            chart.setOption(option);
+
+            window.addEventListener('resize', () => {
+                chart.resize();
+            });
+        }
+
+        function calculateMA(period, data) {
+            const result = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < period - 1) {
+                    result.push('-');
+                    continue;
+                }
+                let sum = 0;
+                for (let j = 0; j < period; j++) {
+                    sum += data[i - j].close;
+                }
+                result.push(+(sum / period).toFixed(2));
+            }
+            return result;
+        }
+
+        function calculateMACD(data, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) {
+            const closePrices = data.map(item => item.close);
+            const ema12 = calculateEMA(closePrices, fastPeriod);
+            const ema26 = calculateEMA(closePrices, slowPeriod);
+            
+            const dif = [];
+            const dea = [];
+            const hist = [];
+            
+            for (let i = 0; i < data.length; i++) {
+                if (i < slowPeriod - 1) {
+                    dif.push('-');
+                    dea.push('-');
+                    hist.push('-');
+                } else {
+                    const difValue = ema12[i] - ema26[i];
+                    dif.push(+(difValue).toFixed(4));
+                    
+                    if (i < slowPeriod + signalPeriod - 2) {
+                        dea.push('-');
+                        hist.push('-');
+                    } else {
+                        const deaValue = calculateEMA(dif.slice(-signalPeriod), signalPeriod)[signalPeriod - 1];
+                        dea.push(+(deaValue).toFixed(4));
+                        hist.push(+((difValue - deaValue) * 2).toFixed(4));
+                    }
+                }
+            }
+            
+            return { dif, dea, hist };
+        }
+
+        function calculateEMA(prices, period) {
+            const ema = [];
+            const multiplier = 2 / (period + 1);
+            
+            // 计算第一个EMA值（使用简单平均值）
+            let sum = 0;
+            for (let i = 0; i < period; i++) {
+                sum += prices[i];
+            }
+            ema.push(sum / period);
+            
+            // 计算后续的EMA值
+            for (let i = period; i < prices.length; i++) {
+                const emaValue = (prices[i] - ema[i - period]) * multiplier + ema[i - period];
+                ema.push(emaValue);
+            }
+            
+            // 前面补'-'，使长度与原数据一致
+            const result = [];
+            for (let i = 0; i < period - 1; i++) {
+                result.push('-');
+            }
+            result.push(...ema);
+            
+            return result;
+        }
+
+        function calculateKDJ(data, n = 9, m1 = 3, m2 = 3) {
+            const closePrices = data.map(item => item.close);
+            const highPrices = data.map(item => item.high);
+            const lowPrices = data.map(item => item.low);
+            
+            const k = [];
+            const d = [];
+            const j = [];
+            
+            // 计算RSV
+            const rsv = [];
+            for (let i = 0; i < data.length; i++) {
+                if (i < n - 1) {
+                    rsv.push('-');
+                } else {
+                    const high = Math.max(...highPrices.slice(i - n + 1, i + 1));
+                    const low = Math.min(...lowPrices.slice(i - n + 1, i + 1));
+                    const close = closePrices[i];
+                    const rsvValue = (close - low) / (high - low) * 100;
+                    rsv.push(+(rsvValue).toFixed(2));
+                }
+            }
+            
+            // 计算K、D、J
+            for (let i = 0; i < data.length; i++) {
+                if (i < n - 1) {
+                    k.push('-');
+                    d.push('-');
+                    j.push('-');
+                } else if (i === n - 1) {
+                    // 第一个K值使用RSV
+                    const kValue = rsv[i];
+                    k.push(kValue);
+                    // 第一个D值使用K值
+                    const dValue = kValue;
+                    d.push(dValue);
+                    // 计算J值
+                    const jValue = 3 * kValue - 2 * dValue;
+                    j.push(+(jValue).toFixed(2));
+                } else {
+                    // 计算K值
+                    const kValue = (2 / (m1 + 1)) * rsv[i] + (m1 - 1) / (m1 + 1) * k[i - 1];
+                    k.push(+(kValue).toFixed(2));
+                    // 计算D值
+                    const dValue = (2 / (m2 + 1)) * k[i] + (m2 - 1) / (m2 + 1) * d[i - 1];
+                    d.push(+(dValue).toFixed(2));
+                    // 计算J值
+                    const jValue = 3 * k[i] - 2 * d[i];
+                    j.push(+(jValue).toFixed(2));
+                }
+            }
+            
+            return { k, d, j };
+        }
+    });
+</script>
+{% endblock %}

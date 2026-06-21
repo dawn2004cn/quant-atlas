@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}个人设置{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1>个人设置</h1>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            修改密码
+        </div>
+        <div class="card-body">
+            <form id="changePasswordForm">
+                <div class="form-group">
+                    <label for="oldPassword">旧密码</label>
+                    <input type="password" class="form-control" id="oldPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">新密码</label>
+                    <input type="password" class="form-control" id="newPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">确认新密码</label>
+                    <input type="password" class="form-control" id="confirmPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary">修改密码</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#changePasswordForm').submit(function(e) {
+            e.preventDefault();
+            const oldPassword = $('#oldPassword').val();
+            const newPassword = $('#newPassword').val();
+            const confirmPassword = $('#confirmPassword').val();
+
+            $.ajax({
+                url: '/api/v1/change-password',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    old_password: oldPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                }),
+                success: function(res) {
+                    if (!res.status || res.status === 'success') {
+                        alert(res.message);
+                        $('#changePasswordForm')[0].reset();
+                    } else {
+                        alert('修改密码失败: ' + res.message);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert('请求失败: ' + textStatus);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

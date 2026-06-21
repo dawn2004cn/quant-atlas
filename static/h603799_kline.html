@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>华友钴业（603799）K线图</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2.0/dist/chartjs-chart-financial.min.js"></script>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .stock-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f0f7ff;
+            border-radius: 8px;
+        }
+        .stock-info .price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .stock-info .change {
+            font-size: 18px;
+        }
+        .stock-info .positive {
+            color: #e74c3c;
+        }
+        .stock-info .negative {
+            color: #27ae60;
+        }
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin-top: 20px;
+        }
+        .analysis-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+        .analysis-section h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .analysis-section h3 {
+            color: #34495e;
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+        .summary {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        .time-range-buttons {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .time-range-buttons button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            border: 1px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .time-range-buttons button:hover,
+        .time-range-buttons button.active {
+            background: #3498db;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>华友钴业（603799）股票分析</h1>
+        
+        <div class="stock-info">
+            <div>最新价: <span class="price">¥66.83</span></div>
+            <div class="change positive">+2.14 (+3.20%)</div>
+            <div>所属行业: 普通有色(B01284)</div>
+            <div>数据截止: 2026-04-29</div>
+        </div>
+
+        <div class="time-range-buttons">
+            <button onclick="changeRange('1m')" class="active">1个月</button>
+            <button onclick="changeRange('3m')">3个月</button>
+            <button onclick="changeRange('6m')">6个月</button>
+            <button onclick="changeRange('1y')">1年</button>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="klineChart"></canvas>
+        </div>
+
+        <div class="analysis-section">
+            <h2>一、基本面分析</h2>
+            <table>
+                <tr>
+                    <th>时间</th>
+                    <th>指标</th>
+                    <th>数值</th>
+                    <th>同比</th>
+                </tr>
+                <tr>
+                    <td>2026一季报</td>
+                    <td>营业收入</td>
+                    <td>258.04亿元</td>
+                    <td>+44.62%</td>
+                </tr>
+                <tr>
+                    <td>2026一季报</td>
+                    <td>归母净利润</td>
+                    <td>24.97亿元</td>
+                    <td>+99.45%</td>
+                </tr>
+                <tr>
+                    <td>2026一季报</td>
+                    <td>基本每股收益</td>
+                    <td>1.33</td>
+                    <td>+79.73%</td>
+                </tr>
+                <tr>
+                    <td>2026一季报</td>
+                    <td>资产负债率</td>
+                    <td>63.57%</td>
+                    <td>-0.80%</td>
+                </tr>
+            </table>
+
+            <h2>二、资金面分析</h2>
+            <table>
+                <tr>
+                    <th>时间</th>
+                    <th>资金类型</th>
+                    <th>金额</th>
+                    <th>增减仓</th>
+                </tr>
+                <tr>
+                    <td>当日</td>
+                    <td>主力资金</td>
+                    <td>5.35亿</td>
+                    <td>+0.429%</td>
+                </tr>
+                <tr>
+                    <td>22日</td>
+                    <td>主力资金</td>
+                    <td>11.27亿</td>
+                    <td>+0.926%</td>
+                </tr>
+                <tr>
+                    <td>近5日</td>
+                    <td>融资融券净额</td>
+                    <td>-1.27亿</td>
+                    <td>-</td>
+                </tr>
+            </table>
+
+            <h2>三、技术面分析</h2>
+            <ul>
+                <li><strong>筹码集中度：</strong>90%集中度14.44%，70%集中度7.75%</li>
+                <li><strong>支撑位：</strong>65.78</li>
+                <li><strong>压力位：</strong>67.11</li>
+                <li><strong>估值空间：</strong>风险线111.03，中枢线65.23，安全线25.97</li>
+                <li><strong>决策状态：</strong>短线/波段/长线/价值决策均处于持仓状态</li>
+            </ul>
+
+            <h2>四、消息面分析</h2>
+            <ul>
+                <li><strong>相关热点：</strong>金属钴（近1日正面热点）、锂矿（近5日正面热点）</li>
+                <li><strong>分析师关注：</strong>22位</li>
+            </ul>
+
+            <div class="summary">
+                <h3>综合评估</h3>
+                <p>华友钴业当前展现出强劲的增长势头，一季度归母净利润同比增长接近100%，且技术面上处于多个轮动中的强势位置。然而，公司面临资产负债率较高以及近期融资融券净流入为负的风险，显示资金层面存在一定的波动性和不确定性。投资者应重点关注公司未来业绩的持续性和资金流向的变化。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // K线数据
+        const klineData = [
+            {"date": "2026-03-12", "open": 67.61, "high": 68.65, "low": 66.68, "close": 67.5},
+            {"date": "2026-03-13", "open": 67.05, "high": 69.16, "low": 66.75, "close": 66.83},
+            {"date": "2026-03-16", "open": 66.35, "high": 66.7, "low": 61.85, "close": 63.42},
+            {"date": "2026-03-17", "open": 63.77, "high": 64.2, "low": 61.85, "close": 61.86},
+            {"date": "2026-03-18", "open": 61.81, "high": 61.98, "low": 59.63, "close": 60.64},
+            {"date": "2026-03-19", "open": 58.67, "high": 58.93, "low": 56.26, "close": 56.51},
+            {"date": "2026-03-20", "open": 57.3, "high": 59.1, "low": 56.51, "close": 57.41},
+            {"date": "2026-03-23", "open": 56.19, "high": 58.58, "low": 55.22, "close": 55.63},
+            {"date": "2026-03-24", "open": 56.86, "high": 56.99, "low": 53.93, "close": 56.34},
+            {"date": "2026-03-25", "open": 57.46, "high": 59.31, "low": 57.31, "close": 59.04},
+            {"date": "2026-03-26", "open": 58.8, "high": 59.85, "low": 57.9, "close": 58.17},
+            {"date": "2026-03-27", "open": 57.24, "high": 60.73, "low": 57.22, "close": 59.9},
+            {"date": "2026-03-30", "open": 59.0, "high": 60.17, "low": 58.4, "close": 59.75},
+            {"date": "2026-03-31", "open": 59.57, "high": 60.04, "low": 58.22, "close": 58.73},
+            {"date": "2026-04-01", "open": 59.9, "high": 60.79, "low": 58.76, "close": 60.3},
+            {"date": "2026-04-02", "open": 59.8, "high": 60.6, "low": 58.5, "close": 58.98},
+            {"date": "2026-04-03", "open": 58.99, "high": 59.49, "low": 57.3, "close": 57.42},
+            {"date": "2026-04-07", "open": 57.4, "high": 58.58, "low": 57.4, "close": 57.88},
+            {"date": "2026-04-08", "open": 59.88, "high": 61.09, "low": 59.44, "close": 61.09},
+            {"date": "2026-04-09", "open": 60.51, "high": 60.74, "low": 59.34, "close": 59.5},
+            {"date": "2026-04-10", "open": 59.89, "high": 62.27, "low": 59.89, "close": 61.43},
+            {"date": "2026-04-13", "open": 60.82, "high": 62.99, "low": 60.82, "close": 62.43},
+            {"date": "2026-04-14", "open": 63.6, "high": 64.4, "low": 61.0, "close": 64.32},
+            {"date": "2026-04-15", "open": 64.98, "high": 65.37, "low": 62.61, "close": 62.76},
+            {"date": "2026-04-16", "open": 63.32, "high": 65.94, "low": 63.15, "close": 65.91},
+            {"date": "2026-04-17", "open": 67.22, "high": 68.8, "low": 66.11, "close": 66.21},
+            {"date": "2026-04-20", "open": 65.8, "high": 66.65, "low": 64.95, "close": 65.78},
+            {"date": "2026-04-21", "open": 66.45, "high": 66.57, "low": 64.96, "close": 65.5},
+            {"date": "2026-04-22", "open": 64.89, "high": 65.5, "low": 64.37, "close": 64.73},
+            {"date": "2026-04-23", "open": 64.83, "high": 64.89, "low": 61.9, "close": 62.22}
+        ];
+
+        let chart = null;
+
+        function createChart(data) {
+            const ctx = document.getElementById('klineChart').getContext('2d');
+            
+            const candleData = data.map(d => ({
+                x: d.date,
+                o: d.open,
+                h: d.high,
+                l: d.low,
+                c: d.close
+            }));
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'candlestick',
+                data: {
+                    datasets: [{
+                        label: '603799',
+                        data: candleData
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '华友钴业（603799）日K线'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day'
+                            }
+                        },
+                        y: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        function changeRange(range) {
+            const buttons = document.querySelectorAll('.time-range-buttons button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            let days = 30;
+            if (range === '1m') days = 30;
+            else if (range === '3m') days = 90;
+            else if (range === '6m') days = 180;
+            else if (range === '1y') days = 365;
+            
+            const filteredData = klineData.slice(-days);
+            createChart(filteredData);
+        }
+
+        // 初始加载
+        createChart(klineData);
+    </script>
+</body>
+</html>

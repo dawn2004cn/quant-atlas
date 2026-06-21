@@ -1,0 +1,10 @@
+import os
+src = r'E:\project\workspace\myrepo\quant-atlas\scripts\templates\self_Stocks.astro'
+dst_dir = r'E:\project\workspace\myrepo\quant-atlas\app\presentation\web\templates'
+if os.path.exists(src):
+    print('FOUND: ' + src + ' = ' + str(os.path.getsize(src)) + ' bytes')
+else:
+    print('NOT FOUND: ' + src)
+    for f in os.listdir(dst_dir):
+        if 'self' in f.lower():
+            print('  ' + f)

@@ -1,0 +1,7 @@
+﻿
+=========================== short test summary info ===========================
+ERROR tests/presentation/api/v1/portfolio/test_helpers.py
+ERROR tests/presentation/api/v1/quant_ai/test_runtime.py
+ERROR tests/presentation/api/v1/trade_plan/test_runtime.py
+ERROR tests/core/test_sequence_chain.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!

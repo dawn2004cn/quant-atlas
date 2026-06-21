@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}专业工作台 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="pw-shell">
+    <div class="pw-hero">
+        <h1 class="pw-hero-title">🏛️ 专业工作台</h1>
+        <p class="pw-hero-sub">投资公司 / 基金 / 机构 — 组合优化 · 归因 · 合规 · 执行算法 · RBAC</p>
+    </div>
+
+    <div class="pw-stats">
+        <div class="pw-stat"><div class="pw-stat-val" id="pwRole">—</div><div class="pw-stat-lbl">当前角色</div></div>
+        <div class="pw-stat"><div class="pw-stat-val" id="pwCanTrade">—</div><div class="pw-stat-lbl">下单权限</div></div>
+        {% if feature_federated_mesh %}
+        <div class="pw-stat"><div class="pw-stat-val" id="pwNodes">0</div><div class="pw-stat-lbl">联邦节点</div></div>
+        {% endif %}
+    </div>
+
+    <div class="pw-tabs" id="pwTabs">
+        <button class="pw-tab active" data-tab="portfolio">📊 组合优化</button>
+        <button class="pw-tab" data-tab="attribution">📈 Brinson 归因</button>
+        <button class="pw-tab" data-tab="compliance">🛡️ 合规预检</button>
+        <button class="pw-tab" data-tab="execution">⚡ 执行算法</button>
+        <button class="pw-tab" data-tab="pipeline">🔗 交易流水线</button>
+        <button class="pw-tab" data-tab="realtime">📡 Tick 推送</button>
+        {% if feature_federated_mesh %}
+        <button class="pw-tab" data-tab="federated">🌐 联邦部署</button>
+        {% endif %}
+    </div>
+
+    <div id="tab-portfolio" class="pw-grid">
+        <div class="pw-card">
+            <h3>Risk Parity 优化</h3>
+            <div class="pw-form">
+                <label>策略 JSON（volatility, expected_return, strategy_id）</label>
+                <textarea id="rpStrategies" rows="4">[{"strategy_id":"s1","volatility":0.15,"expected_return":0.12},{"strategy_id":"s2","volatility":0.22,"expected_return":0.16}]</textarea>
+                <button class="pw-btn pw-btn-primary" type="button" data-pw-action="run-risk-parity">运行 Risk Parity</button>
+            </div>
+            <div class="pw-out" id="rpOut">—</div>
+        </div>
+        <div class="pw-card">
+            <h3>Black-Litterman 优化</h3>
+            <div class="pw-form">
+                <label>策略 JSON</label>
+                <textarea id="blStrategies" rows="3">[{"strategy_id":"s1","volatility":0.15,"expected_return":0.12},{"strategy_id":"s2","volatility":0.22,"expected_return":0.16}]</textarea>
+                <label>观点 views JSON</label>
+                <input id="blViews" value='{"s1": 0.15}' />
+                <button class="pw-btn pw-btn-primary" type="button" data-pw-action="run-black-litterman">运行 Black-Litterman</button>
+            </div>
+            <div class="pw-out" id="blOut">—</div>
+        </div>
+    </div>
+
+    <div id="tab-attribution" class="qa-is-hidden pw-card">
+        <h3>Brinson 工业级归因</h3>
+        <div class="pw-form pw-grid">
+            <div><label>组合权重 JSON</label><input id="brPw" value='{"科技":0.4,"消费":0.3,"金融":0.3}' /></div>
+            <div><label>组合收益 JSON</label><input id="brPr" value='{"科技":0.05,"消费":0.02,"金融":-0.01}' /></div>
+            <div><label>基准权重 JSON</label><input id="brBw" value='{"科技":0.35,"消费":0.35,"金融":0.3}' /></div>
+            <div><label>基准收益 JSON</label><input id="brBr" value='{"科技":0.04,"消费":0.03,"金融":0.0}' /></div>
+        </div>
+        <button class="pw-btn pw-btn-primary" type="button" data-pw-action="run-brinson">计算 Brinson 归因</button>
+        <div class="pw-out" id="brOut">—</div>
+    </div>
+
+    <div id="tab-compliance" class="qa-is-hidden pw-card">
+        <h3>合规预检 Guardrail</h3>
+        <div class="pw-form pw-grid">
+            <div><label>标的</label><input id="cgSymbol" value="600519" /></div>
+            <div><label>行业</label><input id="cgSector" value="消费" /></div>
+            <div><label>订单金额</label><input id="cgValue" type="number" value="500000" /></div>
+            <div><label>组合总值</label><input id="cgPortfolio" type="number" value="5000000" /></div>
+            <div><label>当前持仓占比</label><input id="cgPosPct" type="number" step="0.01" value="0.05" /></div>
+            <div><label>行业集中度</label><input id="cgSecPct" type="number" step="0.01" value="0.15" /></div>
+        </div>
+        <button class="pw-btn pw-btn-primary" type="button" data-pw-action="run-compliance">运行合规预检</button>
+        <div class="pw-out" id="cgOut">—</div>
+    </div>
+
+    <div id="tab-execution" class="qa-is-hidden pw-card">
+        <h3>机构执行算法</h3>
+        <div class="pw-form pw-grid">
+            <div><label>标的</label><input id="exSymbol" value="600519" /></div>
+            <div><label>方向</label><select id="exSide"><option value="buy">buy</option><option value="sell">sell</option></select></div>
+            <div><label>总量</label><input id="exQty" type="number" value="10000" /></div>
+        </div>
+        <button class="pw-btn pw-btn-sm pw-btn-primary" type="button" data-pw-action="run-algo" data-algo="vwap">VWAP</button>
+        <button class="pw-btn pw-btn-sm pw-btn-primary" type="button" data-pw-action="run-algo" data-algo="twap">TWAP</button>
+        <button class="pw-btn pw-btn-sm pw-btn-primary" type="button" data-pw-action="run-algo" data-algo="iceberg">Iceberg</button>
+        <button class="pw-btn pw-btn-sm pw-btn-primary" type="button" data-pw-action="run-algo" data-algo="pov">POV</button>
+        <div class="pw-out" id="exOut">—</div>
+    </div>
+
+    <div id="tab-pipeline" class="qa-is-hidden pw-card">
+        <h3>完整交易流水线（预检 → 合规 → 风控 → 审计）</h3>
+        <div class="pw-form pw-grid">
+            <div><label>标的</label><input id="plSymbol" value="600519" /></div>
+            <div><label>动作</label><select id="plAction"><option value="buy">buy</option><option value="sell">sell</option></select></div>
+            <div><label>数量</label><input id="plQty" type="number" value="100" /></div>
+            <div><label>价格</label><input id="plPrice" type="number" value="1500" /></div>
+            <div><label>组合总值</label><input id="plPortfolio" type="number" value="5000000" /></div>
+            <div><label>行业</label><input id="plSector" value="消费" /></div>
+        </div>
+        <button class="pw-btn pw-btn-primary" type="button" data-pw-action="run-preflight-pipeline">预检并提交流水线</button>
+        <button class="pw-btn pw-btn-sm" type="button" data-pw-action="verify-audit-chain">验证审计链</button>
+        <div class="pw-out" id="plPreflight">—</div>
+        <div class="pw-out" id="plOut">—</div>
+    </div>
+
+    <div id="tab-realtime" class="qa-is-hidden pw-card">
+        <h3>Tick 级 WebSocket 推送</h3>
+        <p class="pw-hint">需启用 <code>ENABLE_SOCKETIO=1</code> 与 <code>ENABLE_TICK_WS=1</code></p>
+        <div class="pw-form pw-grid">
+            <div><label>订阅标的（逗号分隔）</label><input id="rtSymbols" value="600519,000001" /></div>
+        </div>
+        <button class="pw-btn pw-btn-primary" type="button" data-pw-action="connect-ticks">连接并订阅</button>
+        <button class="pw-btn pw-btn-sm" type="button" data-pw-action="load-tick-status">刷新状态</button>
+        <div class="pw-out" id="rtStatus">—</div>
+        <div class="pw-out pw-feed-scroll" id="rtFeed">等待 Tick…</div>
+    </div>
+
+    {% if feature_federated_mesh %}
+    <div id="tab-federated" class="qa-is-hidden pw-card">
+        <h3>联邦 / 私有化部署</h3>
+        <div class="pw-out" id="fedStatus">—</div>
+        <div class="pw-out" id="fedConfig">—</div>
+        <div class="pw-form pw-grid pw-form-mt">
+            <div><label>节点 ID</label><input id="fedNodeId" placeholder="node-01" /></div>
+            <div><label>节点名称</label><input id="fedNodeName" placeholder="上海机房" /></div>
+            <div><label>模式</label><select id="fedMode"><option value="federated">federated</option><option value="airgap">airgap</option><option value="online">online</option></select></div>
+            <div><label>模型名（FedAvg）</label><input id="fedModelName" value="alpha_v1" /></div>
+        </div>
+        <button class="pw-btn pw-btn-primary" type="button" data-pw-action="register-node">注册节点</button>
+        <button class="pw-btn pw-btn-sm" type="button" data-pw-action="send-heartbeat">心跳</button>
+        <button class="pw-btn pw-btn-sm" type="button" data-pw-action="submit-fed-update">提交更新</button>
+        <button class="pw-btn pw-btn-sm pw-btn-primary" type="button" data-pw-action="run-fed-avg">FedAvg 聚合</button>
+        <button class="pw-btn pw-btn-sm" type="button" data-pw-action="load-fed-status">刷新状态</button>
+        <div class="pw-out" id="fedNodes">—</div>
+        <div class="pw-out" id="fedRound">—</div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+const pw = {
+    base: '/api/v1/user-tiers',
+    api: '/api/v1',
+    federatedEnabled: {{ feature_federated_mesh|tojson }},
+    _tickSocket: null,
+    async _fetch(path, opts = {}) {
+        const res = await fetch(this.base + path, {
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            ...opts,
+        });
+        const json = await res.json();
+        if (!res.ok && res.status === 403) throw new Error('RBAC 权限不足，请先在联邦部署页分配 trader 角色');
+        if (!json.ok && res.status >= 400) throw new Error(json.error || '请求失败');
+        return json;
+    },
+    _show(id, data) {
+        document.getElementById(id).textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    },
+    async loadMeta() {
+        try {
+            const reqs = [
+                this._fetch('/institution/rbac/me'),
+                this._fetch('/institution/rbac/check/order/execute'),
+            ];
+            if (this.federatedEnabled) {
+                reqs.push(this._fetch('/institution/federated/nodes'));
+            }
+            const results = await Promise.all(reqs);
+            const me = results[0];
+            const trade = results[1];
+            document.getElementById('pwRole').textContent = me.data?.role_name || '未分配';
+            document.getElementById('pwCanTrade').innerHTML = trade.allowed
+                ? '<span class="pw-badge pw-badge-ok">允许</span>'
+                : '<span class="pw-badge pw-badge-fail">拒绝</span>';
+            if (this.federatedEnabled) {
+                const nodes = results[2];
+                document.getElementById('pwNodes').textContent = (nodes.data || []).length;
+            }
+        } catch (e) { /* silent: fed config best-effort */ }
+        if (!this.federatedEnabled) {
+            return;
+        }
+        try {
+            const cfg = await this._fetch('/institution/federated/config');
+            this._show('fedConfig', cfg.data);
+            await this.loadFedStatus();
+        } catch (e) { /* silent: fed status best-effort */ }
+    },
+    async loadFedStatus() {
+        try {
+            const [status, nodes] = await Promise.all([
+                this._fetch('/institution/federated/status'),
+                this._fetch('/institution/federated/nodes'),
+            ]);
+            this._show('fedStatus', status.data);
+            this._show('fedNodes', nodes.data);
+            document.getElementById('pwNodes').textContent = status.data?.active_nodes ?? 0;
+        } catch (e) { this._show('fedStatus', e.message); }
+    },
+    async sendHeartbeat() {
+        const nodeId = document.getElementById('fedNodeId').value.trim();
+        if (!nodeId) { this._show('fedNodes', '请先填写节点 ID'); return; }
+        try {
+            await this._fetch(`/institution/federated/nodes/${encodeURIComponent(nodeId)}/heartbeat`, {
+                method: 'POST',
+                body: JSON.stringify({ metadata: { source: 'professional_workbench' } }),
+            });
+            await this.loadFedStatus();
+        } catch (e) { this._show('fedNodes', e.message); }
+    },
+    async submitFedUpdate() {
+        const nodeId = document.getElementById('fedNodeId').value.trim();
+        const model = document.getElementById('fedModelName').value.trim() || 'alpha_v1';
+        if (!nodeId) { this._show('fedRound', '请先填写节点 ID'); return; }
+        try {
+            const json = await this._fetch('/institution/federated/update', {
+                method: 'POST',
+                body: JSON.stringify({
+                    node_id: nodeId,
+                    model_name: model,
+                    weight_updates: { w_momentum: 0.12, w_value: 0.08 },
+                    performance_delta: 0.015,
+                }),
+            });
+            this._show('fedRound', json.data);
+            await this.loadFedStatus();
+        } catch (e) { this._show('fedRound', e.message); }
+    },
+    async runFedAvg() {
+        const model = document.getElementById('fedModelName').value.trim() || 'alpha_v1';
+        try {
+            const json = await this._fetch(`/institution/federated/aggregate/${encodeURIComponent(model)}/round`, { method: 'POST' });
+            this._show('fedRound', json.data);
+        } catch (e) { this._show('fedRound', e.message); }
+    },
+    async runRiskParity() {
+        try {
+            const strategies = JSON.parse(document.getElementById('rpStrategies').value);
+            const json = await this._fetch('/investment/optimize/risk-parity', { method: 'POST', body: JSON.stringify({ strategies }) });
+            this._show('rpOut', json.data);
+        } catch (e) { this._show('rpOut', e.message); }
+    },
+    async runBlackLitterman() {
+        try {
+            const strategies = JSON.parse(document.getElementById('blStrategies').value);
+            const views = JSON.parse(document.getElementById('blViews').value);
+            const json = await this._fetch('/investment/optimize/black-litterman', { method: 'POST', body: JSON.stringify({ strategies, views }) });
+            this._show('blOut', json.data);
+        } catch (e) { this._show('blOut', e.message); }
+    },
+    async runBrinson() {
+        try {
+            const json = await this._fetch('/fund/attribution/brinson', { method: 'POST', body: JSON.stringify({
+                portfolio_id: 'demo',
+                portfolio_weights: JSON.parse(document.getElementById('brPw').value),
+                portfolio_returns: JSON.parse(document.getElementById('brPr').value),
+                benchmark_weights: JSON.parse(document.getElementById('brBw').value),
+                benchmark_returns: JSON.parse(document.getElementById('brBr').value),
+            })});
+            this._show('brOut', json.data);
+        } catch (e) { this._show('brOut', e.message); }
+    },
+    async runCompliance() {
+        try {
+            const json = await this._fetch('/fund/compliance/check', { method: 'POST', body: JSON.stringify({
+                symbol: document.getElementById('cgSymbol').value,
+                sector: document.getElementById('cgSector').value,
+                order_value: +document.getElementById('cgValue').value,
+                portfolio_value: +document.getElementById('cgPortfolio').value,
+                current_position_pct: +document.getElementById('cgPosPct').value,
+                current_sector_pct: +document.getElementById('cgSecPct').value,
+            })});
+            this._show('cgOut', json.data);
+        } catch (e) { this._show('cgOut', e.message); }
+    },
+    async runAlgo(algo) {
+        try {
+            const body = { symbol: document.getElementById('exSymbol').value, side: document.getElementById('exSide').value, quantity: +document.getElementById('exQty').value };
+            const json = await this._fetch(`/institution/execution/${algo}`, { method: 'POST', body: JSON.stringify(body) });
+            this._show('exOut', json.data);
+        } catch (e) { this._show('exOut', e.message); }
+    },
+    async runPipeline() {
+        try {
+            const json = await this._fetch('/fund/trade/pipeline', { method: 'POST', body: JSON.stringify({
+                symbol: document.getElementById('plSymbol').value,
+                action: document.getElementById('plAction').value,
+                quantity: +document.getElementById('plQty').value,
+                price: +document.getElementById('plPrice').value,
+                skip_impact: true,
+            })});
+            this._show('plOut', json.data);
+            window._lastPipelineOrderId = json.data && json.data.order_id;
+        } catch (e) { this._show('plOut', e.message); }
+    },
+    async verifyAuditChain() {
+        const oid = window._lastPipelineOrderId || '';
+        try {
+            const path = oid
+                ? `/fund/audit/${encodeURIComponent(oid)}/verify`
+                : '/fund/audit/chain/verify';
+            const json = await this._fetch(path);
+            this._show('plPreflight', json.data);
+        } catch (e) { this._show('plPreflight', e.message); }
+    },
+    async runPreflightThenPipeline() {
+        const symbol = document.getElementById('plSymbol').value;
+        const action = document.getElementById('plAction').value;
+        const qty = +document.getElementById('plQty').value;
+        const price = +document.getElementById('plPrice').value;
+        const portfolio = +document.getElementById('plPortfolio').value;
+        const sector = document.getElementById('plSector').value;
+        this._show('plPreflight', '预检中…');
+        try {
+            const pf = await fetch(this.api + '/trading/preflight', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({
+                    symbol, direction: action.toUpperCase(), quantity: qty, price,
+                    portfolio_value: portfolio, sector, strategy_id: 'pipeline',
+                }),
+            });
+            const pfJson = await pf.json();
+            const d = pfJson.data || {};
+            this._show('plPreflight', { passed: d.passed, risk_score: d.risk_score, issues: d.issues, atr: d.atr_value, suggested_qty: d.suggested_quantity });
+            if (!d.passed) {
+                this._show('plOut', '预检未通过，流水线已中止');
+                return;
+            }
+            await this.runPipeline();
+        } catch (e) {
+            this._show('plPreflight', e.message);
+        }
+    },
+    async loadTickStatus() {
+        try {
+            const res = await fetch(this.api + '/realtime/ticks/status', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const json = await res.json();
+            this._show('rtStatus', json.data || json);
+        } catch (e) { this._show('rtStatus', e.message); }
+    },
+    connectTicks() {
+        if (typeof io === 'undefined') {
+            this._show('rtFeed', 'Socket.IO 未加载，请确认 ENABLE_SOCKETIO=1 且 base.html 已启用 socketio');
+            return;
+        }
+        const symbols = (document.getElementById('rtSymbols').value || '').split(',').map(s => s.trim()).filter(Boolean);
+        if (this._tickSocket) this._tickSocket.disconnect();
+        this._tickSocket = io();
+        const feed = document.getElementById('rtFeed');
+        this._tickSocket.on('connect', () => {
+            feed.textContent = '已连接，订阅 ' + symbols.join(', ') + '\n';
+            this._tickSocket.emit('subscribe_ticks', { symbols });
+        });
+        this._tickSocket.on('tick_update', (t) => {
+            feed.textContent = (t.timestamp || '') + ' ' + t.symbol + ' ' + t.price + ' bid=' + t.bid + ' ask=' + t.ask + '\n' + feed.textContent.slice(0, 4000);
+        });
+        this._tickSocket.on('ticks_subscribed', (msg) => {
+            feed.textContent += 'subscribed: ' + JSON.stringify(msg) + '\n';
+        });
+        this.loadTickStatus();
+    },
+    async registerNode() {
+        try {
+            await this._fetch('/institution/federated/nodes', { method: 'POST', body: JSON.stringify({
+                node_id: document.getElementById('fedNodeId').value,
+                name: document.getElementById('fedNodeName').value,
+                mode: document.getElementById('fedMode').value,
+            })});
+            await this.loadMeta();
+        } catch (e) { this._show('fedNodes', e.message); }
+    },
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    pw.loadMeta();
+    document.addEventListener('click', (e) => {
+        const el = e.target.closest('[data-pw-action]');
+        if (!el) return;
+        const action = el.dataset.pwAction;
+        if (action === 'run-risk-parity') pw.runRiskParity();
+        else if (action === 'run-black-litterman') pw.runBlackLitterman();
+        else if (action === 'run-brinson') pw.runBrinson();
+        else if (action === 'run-compliance') pw.runCompliance();
+        else if (action === 'run-algo') pw.runAlgo(el.dataset.algo || 'vwap');
+        else if (action === 'run-preflight-pipeline') pw.runPreflightThenPipeline();
+        else if (action === 'verify-audit-chain') pw.verifyAuditChain();
+        else if (action === 'connect-ticks') pw.connectTicks();
+        else if (action === 'load-tick-status') pw.loadTickStatus();
+        else if (action === 'register-node') pw.registerNode();
+        else if (action === 'send-heartbeat') pw.sendHeartbeat();
+        else if (action === 'submit-fed-update') pw.submitFedUpdate();
+        else if (action === 'run-fed-avg') pw.runFedAvg();
+        else if (action === 'load-fed-status') pw.loadFedStatus();
+    });
+    document.getElementById('pwTabs').addEventListener('click', (e) => {
+        const btn = e.target.closest('.pw-tab');
+        if (!btn) return;
+        document.querySelectorAll('.pw-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.tab;
+        {% if feature_federated_mesh %}
+        const tabIds = ['portfolio','attribution','compliance','execution','pipeline','realtime','federated'];
+        {% else %}
+        const tabIds = ['portfolio','attribution','compliance','execution','pipeline','realtime'];
+        {% endif %}
+        tabIds.forEach(id => {
+            const el = document.getElementById('tab-' + id);
+            if (el) el.style.display = id === tab ? '' : 'none';
+        });
+    });
+});
+</script>
+{% endblock %}

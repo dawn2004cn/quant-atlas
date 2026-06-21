@@ -1,0 +1,48 @@
+/**
+ * pages/data-lake.css — 数据湖健康看板
+ * Depends on: design-tokens.css, common.css
+ */
+
+/* ─── Data lake health (data_lake_health.html) ──────────────────────────────────────────── */
+.health-container { max-width: 1000px; margin: 2rem auto; padding: 2rem; font-family: sans-serif; }
+
+        .status-card { background: white; border: 1px solid #ddd; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 2rem; }
+
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+
+        .status-item { padding: 1rem; background: #f8f9fa; border-radius: 8px; text-align: center; }
+
+        .status-label { font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; }
+
+        .status-value { font-size: 1.2rem; font-weight: bold; color: #333; }
+
+        .status-ok { color: #28a745; }
+
+        .status-warn { color: #ffc107; }
+
+        .status-err { color: #dc3545; }
+
+        .progress-wrap { margin-top: 1rem; display: none; }
+
+        .progress-bar { height: 10px; background: #e9ecef; border-radius: 999px; overflow: hidden; }
+
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #007bff, #17a2a4); width: 0%; transition: width 0.3s; }
+
+        .progress-meta { font-size: 0.8rem; color: #666; margin-top: 0.5rem; text-align: center; }
+
+        .migration-panel { background: #fff4e5; border: 1px solid #ffe0b2; padding: 1.5rem; border-radius: 12px; }
+
+        .btn { padding: 0.6rem 1.2rem; border-radius: 4px; cursor: pointer; border: none; font-weight: bold; }
+
+        .btn-primary { background: #007bff; color: white; }
+
+        .btn-warning { background: #ffc107; color: #333; }
+
+        #migration-log { margin-top: 1rem; padding: 1rem; background: #333; color: #0f0; font-family: monospace; font-size: 0.85rem; border-radius: 8px; max-height: 300px; overflow-y: auto; }
+
+        .warn-banner { background: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
+
+        .dl-status-sm { font-size: 0.95rem; }
+        .dl-beat-strip { font-size: 0.8rem; margin-top: 8px; }
+        .dl-backfill-mt { margin-top: 12px; }
+

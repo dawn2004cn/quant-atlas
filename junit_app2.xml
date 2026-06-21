@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="1.268" timestamp="2026-06-15T19:59:23.050721+08:00" hostname="iceboat"><testcase classname="" name="tests.application.test_data_truth_guardian_service" time="0.000"><error message="collection failure">tests\application\test_data_truth_guardian_service.py:8: in &lt;module&gt;
+    from app.modules.system.services.system.data_truth_guardian_service import DataTruthGuardianService
+app\modules\system\services\system\data_truth_guardian_service.py:25: in &lt;module&gt;
+    from app.infrastructure.realtime.truth_sentry import TruthSentry
+app\infrastructure\realtime\__init__.py:9: in &lt;module&gt;
+    from .market_stream import MarketStreamProcessor, QuoteStream
+E   UnicodeDecodeError: 'utf-8' codec can't decode bytes in position 12-13: unexpected end of data</error></testcase></testsuite></testsuites>

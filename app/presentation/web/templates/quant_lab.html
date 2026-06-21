@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}量化实验室 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="section-shell">
+    <div class="hero-caption">Alpha Sandbox</div>
+    <h1 class="page-title">量化实验室</h1>
+    <p class="page-subtitle">手动编写 Qlib 表达式并实时模拟因子走势。在这里，灵感可以被瞬间验证并投递演化。</p>
+</div>
+
+<div class="lab-grid">
+    <div class="lab-main">
+        <div class="editor-section">
+            <div class="ql-editor-head">
+                <div class="ql-editor-title">🧪 公式试验场</div>
+                <div class="ql-editor-actions">
+                    <input type="text" id="simSymbol" class="input-soft" placeholder="股票代码" value="600519" class="ql-symbol-input">
+                    <button class="btn-brand" data-ql-action="run-simulation" type="button">🚀 立即模拟</button>
+                </div>
+            </div>
+            
+            <textarea id="formulaEditor" class="formula-input" spellcheck="false">Mean($close, 5) / $close</textarea>
+            
+            <div id="simStats" class="qa-is-hidden ql-stats-row">
+                <span class="stat-pill" id="statMean">均值: --</span>
+                <span class="stat-pill" id="statStd">标准差: --</span>
+                <button class="btn-soft btn-sm ql-evolve-btn" data-ql-action="send-evolution" type="button">🧬 投递至演化工厂</button>
+            </div>
+        </div>
+
+        <div class="lab-chart-container" id="simChart">
+            <div class="loading-tile">输入公式并点击模拟，在此查看因子序列可视化</div>
+        </div>
+    </div>
+
+    <div class="operator-sidebar">
+        <div class="op-card">
+            <div class="ql-card-title">📚 Qlib 算子库</div>
+            <div class="ql-op-scroll">
+                <div class="op-item" data-ql-action="insert-op" data-op="Mean($, 20)" role="button" tabindex="0">Mean(x, n) - 均值</div>
+                <div class="op-item" data-ql-action="insert-op" data-op="Std($, 20)" role="button" tabindex="0">Std(x, n) - 标准差</div>
+                <div class="op-item" data-ql-action="insert-op" data-op="ROC($, 10)" role="button" tabindex="0">ROC(x, n) - 变动率</div>
+                <div class="op-item" data-ql-action="insert-op" data-op="Ref($, 1)" role="button" tabindex="0">Ref(x, n) - 历史引用</div>
+                <div class="op-item" data-ql-action="insert-op" data-op="Rank($)" role="button" tabindex="0">Rank(x) - 横截面排名</div>
+                <div class="op-item" data-ql-action="insert-op" data-op="Corr($, $close, 10)" role="button" tabindex="0">Corr(x, y, n) - 相关性</div>
+                <div class="op-item" data-ql-action="insert-op" data-op="EMA($, 12)" role="button" tabindex="0">EMA(x, n) - 指数均线</div>
+            </div>
+            <p class="ql-hint-sm">
+                提示：使用 <code>$close</code>, <code>$volume</code> 等获取基础行情字段。
+            </p>
+        </div>
+        
+        <div class="op-card">
+            <div class="ql-card-title">💡 实验技巧</div>
+            <ul class="ql-hint-list">
+                <li>尝试使用 <code>Slope($close, 5)</code> 捕捉趋势斜率。</li>
+                <li><code>($close - Low($low, 5)) / (High($high, 5) - Low($low, 5))</code> 可计算 KDJ 风格的超买超卖。</li>
+                <li>配合 <code>Rank</code> 算子消除量纲影响。</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/vendor/echarts.min.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+let labChart = null;
+
+function insertOp(op) {
+    const editor = document.getElementById('formulaEditor');
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const val = editor.value;
+    editor.value = val.substring(0, start) + op + val.substring(end);
+    editor.focus();
+}
+
+async function runSimulation() {
+    const formula = document.getElementById('formulaEditor').value.trim();
+    const symbol = document.getElementById('simSymbol').value.trim();
+    if (!formula) return showToast('请输入公式', 'warning');
+
+    const chartDom = document.getElementById('simChart');
+    if (labChart) { labChart.dispose(); labChart = null; }
+    chartDom.innerHTML = '<div class="loading-tile">计算模拟序列中...</div>';
+
+    try {
+        const data = await (window.QCApi
+            ? QCApi.get('/alpha-factory/simulate?formula=' + encodeURIComponent(formula) + '&symbol=' + encodeURIComponent(symbol))
+            : fetch(`/api/v1/alpha-factory/simulate?formula=${encodeURIComponent(formula)}&symbol=${encodeURIComponent(symbol)}`).then(async function (res) {
+                const json = await res.json().catch(function () { return {}; });
+                if (!res.ok) throw new Error((json.error && json.error.message) || json.message || ('HTTP ' + res.status));
+                return json.data !== undefined ? json.data : json;
+            }));
+        if (!data.series || !data.stats) throw new Error('模拟结果格式异常');
+        if (data.meta && data.meta.demo) {
+            showToast(data.meta.disclaimer || '当前为演示模式（随机序列）', 'warning', 6000);
+        }
+
+        renderSimChart(data);
+        document.getElementById('simStats').style.display = 'flex';
+        document.getElementById('statMean').textContent = `均值: ${Number(data.stats.mean).toFixed(4)}`;
+        document.getElementById('statStd').textContent = `标准差: ${Number(data.stats.std).toFixed(4)}`;
+    } catch (e) {
+        if (labChart) { labChart.dispose(); labChart = null; }
+        chartDom.innerHTML = `<div class="loading-tile ql-error">❌ 错误: ${e.message}</div>`;
+    }
+}
+
+function renderSimChart(data) {
+    const container = document.getElementById('simChart');
+    container.innerHTML = '';
+    if (labChart) labChart.dispose();
+    if (typeof echarts === 'undefined') {
+        container.innerHTML = '<div class="loading-tile ql-error">图表库未加载</div>';
+        return;
+    }
+    labChart = echarts.init(container);
+
+    const dates = data.series.map(s => s.date);
+    const values = data.series.map(s => s.value);
+
+    labChart.setOption({
+        title: { text: `因子序列模拟: ${data.symbol}`, left: 'center', textStyle: { fontSize: 14 } },
+        tooltip: { trigger: 'axis' },
+        grid: { top: 60, bottom: 40, left: 50, right: 30 },
+        xAxis: { type: 'category', data: dates, boundaryGap: false },
+        yAxis: { type: 'value', scale: true },
+        series: [{
+            name: '因子值',
+            type: 'line',
+            data: values,
+            smooth: true,
+            lineStyle: { width: 3, color: '#103f91' },
+            areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: 'rgba(16,63,145,0.2)' },
+                    { offset: 1, color: 'transparent' }
+                ])
+            },
+            symbol: 'none'
+        }]
+    }, true);
+}
+
+function sendToEvolution() {
+    const formula = document.getElementById('formulaEditor').value;
+    showToast('已将表达式存入种子库！\nRD-Agent 将在下一轮演化中将其作为优质父级因子。', 'success');
+}
+
+function handleQlAction(event) {
+    const el = event.target.closest('[data-ql-action]');
+    if (!el) return;
+    const action = el.dataset.qlAction;
+    if (action === 'run-simulation') runSimulation();
+    else if (action === 'send-evolution') sendToEvolution();
+    else if (action === 'insert-op') insertOp(el.dataset.op || '');
+}
+
+document.addEventListener('click', handleQlAction);
+window.addEventListener('resize', () => labChart?.resize());
+</script>
+{% endblock %}

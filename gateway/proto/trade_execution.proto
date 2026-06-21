@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package tradegateway;
+
+option go_package = "github.com/quant-atlas/gateway/proto";
+
+// ── 订单模型 ──
+
+message OrderRequest {
+  string order_id = 1;
+  string symbol = 2;
+  string side = 3;       // buy / sell / short / cover
+  double price = 4;
+  int64 quantity = 5;
+  string strategy_id = 6;
+  string user_id = 7;
+  double max_trade_amount = 8;
+  int32 max_position = 9;
+  bool dry_run = 10;
+  map<string, string> metadata = 11;
+}
+
+message OrderResponse {
+  string order_id = 1;
+  bool accepted = 2;
+  string reason = 3;          // rejection reason if !accepted
+  string state = 4;           // pending / accepted / rejected
+  repeated RiskCheck failures = 5;
+  string gateway_version = 6;
+}
+
+message RiskCheck {
+  string check = 1;
+  string detail = 2;
+  bool passed = 3;
+}
+
+// ── Broker adapter registration ──
+
+message BrokerConfig {
+  string name = 1;
+  string adapter = 2;     // class name or DLL path
+  map<string, string> params = 3;
+}
+
+message RegisterBrokerRequest {
+  BrokerConfig config = 1;
+}
+
+message RegisterBrokerResponse {
+  bool ok = 1;
+  string error = 2;
+}
+
+// ── Health ──
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool healthy = 1;
+  string version = 2;
+  uint32 uptime_seconds = 3;
+  uint32 orders_processed = 4;
+  uint32 orders_failed = 5;
+  repeated string registered_brokers = 6;
+}
+
+// ── Service ──
+
+service TradeExecution {
+  // Submit a single order — pre-trade validation + risk checks + broker routing
+  rpc SubmitOrder(OrderRequest) returns (OrderResponse);
+
+  // Register a broker adapter at runtime
+  rpc RegisterBroker(RegisterBrokerRequest) returns (RegisterBrokerResponse);
+
+  // Health check
+  rpc CheckHealth(HealthRequest) returns (HealthResponse);
+}

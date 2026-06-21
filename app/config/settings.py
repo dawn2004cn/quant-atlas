@@ -1,0 +1,48 @@
+from __future__ import annotations
+"""Settings configuration - re-exports all config classes from sub-modules."""
+
+from app.config.database_settings import (
+    AppEnvironment,
+    DatabaseBackend,
+    DatabaseSettings,
+    MysqlSettings,
+    PostgresSettings,
+    DatabaseConfig,
+    RedisConfig,
+)
+from app.config.infra_settings import (
+    CeleryConfig,
+    TdxConfig,
+    TdxServersConfig,
+    FrontendConfig,
+    WechatConfig,
+    QmtConfig,
+    ThsConfig,
+)
+from app.config.app_settings import (
+    AppSettings,
+    BASE_DIR,
+    CONFIG_DIR,
+    INSTANCE_DIR,
+    DEFAULT_DB_PATH,
+    DEFAULT_MODEL_REGISTRY_PATH,
+    get_settings,
+    reset_settings,
+    get_runtime,
+    get_runtime_bool,
+    get_runtime_int,
+    get_runtime_float,
+)
+
+__all__ = [
+    "AppEnvironment", "DatabaseBackend", "DatabaseSettings",
+    "MysqlSettings", "PostgresSettings", "DatabaseConfig",
+    "RedisConfig", "CeleryConfig", "TdxConfig",
+    "TdxServersConfig", "FrontendConfig", "WechatConfig",
+    "QmtConfig", "ThsConfig", "AppSettings",
+    "BASE_DIR", "CONFIG_DIR", "INSTANCE_DIR",
+    "DEFAULT_DB_PATH", "DEFAULT_MODEL_REGISTRY_PATH",
+    "get_settings", "reset_settings",
+    "get_runtime", "get_runtime_bool",
+    "get_runtime_int", "get_runtime_float",
+]

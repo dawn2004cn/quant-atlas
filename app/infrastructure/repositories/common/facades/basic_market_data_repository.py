@@ -1,0 +1,1 @@
+from app.infrastructure.repositories.basic_market_data_repository import *  # noqa: F403,F401

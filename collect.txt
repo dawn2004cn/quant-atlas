@@ -1,0 +1,297 @@
+﻿tests/agents/test_debate_bus.py::test_publish_debate_round_buffers_and_emits
+tests/agents/test_debate_bus.py::test_estimate_debate_confidence_penalizes_uncertainty
+tests/agents/test_rdagent_artifact_registry.py::test_register_from_result_writes_bundle
+tests/agents/test_rdagent_job_store.py::test_job_store_roundtrip
+tests/agents/test_rdagent_submission_validate.py::test_validate_rejects_missing_provider_dir
+tests/agents/test_rdagent_submission_validate.py::test_validate_rejects_default_bin_not_ready
+tests/agents/test_rdagent_submission_validate.py::test_validate_accepts_default_bin_with_calendar
+tests/agents/test_rdagent_submission_validate.py::test_validate_custom_uri_dir_without_calendar_ok
+tests/agents/test_topology_compiler.py::test_compiler_validates_integrated_preset
+tests/agents/test_topology_compiler.py::test_resolve_topology_preset_id
+tests/agents/test_topology_loader.py::test_topology_loader_loads_default_graph
+tests/agents/test_topology_loader.py::test_research_graph_nodes_match_topology
+tests/agents/test_topology_save.py::test_topology_save_override_roundtrip
+tests/ai_agent/test_ai_chat_service_dynamic_tools.py::test_resolve_tools_with_caps
+tests/ai_agent/test_ai_chat_service_dynamic_tools.py::test_resolve_tools_empty_caps_fallback
+tests/ai_agent/test_ai_chat_service_dynamic_tools.py::test_resolve_tools_exception_fallback
+tests/ai_agent/test_ai_chat_service_dynamic_tools.py::test_resolve_tools_no_handler_fallback
+tests/api/test_api_contract.py::TestHealthEndpoints::test_api_health_returns_200
+tests/api/test_api_contract.py::TestHealthEndpoints::test_system_health_returns_200
+tests/api/test_api_contract.py::TestLoginRequired::test_daily_workbench_requires_login
+tests/api/test_api_contract.py::TestLoginRequired::test_task_messages_requires_login
+tests/api/test_api_contract.py::TestLoginRequired::test_active_jobs_requires_login
+tests/api/test_api_endpoints.py::test_market_movements_api
+tests/api/test_api_endpoints.py::test_market_rankings_api
+tests/api/test_api_error_handlers.py::test_application_error_mapped_to_structured_response
+tests/api/test_api_error_handlers.py::test_authorization_maps_to_403
+tests/api/test_api_error_handlers.py::test_not_found_maps_to_404
+tests/api/test_api_error_handlers.py::test_external_service_maps_to_503
+tests/api/test_api_error_handlers.py::test_unexpected_error_mapped_to_internal_error
+tests/api/test_api_error_handlers.py::test_unexpected_error_includes_request_id
+tests/api/test_api_error_handlers.py::test_application_error_includes_request_id
+tests/api/test_api_qlib_gate.py::test_qlib_ingest_rejected_when_disabled
+tests/api/test_api_with_login.py::test_api_with_login
+tests/api/test_auth_login_flow.py::test_login_post_then_dashboard_has_username
+tests/api/test_endpoints.py::test_endpoint
+tests/api/test_error_codes.py::TestErrorCode::test_enum_values
+tests/api/test_error_codes.py::TestErrorCode::test_http_status_mapping
+tests/api/test_error_codes.py::TestErrorCode::test_all_codes_are_strings
+tests/api/test_error_codes.py::TestErrorCode::test_error_payload_format
+tests/api/test_error_codes.py::TestErrorCode::test_error_payload_no_details
+tests/api/test_frontend_api.py::test_api_endpoints
+tests/api/test_market_api.py::test_market_sentiment
+tests/api/test_market_api.py::test_market_movements
+tests/api/test_market_api.py::test_market_rankings
+tests/api/test_phase26_health_tdx_deps.py::test_system_health_probe_mysql_skipped_without_mysql
+tests/api/test_phase26_health_tdx_deps.py::test_tdx_base_route_deps_require_service
+tests/api/test_phase27_factor_lifecycle_health.py::test_factor_lifecycle_tasks_import_without_syntax_error
+tests/api/test_phase27_factor_lifecycle_health.py::test_run_factor_lifecycle_daily_check_skips_without_mysql
+tests/api/test_phase27_factor_lifecycle_health.py::test_run_factor_ic_calculation_processes_active_factors
+tests/api/test_phase27_factor_lifecycle_health.py::test_health_routes_registered_on_api_blueprint
+tests/api/test_phase45_ui_opt_workbench.py::test_headline_signal_rule_tag_bullish
+tests/api/test_phase45_ui_opt_workbench.py::test_headline_signal_cache_merge
+tests/api/test_phase45_ui_opt_workbench.py::test_enrich_headlines_prefers_cache
+tests/api/test_phase45_ui_opt_workbench.py::test_workbench_snapshot_decision_evidence_and_morning_call
+tests/api/test_phase45_ui_opt_workbench.py::test_daily_workbench_api_ui_opt_fields
+tests/api/test_phase45_ui_opt_workbench.py::test_daily_workbench_page_200
+tests/api/test_phase45_ui_opt_workbench.py::test_headline_signal_beat_schedule
+tests/api/test_phase47_48_ui_opt.py::test_resolve_actionable_hints_market_service
+tests/api/test_phase47_48_ui_opt.py::test_enrich_error_payload_attaches_hints
+tests/api/test_phase47_48_ui_opt.py::test_map_validation_error_includes_hints
+tests/api/test_phase47_48_ui_opt.py::test_health_banner_api
+tests/api/test_phase47_48_ui_opt.py::test_base_page_includes_health_indicator
+tests/api/test_phase47_48_ui_opt.py::test_api_validation_error_returns_hints
+tests/api/test_phase50_compare_preflight.py::test_attribution_compare_builds_factor_rows
+tests/api/test_phase50_compare_preflight.py::test_attribution_compare_with_market_quotes
+tests/api/test_phase50_compare_preflight.py::test_pre_trade_preflight_passes_small_order
+tests/api/test_phase50_compare_preflight.py::test_pre_trade_preflight_blocks_oversized_order
+tests/api/test_phase50_compare_preflight.py::test_attribution_compare_api
+tests/api/test_phase50_compare_preflight.py::test_trading_preflight_api
+tests/api/test_phase50_compare_preflight.py::test_copilot_preflight_api
+tests/api/test_phase51_task_feedback.py::test_task_progress_store_init_and_update
+tests/api/test_phase51_task_feedback.py::test_task_feedback_service_merges_progress
+tests/api/test_phase51_task_feedback.py::test_task_feedback_api
+tests/api/test_phase51_task_feedback.py::test_task_center_includes_feedback_js
+tests/api/test_phase55_focus_context.py::test_focus_context_service_builds_share_links
+tests/api/test_phase55_focus_context.py::test_focus_context_service_normalizes_cn_symbol
+tests/api/test_phase55_focus_context.py::test_focus_context_empty_symbol
+tests/api/test_phase55_focus_context.py::test_focus_context_api
+tests/api/test_phase57_task_stream.py::test_task_event_hub_publish_subscribe
+tests/api/test_phase57_task_stream.py::test_task_stream_service_emits_ready_when_terminal
+tests/api/test_phase57_task_stream.py::test_task_stream_service_reacts_to_hub_event
+tests/api/test_phase57_task_stream.py::test_task_stream_api
+tests/api/test_phase58_decision_discovery.py::test_stock_discovery_parses_tags_and_annotates_matches
+tests/api/test_phase58_decision_discovery.py::test_stock_discovery_strict_hides_weak_matches
+tests/api/test_phase58_decision_discovery.py::test_user_decision_context_trader_is_compact
+tests/api/test_phase58_decision_discovery.py::test_user_decision_context_infers_researcher_from_profile
+tests/api/test_phase58_decision_discovery.py::test_user_decision_context_api
+tests/api/test_phase60_task_preload.py::test_task_phase_plan_matches_sync_template
+tests/api/test_phase60_task_preload.py::test_task_feedback_includes_step_details
+tests/api/test_phase60_task_preload.py::test_predictive_preload_service_builds_prefetch_urls
+tests/api/test_phase60_task_preload.py::test_task_phase_plan_api
+tests/api/test_phase61_decision_brief.py::test_decision_brief_builds_semantic_components
+tests/api/test_phase61_decision_brief.py::test_decision_brief_warns_on_partial_data
+tests/api/test_phase61_decision_brief.py::test_decision_brief_api
+tests/api/test_phase62_ux_contract.py::test_decision_flow_contract_lists_all_optimized_links
+tests/api/test_phase62_ux_contract.py::test_decision_flow_contract_api
+tests/api/test_phase62_ux_contract.py::test_static_ux_helpers_exist
+tests/api/test_phase_e_provenance.py::test_provenance_decorator_adds_summary
+tests/api/test_phase_e_provenance.py::test_provenance_skips_when_no_subject
+tests/api/test_phase_f_degraded_response.py::test_apply_degraded_headers_adds_degraded_tag
+tests/api/test_phase_f_degraded_response.py::test_apply_degraded_headers_adds_hints
+tests/api/test_phase_f_degraded_response.py::test_apply_degraded_headers_skips_plain_exception
+tests/api/test_phase_f_degraded_response.py::test_self_healing_domain_error_defaults
+tests/api/test_request_parsers.py::test_parse_int_param_success_and_default
+tests/api/test_request_parsers.py::test_parse_int_param_raises_validation_error
+tests/api/test_request_parsers.py::test_parse_int_param_min_value
+tests/api/test_request_parsers.py::test_parse_float_param_success_and_default
+tests/api/test_request_parsers.py::test_parse_float_param_raises_validation_error
+tests/api/test_response_builders.py::test_build_success_payload_with_meta
+tests/api/test_response_builders.py::test_build_success_payload_without_meta
+tests/api/test_response_builders.py::test_with_legacy_aliases_enabled
+tests/api/test_response_builders.py::test_with_legacy_aliases_disabled
+tests/api/test_response_format.py::TestApiResponse::test_success_response_format
+tests/api/test_response_format.py::TestApiResponse::test_error_response_format
+tests/api/test_response_format.py::TestApiResponse::test_paginated_response_format
+tests/api/test_response_format.py::TestApiResponse::test_serialize_dataclass
+tests/api/test_response_format.py::TestApiResponse::test_serialize_pydantic_v2
+tests/api/test_response_format.py::TestApiResponse::test_serialize_list
+tests/api/test_response_format.py::TestApiResponse::test_success_response_no_data
+tests/api/test_route_deps.py::test_build_risk_route_deps_requires_service
+tests/api/test_route_deps.py::test_build_risk_route_deps_missing_raises
+tests/api/test_route_deps.py::test_require_moments_service_from_social_group
+tests/api/test_route_deps.py::test_build_ai_route_deps_resolves_ai_group_research
+tests/api/test_route_deps_data_optimizer.py::test_build_data_optimizer_route_deps
+tests/api/test_route_deps_fingpt_recommendation.py::test_build_fingpt_route_deps_ok
+tests/api/test_route_deps_fingpt_recommendation.py::test_build_fingpt_route_deps_missing_raises
+tests/api/test_route_deps_fingpt_recommendation.py::test_build_recommendation_route_deps_ok
+tests/api/test_route_deps_infra_memory.py::test_build_memory_route_deps
+tests/api/test_route_deps_infra_memory.py::test_build_task_pipeline_route_deps
+tests/api/test_route_deps_infra_memory.py::test_build_data_infrastructure_route_deps
+tests/api/test_route_deps_infra_memory.py::test_build_data_infrastructure_route_deps_missing_raises
+tests/api/test_route_deps_portfolio.py::test_build_portfolio_user_route_deps_requires_watchlist
+tests/api/test_route_deps_portfolio.py::test_build_portfolio_user_route_deps_missing_watchlist_raises
+tests/api/test_route_deps_portfolio_routes.py::test_build_portfolio_route_deps_ok
+tests/api/test_route_deps_portfolio_routes.py::test_build_portfolio_route_deps_missing_portfolio_raises
+tests/api/test_route_deps_portfolio_routes.py::test_require_watchlist_for_portfolio_raises_when_missing
+tests/api/test_workflow_stream.py::test_workflow_status_returns_json_structure
+tests/api/test_workflow_stream.py::test_workflow_list_endpoint
+tests/application/test_agent_platform.py::test_register_and_list
+tests/application/test_agent_platform.py::test_register_multiple
+tests/application/test_agent_platform.py::test_unregister
+tests/application/test_agent_platform.py::test_deactivate_agent
+tests/application/test_agent_platform.py::test_activate_agent
+tests/application/test_agent_platform.py::test_invoke_success_agent
+tests/application/test_agent_platform.py::test_invoke_unregistered_agent
+tests/application/test_agent_platform.py::test_invoke_deactivated_agent
+tests/application/test_agent_platform.py::test_invoke_failing_agent
+tests/application/test_agent_platform.py::test_invocation_count_tracked
+tests/application/test_agent_platform.py::test_last_error_tracked
+tests/application/test_agent_platform.py::test_telemetry_on_success
+tests/application/test_agent_platform.py::test_telemetry_on_failure
+tests/application/test_agent_platform.py::test_telemetry_disabled
+tests/application/test_agent_platform.py::test_enrich_connection_error
+tests/application/test_agent_platform.py::test_enrich_timeout
+tests/application/test_agent_platform.py::test_enrich_auth_error
+tests/application/test_agent_platform.py::test_enrich_rate_limit
+tests/application/test_agent_platform.py::test_enrich_unknown_error
+tests/application/test_agent_platform.py::test_enrich_empty_error
+tests/application/test_agent_platform.py::test_base_agent_success
+tests/application/test_agent_platform.py::test_base_agent_failure
+tests/application/test_agent_platform.py::test_base_agent_error_enrichment
+tests/application/test_agent_platform.py::test_base_agent_telemetry
+tests/application/test_agent_platform.py::test_default_config
+tests/application/test_agent_platform.py::test_custom_config
+tests/application/test_agent_platform.py::test_platform_with_custom_config
+tests/application/test_agent_platform.py::test_singleton_get_agent_platform
+tests/application/test_agent_platform.py::test_status_structure
+tests/application/test_agent_platform.py::test_active_agents_count_after_deactivation
+tests/application/test_agent_topology_service.py::test_trending_regime_boosts_technical_weight
+tests/application/test_alert_center_cross_team.py::test_alert_center_includes_cross_team_consensus
+tests/application/test_alert_center_cross_team.py::test_site_alert_publishes_event
+tests/application/test_arbiter_review_learning.py::test_review_adjusts_bullish_weight_after_wrong_call
+tests/application/test_arbiter_review_learning.py::test_correct_review_does_not_adjust
+tests/application/test_auth_register_public.py::test_register_public_creates_viewer
+tests/application/test_auth_register_public.py::test_register_rejects_reserved_username
+tests/application/test_auth_register_public.py::test_set_user_role_requires_admin
+tests/application/test_behavior_topology.py::test_detects_confirmation_bias
+tests/application/test_behavior_topology.py::test_high_fatigue_alert
+tests/application/test_behavior_topology_guardian.py::test_enrich_merges_topology_alerts
+tests/application/test_borderless_execution_service.py::test_infer_market_covers_multi_markets
+tests/application/test_borderless_execution_service.py::test_resolve_route_picks_paper_driver
+tests/application/test_borderless_execution_service.py::test_borderless_submit_order_fills_paper
+tests/application/test_borderless_execution_service.py::test_execution_manifest_lists_drivers
+tests/application/test_borderless_execution_service.py::test_crypto_order_uses_redis_driver_with_paper_fallback
+tests/application/test_borderless_execution_service.py::test_us_stock_order_fills_paper_driver
+tests/application/test_collaboration_service.py::test_create_team_assigns_owner
+tests/application/test_collaboration_service.py::test_user_context_includes_tenant
+tests/application/test_cross_team_meta_learning_service.py::test_site_alert_when_three_teams_agree
+tests/application/test_cross_team_meta_learning_service.py::test_anonymous_pattern_no_symbol_in_pool
+tests/application/test_cross_team_meta_learning_service.py::test_team_fingerprint_is_anonymized
+tests/application/test_data_backfill_tasks.py::test_full_qlib_skips_when_export_has_csv
+tests/application/test_data_backfill_tasks.py::test_full_qlib_runs_ingest_and_dump_when_empty
+tests/application/test_data_backfill_tasks.py::test_task_labels_for_backfill_tasks
+tests/application/test_data_router_mysql_history.py::test_query_mysql_history_filters_date_range
+tests/application/test_data_router_mysql_history.py::test_query_mysql_history_without_port_returns_empty
+tests/application/test_data_router_mysql_history.py::test_persist_to_mysql_via_sync_session
+tests/application/test_data_router_mysql_history.py::test_read_write_split_falls_back_to_mysql_when_tdx_empty
+tests/application/test_data_router_mysql_history.py::test_get_realtime_quote_delegates_to_cn_service
+tests/application/test_data_router_mysql_history.py::test_get_realtime_quote_non_cn_uses_market_provider
+tests/application/test_data_router_mysql_history.py::test_get_realtime_quote_non_cn_without_provider_returns_none
+tests/application/test_data_truth_guardian_service.py::test_guardian_scan_detects_deviation
+python : Traceback (most recent call last):
+所在位置 C:\Users\dawn2\AppData\Local\Temp\ps-script-77a777eb-daae-4c16-8e6c-2c41cc98d7ac.ps1:164 字符: 1
++ python -m pytest --collect-only --tb=no 2>&1 | Out-File collect.txt - ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\pytest\__main__.py", line 9, in <module>
+    raise SystemExit(pytest.console_main())
+                     ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\config\__init__.py", line 223, in console
+_main
+    code = main()
+           ^^^^^^
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\config\__init__.py", line 199, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\pluggy\_callers.py", line 167, in _multicall
+    raise exception
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\main.py", line 365, in pytest_cmdline_mai
+n
+    return wrap_session(config, _main)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\main.py", line 360, in wrap_session
+    config._ensure_unconfigure()
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\config\__init__.py", line 1171, in _ensur
+e_unconfigure
+    self._cleanup_stack.close()
+  File "D:\ProgramData\miniconda3\Lib\contextlib.py", line 618, in close
+    self.__exit__(None, None, None)
+  File "D:\ProgramData\miniconda3\Lib\contextlib.py", line 610, in __exit__
+    raise exc_details[1]
+  File "D:\ProgramData\miniconda3\Lib\contextlib.py", line 595, in __exit__
+    if cb(*exc_details):
+       ^^^^^^^^^^^^^^^^
+  File "D:\ProgramData\miniconda3\Lib\contextlib.py", line 478, in _exit_wrapper
+    callback(*args, **kwds)
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\capture.py", line 778, in stop_global_cap
+turing
+    self._global_capturing.pop_outerr_to_orig()
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\capture.py", line 659, in pop_outerr_to_o
+rig
+    out, err = self.readouterr()
+               ^^^^^^^^^^^^^^^^^
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\capture.py", line 706, in readouterr
+    out = self.out.snap() if self.out else ""
+          ^^^^^^^^^^^^^^^
+  File "C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\capture.py", line 591, in snap
+    self.tmpfile.seek(0)
+ValueError: I/O operation on closed file.
+tests/application/test_data_truth_guardian_service.py::test_guardian_heal_clear_pending
+tests/application/test_data_truth_guardian_service.py::test_guardian_quorum_scan
+tests/application/test_data_truth_guardian_service.py::test_guardian_manifest
+tests/application/test_debate_arbiter_llm.py::test_llm_mode_falls_back_without_llm
+tests/application/test_debate_arbiter_llm.py::test_parse_llm_verdict_json
+tests/application/test_debate_arbiter_service.py::test_synthesize_bullish_consensus
+tests/application/test_decision_replay_space_service.py::test_build_space_from_behavior_topology
+tests/application/test_decision_replay_space_service.py::test_build_space_with_symbol_timeline
+tests/application/test_decision_theater_service.py::test_decision_theater_builds_scene
+tests/application/test_decision_trace_and_module_wiring.py::test_decision_trace_service_record_and_get
+tests/application/test_decision_trace_and_module_wiring.py::test_wire_context_modules_skips_when_collaboration_disabled
+tests/application/test_enhanced_market_audit.py::test_cross_validate_indicators_returns_drift_report
+tests/application/test_enhanced_market_audit.py::test_cross_validate_short_history_graceful
+tests/application/test_evidence_graph_service.py::test_configure_evidence_graph_service_uses_bootstrap_instance
+tests/application/test_evidence_replay_service.py::test_build_timeline_includes_debate_rounds
+tests/application/test_factor_ic_task.py::test_run_factor_ic_monitor_skips_when_rd_disabled
+tests/application/test_factor_ic_task.py::test_run_factor_ic_monitor_weak_signals_push_and_suppress
+tests/application/test_factor_ic_task.py::test_run_factor_ic_monitor_no_weak_no_push
+tests/application/test_hot_sector_storage_service.py::test_resolve_sectors_auto_falls_back_to_live_with_null_repo
+tests/application/test_hot_sector_storage_service.py::test_resolve_sectors_mysql_mode_raises_when_null_repo_empty
+tests/application/test_hyper_simulator_service.py::test_monte_carlo_permutation_significance
+tests/application/test_hyper_simulator_service.py::test_gbm_paths_var_cvar
+tests/application/test_hyper_simulator_service.py::test_hyper_sim_combined_mode
+tests/application/test_hyper_simulator_service.py::test_hyper_sim_manifest
+tests/application/test_intent_decomposer.py::test_review_loss_intent_decomposes_correctly
+tests/application/test_intent_decomposer.py::test_factor_mining_intent
+tests/application/test_intent_decomposer.py::test_default_fallback
+tests/application/test_jarvis_proactive.py::test_scan_finds_elastic_mover
+tests/application/test_jarvis_semantic_router.py::test_voice_briefing_intent
+tests/application/test_jarvis_semantic_router.py::test_winning_pattern_match
+tests/application/test_jarvis_semantic_router.py::test_match_winning_patterns_summary
+tests/application/test_live_research_document.py::test_apply_lights_from_resonance_and_debate
+tests/application/test_live_research_document.py::test_build_document_minimal
+
+234 tests collected, 6 errors in 3.40s

@@ -1,0 +1,1 @@
+"""User services — individual files moved to modules/user/services/user/."""

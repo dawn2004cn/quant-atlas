@@ -1,0 +1,28 @@
+# =============================================================================
+# Quant Atlas — Qlib 配置示例
+# =============================================================================
+# 加载顺序：本仓库默认 ``config/qlib_config.yaml`` → 本机覆盖 ``config/qlib_config.local.yaml`` → 旧部署 ``instance/qlib_config.yaml``。
+#
+# 与 TradingAgents-CN / LangGraph / AkShare 行情并行：
+#   - 本配置只驱动 ``qlib.init`` 与 ``provider_uri`` 下的二进制数据；
+#   - 不修改 TA-CN 的 tushare / 缓存路径，二者可在同一进程内共存（数据源独立）。
+# =============================================================================
+
+# 对应 qlib.init(default_conf, **kwargs) 的第一个参数
+default_conf: client
+
+# 数据目录：相对路径相对于项目根目录（BASE_DIR）解析；也可写绝对路径
+provider_uri: instance/qlib_bin
+
+# A 股常用 cn；详见 qlib.constant
+region: cn
+
+# -----------------------------------------------------------------------------
+# 以下为平台扩展块（不会传入 qlib.init，避免与 pyqlib 参数冲突）
+# -----------------------------------------------------------------------------
+quant_atlas:
+  market: CN
+  benchmark: SH000300
+  notes:
+    - "回测对比、SDK 等接口的默认基准可读取此 benchmark。"
+    - "RD-Agent / Celery 任务与 TA-CN 六分析师流水线无共享全局状态。"

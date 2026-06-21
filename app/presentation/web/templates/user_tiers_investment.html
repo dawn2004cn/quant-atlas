@@ -1,0 +1,51 @@
+{% extends "base.html" %}{% block title %}投资公司{% endblock %}{% block content %}
+<div class="container mt-4">
+  <h2>🏦 投资公司控制台</h2>
+  <div class="row mt-3">
+    <div class="col-md-6">
+      <div class="card"><div class="card-header">⚖️ Risk Parity 优化</div>
+        <div class="card-body"><button class="btn btn-primary" type="button" data-ut-action="runRiskParity">运行优化</button><div id="rpResult" class="mt-3"></div></div></div>
+    </div>
+    <div class="col-md-6">
+      <div class="card"><div class="card-header">🌍 宏观政体感知</div>
+        <div class="card-body"><button class="btn btn-info" type="button" data-ut-action="runMacro">分析当前政体</button><div id="macroResult" class="mt-3"></div></div></div>
+    </div>
+    <div class="col-md-6 mt-3">
+      <div class="card"><div class="card-header">💰 税务亏损收割</div>
+        <div class="card-body"><button class="btn btn-warning" type="button" data-ut-action="runTaxHarvest">收割分析</button><div id="taxResult" class="mt-3"></div></div></div>
+    </div>
+    <div class="col-md-6 mt-3">
+      <div class="card"><div class="card-header">🔄 市场中性对冲</div>
+        <div class="card-body"><button class="btn btn-secondary" type="button" data-ut-action="runHedge">计算对冲比率</button><div id="hedgeResult" class="mt-3"></div></div></div>
+    </div>
+  </div>
+</div>
+<script nonce="{{ csp_nonce() }}">
+async function postJSON(url, data) {
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{csrf_token()}}'}, body: JSON.stringify(data||{})});
+  return r.json();
+}
+async function runRiskParity() {
+  const r = await postJSON('/api/v1/user-tiers/investment/optimize/risk-parity', {strategies:[{strategy_id:'s1',expected_return:0.12,volatility:0.15},{strategy_id:'s2',expected_return:0.08,volatility:0.10}]});
+  document.getElementById('rpResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+}
+async function runMacro() {
+  const r = await postJSON('/api/v1/user-tiers/investment/macro-regime', {indicators:{gdp_growth:0.03,inflation:0.025,vix:18}});
+  document.getElementById('macroResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+}
+async function runTaxHarvest() {
+  const r = await postJSON('/api/v1/user-tiers/investment/tax/harvest', {positions:[{symbol:'AAPL',unrealized_pnl:-10000,cost_basis:50000}]});
+  document.getElementById('taxResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+}
+async function runHedge() {
+  const r = await postJSON('/api/v1/user-tiers/investment/multi-asset/market-neutral', {long_positions:[{beta:1.2,value:100000}],short_positions:[{beta:0.8,value:50000}]});
+  document.getElementById('hedgeResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+}
+document.addEventListener('click', function (e) {
+  const el = e.target.closest('[data-ut-action]');
+  if (!el) return;
+  const fn = window[el.dataset.utAction];
+  if (typeof fn === 'function') fn();
+});
+</script>
+{% endblock %}

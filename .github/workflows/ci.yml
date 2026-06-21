@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  compile:
+    name: PyCompile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Compile all Python files
+        run: python -m compileall -q app/ tests/ scripts/
+      - name: Module cross-import gate
+        run: python scripts/check_module_cross_imports.py
+      - name: Template inline style gate
+        run: python scripts/check_template_inline_styles.py
+
+  lint:
+    name: Lint (Ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install ruff
+        run: pip install ruff
+      - name: Check formatting
+        run: ruff format --check app/ tests/ scripts/
+      - name: Check lint rules
+        run: ruff check app/ tests/ scripts/
+
+  smoke:
+    name: Smoke tests (no external services)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install core deps only
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[test]" 2>/dev/null || pip install pytest
+      - name: Run smoke tests
+        env:
+          ENABLE_CELERY: "0"
+          ENABLE_QLIB: "0"
+          ENABLE_RD_AGENT: "0"
+          MESH_ENABLED: "0"
+          PERCEPTION_ENABLED: "0"
+          TASK_MESSAGE_REDIS_URL: "memory://"
+        run: pytest tests/smoke -x -q --tb=short --no-header --timeout=60
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: quant_atlas
+        ports:
+          - 3306:3306
+        options: --health-cmd "mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[test]"
+      - name: Run unit tests
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+          MYSQL_USER: root
+          MYSQL_PASSWORD: root
+          MYSQL_DATABASE: quant_atlas
+          REDIS_URL: redis://127.0.0.1:6379/0
+          FLASK_ENV: testing
+        run: |
+          pytest -m "not slow and not integration" -x -q --tb=short --cov=app --cov-report=term --cov-fail-under=50
+
+  frontend-security:
+    name: Security (npm audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        working-directory: frontend

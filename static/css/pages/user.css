@@ -1,0 +1,123 @@
+/**
+ * pages/user.css — 朋友圈 / 用户光谱
+ * Depends on: design-tokens.css, common.css
+ */
+
+/* ─── Moments (moments.html) ──────────────────────────────────────────── */
+/* 动态优先：单列信息流，发布区弱化在下方 */
+.moments--feed-first { display:flex; flex-direction:column; gap:14px; max-width: 720px; margin: 0 auto; }
+.card { padding:22px; }
+.composer--slim { padding:14px 16px !important; }
+.composer--slim .composer-title { font-size:1rem; font-weight:800; margin:0 0 10px; color:var(--muted); letter-spacing:0.02em; }
+.composer--slim textarea{ width:100%; min-height:64px; resize:vertical; font-size:0.95rem; }
+.composer-bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+.composer-bar .btn-brand { padding:8px 16px; font-size:0.9rem; }
+.composer-bar .btn-soft { padding:7px 10px; font-size:0.85rem; }
+.att-counter { font-size:0.8rem; color:var(--muted); font-weight:700; }
+/* 9 宫格缩略图（预览与动态共用） */
+.att-grid { display:grid; gap:4px; margin-top:10px; width:100%; max-width:min(100%, 288px); }
+.att-grid.cols-1 { grid-template-columns: 1fr; max-width: 200px; }
+.att-grid.cols-2 { grid-template-columns: repeat(2, 1fr); max-width: 240px; }
+.att-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.att-grid .cell { aspect-ratio:1; overflow:hidden; border-radius:6px; background:rgba(19,32,45,0.06); position:relative; }
+.att-grid .cell img,
+.att-grid .cell video { width:100%; height:100%; object-fit:cover; display:block; vertical-align:middle; }
+.att-grid .cell-video video { pointer-events:none; }
+.att-grid .cell-video .vid-play {
+  position:absolute; inset:0; margin:auto; width:40px; height:40px; border:0; border-radius:50%;
+  background:rgba(0,0,0,0.45); color:#fff; font-size:1rem;   cursor:pointer; line-height:1; padding:0; z-index:2;
+}
+.att-grid .cell-video .vid-play:hover { background:rgba(0,0,0,0.6); }
+.att-remove {
+  position:absolute; top:4px; right:4px; width:22px; height:22px; border:0; border-radius:50%;
+  background:rgba(0,0,0,0.5); color:#fff; font-size:14px; line-height:1; cursor:pointer; padding:0; z-index:2;
+}
+.att-remove:hover { background:rgba(193,54,22,0.85); }
+.moments-help { font-size:0.82rem; color:var(--muted); line-height:1.55; }
+.moments-help summary { cursor:pointer; font-weight:700; color:var(--text); outline:none; }
+.moments-help[open] summary { margin-bottom:8px; }
+
+.post { padding:14px 16px; border-radius:16px; border:1px solid rgba(19,32,45,0.08); background:rgba(255,255,255,0.62); margin-bottom:12px; }
+.post-head{ display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+.author{ font-weight:800; font-size:0.98rem; }
+.meta{ color:#66788a; font-weight:600; font-size:0.82rem; }
+.post-body-wrap { margin-top:8px; }
+.post-body-inner {
+  white-space:pre-wrap; word-break:break-word; line-height:1.65; font-size:0.95rem;
+  overflow:hidden;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:5;
+}
+.post-body-wrap.expanded .post-body-inner {
+  -webkit-line-clamp:unset;
+  display:block;
+  overflow:visible;
+}
+.post-body-toggle {
+  margin-top:6px; padding:0; border:0; background:transparent;
+  color:var(--brand); font-weight:700; font-size:0.88rem; cursor:pointer;
+  display:none;
+}
+.post-body-toggle.show { display:inline-block; }
+.post-actions{ display:flex; gap:8px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+.chip{ border:1px solid rgba(19,32,45,0.10); background:rgba(255,255,255,0.72); border-radius:999px; padding:6px 12px; font-weight:700; font-size:0.88rem; color:#13202d; }
+.chip:hover{ background:#fff; }
+.comments{ margin-top:10px; padding-top:10px; border-top:1px dashed rgba(19,32,45,0.14); }
+.comment{ padding:8px 10px; border-radius:12px; background:rgba(255,255,255,0.66); border:1px solid rgba(19,32,45,0.06); margin-top:8px; }
+.comment .who{ font-weight:800; font-size:0.9rem; }
+.comment .when{ color:#66788a; font-weight:600; font-size:0.8rem; margin-left:6px; }
+.comment .txt{ margin-top:4px; white-space:pre-wrap; line-height:1.55; font-size:0.9rem; }
+.comment-box{ display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap; }
+.comment-box input{ flex:1; min-width:200px; font-size:0.9rem; }
+.feed-toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+.feed-toolbar .panel-title { margin:0; font-size:1.15rem; }
+.post-own { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.post-own .chip-ghost { font-size:0.8rem; padding:4px 10px; font-weight:700; border-radius:999px; border:1px solid rgba(19,32,45,0.12); background:transparent; color:var(--muted); cursor:pointer; }
+.post-own .chip-ghost:hover { background:rgba(255,255,255,0.8); color:var(--text); }
+.composer--slim .composer-cancel { margin-left:8px; }
+
+/* ─── User spectrum hub (user_spectrum_hub.html) ──────────────────────────────────────────── */
+.ush-shell { --accent: #8b5cf6; --accent2: #06b6d4; }
+.ush-hero {
+    background: linear-gradient(135deg, #312e81 0%, #0e7490 100%);
+    border-radius: 20px; padding: 28px 32px; margin-bottom: 20px;
+    border: 1px solid rgba(139,92,246,.35);
+}
+.ush-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; }
+.ush-tab { padding: 8px 14px; border-radius: 10px; border: none; background: transparent; color: #94a3b8; cursor: pointer; font-size: .82rem; }
+.ush-tab.active { background: rgba(139,92,246,.25); color: #c4b5fd; }
+.ush-card { background: #1a1a2e; border-radius: 14px; border: 1px solid rgba(139,92,246,.15); padding: 20px; margin-bottom: 16px; }
+.ush-card h3 { font-size: 1rem; margin: 0 0 12px; color: #e2e8f0; }
+.ush-form label { display: block; font-size: .8rem; color: #94a3b8; margin: 8px 0 4px; }
+.ush-form input, .ush-form textarea, .ush-form select {
+    width: 100%; padding: 8px 10px; border-radius: 8px;
+    border: 1px solid rgba(139,92,246,.2); background: #0f172a; color: #e2e8f0;
+}
+.ush-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:900px){ .ush-grid { grid-template-columns: 1fr; } }
+.ush-btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; margin-top: 10px; margin-right: 6px; }
+.ush-btn-primary { background: linear-gradient(135deg,#8b5cf6,#06b6d4); color: #fff; }
+.ush-out { background: #0f172a; border-radius: 8px; padding: 12px; margin-top: 12px;
+    font-family: monospace; font-size: .78rem; color: #94a3b8; max-height: 220px; overflow: auto; white-space: pre-wrap; }
+.ush-links { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.ush-links a { font-size: .85rem; color: #67e8f9; text-decoration: none; }
+
+/* ── Moments inline cleanup ── */
+
+.moments-hero { background: linear-gradient(135deg, rgba(16, 63, 145, 0.05), rgba(16, 185, 129, 0.03)); border: 1px solid rgba(16, 63, 145, 0.1); }
+.moments-btn-more { font-size: 0.88rem; padding: 6px 12px; }
+.moments-cancel { padding: 4px 10px; font-size: 0.82rem; vertical-align: middle; }
+.moments-hint { font-size: 0.8rem; }
+.moments-help-pad { padding: 12px 16px; }
+.moments-att-pdf { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; font-size: 0.7rem; padding: 6px; text-align: center; background: rgba(239, 68, 68, 0.06); }
+.moments-att-file { display: flex; align-items: center; justify-content: center; font-size: 0.75rem; padding: 4px; text-align: center; background: rgba(100, 116, 139, 0.06); }
+.moments-att-name { word-break: break-all; max-width: 100%; }
+.moments-att-link { color: var(--brand); font-weight: 700; }
+.moments-head-right { text-align: right; }
+.moments-comments { display: none; }
+.moments-comment-hint { font-size: 0.85rem; }
+.moments-comment-send { font-size: 0.88rem; }
+.moments-empty { padding: 18px; }
+.moments-no-comments { padding: 10px 2px; font-size: 0.88rem; }
+

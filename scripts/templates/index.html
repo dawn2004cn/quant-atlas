@@ -1,0 +1,817 @@
+{% extends "base.html" %}
+
+
+
+
+
+{% block title %}A股量化监控 - Quant Atlas{% endblock %}
+
+
+
+
+
+{% block extra_css %}
+
+
+<style>
+
+
+.dashboard-shell { display: grid; gap: 22px; }
+
+
+.hero-board {
+
+
+    padding: 28px;
+
+
+    border-radius: 30px;
+
+
+    background:
+
+
+        radial-gradient(circle at top right, rgba(23,162,164,0.22), transparent 28%),
+
+
+        radial-gradient(circle at left bottom, rgba(217,106,43,0.18), transparent 24%),
+
+
+        linear-gradient(135deg, rgba(255,255,255,0.78), rgba(255,250,242,0.92));
+
+
+    border: 1px solid rgba(19,32,45,0.08);
+
+
+    box-shadow: var(--shadow);
+
+
+}
+
+
+.hero-grid { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 18px; }
+
+
+.hero-caption { color: var(--muted); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.82rem; }
+
+
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+
+.stat-card { padding: 20px; }
+
+
+.stat-label { color: var(--muted); font-size: 0.84rem; margin-bottom: 8px; }
+
+
+.stat-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+
+
+.stat-note { margin-top: 8px; color: var(--muted); font-size: 0.84rem; }
+
+
+.summary-card { padding: 22px; display: grid; gap: 16px; }
+
+
+.sentiment-score { font-size: 3.4rem; font-weight: 800; line-height: 1; font-family: "Space Grotesk", sans-serif; }
+
+
+.sentiment-meter { height: 14px; border-radius: 999px; background: rgba(19,32,45,0.08); overflow: hidden; }
+
+
+.sentiment-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #0f9d58, #e5a823, #d9363e); width: 50%; transition: width 0.4s ease; }
+
+
+.sentiment-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+
+.meta-box { padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.72); border: 1px solid rgba(19,32,45,0.06); }
+
+
+.board-grid { display: grid; grid-template-columns: 1.45fr 0.95fr; gap: 22px; }
+
+
+.panel-card { padding: 22px; }
+
+
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+
+
+.panel-title { font-size: 1.05rem; font-weight: 800; margin: 0; }
+
+
+.panel-subtitle { color: var(--muted); font-size: 0.9rem; }
+
+
+.filter-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+
+.select-soft {
+
+
+    border: 1px solid rgba(19,32,45,0.08);
+
+
+    border-radius: 999px;
+
+
+    padding: 10px 14px;
+
+
+    background: rgba(255,255,255,0.72);
+
+
+    min-width: 180px;
+
+
+}
+
+
+.stock-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+
+
+.stock-card {
+
+
+    padding: 18px;
+
+
+    border-radius: 22px;
+
+
+    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(247,244,238,0.92));
+
+
+    border: 1px solid rgba(19,32,45,0.08);
+
+
+    box-shadow: 0 14px 30px rgba(16,33,52,0.06);
+
+
+    cursor: pointer;
+
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+
+}
+
+
+.stock-card:hover { transform: translateY(-4px); box-shadow: 0 22px 36px rgba(16,33,52,0.12); }
+
+
+.stock-top { display: flex; justify-content: space-between; gap: 10px; }
+
+
+.stock-name { font-weight: 800; font-size: 1.02rem; }
+
+
+.stock-code { color: var(--muted); font-size: 0.84rem; }
+
+
+.stock-price { font-size: 2rem; font-weight: 800; margin: 16px 0 6px; }
+
+
+.stock-change { font-weight: 700; }
+
+
+.stock-foot { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
+
+
+.mini-metric { padding: 12px; border-radius: 16px; background: rgba(19,32,45,0.04); }
+
+
+.list-shell { display: grid; gap: 10px; }
+
+
+.list-item {
+
+
+    display: grid;
+
+
+    grid-template-columns: 42px 1fr auto;
+
+
+    gap: 14px;
+
+
+    align-items: center;
+
+
+    padding: 14px 16px;
+
+
+    border-radius: 18px;
+
+
+    background: rgba(255,255,255,0.76);
+
+
+    border: 1px solid rgba(19,32,45,0.06);
+
+
+}
+
+
+.list-rank {
+
+
+    width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center;
+
+
+    background: linear-gradient(135deg, rgba(16,63,145,0.16), rgba(23,162,164,0.18)); font-weight: 800;
+
+
+}
+
+
+.list-name { font-weight: 700; }
+
+
+.list-code { color: var(--muted); font-size: 0.82rem; }
+
+
+.list-value { font-weight: 800; }
+
+
+.loading-state, .empty-state {
+
+
+    padding: 28px; text-align: center; border-radius: 20px; color: var(--muted);
+
+
+    background: rgba(255,255,255,0.7); border: 1px dashed rgba(19,32,45,0.12);
+
+
+}
+
+
+@media (max-width: 1100px) {
+
+
+    .hero-grid, .board-grid, .stat-grid { grid-template-columns: 1fr; }
+
+
+}
+
+
+</style>
+
+
+{% endblock %}
+
+
+
+
+
+{% block content %}
+
+
+<div class="dashboard-shell">
+
+
+    <section class="hero-board">
+
+
+        <div class="hero-grid">
+
+
+            <div>
+
+
+                <div class="hero-caption">Today Overview</div>
+
+
+                <h1 class="page-title">A股量化监控</h1>
+                <p class="page-subtitle">实时监控A股市场动态，提供专业的量化分析工具和策略回测功能</p>
+                <div class="hero-actions">
+                    <button class="btn-brand" onclick="refreshDashboard()">刷新数据</button>
+                    <a class="btn-soft" href="{{ url_for('pages.market_panorama') }}">市场全景</a>
+                    <a class="btn-soft" href="{{ url_for('pages.backtest') }}">策略回测</a>
+                </div>
+
+
+            </div>
+
+
+            <div class="summary-card glass-panel">
+
+
+                <div>
+                    <div class="panel-subtitle">市场情绪</div>
+                    <div class="sentiment-score" id="sentimentScore">--</div>
+                    <div style="font-weight: 700; font-size: 1.05rem;" id="sentimentLevel">中性</div>
+                </div>
+                <div class="sentiment-meter"><div class="sentiment-fill" id="sentimentFill"></div></div>
+                <div class="panel-subtitle" id="sentimentDescription">市场情绪稳定，投资者信心适中</div>
+                <div class="sentiment-meta">
+                    <div class="meta-box"><div class="panel-subtitle">上涨</div><div class="stat-value positive" style="font-size:1.5rem" id="sentimentUp">--</div></div>
+                    <div class="meta-box"><div class="panel-subtitle">平盘</div><div class="stat-value" style="font-size:1.5rem" id="sentimentFlat">--</div></div>
+                    <div class="meta-box"><div class="panel-subtitle">下跌</div><div class="stat-value negative" style="font-size:1.5rem" id="sentimentDown">--</div></div>
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    </section>
+
+
+
+
+
+    <section class="stat-grid">
+
+
+        <article class="metric-card stat-card">
+            <div class="stat-label">总股票数</div>
+            <div class="stat-value" id="totalStocks">--</div>
+            <div class="stat-note">全市场股票总数</div>
+        </article>
+        <article class="metric-card stat-card">
+            <div class="stat-label">上涨家数</div>
+            <div class="stat-value positive" id="gainersCount">--</div>
+            <div class="stat-note" id="gainersPercent">--</div>
+        </article>
+        <article class="metric-card stat-card">
+            <div class="stat-label">下跌家数</div>
+            <div class="stat-value negative" id="losersCount">--</div>
+            <div class="stat-note" id="losersPercent">--</div>
+        </article>
+        <article class="metric-card stat-card">
+            <div class="stat-label">平均涨跌幅</div>
+            <div class="stat-value" id="avgChange">--</div>
+            <div class="stat-note" id="avgChangeText">--</div>
+        </article>
+
+
+    </section>
+
+
+
+
+
+    <section class="board-grid">
+
+
+        <div class="section-shell">
+
+
+            <div class="panel-head">
+
+
+                <div>
+                    <h2 class="panel-title">股票列表</h2>
+                    <div class="panel-subtitle">按分组查看股票数据</div>
+                </div>
+                <div class="filter-bar">
+                    <select id="groupFilter" class="select-soft"></select>
+                    <button class="btn-soft" onclick="loadStocks()">加载数据</button>
+                </div>
+
+
+            </div>
+
+
+            <div id="stocksContainer" class="stock-grid"></div>
+
+
+        </div>
+
+
+        <div style="display:grid; gap:22px;">
+
+
+            <section class="section-shell panel-card">
+
+
+                <div class="panel-head">
+
+
+                    <div>
+                    <h3 class="panel-title">市场异动</h3>
+                    <div class="panel-subtitle">最新市场异动信息</div>
+                </div>
+                <div class="panel-subtitle" id="movementsUpdate">--</div>
+
+
+                </div>
+
+
+                <div id="marketMovements" class="list-shell"></div>
+
+
+            </section>
+
+
+            <section class="section-shell panel-card">
+
+
+                <div class="panel-head">
+
+
+                    <div>
+                    <h3 class="panel-title">涨幅榜</h3>
+                    <div class="panel-subtitle">涨幅排名前10</div>
+                </div>
+
+
+                </div>
+
+
+                <div id="topGainers" class="list-shell"></div>
+
+
+            </section>
+
+
+            <section class="section-shell panel-card">
+
+
+                <div class="panel-head">
+
+
+                    <div>
+                    <h3 class="panel-title">成交额榜</h3>
+                    <div class="panel-subtitle">成交额排名前10</div>
+                </div>
+
+
+                </div>
+
+
+                <div id="topAmounts" class="list-shell"></div>
+
+
+            </section>
+
+
+        </div>
+
+
+    </section>
+
+
+</div>
+
+
+{% endblock %}
+
+
+
+
+
+{% block extra_js %}
+
+
+<script>
+
+
+let refreshInterval = null;
+
+
+
+
+
+function formatAmount(amount) {
+    const value = Number(amount || 0);
+    if (value >= 100000000) return (value / 100000000).toFixed(2) + ' 亿';
+    if (value >= 10000) return (value / 10000).toFixed(2) + ' 万';
+    return value.toFixed(0);
+}
+
+
+
+
+
+function normalizePayload(res) {
+
+
+    return res && res.data && typeof res.data === 'object' && !Array.isArray(res.data) ? res.data : res;
+
+
+}
+
+
+
+
+
+function renderList(target, items, formatter) {
+    const $target = $(target);
+    if (!items || items.length === 0) {
+        $target.html('<div class="empty-state">暂无数据</div>');
+        return;
+    }
+    $target.html(items.map(formatter).join(''));
+}
+
+
+
+
+
+function stockCard(stock) {
+
+
+    const change = Number(stock.change_pct || 0);
+
+
+    const positiveClass = change >= 0 ? 'positive' : 'negative';
+
+
+    return `
+
+
+        <article class="stock-card" onclick="location.href='/stock/${stock.code}'">
+
+
+            <div class="stock-top">
+
+
+                <div>
+
+
+                    <div class="stock-name">${stock.name || stock.code}</div>
+
+
+                    <div class="stock-code">${stock.code}</div>
+
+
+                </div>
+
+
+                <div class="stock-code">${stock.source || 'live'}</div>
+
+
+            </div>
+
+
+            <div class="stock-price">¥${Number(stock.price || 0).toFixed(2)}</div>
+            <div class="stock-change ${positiveClass}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</div>
+            <div class="stock-foot">
+                <div class="mini-metric"><div class="panel-subtitle">成交额</div><div>${formatAmount(stock.amount || 0)}</div></div>
+                <div class="mini-metric"><div class="panel-subtitle">换手率</div><div>${Number(stock.turnover || 0).toFixed(2)}%</div></div>
+            </div>
+
+
+        </article>
+
+
+    `;
+
+
+}
+
+
+
+
+
+function rankingItem(item, index, valueHtml) {
+
+
+    return `
+
+
+        <div class="list-item" onclick="location.href='/stock/${item.code}'" style="cursor:pointer;">
+
+
+            <div class="list-rank">${index + 1}</div>
+
+
+            <div>
+
+
+                <div class="list-name">${item.name}</div>
+
+
+                <div class="list-code">${item.code}</div>
+
+
+            </div>
+
+
+            <div class="list-value">${valueHtml}</div>
+
+
+        </div>
+
+
+    `;
+
+
+}
+
+
+
+
+
+function movementItem(item, index) {
+
+
+    const isPositive = (item.change || '').includes('+');
+
+
+    return `
+
+
+        <div class="list-item" onclick="location.href='/stock/${item.code}'" style="cursor:pointer;">
+
+
+            <div class="list-rank">${index + 1}</div>
+
+
+            <div>
+
+
+                <div class="list-name">${item.name}</div>
+
+
+                <div class="list-code">${item.code} · ${item.type}</div>
+
+
+            </div>
+
+
+            <div class="list-value ${isPositive ? 'positive' : 'negative'}">${item.change || '--'}</div>
+
+
+        </div>
+
+
+    `;
+
+
+}
+
+
+
+
+
+function updateStats(stocks) {
+    const valid = (stocks || []).filter(item => item.price !== null && item.price !== undefined);
+    const gainers = valid.filter(item => Number(item.change_pct || 0) > 0).length;
+    const losers = valid.filter(item => Number(item.change_pct || 0) < 0).length;
+    const avg = valid.length ? valid.reduce((sum, item) => sum + Number(item.change_pct || 0), 0) / valid.length : 0;
+    $('#totalStocks').text(valid.length);
+    $('#gainersCount').text(gainers);
+    $('#losersCount').text(losers);
+    $('#gainersPercent').text(valid.length ? ((gainers / valid.length) * 100).toFixed(1) + '% 占比' : '--');
+    $('#losersPercent').text(valid.length ? ((losers / valid.length) * 100).toFixed(1) + '% 占比' : '--');
+    $('#avgChange').text((avg >= 0 ? '+' : '') + avg.toFixed(2) + '%');
+    $('#avgChangeText').text(avg >= 0 ? '整体上涨' : '整体下跌');
+}
+
+
+
+
+
+function updateSentiment(res) {
+    const data = normalizePayload(res);
+    const stats = data.stats || {};
+    const score = Number(data.score || 0);
+    $('#sentimentScore').text(score.toFixed(0));
+    $('#sentimentLevel').text(`${data.emoji || ''} ${data.level || '中性'}`.trim());
+    $('#sentimentDescription').text(data.description || '市场情绪稳定，投资者信心适中');
+    $('#sentimentFill').css('width', Math.max(0, Math.min(100, score)) + '%');
+    $('#sentimentUp').text(stats.gainers ?? '--');
+    $('#sentimentFlat').text(stats.neutral ?? '--');
+    $('#sentimentDown').text(stats.losers ?? '--');
+}
+
+
+
+
+
+function loadGroups() {
+    $.get('/api/v1/stock-groups', function(res) {
+        const groups = res.groups || [];
+        const options = ['<option value="all">全部股票</option>', '<option value="self">自选股票</option>'];
+        groups.forEach(group => options.push(`<option value="group-${group.id}">${group.name}</option>`));
+        $('#groupFilter').html(options.join(''));
+    });
+}
+
+
+
+
+
+function loadStocks() {
+    const filter = $('#groupFilter').val() || 'all';
+    let url = '/api/v1/markets/CN/quotes';
+    if (filter === 'self') url = '/api/v1/stock-groups/1/stocks';
+    if (filter.startsWith('group-')) url = `/api/v1/stock-groups/${filter.split('-')[1]}/stocks`;
+    $('#stocksContainer').html('<div class="loading-state">加载中...</div>');
+    $.get(url, function(res) {
+        const stocks = res.stocks || [];
+        updateStats(stocks);
+        if (!stocks.length) {
+            $('#stocksContainer').html('<div class="empty-state">暂无股票数据</div>');
+            return;
+        }
+        $('#stocksContainer').html(stocks.map(stockCard).join(''));
+    }).fail(function() {
+        $('#stocksContainer').html('<div class="empty-state">加载失败</div>');
+    });
+}
+
+
+
+
+
+function loadMarketMovements() {
+    $('#marketMovements').html('<div class="loading-state">加载中...</div>');
+    $.get('/api/v1/markets/CN/movements', function(res) {
+        renderList('#marketMovements', res.movements || res.data || [], movementItem);
+        $('#movementsUpdate').text(new Date().toLocaleTimeString());
+    }).fail(function() {
+        $('#marketMovements').html('<div class="empty-state">加载失败</div>');
+    });
+}
+
+function loadRankings() {
+    $.get('/api/v1/markets/CN/panorama', function(res) {
+        const rankings = (res.rankings || (res.panorama || {}).rankings || {});
+        renderList('#topGainers', rankings.gainers || [], (item, index) => rankingItem(item, index, `<span class="positive">+${Number(item.change_pct || 0).toFixed(2)}%</span>`));
+        renderList('#topAmounts', rankings.amounts || [], (item, index) => rankingItem(item, index, formatAmount(item.amount || 0)));
+    }).fail(function() {
+        $('#topGainers').html('<div class="empty-state">加载失败</div>');
+        $('#topAmounts').html('<div class="empty-state">加载失败</div>');
+    });
+}
+
+
+
+
+
+function loadSentiment() {
+
+
+    $.get('/api/v1/markets/CN/sentiment', updateSentiment);
+
+
+}
+
+
+
+
+
+function refreshDashboard() {
+
+
+    loadStocks();
+
+
+    loadMarketMovements();
+
+
+    loadRankings();
+
+
+    loadSentiment();
+
+
+}
+
+
+
+
+
+$(function() {
+
+
+    loadGroups();
+
+
+    refreshDashboard();
+
+
+    refreshInterval = setInterval(refreshDashboard, 60000);
+
+
+});
+
+
+
+
+
+$(window).on('beforeunload', function() {
+
+
+    if (refreshInterval) clearInterval(refreshInterval);
+
+
+});
+
+
+</script>
+
+
+{% endblock %}
+
+

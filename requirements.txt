@@ -1,0 +1,56 @@
+# Quant Atlas — Python runtime dependencies
+# Canonical source: this file (see docs/dependencies.md; pyproject.toml holds tool config)
+# 基本依赖
+Flask>=3.0.0
+pymysql>=1.1.0
+SQLAlchemy>=2.0.0
+asyncmy>=0.2.0
+alembic>=1.12.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+langchain-core>=0.2.38
+langchain-openai>=0.2.0
+langchain-google-genai>=2.0.0
+langgraph>=0.2.40
+langgraph-prebuilt>=0.2.0
+langgraph-checkpoint-postgres>=2.0.22
+psycopg[binary]>=3.2.0
+Flask-Login>=0.6.0
+pandas>=1.5.0
+numpy>=1.24.0
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+akshare>=1.8.0
+
+# 缓存依赖
+redis>=4.5.0
+cryptography>=41.0.0
+
+# 数据获取依赖
+yfinance>=0.2.28
+
+# 数据处理依赖
+tqdm>=4.65.0
+
+# 可选依赖
+matplotlib>=3.7.0
+seaborn>=0.12.0
+ta>=0.11.0
+tenacity>=8.2.0
+
+# 通达信离线数据：pip install pytdx
+pytdx>=1.23.0
+
+# 时序库 ILP 写入 + 全站 SocketIO 推送（见 .env ENABLE_QUESTDB_SYNC / ENABLE_SOCKETIO）
+questdb>=2.0.0
+flask-socketio>=5.3.0
+python-socketio>=5.9.0
+
+# 异步任务 / 定时任务（需 Redis 作 broker；worker/beat 见 app/celery_app.py）
+celery>=5.2.0,<7.0.0
+
+# RD-Agent 因子挖掘（ENABLE_RD_AGENT=1；Celery 任务 ``rdagent.run_factor_generation``）
+rdagent>=0.8.0
+
+# 可选高性能计算（向量化回测 / Polars 数据湖）
+# pip install -r requirements-compute.txt

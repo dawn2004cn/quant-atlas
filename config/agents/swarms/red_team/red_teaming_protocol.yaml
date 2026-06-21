@@ -1,0 +1,26 @@
+name: red_teaming_swarm
+title: "Strategy Adversarial Stress Testing"
+description: "A red-teaming flow where a Strategy Agent creates, and a Risk Auditor Agent attacks."
+
+agents:
+  - id: strategist
+    role: "Quantitative Strategy Developer"
+    system_prompt: "You design trading strategies. Provide clear SignalEngine implementations."
+    tools: ["backtest", "write_file"]
+    
+  - id: risk_auditor
+    role: "Adversarial Risk Auditor"
+    system_prompt: "You are a destructive tester. Look for logic flaws, extreme drawdown scenarios, and signal failures."
+    tools: ["backtest_diagnose", "bash"]
+
+tasks:
+  - id: create_strategy
+    agent_id: strategist
+    prompt_template: "Design a strategy for {symbol}."
+    
+  - id: audit_strategy
+    agent_id: risk_auditor
+    prompt_template: "Review the strategy from task 'create_strategy'. Find its weaknesses."
+    depends_on: ["create_strategy"]
+    input_from:
+      strategy_code: "create_strategy"

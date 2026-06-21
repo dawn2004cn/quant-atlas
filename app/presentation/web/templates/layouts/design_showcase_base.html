@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="{{ ui_theme | default('dark') }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}Quant Atlas UI{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
+    <link rel="stylesheet" href="{{ versioned_url('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/quant-atlas-layout.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="qa-layout-body" id="mainContent">
+{% block body %}{% endblock %}
+<script src="{{ url_for('static', filename='js/base_app.js') }}" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

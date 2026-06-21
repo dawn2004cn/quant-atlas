@@ -1,0 +1,36 @@
+name: CI Smoke
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest werkzeug
+
+      - name: Regression + smoke
+        env:
+          ENABLE_BACKGROUND_SCANNER: "0"
+          ENABLE_BASIC_DATA_SCHEDULER: "0"
+          ENABLE_CELERY: "0"
+          ENABLE_QLIB: "0"
+          ENABLE_RD_AGENT: "0"
+          TASK_MESSAGE_REDIS_URL: memory://
+        run: |
+          pytest tests/test_phase66_user_spectrum.py tests/test_phase67_wiring_smoke.py tests/test_phase68_federated.py tests/test_phase69_route_boot.py tests/test_route_smoke_critical.py tests/smoke/test_app_boot.py -q

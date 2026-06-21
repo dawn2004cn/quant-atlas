@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}股票管理{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1>股票管理</h1>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            添加新股票
+        </div>
+        <div class="card-body">
+            <form id="addStockForm">
+                <div class="form-group">
+                    <label for="stockCode">股票代码:</label>
+                    <input type="text" class="form-control" id="stockCode" placeholder="例如: 600036" required>
+                </div>
+                <div class="form-group">
+                    <label for="addGroup">添加到分组:</label>
+                    <select class="form-control" id="addGroup">
+                        <option value="1">自选股</option>
+                        <!-- 其他分组将通过 JavaScript 加载 -->
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">添加</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            我的监控列表
+        </div>
+        <ul class="list-group list-group-flush" id="watchlist">
+            <!-- Watchlist items will be loaded here by JavaScript -->
+            <li class="list-group-item text-center text-muted">加载中...</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        
+        // 加载分组列表
+        function loadGroups() {
+            $.ajax({
+                url: '/api/v1/stock-groups',
+                method: 'GET',
+                success: function(response) {
+                    if (!response.status || response.status === 'success') {
+                        const addGroup = $('#addGroup');
+                        // 保留默认选项
+                        addGroup.html('<option value="1">自选股</option>');
+                        
+                        // 添加自定义分组
+                        (response.groups || []).forEach(function(group) {
+                            if (group.name !== '自选股') {
+                                addGroup.append(`<option value="${group.id}">${group.name}</option>`);
+                            }
+                        });
+                    }
+                },
+                error: function() {
+                    console.error('加载分组失败');
+                }
+            });
+        }
+
+        function loadWatchlist() {
+            $.get('/api/v1/watchlist/details', function(res) {
+                if (!res.status || res.status === 'success') {
+                    $('#watchlist').empty();
+                    if ((res.stocks || []).length === 0) {
+                        $('#watchlist').append('<li class="list-group-item text-center text-muted">监控列表为空</li>');
+                    } else {
+                        (res.stocks || []).forEach(function(stock) {
+                            $('#watchlist').append(`
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    ${stock.name} (${stock.code})
+                                    <div>
+                                        <button type="button" class="btn btn-primary btn-sm add-to-group mr-2" data-code="${stock.code}">添加到分组</button>
+                                        <button type="button" class="btn btn-danger btn-sm remove-stock" data-code="${stock.code}">移除</button>
+                                    </div>
+                                </li>
+                            `);
+                        });
+                    }
+                } else {
+                    $('#watchlist').html('<li class="list-group-item text-center text-danger">加载失败: ' + res.message + '</li>');
+                }
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                $('#watchlist').html('<li class="list-group-item text-center text-danger">加载失败: ' + textStatus + '</li>');
+            });
+        }
+
+        $('#addStockForm').submit(function(e) {
+            e.preventDefault();
+            const stockCode = $('#stockCode').val();
+            const groupId = $('#addGroup').val();
+            
+            // 先添加到监控列表
+            $.ajax({
+                url: '/api/v1/watchlist',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ symbol: stockCode }),
+                success: function(res) {
+                    if (!res.status || res.status === 'success') {
+                        // 然后添加到选择的分组
+                        $.ajax({
+                            url: `/api/v1/stock-groups/${groupId}/stocks`,
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ stock_code: stockCode }),
+                            success: function(res2) {
+                                alert('添加成功！');
+                                $('#stockCode').val('');
+                                loadWatchlist();
+                            },
+                            error: function() {
+                                alert('股票已添加到监控列表，但添加到分组失败');
+                                $('#stockCode').val('');
+                                loadWatchlist();
+                            }
+                        });
+                    } else {
+                        alert('添加失败: ' + res.message);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert('添加失败: ' + textStatus);
+                }
+            });
+        });
+
+        // 添加到分组按钮点击事件
+        $('#watchlist').on('click', '.add-to-group', function() {
+            const stockCode = $(this).data('code');
+            
+            // 加载分组列表并显示选择对话框
+            $.ajax({
+                url: '/api/v1/stock-groups',
+                method: 'GET',
+                success: function(response) {
+                    if (!response.status || response.status === 'success') {
+                        let groupOptions = '';
+                        (response.groups || []).forEach(function(group) {
+                            groupOptions += `<option value="${group.id}">${group.name}</option>`;
+                        });
+                        
+                        // 创建一个模态框来选择分组
+                        const modalHtml = `
+                            <div class="modal-overlay" id="groupModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+                                <div class="modal-content" style="background: white; border-radius: 8px; padding: 24px; width: 90%; max-width: 400px;">
+                                    <div class="modal-header" style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">选择分组</div>
+                                    <div class="form-group">
+                                        <label for="groupSelect" style="display: block; margin-bottom: 8px; font-size: 14px; color: #262626;">选择分组:</label>
+                                        <select class="form-control" id="groupSelect" style="width: 100%; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px;">
+                                            ${groupOptions}
+                                        </select>
+                                    </div>
+                                    <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px;">
+                                        <button class="btn btn-default" onclick="$('#groupModal').remove()" style="padding: 8px 16px; border-radius: 4px; font-size: 14px; cursor: pointer; transition: all 0.3s; background: white; color: #262626; border: 1px solid #d9d9d9;">取消</button>
+                                        <button class="btn btn-primary" onclick="addStockToGroup('${stockCode}')" style="padding: 8px 16px; border-radius: 4px; font-size: 14px; cursor: pointer; transition: all 0.3s; background: #1890ff; color: white; border: none;">确定</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // 添加模态框到页面
+                        $('body').append(modalHtml);
+                    }
+                },
+                error: function() {
+                    alert('加载分组失败');
+                }
+            });
+        });
+        
+        // 添加股票到分组
+        window.addStockToGroup = function(stockCode) {
+            const groupId = $('#groupSelect').val();
+            if (!groupId) {
+                alert('请选择分组');
+                return;
+            }
+            
+            $.ajax({
+                url: `/api/v1/stock-groups/${groupId}/stocks`,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ stock_code: stockCode }),
+                success: function(res) {
+                    alert('添加到分组成功！');
+                    $('#groupModal').remove();
+                },
+                error: function() {
+                    alert('添加到分组失败');
+                    $('#groupModal').remove();
+                }
+            });
+        };
+
+        $('#watchlist').on('click', '.remove-stock', function() {
+            const stockCode = $(this).data('code');
+            if (confirm(`确定要从监控列表移除 ${stockCode} 吗？`)) {
+                $.ajax({
+                    url: `/api/v1/watchlist/${stockCode}`,
+                    method: 'DELETE',
+                    success: function(res) {
+                        if (!res.status || res.status === 'success') {
+                            alert(res.message);
+                            loadWatchlist();
+                        } else {
+                            alert('移除失败: ' + res.message);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        alert('移除失败: ' + textStatus);
+                    }
+                });
+            }
+        });
+
+        loadGroups(); // 加载分组列表
+        loadWatchlist(); // Initial load
+    });
+</script>
+{% endblock %}

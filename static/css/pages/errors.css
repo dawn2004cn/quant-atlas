@@ -1,0 +1,37 @@
+/**
+ * pages/errors.css — 404 / 500 等错误页
+ * Depends on: design-tokens.css, common.css
+ */
+
+.error-page {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.error-page__code {
+    font-size: 6rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.error-page__code--404 {
+    color: var(--brand);
+}
+
+.error-page__code--500 {
+    color: var(--danger, #d9363e);
+}
+
+.error-page__title {
+    font-size: 1.4rem;
+    margin: 20px 0;
+}
+
+.error-page__desc {
+    color: var(--muted);
+}
+
+.error-page__action {
+    display: inline-block;
+    margin-top: 24px;
+}

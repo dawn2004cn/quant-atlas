@@ -1,0 +1,322 @@
+/**
+ * pages/factor.css — 因子库 / 进化
+ * Depends on: design-tokens.css, common.css
+ */
+
+/* ─── Factor evolution (factor_evolution.html) ──────────────────────────────────────────── */
+.evo-hero {
+        padding: 28px;
+        border-radius: 30px;
+        background:
+            radial-gradient(circle at top right, rgba(124,58,237,0.18), transparent 28%),
+            radial-gradient(circle at left bottom, rgba(245,158,11,0.14), transparent 24%),
+            linear-gradient(135deg, rgba(255,255,255,0.78), rgba(255,250,242,0.92));
+        border: 1px solid rgba(19,32,45,0.08);
+        box-shadow: var(--shadow);
+    }
+    .evo-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; min-height: 600px; }
+    .evo-main { position: relative; border-radius: 24px; background: rgba(255,255,255,0.7); border: 1px solid rgba(19,32,45,0.08); overflow: hidden; }
+    #evoCanvas { width: 100%; height: 600px; cursor: grab; }
+    #evoCanvas:active { cursor: grabbing; }
+    
+    .evo-sidebar { display: flex; flex-direction: column; gap: 16px; }
+    .evo-card {
+        padding: 20px; border-radius: 20px; background: rgba(255,255,255,0.85);
+        border: 1px solid rgba(19,32,45,0.08); backdrop-filter: blur(10px);
+    }
+    .node-info-panel { display: none; }
+    .node-info-panel.active { display: block; animation: fadeIn 0.3s ease; }
+    
+    .factor-tag {
+        display: inline-block; padding: 4px 10px; border-radius: 6px;
+        font-size: 0.75rem; font-weight: 700; margin-bottom: 8px;
+    }
+    .primitive { background: rgba(59,130,246,0.1); color: #3b82f6; }
+    .derived { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+    .composite { background: rgba(245,158,11,0.1); color: #f59e0b; }
+    
+    .ic-value { font-size: 1.8rem; font-weight: 800; margin: 10px 0; }
+    .formula-box {
+        padding: 12px; border-radius: 12px; background: rgba(19,32,45,0.04);
+        font-family: monospace; font-size: 0.85rem; word-break: break-all; margin-top: 10px;
+    }
+    
+    .legend { display: flex; gap: 12px; font-size: 0.8rem; font-weight: 600; margin-top: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 1000px) { .evo-grid { grid-template-columns: 1fr; } }
+
+/* ─── Factor repository (factor_repository.html) ──────────────────────────────────────────── */
+.repo-shell { --brand-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
+
+.repo-header {
+    padding: 28px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    color: #fff;
+    margin-bottom: 24px;
+}
+
+.repo-header-title { font-size: 1.8rem; font-weight: 900; margin-bottom: 8px; }
+
+.repo-stats { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
+.repo-stat { background: rgba(255,255,255,0.1); padding: 12px 20px; border-radius: 12px; }
+.repo-stat-value { font-size: 1.5rem; font-weight: 800; }
+.repo-stat-label { font-size: 0.8rem; color: rgba(255,255,255,0.6); }
+
+.repo-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.repo-filters .repo-search {
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+}
+
+.repo-filters .repo-filter-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.repo-filter {
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(19,32,45,0.1);
+    background: rgba(255,255,255,0.72);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.repo-filter:hover {
+    background: #fff;
+    border-color: var(--brand);
+    color: var(--brand);
+}
+
+.repo-filter.active {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+}
+
+.repo-search {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(19,32,45,0.1);
+    background: #fff;
+    font-size: 1rem;
+}
+
+.factor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.factor-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--surface-border);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.factor-card:hover {
+    border-color: #a855f7;
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.15);
+    transform: translateY(-2px);
+}
+
+.factor-card-formula {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    background: #f5f3ff;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    word-break: break-all;
+}
+
+.factor-card-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.factor-metric {
+    text-align: center;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.factor-metric-value { font-weight: 800; font-size: 1rem; }
+.factor-metric-label { font-size: 0.75rem; color: var(--muted); }
+
+.factor-card-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.factor-tag {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.factor-tag.trending_up,
+.factor-tag.trending-up { background: rgba(16,185,129,0.1); color: #059669; }
+.factor-tag.trending_down,
+.factor-tag.trending-down { background: rgba(239,68,68,0.1); color: #dc2626; }
+.factor-tag.ranging { background: rgba(59,130,246,0.1); color: #2563eb; }
+.factor-tag.volatile,
+.factor-tag.high_volatility { background: rgba(245,158,11,0.1); color: #d97706; }
+.factor-tag.low_volatility { background: rgba(139,92,246,0.1); color: #7c3aed; }
+.factor-tag.unknown,
+.factor-tag.undefined { background: rgba(100,116,139,0.1); color: #64748b; }
+
+.pagination { display: flex; justify-content: center; gap: 8px; margin-top: 24px; }
+.page-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(19,32,45,0.1); background: #fff; cursor: pointer; }
+.page-btn:hover, .page-btn.active { background: var(--brand); color: #fff; }
+
+/* ─── Factor detail (factor_detail.html) ──────────────────────────────────────────── */
+.factor-shell { --brand-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); }
+
+.factor-header {
+    padding: 32px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    color: #fff;
+    margin-bottom: 24px;
+}
+
+.factor-header-title { font-size: 2rem; font-weight: 900; margin-bottom: 8px; }
+.factor-header-subtitle { color: rgba(255,255,255,0.7); }
+
+.factor-formula {
+    font-family: 'Fira Code', monospace;
+    font-size: 1.1rem;
+    background: rgba(124, 58, 237, 0.2);
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin: 16px 0;
+    word-break: break-all;
+}
+
+.factor-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.factor-stat-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.factor-stat-value { font-size: 1.8rem; font-weight: 800; }
+.factor-stat-label { font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+.factor-section {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 1px solid var(--surface-border);
+}
+
+.factor-section-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ic-chart-container { height: 300px; background: #f8fafc; border-radius: 12px; padding: 16px; margin-top: 16px; }
+
+.factor-meta-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.factor-meta-item { padding: 12px; background: #f8fafc; border-radius: 10px; }
+.factor-meta-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+.factor-meta-value { font-weight: 700; }
+
+.correlation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.correlation-item {
+    padding: 14px;
+    border-radius: 12px;
+    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.action-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+@media (max-width: 768px) {
+    .factor-stats-row, .factor-meta-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ── Factor evolution inline cleanup ── */
+
+.fe-status-indicator { position: absolute; top: 20px; left: 20px; z-index: 10; font-weight: 700; }
+.fe-legend-panel { position: absolute; bottom: 20px; left: 20px; z-index: 10; background: rgba(255, 255, 255, 0.6); padding: 10px; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.05); }
+.fe-dot-blue { background: #3b82f6; }
+.fe-dot-violet { background: #8b5cf6; }
+.fe-dot-amber { background: #f59e0b; }
+.fe-stats-title { font-weight: 800; margin-bottom: 12px; }
+.fe-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fe-btn-full { width: 100%; margin-top: 15px; }
+.fe-node-id { font-size: 0.75rem; color: var(--muted); }
+.fe-node-meta { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
+.fe-field-title { font-weight: 700; margin-top: 16px; }
+.fe-input-full { width: 100%; margin-top: 6px; }
+.fe-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.fe-grid-2-sm { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.fe-btn-evolve { width: 100%; margin-top: 10px; }
+.fe-hint-title { font-weight: 700; margin-bottom: 8px; }
+.fe-hint-list { font-size: 0.85rem; color: var(--muted); padding-left: 18px; line-height: 1.6; }
+
+/* ── Factor repository batch8 ── */
+
+.fr-hero-sub { color: rgba(255, 255, 255, 0.7); }
+.fr-empty-title { margin-bottom: 12px; }
+.fr-empty-hint { font-size: 0.85rem; color: var(--muted); }
+.fr-card-link { text-decoration: none; color: inherit; }
+.fr-meta { font-size: 0.85rem; color: var(--muted); }
+.fr-tag-brand { background: rgba(16, 63, 145, 0.1); color: var(--brand); }
+
+/* ── Factor detail batch9 ── */
+
+.fd-bar-row { height: 100%; display: flex; align-items: flex-end; gap: 2px; }
+.fd-link-plain { color: var(--text); text-decoration: none; }
+.fd-name-bold { font-weight: 700; }
+

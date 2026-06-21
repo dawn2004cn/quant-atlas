@@ -1,0 +1,15 @@
+/**
+ * components/skeleton.css — Skeleton loaders
+ */
+
+.sk-card { padding: 20px; background: var(--zen-surface, rgba(16,24,40,0.85)); border-radius: var(--zen-radius, 12px); border: 1px solid var(--zen-border, rgba(255,255,255,0.06)); margin-bottom: 16px; }
+.sk-row { margin-bottom: 10px; }
+.sk-block { height: 14px; border-radius: 4px; background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 100%); background-size: 200% 100%; animation: sk-shimmer 1.5s ease-in-out infinite; }
+.sk-block--xs { height: 10px; }
+.sk-block--sm { height: 12px; }
+.sk-block--lg { height: 24px; border-radius: 6px; }
+.sk-row--header { margin-bottom: 16px; }
+.sk-table .sk-row { display: flex; gap: 16px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.sk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+.sk-stat { padding: 16px; background: var(--zen-glass, rgba(255,255,255,0.03)); border-radius: var(--zen-radius-sm, 8px); }
+@keyframes sk-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }

@@ -1,0 +1,169 @@
+# Quant Atlas — Docker Compose stack
+# Usage: cp .env.example .env && docker compose up -d
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-quant_atlas}
+      MYSQL_USER: ${MYSQL_USER:-quant_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-quant_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-change-me-in-production}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      QUANT_DATABASE_URI: mysql+pymysql://${MYSQL_USER:-quant_user}:${MYSQL_PASSWORD:-quant_pass}@mysql:3306/${MYSQL_DATABASE:-quant_atlas}
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-quant_user}:${MYSQL_PASSWORD:-quant_pass}@mysql:3306/${MYSQL_DATABASE:-quant_atlas}
+      # T-5: set ENABLE_ASYNC_MARKET_QUOTES=1 after smoke benchmark shows P99 bottleneck
+      ENABLE_ASYNC_MARKET_QUOTES: ${ENABLE_ASYNC_MARKET_QUOTES:-0}
+    volumes:
+      - ./instance:/app/instance
+      - ./logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/system/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: celery -A app.celery_app.celery_app worker --loglevel=info
+    env_file:
+      - .env
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      REDIS_URL: redis://redis:6379/0
+      QUANT_DATABASE_URI: mysql+pymysql://${MYSQL_USER:-quant_user}:${MYSQL_PASSWORD:-quant_pass}@mysql:3306/${MYSQL_DATABASE:-quant_atlas}
+    volumes:
+      - ./instance:/app/instance
+      - ./logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: celery -A app.celery_app.celery_app beat --loglevel=info
+    env_file:
+      - .env
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - ./instance:/app/instance
+      - ./logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    profiles: ["observability"]
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      web:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    profiles: ["observability"]
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    depends_on:
+      - prometheus
+
+  market-sidecar:
+    build:
+      context: .
+      dockerfile: sidecar/market/Dockerfile
+    profiles: ["sidecar"]
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      FLASK_UPSTREAM: http://web:5000
+    depends_on:
+      web:
+        condition: service_healthy
+
+  trade-gateway:
+    build:
+      context: gateway
+      dockerfile: Dockerfile
+    profiles: ["gateway"]
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9090/healthz"]
+
+volumes:
+  redis_data:
+  mysql_data:
+  prometheus_data:
+  grafana_data:

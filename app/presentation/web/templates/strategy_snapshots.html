@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}策略快照与回滚 | Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="snap-hero">
+        <h1 class="h2 mb-2">📸 快照中心</h1>
+        <p class="text-muted mb-0">部署快照用于策略回滚；决策快照封存个股简报与当时行情，供研究员复盘分享。</p>
+    </div>
+
+    <div class="snap-tabs" role="tablist">
+        <button type="button" class="snap-tab active" id="tabDeploy" data-tab="deploy">策略部署快照</button>
+        <button type="button" class="snap-tab" id="tabDecision" data-tab="decision">决策研究快照</button>
+    </div>
+
+    <div id="deployPanel">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light"><strong>创建部署快照</strong></div>
+        <div class="card-body">
+            <div class="snap-toolbar">
+                <div>
+                    <label class="form-label small mb-1">策略名</label>
+                    <input type="text" class="form-control form-control-sm" id="createName" placeholder="momentum_v1">
+                </div>
+                <div>
+                    <label class="form-label small mb-1">标签</label>
+                    <input type="text" class="form-control form-control-sm" id="createLabel" placeholder="prod deploy">
+                </div>
+                <div class="ssnap-filter-min">
+                    <label class="form-label small mb-1">备注</label>
+                    <input type="text" class="form-control form-control-sm" id="createNotes" placeholder="可选">
+                </div>
+                <button class="btn btn-sm btn-primary" id="createBtn" type="button">创建快照</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <input type="text" class="form-control form-control-sm ssnap-name-filter" id="filterName" placeholder="按策略名筛选">
+        <button class="btn btn-sm btn-outline-secondary" id="refreshBtn" type="button">刷新列表</button>
+    </div>
+
+    <div class="alert alert-secondary d-none" id="loadError" role="alert"></div>
+    <div class="snap-list" id="snapList"></div>
+
+    <div class="rollback-panel" id="rollbackPanel">
+        <h6 class="mb-2">回滚结果</h6>
+        <pre class="small mb-2 ssnap-pre-wrap" id="rollbackSteps"></pre>
+        <p class="small text-muted mb-0" id="rollbackMessage"></p>
+    </div>
+    </div>
+
+    <div id="decisionPanel" class="panel-hidden">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <p class="text-muted small mb-2">在个股详情「决策简报」区点击「生成快照」后，会出现在此列表。团队成员登录后可通过链接查看封存时刻的市场全景。</p>
+                <div class="d-flex flex-wrap gap-2 align-items-end">
+                    <div>
+                        <label class="form-label small mb-1">按代码筛选</label>
+                        <input type="text" class="form-control form-control-sm ssnap-symbol-filter" id="decisionFilterSymbol" placeholder="600519">
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary" id="refreshDecisionBtn" type="button">刷新</button>
+                </div>
+            </div>
+        </div>
+        <div class="alert alert-secondary d-none" id="decisionLoadError" role="alert"></div>
+        <div class="snap-list" id="decisionSnapList"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+function formatTime(ts) {
+    if (!ts) return '—';
+    try {
+        const d = new Date(ts);
+        return Number.isNaN(d.getTime()) ? ts : d.toLocaleString('zh-CN');
+    } catch (e) {
+        return ts;
+    }
+}
+
+function renderSnapshot(item) {
+    const rev = item.code_revision || {};
+    const activeClass = item.is_active ? ' active' : '';
+    const activeBadge = item.is_active ? '<span class="snap-badge">ACTIVE</span> ' : '';
+    return '<article class="snap-item' + activeClass + '" data-id="' + item.id + '">' +
+        '<div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">' +
+            '<div><strong>' + activeBadge + (item.label || item.strategy_name) + '</strong>' +
+            '<div class="text-muted small">' + item.strategy_name + '</div></div>' +
+            '<div class="text-muted small">' + formatTime(item.deployed_at) + '</div>' +
+        '</div>' +
+        '<div class="snap-meta">' +
+            '<span>版本: ' + (rev.vcs || '?') + ' / ' + (rev.revision || '?') + '</span>' +
+            '<span>Profile: ' + (item.deploy_profile || '—') + '</span>' +
+            '<span>部署者: ' + (item.deployed_by || '—') + '</span>' +
+        '</div>' +
+        (item.notes ? '<div class="small text-muted mt-2">' + item.notes + '</div>' : '') +
+        '<div class="snap-actions">' +
+            '<button class="btn btn-sm btn-outline-success rollback-btn" data-id="' + item.id + '" data-apply="0" data-code="0">标记 Active</button>' +
+            '<button class="btn btn-sm btn-warning rollback-btn" data-id="' + item.id + '" data-apply="1" data-code="0">回滚 + 写回 settings</button>' +
+            '<button class="btn btn-sm btn-danger rollback-btn" data-id="' + item.id + '" data-apply="1" data-code="1">完整回滚 (settings+代码)</button>' +
+        '</div>' +
+    '</article>';
+}
+
+async function loadSnapshots() {
+    const errorEl = document.getElementById('loadError');
+    const listEl = document.getElementById('snapList');
+    errorEl.classList.add('d-none');
+    listEl.innerHTML = '<div class="text-muted text-center py-4">加载中…</div>';
+
+    const name = document.getElementById('filterName').value.trim();
+    const params = new URLSearchParams({ limit: '50' });
+    if (name) params.set('strategy_name', name);
+
+    try {
+        const response = await fetch('/api/v1/strategy/snapshots?' + params.toString(), { credentials: 'same-origin' });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const payload = await response.json();
+        const rows = (payload.status === 'success' || payload.ok) ? (payload.data ?? []) : [];
+        if (!rows.length) {
+            listEl.innerHTML = '<div class="text-muted text-center py-4">暂无快照，请先创建。</div>';
+            return;
+        }
+        listEl.innerHTML = rows.map(renderSnapshot).join('');
+        listEl.querySelectorAll('.rollback-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                rollbackSnapshot(btn.dataset.id, btn.dataset.apply === '1', btn.dataset.code === '1');
+            });
+        });
+    } catch (e) {
+        window.qcLogError('strategy_snapshots load failed', e);
+        errorEl.textContent = '快照列表加载失败，请确认已登录。';
+        errorEl.classList.remove('d-none');
+        listEl.innerHTML = '';
+    }
+}
+
+async function createSnapshot() {
+    const strategy_name = document.getElementById('createName').value.trim();
+    if (!strategy_name) {
+        alert('请填写策略名');
+        return;
+    }
+    try {
+        const response = await fetch('/api/v1/strategy/snapshots', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                strategy_name,
+                label: document.getElementById('createLabel').value.trim(),
+                notes: document.getElementById('createNotes').value.trim(),
+                mark_active: true,
+            }),
+        });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        await loadSnapshots();
+    } catch (e) {
+        alert('创建失败: ' + e.message);
+    }
+}
+
+async function rollbackSnapshot(snapshotId, applySettings, applyCode) {
+    let msg = '确认将此快照标记为 active 基线？';
+    if (applyCode) {
+        msg = '确认完整回滚（写回 settings + git/svn checkout）？生产环境需 STRATEGY_SNAPSHOT_FORCE_CODE_CHECKOUT=1。';
+    } else if (applySettings) {
+        msg = '确认回滚并写回 config/settings.json？当前 settings 会先备份为 .bak 文件。';
+    }
+    if (!window.confirm(msg)) return;
+
+    try {
+        const response = await fetch('/api/v1/strategy/snapshots/' + snapshotId + '/rollback', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ apply_settings: applySettings, apply_code: applyCode }),
+        });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const payload = await response.json();
+        const result = payload.data?.rollback || payload.data || payload.rollback || payload;
+        document.getElementById('rollbackPanel').style.display = 'block';
+        document.getElementById('rollbackSteps').textContent = (result.redeploy_steps || []).join('\n');
+        document.getElementById('rollbackMessage').textContent = result.message || '';
+        await loadSnapshots();
+    } catch (e) {
+        alert('回滚失败: ' + e.message);
+    }
+}
+
+function renderDecisionSnapshot(item) {
+    const brief = item.decision_brief || {};
+    const ev = brief.supporting_evidence || {};
+    const verdict = brief.verdict || ev.one_line_verdict || '—';
+    const path = item.share_path || ('/decision-snapshot/' + item.id);
+    const publicPath = item.share_public_path || '';
+    const fullUrl = window.location.origin + path;
+    const publicUrl = publicPath ? (window.location.origin + publicPath) : '';
+    return '<article class="snap-item" data-id="' + item.id + '">' +
+        '<div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">' +
+            '<div><strong>' + (item.label || item.symbol) + '</strong>' +
+            '<div class="text-muted small">' + item.symbol + ' · ' + (item.market || 'CN') + ' · 结论 ' + verdict + '</div></div>' +
+            '<div class="text-muted small">' + formatTime(item.created_at) + '</div>' +
+        '</div>' +
+        '<div class="snap-meta"><span>创建者: ' + (item.created_by || '—') + '</span>' +
+        '<span>因子数: ' + ((ev.factors || []).length) + '</span></div>' +
+        (item.notes ? '<div class="small text-muted mt-2">' + item.notes + '</div>' : '') +
+        '<div class="snap-actions">' +
+            '<a class="btn btn-sm btn-primary" href="' + path + '">打开复盘</a>' +
+            '<button type="button" class="btn btn-sm btn-outline-secondary copy-link-btn" data-url="' + fullUrl + '">复制复盘链接</button>' +
+            (publicUrl ? '<button type="button" class="btn btn-sm btn-outline-primary copy-link-btn" data-url="' + publicUrl + '">复制只读外链</button>' : '') +
+        '</div></article>';
+}
+
+async function loadDecisionSnapshots() {
+    const errorEl = document.getElementById('decisionLoadError');
+    const listEl = document.getElementById('decisionSnapList');
+    errorEl.classList.add('d-none');
+    listEl.innerHTML = '<div class="text-muted text-center py-4">加载中…</div>';
+    const sym = document.getElementById('decisionFilterSymbol').value.trim();
+    const params = new URLSearchParams({ limit: '40' });
+    if (sym) params.set('symbol', sym);
+    try {
+        const response = await fetch('/api/v1/decision/snapshots?' + params.toString(), { credentials: 'same-origin' });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const payload = await response.json();
+        const rows = (payload.status === 'success' || payload.ok) ? (payload.data ?? []) : [];
+        if (!rows.length) {
+            listEl.innerHTML = '<div class="text-muted text-center py-4">暂无决策快照。请从个股详情页「决策简报」生成。</div>';
+            return;
+        }
+        listEl.innerHTML = rows.map(renderDecisionSnapshot).join('');
+        listEl.querySelectorAll('.copy-link-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const url = btn.getAttribute('data-url') || '';
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url).then(function () { alert('链接已复制'); });
+                } else {
+                    prompt('复制链接', url);
+                }
+            });
+        });
+    } catch (e) {
+        errorEl.textContent = '决策快照列表加载失败';
+        errorEl.classList.remove('d-none');
+        listEl.innerHTML = '';
+    }
+}
+
+function switchTab(tab) {
+    const isDecision = tab === 'decision';
+    document.getElementById('tabDeploy').classList.toggle('active', !isDecision);
+    document.getElementById('tabDecision').classList.toggle('active', isDecision);
+    document.getElementById('deployPanel').classList.toggle('panel-hidden', isDecision);
+    document.getElementById('decisionPanel').classList.toggle('panel-hidden', !isDecision);
+    if (isDecision) loadDecisionSnapshots();
+    else loadSnapshots();
+}
+
+document.getElementById('tabDeploy').addEventListener('click', function () { switchTab('deploy'); });
+document.getElementById('tabDecision').addEventListener('click', function () { switchTab('decision'); });
+document.getElementById('createBtn').addEventListener('click', createSnapshot);
+document.getElementById('refreshBtn').addEventListener('click', loadSnapshots);
+document.getElementById('filterName').addEventListener('change', loadSnapshots);
+document.getElementById('refreshDecisionBtn').addEventListener('click', loadDecisionSnapshots);
+document.getElementById('decisionFilterSymbol').addEventListener('change', loadDecisionSnapshots);
+
+const initTab = new URLSearchParams(window.location.search).get('tab');
+if (initTab === 'decision') switchTab('decision');
+else loadSnapshots();
+</script>
+{% endblock %}

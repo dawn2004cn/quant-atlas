@@ -1,0 +1,823 @@
+{% extends "base.html" %}
+
+{% block title %}Alpha Factory - 智能因子工厂{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/alpha-factory.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="af-shell">
+<section class="af-hero">
+        <div class="af-hero-content">
+            <div class="hero-caption">Alpha Factory</div>
+            <h1 class="af-hero-title">智能因子工厂</h1>
+            <p class="af-hero-subtitle">
+                整合 RD-Agent 因子生成 + Qlib 回测 + 因子仓库<br>
+                自动化 Alpha Factory 实现从因子发现到模型部署的完整闭环
+            </p>
+            <div class="af-hero-links">
+                <a href="{{ url_for('pages.factor_repository') }}" class="btn-soft">📚 因子库</a>
+                <a href="{{ url_for('pages.stock_selector') }}" class="btn-soft">🎯 选股器</a>
+            </div>
+            <div class="af-data-note">
+                <strong>数据来源说明：</strong>
+                <ul class="af-data-list">
+                    <li>因子总数/平均Sharpe：来自因子库（需通过"因子实验"提交并验证通过后保存）</li>
+                    <li>失败次数：来自实验失败记录（实验执行失败时自动记录）</li>
+                    <li>投研周会：来自周会调度器（需启用并执行后才有数据）</li>
+                </ul>
+                <div class="af-mt-8">
+                    <strong>产生数据方式：</strong> 在下方"因子实验"标签页提交因子表达式进行实验，实验完成后因子自动存入因子库
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="dashboardStats" class="af-stats-row mb-4"></div>
+
+    <h2 class="af-section-title">🎯 Alpha Factory 核心目标</h2>
+    <div class="af-goals">
+        <div class="af-goal-card">
+            <div class="af-goal-icon">⚡</div>
+            <div class="af-goal-title">Alpha 永动机</div>
+            <div class="af-goal-desc">
+                从"因子失效发现"到"新因子上线"耗时从周级缩短至小时级。<br>
+                当系统检测到IR下降时，RD-Agent已在实验室挖掘10个候补因子。
+            </div>
+            <span class="af-goal-status active">✓ 已实现</span>
+        </div>
+        <div class="af-goal-card">
+            <div class="af-goal-icon">🧠</div>
+            <div class="af-goal-title">动态策略合成</div>
+            <div class="af-goal-desc">
+                根据当前市场状态(牛市/熊市/震荡)，由Agent实时从因子库挑选最适配的算子，分钟级训练"临时战时模型"。<br>
+                <span class="af-goal-hint">开发中：市场状态识别模块 + 因子推荐引擎</span>
+            </div>
+            <span class="af-goal-status building">🚧 开发中</span>
+        </div>
+        <div class="af-goal-card">
+            <div class="af-goal-icon">🎭</div>
+            <div class="af-goal-title">零差距研发</div>
+            <div class="af-goal-desc">
+                消除"回测林志玲，实盘罗玉凤"的痛点。将真实交易成本(佣金/滑点/冲击)实时反馈给RD-Agent研发阶段。<br>
+                <span class="af-goal-hint">支持滑点模拟、冲击成本预估</span>
+            </div>
+            <span class="af-goal-status active">✓ 已实现</span>
+        </div>
+        <div class="af-goal-card">
+            <div class="af-goal-icon">🔮</div>
+            <div class="af-goal-title">超维规律发现</div>
+            <div class="af-goal-desc">
+                利用QLib并行计算+RD-Agent多模态关联，挖掘"非人类直觉"的高阶非线性因子。如研报字数与行业因子协方差的领先关系。<br>
+                <span class="af-goal-hint">待实现：研报语义特征提取 + 跨模态相关性分析</span>
+            </div>
+            <span class="af-goal-status building">⏳ 规划中</span>
+        </div>
+    </div>
+
+    <h2 class="af-section-title">🔄 自动化流水线</h2>
+    <div class="af-pipeline-flow">
+        <div class="af-pipeline-step factor">🤖 RD-Agent<br>因子生成</div>
+        <span class="af-pipeline-arrow">→</span>
+        <div class="af-pipeline-step backtest">📊 Qlib<br>向量化回测</div>
+        <span class="af-pipeline-arrow">→</span>
+        <div class="af-pipeline-step model">🧠 模型<br>训练蒸馏</div>
+        <span class="af-pipeline-arrow">→</span>
+        <div class="af-pipeline-step validation">✓ 影子测试<br>偏差验证</div>
+        <span class="af-pipeline-arrow">→</span>
+        <div class="af-pipeline-step deploy">🚀 生产部署</div>
+    </div>
+
+    <div class="af-tabs">
+        <button class="af-tab active" data-tab="experiment" data-af-action="switch-tab" data-tab="experiment">因子实验</button>
+        <button class="af-tab" data-tab="knowledge" data-af-action="switch-tab" data-tab="knowledge">知识库</button>
+        <button class="af-tab" data-tab="validate" data-af-action="switch-tab" data-tab="validate">验证</button>
+        <button class="af-tab" data-tab="correlation" data-af-action="switch-tab" data-tab="correlation">相关性</button>
+        <button class="af-tab" data-tab="model" data-af-action="switch-tab" data-tab="model">模型选择</button>
+        <button class="af-tab" data-tab="modelzoo" data-af-action="switch-tab" data-tab="modelzoo">Model Zoo</button>
+        <button class="af-tab" data-tab="online" data-af-action="switch-tab" data-tab="online">增量学习</button>
+        <button class="af-tab" data-tab="paper" data-af-action="switch-tab" data-tab="paper">影子测试</button>
+        <button class="af-tab" data-tab="weekly" data-af-action="switch-tab" data-tab="weekly">投研周会</button>
+        <button class="af-tab" data-tab="pipeline" data-af-action="switch-tab" data-tab="pipeline">流水线</button>
+    </div>
+
+    <div id="tab-experiment" class="af-tab-content">
+        <section class="af-panel">
+            <h2 class="af-section-title">提交因子实验</h2>
+            <div class="af-form-grid">
+                <div class="af-form-group">
+                    <label class="af-form-label">🎯 实验目标</label>
+                    <select class="af-form-select" id="experimentGoal">
+                        <option value="alpha_discovery">Alpha 发现 (寻找新因子)</option>
+                        <option value="regime_adaptation">动态适应 (根据市场状态调整)</option>
+                        <option value="complementary">互补因子 (与现有组合低相关)</option>
+                        <option value="decay_recovery">失效恢复 (修复失效因子)</option>
+                        <option value="high_order">超维发现 (高阶非线性)</option>
+                    </select>
+                    <div id="goalDescription" class="af-desc-box">
+                        发现新的有效Alpha因子，提升组合收益
+                    </div>
+                </div>
+                <div class="af-form-group">
+                    <label class="af-form-label">因子表达式 (Alpha Formula)</label>
+                    <textarea class="af-form-textarea" id="alphaFormula" placeholder="例如: rank(Ts_ArgMax(SUMS(returns_0_1, 20), 2))"></textarea>
+                    <div class="af-formula-wrap">
+                        <span class="af-formula-label">常用模板:</span>
+                        <button type="button" class="btn-soft" data-af-action="set-formula" data-formula="rank(Ts_ArgMax(SUMS(returns_0_1, 20), 2))" type="button" class="af-btn-chip">Rank-TsArgMax</button>
+                        <button type="button" class="btn-soft" data-af-action="set-formula" data-formula="rank(decay_linear(TSRANK(close, 10), 10))" type="button" class="af-btn-chip">Decay-Rank</button>
+                        <button type="button" class="btn-soft" data-af-action="set-formula" data-formula="rank(correlation(close, volume, 15))" type="button" class="af-btn-chip">Corr-PriceVolume</button>
+                        <button type="button" class="btn-soft" data-af-action="set-formula" data-formula="rank(TSMEAN(close, 20) / TSMEAN(close, 60) - 1)" type="button" class="af-btn-chip">MA-Crossover</button>
+                        <button type="button" class="btn-soft" data-af-action="set-formula" data-formula="rank(TSSTD(returns_0_1, 20))" type="button" class="af-btn-chip">Volatility</button>
+                        <button type="button" class="btn-soft" data-af-action="set-formula" data-formula="rank(Ts_ArgMax(TSRANK(volume, 5), 10))" type="button" class="af-btn-chip">Volume-Surge</button>
+                        <button type="button" class="btn-soft" data-af-action="set-formula" data-formula="rank(close / TSMEAN(close, 20) - 1)" type="button" class="af-btn-chip">Price-Momentum</button>
+                        <button type="button" class="btn-soft" data-af-action="set-formula" data-formula="rank(DELTA(close, 1) / close)" type="button" class="af-btn-chip">Return-Delta</button>
+                    </div>
+                </div>
+                <div class="af-form-group">
+                    <label class="af-form-label">数据范围</label>
+                    <div class="af-flex-row">
+                        <input type="date" class="af-form-input" id="startDate" value="2024-01-01" class="af-date-input">
+                        <span class="text-muted">至</span>
+                        <input type="date" class="af-form-input" id="endDate" value="2025-04-27" class="af-date-input">
+                    </div>
+                </div>
+                <div class="af-form-group">
+                    <label class="af-form-label">搜索空间 (可选)</label>
+                    <div class="af-flex-row">
+                        <select class="af-form-select" id="searchSpace" class="af-select-flex">
+                            <option value="">默认搜索空间</option>
+                            <option value="momentum">动量因子</option>
+                            <option value="mean_reversion">均值回归</option>
+                            <option value="volatility">波动率因子</option>
+                            <option value="volume">成交量因子</option>
+                            <option value="correlation">相关性因子</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-brand" data-af-action="submit-experiment" type="button" class="af-btn-lg">
+                🚀 提交实验
+            </button>
+
+            <div class="af-results-panel" id="resultsPanel">
+                <h3 class="af-result-title">实验结果</h3>
+                <div id="experimentResults"></div>
+            </div>
+        </section>
+
+        <section class="af-panel">
+            <h2 class="af-section-title">因子库</h2>
+            <div class="af-filter-wrap">
+                <div class="af-flex-row">
+                    <button class="btn-soft" data-af-action="load-factors" type="button">刷新因子库</button>
+                    <select class="af-form-select" id="filterRegime" class="af-select-auto">
+                        <option value="">全部状态</option>
+                        <option value="trending_up">上涨趋势</option>
+                        <option value="trending_down">下跌趋势</option>
+                        <option value="ranging">震荡</option>
+                        <option value="volatile">高波动</option>
+                        <option value="low_volatility">低波动</option>
+                    </select>
+                </div>
+            </div>
+            <div id="factorList"></div>
+        </section>
+    </div>
+
+    <div id="tab-knowledge" class="qa-is-hidden af-tab-content">
+        <section class="af-panel">
+            <h2 class="af-section-title">WorldQuant 101 Alphas</h2>
+            <p class="af-muted-p">
+                经典 Alpha 表达式知识库，可作为 RD-Agent 因子生成的引导参考
+            </p>
+            <div class="af-knowledge-section" id="alphasList"></div>
+        </section>
+
+        <section class="af-panel">
+            <h2 class="af-section-title">可用算子</h2>
+            <div class="af-knowledge-section" id="operatorsList"></div>
+        </section>
+    </div>
+
+    <div id="tab-validate" class="qa-is-hidden af-tab-content">
+        <section class="af-panel">
+            <h2 class="af-section-title">Alpha 表达式验证</h2>
+            <p class="af-muted-p">
+                验证因子表达式语法和语义
+            </p>
+            <div class="af-form-group">
+                <label class="af-form-label">因子表达式</label>
+                <textarea class="af-form-textarea" id="validateFormula" placeholder="例如: rank(Ts_ArgMax(SUMS(returns_0_1, 20), 2))"></textarea>
+            </div>
+            <button class="btn-brand" data-af-action="validate-formula" type="button" class="af-btn-md af-mt-16">
+                ✓ 验证表达式
+            </button>
+            <div id="validateResult" class="af-result-mt"></div>
+        </section>
+    </div>
+
+    <div id="tab-correlation" class="qa-is-hidden af-tab-content">
+        <section class="af-panel">
+            <h2 class="af-section-title">因子相关性分析</h2>
+            <p class="af-muted-p">
+                分析因子间相关性，寻找互补因子
+            </p>
+            <button class="btn-brand" data-af-action="load-correlation" type="button" class="af-btn-md">
+                加载相关性矩阵
+            </button>
+            <div id="correlationResult" class="af-result-mt"></div>
+        </section>
+    </div>
+
+    <div id="tab-online" class="qa-is-hidden af-tab-content">
+        <section class="af-panel">
+            <h2 class="af-section-title">增量学习 / Warm Start</h2>
+            <p class="af-muted-p">
+                在线学习：每日增量训练，避免灾难性遗忘
+            </p>
+            <button class="btn-brand" data-af-action="load-online-status" type="button" class="af-btn-md">
+                查看状态
+            </button>
+            <div id="onlineStatus" class="af-result-mt"></div>
+        </section>
+    </div>
+
+    <div id="tab-modelzoo" class="qa-is-hidden af-tab-content">
+        <section class="af-panel">
+            <h2 class="af-section-title">Model Zoo - 多模型支持</h2>
+            <p class="af-muted-p">
+                支持线性模型、树模型、深度学习等多种模型
+            </p>
+            <button class="btn-brand" data-af-action="load-model-zoo" type="button" class="af-btn-md">
+                加载模型列表
+            </button>
+            <div id="modelZooList" class="af-result-mt"></div>
+        </section>
+    </div>
+
+    <div id="tab-paper" class="qa-is-hidden af-tab-content">
+        <section class="af-panel">
+            <h2 class="af-section-title">影子测试 / Paper Trading</h2>
+            <p class="af-muted-p">
+                新模型自动进入影子账户，三天验证偏差<5%才允许进入生产
+            </p>
+            <div class="af-actions-row">
+                <button class="btn-brand" data-af-action="submit-paper" type="button">提交测试</button>
+                <button class="btn-soft" data-af-action="load-paper-status" type="button">查看状态</button>
+            </div>
+            <div id="paperStatus" class="af-result-mt"></div>
+        </section>
+    </div>
+
+    <div id="tab-model" class="qa-is-hidden af-tab-content">
+        <section class="af-panel">
+            <h2 class="af-section-title">Meta-Learner 模型自动选择</h2>
+            <p class="af-muted-p">
+                根据市值和标的类型自动选择最优模型
+            </p>
+            <div class="af-form-grid">
+                <div class="af-form-group">
+                    <label class="af-form-label">股票代码</label>
+                    <input class="af-form-input" id="modelSymbol" placeholder="例如: 600519" value="">
+                </div>
+                <div class="af-form-group">
+                    <label class="af-form-label">市值 (亿)</label>
+                    <input class="af-form-input" id="marketCap" type="number" placeholder="可选" value="">
+                </div>
+                <div class="af-form-group">
+                    <label class="af-form-label">优先可解释性</label>
+                    <select class="af-form-select" id="preferExplain">
+                        <option value="false">否 (性能优先)</option>
+                        <option value="true">是 (Linear 模型)</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-brand" data-af-action="model-recommendation" type="button" class="af-btn-lg">
+                🎯 获取模型建议
+            </button>
+            <div id="modelRecommendation" class="af-result-mt"></div>
+        </section>
+    </div>
+
+    <div id="tab-weekly" class="qa-is-hidden af-tab-content">
+        <section class="af-panel">
+            <h2 class="af-section-title">自动化投研周会</h2>
+            <p class="af-muted-p">
+                每周五 15:00 自动执行：扫描失效因子 → 运行新实验 → 模型热切换
+            </p>
+            <div class="af-actions-row">
+                <button class="btn-brand" data-af-action="enable-weekly" type="button">启用周会</button>
+                <button class="btn-soft" data-af-action="disable-weekly" type="button">禁用周会</button>
+                <button class="btn-soft" data-af-action="weekly-scan" type="button">立即扫描</button>
+            </div>
+            <div id="weeklyStatusDisplay"></div>
+        </section>
+    </div>
+
+    <div id="tab-pipeline" class="qa-is-hidden af-tab-content">
+        <section class="af-panel">
+            <h2 class="af-section-title">模型蒸馏流水线</h2>
+            <p class="af-muted-p">
+                完整流程：因子生成 → 回测 → 模型训练 → 验证 → 部署
+            </p>
+            <button class="btn-brand" data-af-action="load-pipeline" type="button" class="af-btn-md">
+                查看流水线
+            </button>
+            <div id="pipelineStatus" class="af-result-mt"></div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+    const goalDescriptions = {
+        'alpha_discovery': '发现新的有效Alpha因子，提升组合收益',
+        'regime_adaptation': '根据当前市场状态(牛市/熊市/震荡)动态调整策略',
+        'complementary': '寻找与现有组合低相关的因子，实现分散化',
+        'decay_recovery': '修复已失效的因子，恢复其预测能力',
+        'high_order': '挖掘高阶非线性因子，发现非人类直觉的规律'
+    };
+
+    function unwrap(respData) {
+        return respData && respData.data !== undefined ? respData.data : respData;
+    }
+
+function updateGoalDescription() {
+    const goal = document.getElementById('experimentGoal').value;
+    document.getElementById('goalDescription').textContent = goalDescriptions[goal] || '';
+}
+
+function setFormula(formula) {
+    document.getElementById('alphaFormula').value = formula;
+}
+
+function switchTab(tabName) {
+    document.querySelectorAll('.af-tab').forEach(t => t.classList.remove('active'));
+    document.querySelector(`.af-tab[data-tab="${tabName}"]`).classList.add('active');
+
+    document.querySelectorAll('.af-tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById(`tab-${tabName}`).style.display = 'block';
+
+    if (tabName === 'experiment') loadDashboard();
+    if (tabName === 'knowledge') loadKnowledge();
+    if (tabName === 'validate') {}
+    if (tabName === 'correlation') loadCorrelation();
+    if (tabName === 'model') getModelRecommendation();
+    if (tabName === 'modelzoo') loadModelZoo();
+    if (tabName === 'online') loadOnlineStatus();
+    if (tabName === 'paper') loadPaperStatus();
+    if (tabName === 'weekly') loadWeeklyStatus();
+    if (tabName === 'pipeline') loadPipelineStatus();
+}
+
+async function loadPipelineStatus() {
+    try {
+        const resp = await fetch('/api/v1/alpha-factory/pipeline');
+        const raw = await resp.json();
+        const data = unwrap(raw);
+
+        const container = document.getElementById('pipelineStatus');
+        const tasks = data.tasks || [];
+
+        if (tasks.length === 0) {
+            container.innerHTML = '<div class="empty-state">暂无流水线任务</div>';
+            return;
+        }
+
+        container.innerHTML = tasks.map(t => `
+            <div class="af-alpha-card">
+                <div class="af-font-bold">${t.task_id || t.name || ''}</div>
+                <div class="af-alpha-meta">
+                    <span class="af-tag momentum">${t.status}</span>
+                    <span>${t.submitted_at || t.created_at || ''}</span>
+                </div>
+            </div>
+        `).join('');
+    } catch(e) {
+        window.qcLogError('Load pipeline error', e);
+    }
+}
+
+async function loadModelZoo() {
+    try {
+        const resp = await fetch('/api/v1/alpha-factory/model-zoo');
+        const raw = await resp.json();
+        const data = unwrap(raw);
+
+        const container = document.getElementById('modelZooList');
+        const models = data.models || [];
+
+        if (models.length === 0) {
+            container.innerHTML = '<div class="empty-state">暂无模型数据</div>';
+            return;
+        }
+
+        container.innerHTML = models.map(m => `
+            <div class="af-alpha-card">
+                <div class="af-font-bold">${m.name}</div>
+                <div class="af-alpha-meta">
+                    <span class="af-tag momentum">${m.model_type}</span>
+                    <span>可解释性: ${(m.interpretability || 0).toFixed(0)}%</span>
+                </div>
+            </div>
+        `).join('');
+    } catch(e) {
+        window.qcLogError('Load model zoo error', e);
+    }
+}
+
+async function loadPaperStatus() {
+    try {
+        const resp = await fetch('/api/v1/alpha-factory/paper-trading');
+        const raw = await resp.json();
+        const data = unwrap(raw);
+
+        const container = document.getElementById('paperStatus');
+        const status = data.status || data;
+        container.innerHTML = `
+            <div class="af-alpha-card">
+                <div class="af-font-bold">影子测试队列</div>
+                <div class="af-mt-8 text-muted">
+                    状态: ${status.status || 'not_configured'}
+                </div>
+                <div class="af-mt-8">
+                    ${(status.queue || status.items || []).map(d => `
+                        <div>${d.model_id || d.id}: ${d.status || 'pending'}</div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    } catch(e) {
+        window.qcLogError('Load paper status error', e);
+    }
+}
+
+async function submitPaperTrading() {
+    const modelId = prompt('请输入模型 ID:');
+    if (!modelId) return;
+
+    try {
+        const resp = await fetch('/api/v1/alpha-factory/paper-trading', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                model_id: modelId,
+                backtest_result: {total_return: 0.1}
+            })
+        });
+        const raw = await resp.json();
+        const data = unwrap(raw);
+        showToast('已提交: ' + (data.run_id || data.data?.run_id || ''), 'success');
+        loadPaperStatus();
+    } catch(e) {
+        showToast('提交失败: ' + e.message, 'error');
+    }
+}
+
+async function validateFormula() {
+    const formula = document.getElementById('validateFormula').value.trim();
+    if (!formula) {
+        showToast('请输入因子表达式', 'warning');
+        return;
+    }
+
+    const container = document.getElementById('validateResult');
+    container.innerHTML = '<div class="af-experiment-card"><div class="text-muted">验证中…</div></div>';
+
+    try {
+        const resp = await fetch(`/api/v1/alpha-factory/validate?formula=${encodeURIComponent(formula)}`);
+        const raw = await resp.json();
+        const data = unwrap(raw);
+
+        if (!resp.ok || data.status === 'error') {
+            const msg = (data.error && data.error.message) || `HTTP ${resp.status}`;
+            container.innerHTML = `<div class="af-experiment-card failed"><div class="af-text-danger">✕ 验证失败</div><div class="af-mt-8">${msg}</div></div>`;
+            return;
+        }
+
+        if (data.valid) {
+            container.innerHTML = `
+                <div class="af-experiment-card success">
+                    <div class="af-text-success">✓ 表达式验证通过</div>
+                    <div class="af-mt-8 text-muted">复杂度: ${data.complexity || '-'}</div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="af-experiment-card failed">
+                    <div class="af-text-danger">✕ 验证失败</div>
+                    <div class="af-mt-8">${(data.errors || []).join('<br>')}</div>
+                    ${data.warnings?.length ? `<div class="af-mt-8 af-text-warn">警告: ${data.warnings.join('<br>')}</div>` : ''}
+                </div>
+            `;
+        }
+    } catch(e) {
+        container.innerHTML = `<div class="af-experiment-card failed"><div class="af-text-danger">✕ 请求异常</div><div class="af-mt-8">${String(e)}</div></div>`;
+    }
+}
+
+async function loadCorrelation() {
+    try {
+        const resp = await fetch('/api/v1/alpha-factory/correlation');
+        const raw = await resp.json();
+        const data = unwrap(raw);
+
+        const container = document.getElementById('correlationResult');
+        const matrix = data.correlation_matrix || data.matrix || {};
+
+        if (Object.keys(matrix).length === 0) {
+            container.innerHTML = '<div class="empty-state">暂无相关性数据</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="af-alpha-card">
+                <div class="af-font-bold">因子相关性矩阵</div>
+                <div class="af-text-muted-sm af-mt-8">
+                    因子数量: ${Object.keys(matrix).length}
+                </div>
+            </div>
+        `;
+    } catch(e) {
+        window.qcLogError('Load correlation error', e);
+    }
+}
+
+async function loadOnlineStatus() {
+    try {
+        const resp = await fetch('/api/v1/alpha-factory/online-learning');
+        const raw = await resp.json();
+        const data = unwrap(raw);
+
+        const container = document.getElementById('onlineStatus');
+        container.innerHTML = `
+            <div class="af-alpha-card">
+                <div class="af-Weekly-badge ${data.enabled || data.status === 'active' ? 'enabled' : 'disabled'}">
+                    ${data.enabled || data.status === 'active' ? '✓ 在线学习已启用' : '✕ 在线学习未启用'}
+                </div>
+                <div class="af-mt-12">
+                    <div>注册模型: ${data.models || 0}</div>
+                    <div>上次训练: ${data.last_training || '从未训练'}</div>
+                </div>
+            </div>
+        `;
+    } catch(e) {
+        window.qcLogError('Load online status error', e);
+    }
+}
+
+async function loadDashboard() {
+    try {
+        const resp = await fetch('/api/v1/alpha-factory/status');
+        const raw = await resp.json();
+        const data = unwrap(raw);
+
+        const container = document.getElementById('dashboardStats');
+        if (!container) return;
+        container.innerHTML = `
+            <div class="af-stats-row">
+                <div class="af-stat-card"><div class="af-stat-num">${data.total_factors ?? '--'}</div><div class="af-stat-label">因子总数</div></div>
+                <div class="af-stat-card"><div class="af-stat-num">${data.avg_sharpe != null ? (data.avg_sharpe || 0).toFixed(2) : '--'}</div><div class="af-stat-label">平均 Sharpe</div></div>
+                <div class="af-stat-card"><div class="af-stat-num">${data.active_count ?? '--'}</div><div class="af-stat-label">活跃因子</div></div>
+                <div class="af-stat-card"><div class="af-stat-num">${data.failed_count ?? '--'}</div><div class="af-stat-label">失败次数</div></div>
+                <div class="af-stat-card"><div class="af-stat-num">${data.is_weekly_enabled ? '已启用' : '未启用'}</div><div class="af-stat-label">投研周会</div></div>
+            </div>
+        `;
+    } catch(e) {
+        window.qcLogError('Load dashboard error', e);
+    }
+}
+
+async function loadFactors() {
+    const regime = document.getElementById('filterRegime').value;
+    const url = `/api/v1/alpha-factory/factors${regime ? '?regime=' + regime : ''}`;
+
+    try {
+        const resp = await fetch(url);
+        const raw = await resp.json();
+        const data = unwrap(raw);
+        const factors = data.items || data.factors || [];
+
+        const container = document.getElementById('factorList');
+        if (factors.length === 0) {
+            container.innerHTML = '<div class="empty-state">暂无因子数据</div>';
+            return;
+        }
+
+        container.innerHTML = factors.map(f => `
+            <div class="af-alpha-card">
+                <div class="af-alpha-formula">${f.formula}</div>
+                <div class="af-alpha-meta">
+                    <span class="af-tag ${f.regime || 'momentum'}">${f.regime || 'unknown'}</span>
+                    <span>Sharpe: ${f.sharpe_ratio?.toFixed(2) || '--'}</span>
+                    <span>MDD: ${f.max_drawdown?.toFixed(2) || '--'}</span>
+                    <span>${f.created_at || ''}</span>
+                </div>
+            </div>
+        `).join('');
+    } catch(e) {
+        window.qcLogError('Load factors error', e);
+    }
+}
+
+async function loadKnowledge() {
+    try {
+        const resp = await fetch('/api/v1/alpha-factory/knowledge/alphas');
+        const raw = await resp.json();
+        const data = unwrap(raw);
+
+        const alphasContainer = document.getElementById('alphasList');
+        alphasContainer.innerHTML = (data.alphas || []).slice(0, 10).map(a => `
+            <div class="af-alpha-card">
+                <div class="af-font-bold af-mb-8">${a.name}</div>
+                <div class="af-alpha-formula">${a.formula}</div>
+                <div class="af-alpha-meta">
+                    <span class="af-tag ${a.category}">${a.category}</span>
+                    <span class="af-text-muted-sm">${a.description}</span>
+                </div>
+            </div>
+        `).join('');
+
+        const opsContainer = document.getElementById('operatorsList');
+        const operators = data.operators || {};
+        opsContainer.innerHTML = Object.entries(operators).map(([name, info]) => `
+            <div class="af-operator-card">
+                <div class="af-operator-name">${name}</div>
+                <div class="af-operator-desc">${info.description || ''}</div>
+            </div>
+        `).join('');
+    } catch(e) {
+        window.qcLogError('Load knowledge error', e);
+    }
+}
+
+async function getModelRecommendation() {
+    const symbol = document.getElementById('modelSymbol').value.trim();
+    const marketCap = document.getElementById('marketCap').value;
+    const preferExp = document.getElementById('preferExplain').value === 'true';
+
+    let url = '/api/v1/alpha-factory/model/meta-learner';
+    if (symbol) url += `?symbols=${symbol}${marketCap ? '&market_cap=' + marketCap : ''}&prefer_explainability=${preferExp}`;
+
+    try {
+        const resp = await fetch(url);
+        const raw = await resp.json();
+        const data = unwrap(raw);
+
+        const container = document.getElementById('modelRecommendation');
+        const rec = data.recommendation || data.recommended_model;
+        if (rec) {
+            container.innerHTML = `
+                <div class="af-experiment-card success">
+                    <div class="af-font-bold af-mb-8">${symbol || '默认'}</div>
+                    <div class="af-text-violet">
+                        推荐模型: ${rec}
+                    </div>
+                </div>
+            `;
+        } else if (data.prompt) {
+            container.innerHTML = `<div class="af-experiment-card">${data.prompt}</div>`;
+        }
+    } catch(e) {
+        window.qcLogError('Model recommendation error', e);
+    }
+}
+
+async function submitExperiment(evt) {
+    const formula = document.getElementById('alphaFormula').value.trim();
+    const goal = document.getElementById('experimentGoal').value;
+    if (!formula) {
+        showToast('请输入因子表达式', 'warning');
+        return;
+    }
+
+    const btn = evt.target;
+    btn.disabled = true;
+    btn.textContent = '提交中...';
+
+    const goalLabels = {
+        'alpha_discovery': 'Alpha 发现',
+        'regime_adaptation': '动态适应',
+        'complementary': '互补因子',
+        'decay_recovery': '失效恢复',
+        'high_order': '超维发现'
+    };
+
+    function formatDateForBackend(dateStr) {
+        if (!dateStr) return '';
+        return dateStr.replace(/-/g, '');
+    }
+
+    try {
+        const startDateVal = formatDateForBackend(document.getElementById('startDate').value);
+        const endDateVal = formatDateForBackend(document.getElementById('endDate').value);
+
+        const resp = await fetch('/api/v1/rd-agent/runs', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                formula: formula,
+                goal: goal,
+                goal_label: goalLabels[goal],
+                search_space: document.getElementById('searchSpace').value || 'default',
+                data_scope: {
+                    start_date: startDateVal,
+                    end_date: endDateVal,
+                }
+            })
+        });
+
+        const data = await resp.json();
+        if (!resp.ok) {
+            const errMsg = data.message || data.error || `HTTP ${resp.status}`;
+            showToast('提交失败: ' + errMsg, 'error');
+            return;
+        }
+        const body = data.data || data;
+        document.getElementById('resultsPanel').classList.add('show');
+        document.getElementById('experimentResults').innerHTML = `
+            <div class="af-experiment-card">
+                <div class="af-font-bold">实验已提交</div>
+                <div class="af-box-purple">
+                    🎯 实验目标: <strong>${goalLabels[goal]}</strong>
+                </div>
+                <div class="af-alpha-formula">${formula}</div>
+                <div>Run ID: ${body.run_id || body.job_id || 'N/A'}</div>
+                <div>Poll URL: <a href="${body.poll_url}">${body.poll_url}</a></div>
+        `;
+
+        loadFactors();
+    } catch(e) {
+        showToast('提交失败: ' + e.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 提交实验';
+    }
+}
+
+async function loadWeeklyStatus() {
+    try {
+        const resp = await fetch('/api/v1/alpha-factory/weekly');
+        const raw = await resp.json();
+        const data = unwrap(raw);
+
+        const container = document.getElementById('weeklyStatusDisplay');
+        const isEnabled = data.is_weekly || data.enabled || data.is_weekly_enabled;
+        const nextRun = data.weekly_meeting_next || data.next_run || 'N/A';
+        container.innerHTML = `
+            <div class="af-Weekly-badge ${isEnabled ? 'enabled' : 'disabled'}">
+                ${isEnabled ? '✓ 周会已启用' : '✕ 周会未启用'}
+            </div>
+            <div class="af-mt-16 text-muted">
+                下次运行: ${nextRun}
+            </div>
+        `;
+    } catch(e) {
+        window.qcLogError('Load weekly status error', e);
+    }
+}
+
+async function enableWeeklyMeeting() {
+    showToast('周会启用功能待实现', 'info');
+}
+
+async function disableWeeklyMeeting() {
+    showToast('周会禁用功能待实现', 'info');
+}
+
+async function runWeeklyScan() {
+    showToast('立即扫描功能待实现', 'info');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboard();
+});
+
+function handleAfAction(event) {
+    const el = event.target.closest('[data-af-action]');
+    if (!el) return;
+    const action = el.dataset.afAction;
+    if (action === 'switch-tab') switchTab(el.dataset.tab || 'experiment');
+    else if (action === 'set-formula') setFormula(el.dataset.formula || '');
+    else if (action === 'submit-experiment') submitExperiment(event);
+    else if (action === 'load-factors') loadFactors();
+    else if (action === 'validate-formula') validateFormula();
+    else if (action === 'load-correlation') loadCorrelation();
+    else if (action === 'load-online-status') loadOnlineStatus();
+    else if (action === 'load-model-zoo') loadModelZoo();
+    else if (action === 'submit-paper') submitPaperTrading();
+    else if (action === 'load-paper-status') loadPaperStatus();
+    else if (action === 'model-recommendation') getModelRecommendation();
+    else if (action === 'enable-weekly') enableWeeklyMeeting();
+    else if (action === 'disable-weekly') disableWeeklyMeeting();
+    else if (action === 'weekly-scan') runWeeklyScan();
+    else if (action === 'load-pipeline') loadPipelineStatus();
+}
+document.addEventListener('click', handleAfAction);
+document.getElementById('experimentGoal')?.addEventListener('change', updateGoalDescription);
+document.getElementById('filterRegime')?.addEventListener('change', loadFactors);
+
+</script>
+{% endblock %}

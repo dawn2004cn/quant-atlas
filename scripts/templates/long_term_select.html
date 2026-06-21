@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}中长线选股 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<style>
+.selector-shell { display: grid; gap: 22px; }
+.control-panel, .result-panel { padding: 24px; }
+.control-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.label { display: block; margin-bottom: 8px; font-weight: 700; }
+.input-soft, .select-soft { width: 100%; border: 1px solid rgba(19,32,45,0.1); border-radius: 18px; padding: 12px 14px; background: rgba(255,255,255,0.86); }
+.result-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 22px; }
+.candidate-table { background: rgba(255,255,255,0.72); border-radius: 22px; border: 1px solid rgba(19,32,45,0.08); overflow: hidden; }
+.signal-pill { display: inline-flex; padding: 6px 10px; border-radius: 999px; background: rgba(16,63,145,0.08); color: var(--brand); font-weight: 700; font-size: 0.8rem; margin: 3px 6px 3px 0; }
+.report-card { padding: 22px; border-radius: 22px; background: rgba(255,255,255,0.78); border: 1px solid rgba(19,32,45,0.08); }
+.empty-state { padding: 26px; text-align: center; color: var(--muted); }
+@media (max-width: 1100px) { .control-grid, .result-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="selector-shell">
+    <section class="section-shell">
+        <div class="hero-caption">Selection Studio</div>
+        <h1 class="page-title">中长线选股</h1>
+        <p class="page-subtitle">基于多种技术指标和基本面分析的中长线选股系统，帮助投资者发现具有长期增长潜力的优质股票</p>
+    </section>
+
+    <section class="section-shell control-panel">
+        <div class="control-grid">
+            <div>
+                <label class="label">市场</label>
+                <select id="marketSelect" class="select-soft">
+                    <option value="CN">A股</option>
+                    <option value="US">美股市场</option>
+                    <option value="HK">港股市场</option>
+                </select>
+            </div>
+            <div>
+                <label class="label">选股数量</label>
+                <select id="topNSelect" class="select-soft">
+                    <option value="5">5 只</option>
+                    <option value="10" selected>10 只</option>
+                    <option value="15">15 只</option>
+                    <option value="20">20 只</option>
+                </select>
+            </div>
+            <div>
+                <label class="label">策略</label>
+                <select id="strategySelect" class="select-soft">
+                    <option value="classic">经典策略</option>
+                    <option value="tdx">TDX 指标策略</option>
+                    <option value="dualma">双均线策略</option>
+                    <option value="volumebreakout">成交量突破</option>
+                    <option value="emamacd">EMA + MACD</option>
+                    <option value="bollingerrsi">布林带 + RSI</option>
+                    <option value="stochastic">随机指标</option>
+                    <option value="tau">TAU 策略</option>
+                </select>
+            </div>
+            <div style="display:flex; align-items:end; gap:12px;">
+                <button class="btn-brand" id="runSelectBtn">开始选股</button>
+                <button class="btn-soft" id="generateReportBtn" style="display:none;">生成报告</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="result-grid" id="selectionResult" style="display:none;">
+        <div class="section-shell result-panel">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">选股结果</h2>
+                    <div class="panel-subtitle" id="resultMeta">--</div>
+                </div>
+            </div>
+            <div class="candidate-table table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>代码</th>
+                            <th>名称</th>
+                            <th>价格</th>
+                            <th>涨跌幅</th>
+                            <th>评分</th>
+                            <th>评级</th>
+                            <th>信号</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultTable"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="section-shell result-panel">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">投资报告</h2>
+                    <div class="panel-subtitle">基于选股结果生成的投资建议</div>
+                </div>
+            </div>
+            <div id="reportArea" class="report-card empty-state">点击生成报告按钮查看详细分析</div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let lastSelectionResult = [];
+
+function fmt(val, digits = 2) {
+    const num = Number(val);
+    return Number.isFinite(num) ? num.toFixed(digits) : '--';
+}
+
+function renderSelectionResult(candidates) {
+    $('#selectionResult').show();
+    $('#generateReportBtn').show();
+    $('#resultMeta').text(`共 ${candidates.length} 只股票，基于技术指标和基本面分析`);
+    if (!candidates.length) {
+        $('#resultTable').html('<tr><td colspan="7" class="text-center text-muted">暂无选股结果</td></tr>');
+        return;
+    }
+    $('#resultTable').html(candidates.map(stock => `
+        <tr>
+            <td><a href="/stock/${stock.code}">${stock.code}</a></td>
+            <td>${stock.name || '--'}</td>
+            <td>¥${fmt(stock.price)}</td>
+            <td class="${Number(stock.change_pct || 0) >= 0 ? 'positive' : 'negative'}">${Number(stock.change_pct || 0) >= 0 ? '+' : ''}${fmt(stock.change_pct)}%</td>
+            <td>${fmt(stock.score, 0)}</td>
+            <td>${stock.rating || '--'}</td>
+            <td>${(stock.buy_signals || []).slice(0, 2).map(signal => `<span class="signal-pill">${signal}</span>`).join('') || `<span class="signal-pill">${stock.reason || '综合分析'}</span>`}</td>
+        </tr>
+    `).join(''));
+}
+
+function renderReport(report) {
+    $('#reportArea').removeClass('empty-state').html(`
+        <div>
+            <div class="panel-subtitle">报告生成时间</div>
+            <div style="font-weight:700; margin-bottom: 10px;">${report.generate_time}</div>
+            <p>${report.summary}</p>
+            <div style="margin: 18px 0;">
+                <div><strong>选股数量</strong>${report.stock_count}</div>
+                <div><strong>平均评分</strong>${fmt(report.avg_score)}</div>
+            </div>
+            <div style="margin: 18px 0;">
+                <div class="panel-subtitle">投资建议</div>
+                <ul>${(report.investment_advice || []).map(item => `<li>${item}</li>`).join('')}</ul>
+            </div>
+            <div><strong>风险提示</strong>${report.risk_notice || '--'}</div>
+        </div>
+    `);
+}
+
+$(function() {
+    $('#runSelectBtn').on('click', function() {
+        const payload = {
+            market: $('#marketSelect').val(),
+            top_n: Number($('#topNSelect').val()),
+            strategy: $('#strategySelect').val(),
+        };
+        const $btn = $(this);
+        $btn.prop('disabled', true).text('选股中...');
+        $.ajax({
+            url: '/api/v1/long-term-select',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function(res) {
+                lastSelectionResult = res.candidates || res.data || [];
+                renderSelectionResult(lastSelectionResult);
+                $('#reportArea').addClass('empty-state').text('选股完成，点击生成报告查看详细分析');
+            },
+            error: function() {
+                alert('选股失败，请重试');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text('开始选股');
+            }
+        });
+    });
+
+    $('#generateReportBtn').on('click', function() {
+        if (!lastSelectionResult.length) {
+            alert('请先运行选股');
+            return;
+        }
+        const $btn = $(this);
+        $btn.prop('disabled', true).text('生成中...');
+        $.ajax({
+            url: '/api/v1/long-term-report',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ stocks: lastSelectionResult }),
+            success: function(res) {
+                renderReport(res.data || res);
+            },
+            error: function() {
+                alert('生成报告失败，请重试');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).text('生成报告');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

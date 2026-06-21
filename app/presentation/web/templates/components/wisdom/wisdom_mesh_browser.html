@@ -1,0 +1,169 @@
+<!-- Wisdom Mesh Browser (Phase 14) — gated by FEATURE_FEDERATED_MESH -->
+{% if feature_federated_mesh %}
+
+<div class="qc-panel" x-data="wisdomMeshBrowserCapability()" x-init="loadStrategies()" id="wisdom-mesh-browser">
+    <div class="panel-head">
+        <div class="panel-info">
+            <h3 class="panel-title">
+                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                智慧织网 · 众包策略
+            </h3>
+            <p class="panel-subtitle">群体智能 · 对抗算法优势</p>
+        </div>
+        <div class="panel-actions">
+            <button @click="loadStrategies()" class="qc-btn-icon" title="刷新">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="px-4 pt-3 flex gap-2">
+        <button
+            v-for="tab in ['top', 'recent', 'voted']"
+            :key="tab"
+            @click="filterBy = tab; loadStrategies()"
+            class="px-3 py-1 rounded-full text-xs font-medium transition"
+            :class="filterBy === tab
+                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'
+                : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'"
+            x-text="{ top: '🔥 最热', recent: '🕐 最新', voted: '🗳️ 最多投票' }[tab]"
+        ></button>
+    </div>
+
+    <!-- Loading -->
+    <div x-show="loading" class="p-8 text-center">
+        <div class="animate-spin inline-block w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full"></div>
+        <p class="mt-2 text-sm text-gray-500">正在加载智慧织网...</p>
+    </div>
+
+    <!-- Strategy cards -->
+    <div x-show="!loading && strategies.length" class="p-4 space-y-3 max-h-96 overflow-y-auto">
+        <template x-for="s in strategies" :key="s.id">
+            <div class="p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-600 transition bg-white dark:bg-gray-800">
+                <!-- Header -->
+                <div class="flex items-start justify-between mb-2">
+                    <div>
+                        <h4 class="font-semibold text-sm" x-text="s.strategy_name"></h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs px-2 py-0.5 rounded-full"
+                                  :class="s.contributor_tier === 'deploy' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                                      : s.contributor_tier === 'vote' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                                      : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'"
+                                  x-text="{ observe: '👁 观察', vote: '🗳 投票', deploy: '🚀 可部署' }[s.contributor_tier]">
+                            </span>
+                            <span class="text-xs text-gray-400">得分 <strong x-text="s.success_score"></strong></span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-gray-400">👍 <span x-text="s.vote_for"></span></div>
+                        <div class="text-xs text-gray-400">👎 <span x-text="s.vote_against"></span></div>
+                    </div>
+                </div>
+
+                <!-- Performance -->
+                <div class="grid grid-cols-4 gap-2 mb-3 text-center">
+                    <div>
+                        <div class="text-xs text-gray-400">总收益</div>
+                        <div class="text-sm font-bold"
+                             :class="(s.performance_summary?.total_return || 0) > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+                             x-text="(s.performance_summary?.total_return * 100 || 0).toFixed(1) + '%'"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400">夏普</div>
+                        <div class="text-sm font-bold" x-text="(s.performance_summary?.sharpe_ratio || 0).toFixed(2)"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400">回撤</div>
+                        <div class="text-sm font-bold text-red-600 dark:text-red-400"
+                             x-text="(s.performance_summary?.max_drawdown || 0).toFixed(1) + '%'"></div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-400">胜率</div>
+                        <div class="text-sm font-bold"
+                             x-text="(s.performance_summary?.win_rate * 100 || 0).toFixed(0) + '%'"></div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-2">
+                    <button @click="viewDetail(s)" class="flex-1 btn-soft btn-sm">查看详情</button>
+                    <button @click="deploy(s)" class="flex-1 btn-brand btn-sm">🚀 我也要这个</button>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Empty state -->
+    <div x-show="!loading && !strategies.length" class="p-8 text-center text-gray-400 text-sm">
+        智慧织网暂无策略，做第一个分享者吧！
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function wisdomMeshBrowserCapability() {
+    return {
+        strategies: [],
+        loading: false,
+        filterBy: 'top',
+
+        async loadStrategies() {
+            this.loading = true;
+            try {
+                const res = await fetch(`/api/v1/wisdom-mesh/strategies?filter_by=${this.filterBy}&limit=20`);
+                const json = await res.json();
+                if (json.ok && json.data) {
+                    this.strategies = json.data.strategies || [];
+                }
+            } catch (e) {
+                window.qcLogError('wisdom_mesh.load failed', e);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async viewDetail(strategy) {
+            // Navigate to strategy detail or expand inline
+            const spec = strategy.strategy_spec;
+            // Open in new tab or show modal
+            if (window.open) {
+                const url = `/nl-strategy?prompt=${encodeURIComponent(spec.description || '')}`;
+                window.open(url, '_blank');
+            }
+        },
+
+        async deploy(strategy) {
+            const symbol = prompt('请输入要部署策略的股票代码:', window.MS_SYMBOL || '');
+            if (!symbol) return;
+
+            try {
+                const res = await fetch('/api/v1/one-click/deploy', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        strategy_id: strategy.id,
+                        symbol: symbol,
+                        market: window.MS_MARKET || 'CN',
+                    }),
+                });
+                const json = await res.json();
+                if (json.ok && json.data?.ok) {
+                    showToast('✅ 策略部署成功！', 'success');
+                } else {
+                    showToast('❌ 部署失败: ' + (json.data?.error || json.error || '未知错误'), 'error');
+                }
+            } catch (e) {
+                showToast('❌ 部署请求失败: ' + e.message, 'error');
+            }
+        },
+    };
+}
+</script>
+
+{% else %}
+<p class="text-muted text-sm">联邦 Wisdom Mesh 已在 P3 战略削减中默认下线（<code>FEATURE_FEDERATED_MESH=1</code> 可恢复）。</p>
+{% endif %}

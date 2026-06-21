@@ -1,0 +1,4 @@
+﻿    <script src="{{ url_for('static', filename='js/alpha_whisper.js') }}"></script>
+    <!-- Phase 17 — Data Truth Dashboard & Agent-App micro-frontend -->
+    <script src="{{ url_for('static', filename='js/qa_data_hygiene.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/agent_app_da_ban_radar.js') }}"></script>

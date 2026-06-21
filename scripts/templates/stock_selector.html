@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}选股中心{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1>选股中心 (管理员)</h1>
+    <p>运行短线或中长线选股策略，并生成报告。</p>
+
+    <div class="card">
+        <div class="card-body">
+            <form id="selectorForm">
+                <div class="form-row align-items-end">
+                    <div class="form-group col-md-4">
+                        <label for="selectorType">选择器类型</label>
+                        <select id="selectorType" class="form-control">
+                            <option value="long" selected>中长线选股</option>
+                            <option value="short">短线选股</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="topN">Top N</label>
+                        <input type="number" class="form-control" id="topN" value="5">
+                    </div>
+                    <div class="form-group col-md-2">
+                        <button type="submit" class="btn btn-primary">运行</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="selectorResult" class="mt-4" style="display:none;">
+        <h2>选股结果</h2>
+        <div id="resultContainer" class="table-responsive"></div>
+        <button id="generateReportBtn" class="btn btn-success mt-3" style="display:none;">生成报告</button>
+        <div id="reportContainer" class="mt-3"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        let lastResults = [];
+
+        $('#selectorForm').submit(function(e) {
+            e.preventDefault();
+            const selectorType = $('#selectorType').val();
+            const topN = parseInt($('#topN').val(), 10);
+
+            $('#selectorResult').hide();
+            
+            $.ajax({
+                url: '/api/v1/selector/run',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ type: selectorType, top_n: topN }),
+                success: function(res) {
+                    lastResults = res.results || [];
+                    displaySelectorResult(lastResults);
+                },
+                error: function() {
+                    alert('请求失败');
+                }
+            });
+        });
+
+        function displaySelectorResult(data) {
+            $('#selectorResult').show();
+            let tableHtml = `
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>代码</th>
+                            <th>名称</th>
+                            <th>价格</th>
+                            <th>评分</th>
+                            <th>评级</th>
+                            <th>信号</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            data.forEach(stock => {
+                tableHtml += `
+                    <tr>
+                        <td>${stock.code}</td>
+                        <td>${stock.name}</td>
+                        <td>${stock.price.toFixed(2)}</td>
+                        <td>${stock.score.toFixed(2)}</td>
+                        <td>${stock.rating}</td>
+                        <td>${(stock.buy_signals || []).join(', ')}</td>
+                    </tr>
+                `;
+            });
+            tableHtml += `</tbody></table>`;
+            $('#resultContainer').html(tableHtml);
+            $('#generateReportBtn').show();
+            $('#reportContainer').empty();
+        }
+
+        $('#generateReportBtn').click(function() {
+            const selectorType = $('#selectorType').val();
+            
+            $.ajax({
+                url: '/api/v1/selector/report',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ type: selectorType, stocks: lastResults }),
+                success: function(res) {
+                    $('#reportContainer').html('<pre>' + (res.report || '') + '</pre>');
+                },
+                error: function() {
+                    alert('报告请求失败');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

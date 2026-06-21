@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block title %}因子演化拓扑图 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/factor.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="section-shell">
+    <div class="hero-caption">🧬 Factor Lineage & Evolution</div>
+    <h1 class="page-title">因子演化拓扑图</h1>
+    <p class="page-subtitle">可视化展示 RD-Agent 挖掘因子的血缘关系：通过交叉、变异实现 Alpha 因子的自动进化与溯源</p>
+</div>
+
+<div class="evo-grid">
+    <div class="evo-main">
+        <div id="statusIndicator" class="fe-status-indicator">
+            <span class="loading-pulse"></span> <span id="statusText">正在同步因子仓库血缘数据...</span>
+        </div>
+        <canvas id="evoCanvas"></canvas>
+        <div class="fe-legend-panel">
+            <div class="legend">
+                <div class="legend-item"><span class="dot" class="fe-dot-blue"></span> 原始种子</div>
+                <div class="legend-item"><span class="dot" class="fe-dot-violet"></span> 衍生进化</div>
+                <div class="legend-item"><span class="dot" class="fe-dot-amber"></span> 复合组合</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="evo-sidebar">
+        <div class="evo-card">
+            <div class="fe-stats-title">📊 拓扑统计</div>
+            <div class="fe-stats-grid">
+                <div class="stat-box">
+                    <div class="stat-box-label">因子总数</div>
+                    <div class="stat-box-value" id="totalNodes">--</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-box-label">进化链路</div>
+                    <div class="stat-box-value" id="totalLinks">--</div>
+                </div>
+            </div>
+            <button class="btn-brand" type="button" data-fe-action="load-lineage" class="fe-btn-full">🔄 刷新拓扑数据</button>
+        </div>
+
+        <div class="evo-card node-info-panel" id="nodePanel">
+            <span id="nodeTypeTag" class="factor-tag">--</span>
+            <div id="nodeId" class="fe-node-id">ID: --</div>
+            <div id="nodeExpMeta" class="fe-node-meta" class="qa-is-hidden"></div>
+            <div class="ic-value" id="nodeIC">--</div>
+            <div class="panel-subtitle" id="nodeIcLabel">IC / Sharpe 代理</div>
+            
+            <div class="fe-field-title">表达式 (Formula)</div>
+            <div class="formula-box" id="nodeFormula">--</div>
+            
+            <div class="fe-field-title">回测标的</div>
+            <input type="text" id="feBacktestSymbol" class="form-input" placeholder="如 600519" autocomplete="off" class="fe-input-full">
+
+            <div class="fe-grid-2">
+                <button class="btn-soft" type="button" data-fe-action="go-detail">查看详情</button>
+                <button class="btn-soft" type="button" data-fe-action="add-backtest">加入回测</button>
+            </div>
+            <div class="fe-grid-2-sm">
+                <button class="btn-soft" type="button" data-fe-action="submit-vault">提交入库</button>
+                <button class="btn-soft" type="button" data-fe-action="analyze-exp">同步分析</button>
+            </div>
+            <button class="btn-brand" type="button" data-fe-action="evolve" class="fe-btn-evolve">🧬 定向演化</button>
+        </div>
+        
+        <div class="evo-card" id="helpCard">
+            <div class="fe-hint-title">💡 操作提示</div>
+            <ul class="fe-hint-list">
+                <li>按住左键可<strong>拖拽</strong>视角</li>
+                <li>滚动滚轮可<strong>缩放</strong>图谱</li>
+                <li>点击圆点查看该因子的<strong>演化详情</strong></li>
+                <li>连线代表因子的<strong>亲子/继承</strong>关系</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+let nodes = [];
+let links = [];
+let transform = { x: 0, y: 0, k: 1 };
+let selectedNode = null;
+
+function resolveBacktestSymbol() {
+    const fromInput = (document.getElementById('feBacktestSymbol')?.value || '').trim();
+    if (fromInput) return fromInput.replace(/\D/g, '').slice(-6).padStart(6, '0');
+    const fromGlobal = (document.getElementById('qcGlobalFocusSymbol')?.value || '').trim();
+    if (fromGlobal) return fromGlobal.replace(/\D/g, '').slice(-6).padStart(6, '0');
+    const fromUrl = new URLSearchParams(location.search).get('symbol');
+    if (fromUrl) return fromUrl.replace(/\D/g, '').slice(-6).padStart(6, '0');
+    return '';
+}
+
+function defaultBacktestRange() {
+    const end = new Date();
+    const start = new Date(end);
+    start.setFullYear(end.getFullYear() - 1);
+    const fmt = (d) => d.toISOString().slice(0, 10);
+    return { start: fmt(start), end: fmt(end) };
+}
+const canvas = document.getElementById('evoCanvas');
+const ctx = canvas.getContext('2d');
+
+async function loadLineage() {
+    document.getElementById('statusIndicator').style.display = 'block';
+    try {
+        const res = await fetch('/api/v1/alpha-factory/lineage?limit=150');
+        const json = await res.json();
+        nodes = json.data.nodes;
+        links = json.data.links;
+        
+        document.getElementById('totalNodes').textContent = nodes.length;
+        document.getElementById('totalLinks').textContent = links.length;
+        document.getElementById('statusIndicator').style.display = 'none';
+        
+        initSimulation();
+    } catch (e) {
+window.qcLogError('factor_evolution load failed', e);
+        document.getElementById('statusText').textContent = '数据加载失败';
+    }
+}
+
+// Minimal force simulation logic for Canvas
+function initSimulation() {
+    // Basic auto-layout if empty
+    nodes.forEach((n, i) => {
+        if (!n.x) {
+            const angle = i * 2.399963;
+            const r = 80 + (i % 12) * 28;
+            n.x = canvas.width / 2 + Math.cos(angle) * r;
+            n.y = canvas.height / 2 + Math.sin(angle) * r;
+        }
+    });
+    render();
+}
+
+function render() {
+    const rect = canvas.parentNode.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(transform.x, transform.y);
+    ctx.scale(transform.k, transform.k);
+    
+    // Draw links
+    ctx.strokeStyle = 'rgba(19,32,45,0.15)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    links.forEach(l => {
+        const source = nodes.find(n => n.id === l.source);
+        const target = nodes.find(n => n.id === l.target);
+        if (source && target) {
+            ctx.beginPath();
+            ctx.moveTo(source.x, source.y);
+            ctx.lineTo(target.x, target.y);
+            ctx.stroke();
+        }
+    });
+    ctx.setLineDash([]);
+    
+    // Draw nodes
+    nodes.forEach(n => {
+        const color = {primitive:'#3b82f6', derived:'#8b5cf6', composite:'#f59e0b'}[n.type] || '#8b5cf6';
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, selectedNode === n ? 12 : 8, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        if (transform.k > 0.8) {
+            ctx.fillStyle = 'rgba(19,32,45,0.8)';
+            ctx.font = '10px "Space Grotesk"';
+            ctx.textAlign = 'center';
+            ctx.fillText(n.name, n.x, n.y + 20);
+        }
+    });
+    
+    ctx.restore();
+}
+
+// Interaction handlers
+let isDragging = false;
+let lastMouse = { x: 0, y: 0 };
+
+canvas.addEventListener('mousedown', e => {
+    isDragging = true;
+    lastMouse = { x: e.clientX, y: e.clientY };
+    
+    // Hit test for nodes
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left - transform.x) / transform.k;
+    const my = (e.clientY - rect.top - transform.y) / transform.k;
+    
+    const hit = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < 15);
+    if (hit) {
+        selectedNode = hit;
+        showNodeInfo(hit);
+    } else {
+        selectedNode = null;
+        document.getElementById('nodePanel').classList.remove('active');
+        document.getElementById('helpCard').style.display = 'block';
+    }
+    render();
+});
+
+window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const dx = e.clientX - lastMouse.x;
+    const dy = e.clientY - lastMouse.y;
+    transform.x += dx;
+    transform.y += dy;
+    lastMouse = { x: e.clientX, y: e.clientY };
+    render();
+});
+
+window.addEventListener('mouseup', () => isDragging = false);
+
+canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const scale = e.deltaY > 0 ? 0.9 : 1.1;
+    transform.k *= scale;
+    render();
+}, { passive: false });
+
+function showNodeInfo(n) {
+    document.getElementById('helpCard').style.display = 'none';
+    const panel = document.getElementById('nodePanel');
+    panel.classList.add('active');
+    
+    const tag = document.getElementById('nodeTypeTag');
+    tag.textContent = {primitive:'原始种子', derived:'衍生进化', composite:'复合因子'}[n.type];
+    tag.className = 'factor-tag ' + n.type;
+    
+    document.getElementById('nodeId').textContent = 'Factor ID: ' + (n.factor_id || n.id);
+    const expMeta = document.getElementById('nodeExpMeta');
+    if (n.experiment_id || n.status) {
+        expMeta.style.display = 'block';
+        expMeta.textContent = [
+            n.experiment_id ? ('实验: ' + n.experiment_id) : '',
+            n.status ? ('状态: ' + n.status) : ''
+        ].filter(Boolean).join(' · ');
+    } else {
+        expMeta.style.display = 'none';
+        expMeta.textContent = '';
+    }
+    document.getElementById('nodeIC').textContent = n.ic ? n.ic.toFixed(3) : '0.000';
+    const icLabel = document.getElementById('nodeIcLabel');
+    if (icLabel) {
+        icLabel.textContent = n.ic_proxy ? 'Sharpe 代理 IC（无 IC 记录）' : '信息系数 IC';
+    }
+    document.getElementById('nodeFormula').textContent = n.full_name;
+}
+
+async function goFactorDetail() {
+    if (selectedNode) location.href = `/factor/${selectedNode.id}`;
+}
+
+async function addToBacktest() {
+    if (!selectedNode) return;
+    const symbol = resolveBacktestSymbol();
+    if (!symbol || symbol.length !== 6) {
+        showToast('请先填写 6 位 A 股代码', 'warning');
+        return;
+    }
+    const range = defaultBacktestRange();
+    try {
+        const res = await fetch('/api/v1/qlib/backtest', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                symbol,
+                start: range.start,
+                end: range.end,
+                formula: selectedNode.full_name
+            })
+        });
+        if (res.ok) showToast('回测任务已投递: ' + selectedNode.id, 'success');
+        else showToast('投递失败', 'error');
+    } catch (e) {
+        window.qcLogError('factor_evolution backtest failed', e);
+        showToast('回测任务投递异常', 'error');
+    }
+}
+
+async function evolveFactors() {
+    if (!selectedNode) return showToast('请先在图中选中一个种子因子', 'warning');
+    if (!confirm(`确定基于因子 ${selectedNode.id} 进行定向演化吗？\n这会启动 RD-Agent 遗传算法任务。`)) return;
+    
+    try {
+        const res = await fetch('/api/v1/alpha-factory/evolve', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ factor_id: selectedNode.id })
+        });
+        const json = await res.json();
+        if (json.status === 'success' && json.data?.ok) {
+            showToast('🚀 定向演化已启动 · Job ' + json.data.job_id, 'success');
+            setTimeout(loadLineage, 1500);
+        } else {
+            showToast('启动失败: ' + (json.data?.error || json.error || '未知错误'), 'error');
+        }
+    } catch (e) { showToast('请求异常: ' + e.message, 'error'); }
+}
+
+async function submitFactorToVault() {
+    if (!selectedNode) return showToast('请先选中因子节点', 'warning');
+    try {
+        const res = await fetch('/api/v1/alpha-factory/experiment/submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                formula: selectedNode.full_name,
+                save_to_vault: true,
+                data_scope: { market: 'CN' }
+            })
+        });
+        const json = await res.json();
+        if (json.status !== 'success') {
+            showToast('提交失败', 'error');
+            return;
+        }
+        const data = json.data || {};
+        showToast('已入库 · Factor ' + (data.factor_id || '—') + ' · Exp ' + (data.experiment_id || '—'), 'success');
+        await loadLineage();
+        if (data.factor_id) {
+            selectedNode = nodes.find(n => n.id === data.factor_id) || selectedNode;
+            if (selectedNode) showNodeInfo(selectedNode);
+        }
+    } catch (e) {
+        window.qcLogError('submitFactorToVault failed', e);
+        showToast('提交异常', 'error');
+    }
+}
+
+async function analyzeExperimentResult() {
+    if (!selectedNode?.experiment_id) {
+        return showToast('该节点无关联实验 ID，请先「提交入库」', 'warning');
+    }
+    try {
+        const res = await fetch('/api/v1/alpha-factory/experiment/analyze', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ experiment_id: selectedNode.experiment_id })
+        });
+        const json = await res.json();
+        const data = json.data || {};
+        if (data.status === 'success') {
+            showToast('分析完成 · IC ' + (data.ic != null ? Number(data.ic).toFixed(3) : '—'), 'success');
+            await loadLineage();
+            const refreshed = nodes.find(n => n.id === (data.factor_id || selectedNode.id));
+            if (refreshed) {
+                selectedNode = refreshed;
+                showNodeInfo(refreshed);
+            }
+        } else {
+            showToast('分析失败: ' + (data.root_cause || data.failure_type || '未知'), 'warning');
+            await loadLineage();
+        }
+    } catch (e) {
+        window.qcLogError('analyzeExperimentResult failed', e);
+        showToast('分析请求异常', 'error');
+    }
+}
+
+$(function () {
+    const sym = new URLSearchParams(location.search).get('symbol');
+    if (sym) {
+        const el = document.getElementById('feBacktestSymbol');
+        if (el) el.value = sym.replace(/\D/g, '').slice(-6);
+    }
+    loadLineage();
+});
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-fe-action]');
+    if (!el) return;
+    const action = el.dataset.feAction;
+    if (action === 'load-lineage') loadLineage();
+    else if (action === 'go-detail') goFactorDetail();
+    else if (action === 'add-backtest') addToBacktest();
+    else if (action === 'evolve') evolveFactors();
+    else if (action === 'submit-vault') submitFactorToVault();
+    else if (action === 'analyze-exp') analyzeExperimentResult();
+});
+</script>
+{% endblock %}

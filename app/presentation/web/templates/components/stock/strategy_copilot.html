@@ -1,0 +1,59 @@
+{# Capability Component: strategy-copilot #}
+<div class="section-shell sc-panel"
+    id="strategy-copilot"
+   
+    x-data="strategyCopilotCapability()"
+    x-init="init()">
+    <div class="row align-items-center">
+        <div class="col-md-7">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">🧠 策略自适应建议 (Strategy Copilot)</h2>
+                    <div class="panel-subtitle">根据波动率与趋势强度匹配量化模型；叠加 Agent 拓扑调权</div>
+                </div>
+            </div>
+            <div id="strategyRecBox" class="mt-2">
+                <div class="loading-state sc-loading">AI 正在计算策略匹配度...</div>
+            </div>
+            <template x-if="topologyNotes.length">
+                <div class="text-xs text-muted mt-2" x-text="topologyNotes.join(' · ')"></div>
+            </template>
+        </div>
+        <div class="col-md-5 sc-exec-col">
+            <div class="sc-exec-title">🚀 快速执行</div>
+            <div class="sc-exec-grid">
+                <a id="btnRunFitBacktest" href="#" class="btn-brand btn-sm text-center">运行推荐回测</a>
+                <button type="button" id="btnAdoptCopilotPlan" class="btn-brand btn-sm text-center">采纳建议到观察单</button>
+                <button type="button" id="btnPreflightTrade" class="btn-soft btn-sm text-center">交易预检</button>
+                <a href="/alpha-factory" class="btn-soft btn-sm text-center">去因子工厂</a>
+                <a href="/backtest" class="btn-soft btn-sm text-center">更多回测</a>
+            </div>
+            <div id="preflightHint" class="qa-is-hidden text-xs text-muted mt-2"></div>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function strategyCopilotCapability() {
+    return {
+        topologyNotes: [],
+        init() {
+            this.loadTopology();
+        },
+        loadTopology() {
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '').toUpperCase();
+            const mkt = (typeof MS_MARKET !== 'undefined' ? MS_MARKET : 'CN').toUpperCase();
+            if (!sym) return;
+            fetch('/api/v1/system/agent-topology?symbol=' + encodeURIComponent(sym) + '&market=' + encodeURIComponent(mkt), {
+                credentials: 'same-origin',
+            })
+                .then((r) => r.json())
+                .then((res) => {
+                    const d = res.data || res;
+                    this.topologyNotes = d.topology_notes || [];
+                })
+                .catch(() => {});
+        },
+    };
+}
+</script>

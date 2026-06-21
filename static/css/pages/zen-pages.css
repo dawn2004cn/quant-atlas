@@ -1,0 +1,78 @@
+/**
+ * pages/zen-pages.css — 禅意终端 / 3D 共鸣场（base 壳内页）
+ * Complements: zen-finance.css
+ */
+
+/* ─── Zen terminal (zen_terminal.html) ──────────────────────────────────────────── */
+:root {
+    --zen-bg: #0a0a0f;
+    --zen-card: #12121a;
+    --zen-border: #1e1e2e;
+    --zen-text: #c0c0d0;
+    --zen-accent: #00ff88;
+    --zen-dim: #505060;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--zen-bg); color: var(--zen-text); font-family: "Inter", -apple-system, sans-serif; }
+  .zen-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+  .zen-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--zen-border); margin-bottom: 24px; }
+  .zen-logo { font-size: 18px; font-weight: 600; color: var(--zen-accent); letter-spacing: 2px; }
+  .zen-mode-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--zen-dim); cursor: pointer; }
+  .zen-mode-toggle input { accent-color: var(--zen-accent); }
+  .zen-search-container { position: relative; margin-bottom: 24px; }
+  .zen-search-bar { width: 100%; padding: 16px 20px; background: var(--zen-card); border: 1px solid var(--zen-border); border-radius: 12px; color: var(--zen-text); font-size: 16px; outline: none; transition: border-color 0.2s; }
+  .zen-search-bar:focus { border-color: var(--zen-accent); }
+  .zen-search-bar::placeholder { color: var(--zen-dim); }
+  .zen-search-results { position: absolute; top: 100%; left: 0; right: 0; background: var(--zen-card); border: 1px solid var(--zen-border); border-radius: 0 0 12px 12px; z-index: 100; display: none; max-height: 400px; overflow-y: auto; }
+  .zen-search-result { padding: 12px 16px; border-bottom: 1px solid var(--zen-border); cursor: pointer; transition: background 0.15s; }
+  .zen-search-result:hover { background: rgba(0,255,136,0.05); }
+  .zen-search-result:last-child { border-bottom: none; }
+  .result-label { font-size: 14px; font-weight: 500; color: var(--zen-text); }
+  .result-desc { font-size: 12px; color: var(--zen-dim); margin-top: 2px; }
+  .result-source { font-size: 11px; color: var(--zen-accent); margin-top: 2px; }
+  .zen-main { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+  .zen-kline { background: var(--zen-card); border: 1px solid var(--zen-border); border-radius: 12px; min-height: 400px; display: flex; align-items: center; justify-content: center; color: var(--zen-dim); font-size: 14px; }
+  .zen-sidebar { display: flex; flex-direction: column; gap: 12px; }
+  .zen-card { background: var(--zen-card); border: 1px solid var(--zen-border); border-radius: 12px; padding: 16px; }
+  .zen-card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--zen-dim); margin-bottom: 8px; }
+  .zen-card-value { font-size: 24px; font-weight: 600; color: var(--zen-accent); }
+  .zen-card-label { font-size: 12px; color: var(--zen-dim); margin-top: 2px; }
+  .zen-complexity-bar { display: flex; gap: 4px; margin-top: 8px; }
+  .zen-complexity-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--zen-border); transition: background 0.3s; }
+  .zen-complexity-dot.active { background: var(--zen-accent); }
+  .zen-hidden { display: none !important; }
+  @media (max-width: 768px) {
+    .zen-main { grid-template-columns: 1fr; }
+  }
+
+/* ─── Portfolio resonance (portfolio_resonance.html) ──────────────────────────────────────────── */
+:root {
+    --bg: #0a0a0f;
+    --card: #12121a;
+    --border: #1e1e2e;
+    --text: #c0c0d0;
+    --accent: #00ff88;
+    --dim: #505060;
+    --danger: #ff4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: "Inter", sans-serif; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+  .header { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .logo { font-size: 18px; font-weight: 600; color: var(--accent); }
+  .layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+  #three-container { background: var(--card); border: 1px solid var(--border); border-radius: 12px; min-height: 500px; position: relative; overflow: hidden; }
+  #three-container canvas { display: block; }
+  .sidebar { display: flex; flex-direction: column; gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 8px; }
+  .value { font-size: 28px; font-weight: 600; color: var(--accent); }
+  .label { font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .warning { color: var(--danger); font-size: 13px; padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .warning:last-child { border-bottom: none; }
+  .controls { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .btn { padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: var(--accent); color: #000; border-color: var(--accent); }
+  .btn-primary:hover { opacity: 0.85; }
+

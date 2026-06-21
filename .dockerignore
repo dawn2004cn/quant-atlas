@@ -1,0 +1,154 @@
+# Byte-compiled / optimized / cached
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+*.whl
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Ruff
+.ruff_cache/
+
+# mypy
+.mypy_cache/
+
+# Jupyter
+.ipynb_checkpoints
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Instance data (SQLite, dumps)
+instance/*.db
+instance/*.db-journal
+instance/*.db-wal
+instance/*.db-shm
+instance/*.sqlite
+instance/*.sqlite3
+dump.rdb
+
+# Celery
+celerybeat-schedule*
+*.pid
+
+# Logs
+logs/
+*.log
+
+# Temp / scratch
+tmp/
+temp/
+*.tmp
+
+# Node / Rust build artifacts
+node_modules/
+.cargo/
+
+# Compiled assets
+static/dist/
+
+# Backup files
+*.bak
+*.backup
+*.sql.gz
+*.dump
+
+# Data files that shouldn't be committed
+*.xls
+*.xlsx
+*.csv
+
+# Generated config
+config/config.local.cfg
+
+# Docker volumes
+data/
+
+# graphify
+graphify-out/
+
+# Agent configurations
+.agent/
+.agents/
+.cargo/
+.claude/
+.claude-plugin/
+.cline/
+.clinerules/
+.codex/
+.comet/
+.cursor/
+.factory/
+.gemini/
+.github/
+.idea/
+.junie/
+.kilo/
+.kilocode/
+.opencode/
+.pi/
+.pytest_cache/
+.qoder/
+.qwen/
+.ruff_cache/
+.trae/
+.windsurf/
+_restore_backup/
+gemini-web2api/
+tmp/
+production/
+openspec/
+deploy/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Tests (can be run in CI, not needed in production image)
+tests/
+
+# Scripts
+scripts/
+*.bat
+*.ps1
+
+# Rust
+rust_core/target/
+
+# Frontend dependencies (built separately if needed)
+package.json
+package-lock.json

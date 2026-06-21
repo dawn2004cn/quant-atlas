@@ -1,0 +1,61 @@
+import os, re, sys, shutil
+base = "E:/project/workspace/myrepo/quant-atlas/app/presentation/web"
+tpl = os.path.join(base, "templates")
+src = None
+for root, dirs, files in os.walk(tpl):
+    for f in files:
+        if "self" in f and "stocks" in f and f.endswith(".html"):
+            fp = os.path.join(root, f)
+            sz = os.path.getsize(fp)
+            if sz > 10000:
+                src = fp
+                print(f"Source: {fp} ({sz})")
+                break
+    if src: break
+if not src:
+    print("Source file not found")
+    sys.exit(1)
+with open(src, encoding="utf-8") as fh:
+    raw = fh.read()
+lines = raw.split("\n")
+def fb(n):
+    for i, l in enumerate(lines):
+        if re.match(r"\{%\s*block\s+" + n + r"\s*%\}", l):
+            return i
+    return None
+def fe(s):
+    for i in range(s + 1, len(lines)):
+        if re.match(r"\{%\s*endblock\s*%\}", lines[i]):
+            return i
+    return None
+ecss, ecss_e = fb("extra_css"), fe(fb("extra_css")) if fb("extra_css") else None
+cnt, cnt_e = fb("content"), fe(fb("content")) if fb("content") else None
+ejss, ejss_e = fb("extra_js"), fe(fb("extra_js")) if fb("extra_js") else None
+print(f"Blocks: extra_css={ecss}-{ecss_e}, content={cnt}-{cnt_e}, extra_js={ejss}-{ejss_e}")
+if not ecss_e or not ejss_e:
+    print("Block parsing failed")
+    sys.exit(1)
+bak = src + ".bak"
+new = os.path.join(tpl, "self_ht_fixed.html")
+with open(new, "w", encoding="utf-8") as fh:
+    fh.write("{% extends \"base.ht
+    fh.write("\n\n{% block title %}Smart Watchlist - Quant Atlas{% endblock %}\n\n")
+    fh.write("{% block extra_css %}\n")
+    fh.write("\n".join(lines[ecss:ecss_e + 1]))
+    fh.write("\n{% endblock %}\n\n")
+    fh.write("{% block content %}\n")
+    fh.write("\n".join(lines[cnt:cnt_e + 1]))
+    fh.write("\n<div id=\"addStockModal\" style=\"display:none;position:fixed;inset:0;background:rgba(19,32,45,0.6);backdrop-filter:blur(10px);z-index:20000;place-items:center;padding:20px;\"><div style=\"width:min(440px,95vw);padding:32px;background:#fff;border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,0.3);border:2px solid var(--brand);\"><div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;\"><div style=\"font-weight:900;font-size:1.3rem;color:var(--brand);\">Add Stock</div><div style=\"cursor:pointer;opacity:0.5;font-size:1.5rem;\" onclick=\"closeAddModal()\">x</div></div><div style=\"margin-bottom:20px;\"><label style=\"display:block;margin-bottom:8px;\">Stock Code</label><input type=\"text\" id=\"newStockCode\" style=\"width:100%;font-size:1.2rem;font-weight:700;padding:15px 20px;border-radius:12px;outline:none;background:#fff;border:1px solid var(--surface-border);border-color:var(--brand);\"></div><div style=\"font-size:0.8rem;color:var(--muted);margin-bottom:24px;\">Supports CN, US, HK stocks</div><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:12px;\"><button class=\"btn-soft\" style=\"width:100%;\" onclick=\"closeAddModal()\">Cancel</button><button class=\"btn-brand\" style=\"width:100%;\" onclick=\"submitAddStock()\">Add</button></div></div></div>\n")
+    fh.write("<div id=\"batchModal\" style=\"display:none;position:fixed;inset:0;background:rgba(19,32,45,0.6);backdrop-filter:blur(10px);z-index:20000;place-items:center;padding:20px;\"><div style=\"padding:32px;background:#fff;border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,0.3);border:2px solid var(--brand);\"><div style=\"display:flex;justify-content:space-between;margin-bottom:24px;\"><div style=\"font-weight:900;font-size:1.3rem;color:var(--brand);\">Batch Operation</div><div style=\"cursor:pointer;opacity:0.5;font-size:1.5rem;\" onclick=\"closeBatchModal()\">x</div></div><div style=\"margin-bottom:16px;\"><label>Batch Add (one per line)</label><textarea id=\"batchCodes\" style=\"width:100%;min-height:120px;border:1px solid var(--surface-border);border-radius:12px;padding:12px;font-family:monospace;resize:vertical;\"></textarea></div><div style=\"display:flex;gap:12px;margin-bottom:20px;\"><button class=\"btn-brand\" style=\"flex:1;\" onclick=\"batchAdd()\">Batch Add</button><button class=\"btn-soft\" style=\"flex:1;\" onclick=\"clearAll()\">Clear Group</button></div></div></div>\n")
+    fh.write("<div id=\"alertModal\" style=\"display:none;position:fixed;inset:0;background:rgba(19,32,45,0.6);backdrop-filter:blur(10px);z-index:20000;place-items:center;padding:20px;\"><div style=\"width:min(380px,95vw);padding:28px;background:#fff;border-radius:24px;box-shadow:0 30px 80px rgba(0,0,0,0.3);border:2px solid var(--brand);\"><div style=\"display:flex;justify-content:space-between;margin-bottom:20px;\"><div style=\"font-weight:900;font-size:1.2rem;color:var(--brand);\">Price Alert</div><div style=\"cursor:pointer;opacity:0.5;font-size:1.5rem;\" onclick=\"closeAlertModal()\">x</div></div><div style=\"margin-bottom:16px;\"><div id=\"alertStockName\" style=\"font-weight:900;font-size:1.1rem;margin-bottom:16px;\"></div><label style=\"display:block;margin-bottom:8px;\">Target Price</label><input type=\"number\" id=\"alertPrice\" step=\"0.01\" style=\"width:100%;font-size:1.1rem;padding:12px;border-radius:12px;border:1px solid var(--surface-border);\"><div style=\"font-size:0.75rem;color:var(--muted);margin-top:6px;\">Notify when price reaches this level</div></div><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:12px;\"><button class=\"btn-soft\" onclick=\"closeAlertModal()\">Cancel</button><button class=\"btn-brand\" onclick=\"submitAlert()\">Set Alert</button></div></div></div>{% endblock %}\n")
+    fh.write("\n{% block extra_js %}\n")
+    fh.write("\n".join(lines[ejss:ejss_e + 1]))
+    fh.write("\n<style>@keyframes modalPop{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}.input-soft:focus{border-color:var(--brand);box-shadow:0 0 15px rgba(16,63,145,0.1)}</style>\n{% endblock %}\n")
+with open(new, encoding="utf-8") as fh:
+    content = fh.read()
+sz = len(content)
+print(f"Fixed file: {sz} chars, {content.count(chr(10))} lines")
+print(f"alertStockName={content.count('alertStockName')}, toggleAlert={content.count('toggleAlert')}, batchAdd={content.count('batchAdd')}, clearAll={content.count('clearAll')}, submitAlert={content.count('submitAlert')}")
+shutil.move(src, bak)
+shutil.move(new, src)
+print(f"Done. Backup: {bak}")

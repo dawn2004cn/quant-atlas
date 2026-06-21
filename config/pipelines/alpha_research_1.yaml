@@ -1,0 +1,8 @@
+name: "alpha_research_1"
+steps:
+  - factor: "sma"
+    params: {window: 10}
+  - factor: "sma"
+    params: {window: 20}
+  - factor: "rsi"
+    params: {window: 14}

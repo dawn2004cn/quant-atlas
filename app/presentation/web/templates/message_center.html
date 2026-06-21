@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}消息中心 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="mcGlobalError" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger" role="alert"></div>
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="消息中心使用提示">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">先看异步任务</div>
+        <p class="qc-ux-step-desc">信号旗扫描、基础数据同步等异步任务会在这里汇总。刷新后看状态，再回到对应页面查看结果。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.signal_flag') }}">信号旗</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.yanbao_hub') }}">研报中心</a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">异常先自检</div>
+        <p class="qc-ux-step-desc">若 Worker/消息后端不可用或权限不足，优先到集成中枢确认配置与运行状态。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
+    </div>
+</section>
+
+<div class="mc-hero">
+    <div class="hero-caption">Notification & Tasks</div>
+    <div class="mc-hero-row">
+        <div>
+            <h1 class="page-title">消息与任务流</h1>
+            <p class="page-subtitle">实时追踪系统回测、AI 分析及因子告警任务。</p>
+        </div>
+        <div class="mc-hero-actions">
+            <button class="btn-brand" type="button" data-mc-action="refresh-all">🔄 刷新状态</button>
+            <button class="btn-soft" type="button" data-mc-action="mark-all-read">全部标为已读</button>
+            <div class="mc-filter-bar" role="tablist" aria-label="消息筛选">
+                <button type="button" class="btn-soft btn-sm mc-filter active" data-mc-filter="all">全部</button>
+                <button type="button" class="btn-soft btn-sm mc-filter" data-mc-filter="tasks">任务</button>
+                <button type="button" class="btn-soft btn-sm mc-filter" data-mc-filter="psychology">心理卫士</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mc-main-grid">
+    <div class="timeline-feed" id="msgFeed">
+        <div class="loading-tile">正在同步消息流...</div>
+    </div>
+
+    <div class="sidebar">
+        <div class="worker-card">
+            <div class="mc-worker-title">🛡️ Celery 运行状态</div>
+            <div id="workerStats">
+                <div class="loading-state">探测 Worker 中...</div>
+            </div>
+            
+            <div class="mc-worker-section">
+                <div class="mc-section-title">任务反查</div>
+                <input type="text" id="lookupId" class="input-soft mc-lookup-input" placeholder="粘贴 Task ID">
+                <button class="btn-soft btn-sm w-100" type="button" data-mc-action="lookup-task">查询明细</button>
+            </div>
+            
+            <div id="taskDetailBox" class="qa-is-hidden mt-3 mc-task-detail"></div>
+
+            <div class="mt-4 mc-worker-section-sm">
+                <div class="mc-section-title-sm">进行中的任务</div>
+                <div id="activeJobsList" class="text-sm text-muted">加载中…</div>
+            </div>
+        </div>
+        
+        <details class="mt-4 mc-help-details">
+            <summary class="mc-help-summary">📘 任务中心说明</summary>
+            <div class="mt-2 mc-help-body">
+                Qlib 增量任务每日 02:40 运行。因子 IC 巡检 18:35 运行。弱信号阈值默认 0.05。所有撤销/强杀动作将记录在系统审计流中。
+            </div>
+        </details>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+let mcMessageFilter = 'all';
+
+function mcFilterQuery() {
+    if (mcMessageFilter === 'psychology') return '?limit=80&category=retail_psychology';
+    return '?limit=80';
+}
+
+function mcApplyFilter(filter) {
+    mcMessageFilter = filter || 'all';
+    document.querySelectorAll('.mc-filter').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-mc-filter') === mcMessageFilter);
+    });
+    loadMessages();
+}
+
+function mcHideError() {
+    $('#mcGlobalError').hide().empty();
+}
+function mcShowError(title, msg) {
+    const safeTitle = $('<div/>').text(title || '加载失败').html();
+    const safe = $('<div/>').text(msg || '未知错误').html();
+    $('#mcGlobalError').html(
+        '<div class="qc-ux-banner__title">' + safeTitle + '</div>' +
+        '<div class="qc-ux-banner__body">' + safe + '</div>' +
+        '<button type="button" class="btn-brand btn-sm" data-mc-action="retry-error">重试</button> ' +
+        '<a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>'
+    ).show();
+}
+
+async function refreshAll() {
+    loadMessages();
+    loadWorkerInfo();
+    loadActiveJobs();
+}
+
+async function loadActiveJobs() {
+    const box = document.getElementById('activeJobsList');
+    if (!box) return;
+    try {
+        const res = await fetch('/api/v1/system/active-jobs?limit=10', { credentials: 'same-origin' });
+        const json = await res.json();
+        const items = (json.data && json.data.items) || [];
+        if (!items.length) {
+            box.innerHTML = '<span class="text-muted">当前无进行中的后台任务</span>';
+            return;
+        }
+        box.innerHTML = items.map(function (j) {
+            const pct = (j.feedback && j.feedback.percent != null) ? j.feedback.percent : '--';
+            const msg = (j.feedback && j.feedback.message) || j.last_detail || '';
+            return '<div class="mc-job-row">' +
+                '<div class="mc-job-title">' + $('<div/>').text(j.label || j.task_name || j.task_id).html() + '</div>' +
+                '<div class="text-muted mc-job-meta">进度 ' + pct + '% · ' + $('<div/>').text(msg).html() + '</div>' +
+                '<button type="button" class="btn-soft btn-sm mt-1" data-mc-action="lookup-task-id" data-task-id="' + String(j.task_id || '').replace(/"/g, '&quot;') + '">查看</button>' +
+                '</div>';
+        }).join('');
+    } catch (e) {
+        box.textContent = '活跃任务加载失败';
+    }
+}
+
+function lookupTaskId(id) {
+    const el = document.getElementById('lookupId');
+    if (el) el.value = id || '';
+    lookupTask();
+}
+
+function markAllRead() {
+    const readAt = new Date().toISOString();
+    sessionStorage.setItem('qa_task_messages_read_at', readAt);
+    try {
+        localStorage.setItem(window.__QC_MC_SEEN || 'quantMsgLastSeenTs', readAt);
+        if (typeof window.updateNavMessageBadge === 'function') window.updateNavMessageBadge();
+    } catch (e) { /* ignore */ }
+    $('.timeline-card').addClass('is-read').css('opacity', '0.64');
+    showToast('已将当前消息标为已读', 'success');
+}
+
+function getStatusClass(ev) {
+    if (ev.includes('queued')) return 'status-queued';
+    if (ev.includes('started')) return 'status-started';
+    if (ev.includes('success')) return 'status-success';
+    if (ev.includes('failed')) return 'status-failed';
+    if (ev.includes('alert')) return 'status-alert';
+    if (ev.includes('psychology')) return 'status-alert';
+    return '';
+}
+
+function traceIdOf(m) {
+    const meta = (m && m.meta) ? m.meta : {};
+    const tid = meta.trace_id || m.trace_id || '';
+    return tid ? String(tid) : '';
+}
+
+async function loadMessages() {
+    const box = document.getElementById('msgFeed');
+    box.innerHTML = '<div class="loading-tile">正在同步消息流...</div>';
+    mcHideError();
+    try {
+        const res = await fetch('/api/v1/system/task-messages' + mcFilterQuery());
+        let json = {};
+        try {
+            json = await res.json();
+        } catch (e) {
+            mcShowError('消息流解析失败', '响应不是有效 JSON（HTTP ' + res.status + '）');
+            box.innerHTML = '<div class="mc-empty">加载失败，可稍后重试</div>';
+            return;
+        }
+        if (!res.ok) {
+            const msg = (json.error && json.error.message) || json.message || ('HTTP ' + res.status);
+            mcShowError('消息流加载失败', String(msg));
+            box.innerHTML = '<div class="mc-empty">加载失败，可稍后重试</div>';
+            return;
+        }
+        const items = (json.data || json.items || []);
+        let filtered = items;
+        if (mcMessageFilter === 'tasks') {
+            filtered = items.filter(function (m) {
+                const ev = String(m.event || '');
+                return ev.indexOf('psychology') < 0
+                    && String((m.meta || {}).category || '') !== 'retail_psychology';
+            });
+        }
+        if (!filtered.length) {
+            const emptyHint = mcMessageFilter === 'psychology'
+                ? '暂无心理卫士提醒。可在 <a href="/retail-assistant">散户助手</a> 执行「检测并推送」。'
+                : '暂无系统消息';
+            box.innerHTML = '<div class="mc-empty">' + emptyHint + '</div>';
+            return;
+        }
+
+        box.innerHTML = filtered.map(m => {
+            const meta = m.meta || {};
+            const isPsych = (meta.category === 'retail_psychology')
+                || String(m.event || '').indexOf('psychology') >= 0
+                || String(m.task_name || '').indexOf('psychology') >= 0;
+            const suggestion = meta.suggestion
+                ? '<div class="mc-suggestion">建议：' + $('<div/>').text(meta.suggestion).html() + '</div>'
+                : '';
+            const psychLinks = isPsych
+                ? '<div class="mc-trace-actions"><a class="btn-soft btn-sm" href="/retail-assistant#psychologyBox">散户助手</a> '
+                + '<a class="btn-soft btn-sm" href="/self-stocks">自选股</a></div>'
+                : '';
+            return `
+            <div class="timeline-item ${getStatusClass(m.event || '')}">
+                <div class="timeline-dot"></div>
+                <div class="timeline-card">
+                    <div class="mc-header">
+                        <div class="mc-label">${m.label || m.task_name || '系统消息'}</div>
+                        <div class="mc-time">${m.ts ? m.ts.split('T')[1].slice(0,8) : ''}</div>
+                    </div>
+                    <div class="mc-content">${m.detail || m.message || ''}</div>
+                    ${suggestion}
+                    ${psychLinks}
+                    ${m.task_id ? `<div class="task-id-badge" data-mc-action="copy-id" data-copy-id="${m.task_id}">ID: ${m.task_id}</div>` : ''}
+                    ${traceIdOf(m) ? `<div class="task-id-badge" data-mc-action="copy-id" data-copy-id="${traceIdOf(m)}">Trace: ${traceIdOf(m)}</div>` : ''}
+                    ${traceIdOf(m) ? `<div class="mc-trace-actions">
+                        <a class="btn-soft btn-sm" href="/observability?trace=${encodeURIComponent(traceIdOf(m))}">打开观测台</a>
+                        <a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>
+                    </div>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        mcShowError('消息流加载失败', (e && e.message) ? String(e.message) : String(e));
+        box.innerHTML = '<div class="mc-empty">加载失败，可稍后重试</div>';
+    }
+}
+
+async function loadWorkerInfo() {
+    const box = document.getElementById('workerStats');
+    box.innerHTML = '<div class="loading-state">探测 Worker 中...</div>';
+    try {
+        const res = await fetch('/api/v1/system/task-queue-hint');
+        let json = {};
+        try {
+            json = await res.json();
+        } catch (e) {
+            mcShowError('Worker 信息解析失败', '响应不是有效 JSON（HTTP ' + res.status + '）');
+            box.innerHTML = '<div class="text-muted">加载失败</div>';
+            return;
+        }
+        if (!res.ok) {
+            const msg = (json.error && json.error.message) || json.message || ('HTTP ' + res.status);
+            mcShowError('Worker 信息加载失败', String(msg));
+            box.innerHTML = '<div class="text-muted">加载失败</div>';
+            return;
+        }
+        const d = (json.data || {});
+        box.innerHTML = `
+            <div class="worker-stat-row"><span>消息存储</span><span class="badge-soft">${d.message_backend || '—'}</span></div>
+            <div class="worker-stat-row"><span>Celery</span><span class="badge-soft">${d.celery_enabled ? '已启用' : '离线'}</span></div>
+            <div class="worker-stat-row"><span>撤销权限</span><span class="badge-soft">${d.can_revoke_celery_tasks ? '有' : '无'}</span></div>
+        `;
+    } catch (e) {
+        mcShowError('Worker 信息加载失败', (e && e.message) ? String(e.message) : String(e));
+        box.innerHTML = '<div class="text-muted">加载失败</div>';
+    }
+}
+
+function copyId(id) {
+    navigator.clipboard.writeText(id).then(() => showToast('Task ID 已复制', 'success'));
+}
+
+async function lookupTask() {
+    const id = document.getElementById('lookupId').value.trim();
+    if (!id) return;
+    const box = document.getElementById('taskDetailBox');
+    box.style.display = 'block';
+    box.innerHTML = '查询中...';
+    try {
+        const res = await fetch(`/api/v1/system/celery/task/${encodeURIComponent(id)}`);
+        const json = await res.json();
+        const d = json.data || {};
+        box.innerHTML = `<pre class="mc-pre-reset">${JSON.stringify(d, null, 2)}</pre>`;
+    } catch (e) {
+        mcShowError('任务反查失败', (e && e.message) ? String(e.message) : String(e));
+        box.innerHTML = '查询失败';
+    }
+}
+
+document.querySelectorAll('.mc-filter').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        mcApplyFilter(btn.getAttribute('data-mc-filter'));
+    });
+});
+
+(function applyMcUrlFilter() {
+    const qp = new URLSearchParams(window.location.search);
+    const f = (qp.get('filter') || '').toLowerCase();
+    if (f === 'psychology') {
+        mcMessageFilter = 'psychology';
+        document.querySelectorAll('.mc-filter').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-mc-filter') === 'psychology');
+        });
+    }
+})();
+
+$(document).ready(function () {
+    refreshAll();
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-mc-action]');
+        if (!el) return;
+        const action = el.dataset.mcAction;
+        if (action === 'refresh-all') refreshAll();
+        else if (action === 'mark-all-read') markAllRead();
+        else if (action === 'lookup-task') lookupTask();
+        else if (action === 'lookup-task-id') lookupTaskId(el.dataset.taskId || '');
+        else if (action === 'retry-error') { mcHideError(); refreshAll(); }
+        else if (action === 'copy-id') copyId(el.dataset.copyId || '');
+    });
+    var latestTs = '';
+    fetch('/api/v1/system/task-messages?limit=1', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (json) {
+            var items = (json.data && json.data.items) || json.items || [];
+            if (items[0] && items[0].ts) {
+                localStorage.setItem(window.__QC_MC_SEEN || 'quantMsgLastSeenTs', items[0].ts);
+                if (typeof window.updateNavMessageBadge === 'function') window.updateNavMessageBadge();
+            }
+        })
+        .catch(function () {});
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1 @@
+python -m celery -A app.celery_app:celery worker -l info -P solo

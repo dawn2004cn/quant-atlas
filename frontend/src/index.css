@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "./themes/dark.css";
+@import "./themes/light.css";
+
+:root {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+body {
+  @apply min-h-screen antialiased;
+  background: var(--quant-bg);
+  color: var(--quant-fg);
+  font-family: var(--font-quant);
+}
+
+/* ── Quant design system glass-card ── */
+
+.quant-card {
+  border: 1px solid var(--quant-surface, rgba(255, 255, 255, 0.13));
+  border-radius: var(--quant-radius-lg, 22px);
+  background: linear-gradient(180deg, var(--quant-surface, rgba(255, 255, 255, 0.075)), rgba(255, 255, 255, 0.035));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+[data-theme="light"] .quant-card {
+  background: white;
+  border-color: #d8e1ea;
+  box-shadow: 0 22px 58px rgba(15, 23, 42, 0.1);
+}
+
+.quant-panel {
+  background: var(--quant-panel);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.quant-bar {
+  background: var(--quant-bar);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* ── Up / Down / Warn colors ── */
+
+.text-up {
+  color: var(--quant-accent, #55e48b);
+}
+.text-down {
+  color: var(--quant-danger, #ff6b6b);
+}
+.text-warn {
+  color: var(--quant-warn, #ffd166);
+}
+
+/* ── Mono numerals ── */
+.mono {
+  font-family: var(--font-quant-mono, ui-monospace, Menlo, Consolas, monospace);
+  font-variant-numeric: tabular-nums;
+}

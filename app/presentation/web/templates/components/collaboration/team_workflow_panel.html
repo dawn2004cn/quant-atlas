@@ -1,0 +1,160 @@
+{# Team Workflow 2.0 — human + agent hybrid pipeline #}
+<div
+    class="section-shell"
+    id="team-workflow-panel"
+    x-data="teamWorkflowCapability()"
+    x-init="init()"
+    x-show="teamId"
+    x-cloak
+>
+    <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="panel-title mb-0">🔀 投研流水线 2.0</h2>
+            <div class="panel-subtitle">Lead 编排多人 + 多 Agent 混合工作流</div>
+        </div>
+        <button type="button" class="btn-soft btn-sm" @click="refresh()">刷新</button>
+    </div>
+
+    <div class="row g-2 mt-2 align-items-end">
+        <div class="col-md-4">
+            <label class="text-xs text-muted">流水线预设</label>
+            <select class="form-select form-select-sm" x-model="presetId">
+                <template x-for="p in presets" :key="p.id">
+                    <option :value="p.id" x-text="p.name"></option>
+                </template>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="text-xs text-muted">标的 symbol</label>
+            <input class="form-control form-control-sm" x-model="symbol" placeholder="sz000001">
+        </div>
+        <div class="col-md-5 d-flex gap-2">
+            <button type="button" class="btn-brand btn-sm" @click="startRun()" :disabled="loading || !teamId">
+                启动流水线
+            </button>
+            <button type="button" class="btn-soft btn-sm" @click="advanceRun('complete')" x-show="activeRun && activeRun.status === 'paused'">
+                完成人工步骤
+            </button>
+            <button type="button" class="btn-soft btn-sm" @click="advanceRun('approve')" x-show="activeRun && activeRun.pause_reason === 'approval_gate'">
+                Lead 批准
+            </button>
+        </div>
+    </div>
+
+    <template x-if="activeRun">
+        <div class="trade-plan-panel mt-3 text-sm">
+            <div>
+                <span class="badge-soft" x-text="activeRun.status"></span>
+                <span class="ml-1" x-text="activeRun.workflow_name"></span>
+            </div>
+            <div class="text-muted text-xs mt-1" x-text="'当前节点: ' + (activeRun.current_node_id || '-')"></div>
+            <div class="text-muted text-xs" x-show="activeRun.pause_reason" x-text="'等待: ' + activeRun.pause_reason"></div>
+            <div class="text-xs mt-2" x-text="'步骤数: ' + ((activeRun.steps || []).length)"></div>
+        </div>
+    </template>
+
+    <div class="mt-3">
+        <div class="text-xs font-bold text-muted mb-1">最近运行</div>
+        <template x-for="r in runs" :key="r.run_id">
+            <div class="text-sm border-bottom py-1 d-flex justify-content-between">
+                <span x-text="r.workflow_name || r.workflow_id"></span>
+                <span class="text-muted" x-text="r.status"></span>
+            </div>
+        </template>
+        <div class="text-muted text-sm" x-show="!runs.length">暂无运行记录</div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function teamWorkflowCapability() {
+    return {
+        teamId: null,
+        presets: [],
+        presetId: 'fast_agent_loop',
+        symbol: '',
+        loading: false,
+        activeRun: null,
+        runs: [],
+        init() {
+            window.addEventListener('team-context-changed', (e) => {
+                this.teamId = e.detail && e.detail.teamId;
+                this.refresh();
+            });
+            const bar = document.querySelector('[x-data*="teamContext"]');
+            if (window.Alpine && bar) {
+                const data = Alpine.$data(bar);
+                if (data && data.activeTeamId) {
+                    this.teamId = data.activeTeamId;
+                }
+            }
+            fetch('/api/v1/teams/workflows/presets', { credentials: 'same-origin' })
+                .then((r) => r.json())
+                .then((j) => {
+                    const d = j.data || j;
+                    this.presets = d.presets || [];
+                    if (this.presets.length) this.presetId = this.presets[0].id;
+                })
+                .catch(() => {});
+            this.refresh();
+        },
+        refresh() {
+            if (!this.teamId) return;
+            fetch(`/api/v1/teams/${this.teamId}/workflow-runs?limit=8`, { credentials: 'same-origin' })
+                .then((r) => r.json())
+                .then((j) => {
+                    const d = j.data || j;
+                    this.runs = d.runs || [];
+                })
+                .catch(() => {});
+        },
+        async startRun() {
+            if (!this.teamId) return;
+            this.loading = true;
+            try {
+                const res = await fetch(`/api/v1/teams/${this.teamId}/workflows/${this.presetId}/run`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        context: {
+                            symbol: this.symbol,
+                            market: 'CN',
+                            topic: '团队流水线分析',
+                            evidence_text: '流水线启动证据',
+                            publish_summary: '团队流水线自动发布',
+                        },
+                    }),
+                });
+                const json = await res.json();
+                if (!res.ok) {
+                    alert(json.message || json.error || '启动失败');
+                    return;
+                }
+                const d = json.data || json;
+                this.activeRun = d.run || d;
+                this.refresh();
+            } finally {
+                this.loading = false;
+            }
+        },
+        async advanceRun(action) {
+            if (!this.teamId || !this.activeRun) return;
+            const runId = this.activeRun.run_id;
+            const res = await fetch(`/api/v1/teams/${this.teamId}/workflow-runs/${runId}/advance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ action, note: '' }),
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                alert(json.message || json.error || '推进失败');
+                return;
+            }
+            const d = json.data || json;
+            this.activeRun = d.run || d;
+            this.refresh();
+        },
+    };
+}
+</script>

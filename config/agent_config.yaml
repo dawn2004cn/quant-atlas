@@ -1,0 +1,65 @@
+# Agent System Configuration
+# Centralized configuration for all agent components
+
+llm:
+  # LLM tier selection
+  default_tier: "l2_reasoning"
+  l1_model: "gpt-4o-mini"  # Fast/cheap for sentiment, macro
+  l2_model: "gpt-4o"        # Complex reasoning for risk, synthesis
+
+  # Token limits per tier
+  l1_max_tokens: 1024
+  l2_max_tokens: 4096
+
+  # Temperature settings
+  l1_temperature: 0.3
+  l2_temperature: 0.5
+
+timeout:
+  # Agent execution timeouts (seconds)
+  agent_timeout_seconds: 60.0
+  supervisor_timeout_seconds: 30.0
+  analyst_timeout_seconds: 90.0
+  risk_manager_timeout_seconds: 45.0
+  tool_timeout_seconds: 20.0
+
+retry:
+  # Retry configuration
+  max_retries: 3
+  base_delay_seconds: 1.0
+  max_delay_seconds: 30.0
+  exponential_base: 2.0
+
+circuit_breaker:
+  # Circuit breaker for agent failures
+  failure_threshold: 3
+  timeout_seconds: 30.0
+  half_open_max_calls: 2
+
+blackboard:
+  # Evidence blackboard settings
+  enable_redis: false
+  redis_host: "localhost"
+  redis_port: 6379
+  redis_db: 0
+  local_ttl_seconds: 300
+  redis_ttl_seconds: 3600
+
+memory:
+  # Agent memory persistence
+  enable_persistence: true
+  db_path: "data/agents/agent_memory.db"
+  auto_persist_interval_seconds: 60
+
+monitoring:
+  # Telemetry and monitoring
+  enable_telemetry: true
+  log_agent_calls: true
+  track_token_usage: true
+  dashboard_refresh_seconds: 30
+
+# Feature flags
+parallel_departments: true      # Enable parallel department execution
+enable_early_exit: true        # Enable evidence-driven early exit
+enable_weighted_consensus: true # Enable accuracy-weighted voting
+max_conversation_rounds: 30    # Max rounds for ReAct loop

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}语音简报 - Quant Atlas 7.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" x-data="voiceBriefing()" x-init="init()">
+    <div class="mb-3">
+        <h1 class="page-title">🎙️ 叙事语音简报</h1>
+        <p class="page-subtitle text-muted">将生成式叙事日报转为晨间可听的投研播客 · OpenAI TTS 或浏览器朗读</p>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="section-shell">
+                <div class="text-xs font-bold text-muted mb-2">生成选项</div>
+                <div class="mb-2">
+                    <label class="text-xs text-muted">精选数量</label>
+                    <input type="number" class="form-control form-control-sm" x-model.number="topN" min="1" max="8">
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" x-model="synthesizeAudio" id="ttsChk">
+                    <label class="form-check-label text-sm" for="ttsChk">尝试 OpenAI TTS 合成</label>
+                </div>
+                <button type="button" class="btn-brand btn-sm w-100" @click="load()" :disabled="loading">
+                    <span x-show="!loading">生成今日语音简报</span>
+                    <span x-show="loading">合成中…</span>
+                </button>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <template x-if="payload">
+                <div>
+                    <div class="section-shell mb-3">
+                        <div class="vb-player">
+                            <template x-if="payload.audio_url">
+                                <audio controls class="vb-audio" :src="payload.audio_url"></audio>
+                            </template>
+                            <button type="button" class="btn-soft btn-sm" @click="speakBrowser()" x-show="payload.script">
+                                🔊 浏览器朗读
+                            </button>
+                            <span class="text-sm text-muted" x-text="modeLabel()"></span>
+                        </div>
+                        <div class="text-xs text-muted mt-2" x-show="payload.audio_hint" x-text="payload.audio_hint"></div>
+                        <div class="text-sm mt-2" x-text="payload.summary"></div>
+                    </div>
+                    <div class="section-shell">
+                        <div class="text-xs font-bold text-muted mb-2">播报文稿</div>
+                        <div class="vb-script text-muted" x-text="payload.script"></div>
+                    </div>
+                </div>
+            </template>
+            <div class="section-shell text-muted text-sm" x-show="!payload && !loading">
+                点击生成，系统将先运行智能叙事日报，再输出 TTS 音频或浏览器朗读文稿。
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+function voiceBriefing() {
+    return {
+        topN: 3,
+        synthesizeAudio: true,
+        loading: false,
+        payload: null,
+        init() {},
+        modeLabel() {
+            if (!this.payload) return '';
+            const m = this.payload.audio_mode || 'text';
+            if (m === 'openai') return 'OpenAI TTS';
+            if (m === 'browser') return '浏览器朗读模式';
+            return m;
+        },
+        async load() {
+            this.loading = true;
+            try {
+                const audio = this.synthesizeAudio ? '1' : '0';
+                const res = await fetch(`/api/v1/briefing/voice-daily?top_n=${this.topN}&audio=${audio}`);
+                const json = await res.json();
+                if (!res.ok) {
+                    alert(json.message || json.error || '生成失败');
+                    return;
+                }
+                this.payload = json.data || json;
+            } catch (e) {
+                window.qcLogError('voice_briefing load failed', e);
+            } finally {
+                this.loading = false;
+            }
+        },
+        speakBrowser() {
+            if (!this.payload || !this.payload.script || !window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(this.payload.script);
+            u.lang = 'zh-CN';
+            u.rate = 1.0;
+            window.speechSynthesis.speak(u);
+        },
+    };
+}
+</script>
+{% endblock %}

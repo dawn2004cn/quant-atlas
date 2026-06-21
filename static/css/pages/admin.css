@@ -1,0 +1,173 @@
+/**
+ * pages/admin.css — 管理后台
+ * Depends on: design-tokens.css, common.css
+ */
+
+/* ─── Users manage (users_manage.html) ──────────────────────────────────────────── */
+.users-container { display: grid; gap: 22px; }
+.form-section, .users-section { padding: 24px; }
+.form-group { margin-bottom: 18px; }
+.label { display: block; margin-bottom: 8px; font-weight: 700; }
+.input-soft, .select-soft { width: 100%; border: 1px solid rgba(19,32,45,0.1); border-radius: 18px; padding: 12px 14px; background: rgba(255,255,255,0.86); }
+.user-item { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 16px; border-radius: 18px; background: rgba(255,255,255,0.72); border: 1px solid rgba(19,32,45,0.08); margin-bottom: 12px; }
+.user-info { font-weight: 700; flex: 1; min-width: 140px; }
+.user-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.role-select { min-width: 8rem; max-width: 12rem; }
+.badge-demo { font-size: 0.72rem; padding: 4px 8px; border-radius: 999px; background: rgba(16,63,145,0.1); color: var(--brand); font-weight: 700; }
+.empty-state { padding: 26px; text-align: center; color: var(--muted); border-radius: 18px; background: rgba(255,255,255,0.72); border: 1px solid rgba(19,32,45,0.08); }
+
+/* ─── Stocks manage (stocks_manage.html) ──────────────────────────────────────────── */
+.sm-wrap { display: grid; gap: 22px; }
+.sm-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-xl);
+    padding: 28px 30px 26px;
+    background:
+        linear-gradient(135deg, rgba(16, 63, 145, 0.09) 0%, transparent 55%),
+        var(--surface-strong);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow);
+}
+.sm-hero::after {
+    content: "";
+    position: absolute;
+    right: -40px;
+    top: -50px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(23, 162, 164, 0.22), transparent 70%);
+    pointer-events: none;
+}
+.sm-hero .hero-caption { position: relative; z-index: 1; }
+.sm-hero h1, .sm-hero p { position: relative; z-index: 1; }
+.sm-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; position: relative; z-index: 1; }
+.sm-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(16, 63, 145, 0.1);
+    color: var(--brand);
+    letter-spacing: 0.02em;
+}
+.sm-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+}
+.sm-stat {
+    padding: 18px 20px;
+    border-radius: var(--radius-lg);
+    background: var(--surface-strong);
+    border: 1px solid var(--surface-border);
+    box-shadow: 0 8px 24px rgba(16, 33, 52, 0.05);
+}
+.sm-stat-k {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+}
+.sm-stat-v {
+    font-family: "Space Grotesk", "Noto Sans SC", sans-serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.15;
+}
+.sm-stat-sub { font-size: 0.78rem; color: var(--muted); margin-top: 6px; word-break: break-all; }
+.sm-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+.sm-search-wrap { flex: 1; min-width: 200px; max-width: 420px; }
+.sm-search {
+    width: 100%;
+    border: 1px solid rgba(19, 32, 45, 0.1);
+    border-radius: 18px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.92);
+    font-size: 0.92rem;
+}
+.sm-search:focus {
+    outline: none;
+    border-color: rgba(16, 63, 145, 0.35);
+    box-shadow: 0 0 0 3px rgba(16, 63, 145, 0.08);
+}
+.sm-meta { font-size: 0.85rem; color: var(--muted); font-weight: 600; }
+.sm-table-wrap {
+    overflow: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--surface-border);
+    max-height: min(62vh, 720px);
+    background: rgba(255, 253, 248, 0.5);
+}
+.sm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+}
+.sm-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    text-align: left;
+    padding: 12px 14px;
+    background: linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(255, 250, 242, 0.95));
+    border-bottom: 1px solid var(--surface-border);
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+}
+.sm-table tbody td {
+    padding: 11px 14px;
+    border-bottom: 1px solid rgba(43, 58, 74, 0.06);
+    vertical-align: middle;
+}
+.sm-table tbody tr:hover td { background: rgba(16, 63, 145, 0.04); }
+.sm-code {
+    font-family: "Space Grotesk", ui-monospace, monospace;
+    font-weight: 700;
+    color: var(--brand);
+}
+.sm-name { font-weight: 600; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-industry { font-size: 0.8rem; color: var(--muted); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sm-num { font-variant-numeric: tabular-nums; text-align: right; }
+.sm-pct-pos { color: var(--positive); font-weight: 700; }
+.sm-pct-neg { color: var(--negative); font-weight: 700; }
+.sm-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.sm-actions a {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 999px;
+    text-decoration: none !important;
+    background: rgba(16, 63, 145, 0.08);
+    color: var(--brand);
+    white-space: nowrap;
+}
+.sm-actions a:hover { background: rgba(16, 63, 145, 0.16); color: var(--brand); }
+.sm-empty, .sm-error {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--muted);
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px dashed rgba(43, 58, 74, 0.12);
+}
+.sm-error { color: #a02626; border-color: rgba(160, 38, 38, 0.2); }
+.sm-note {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.55;
+    padding: 0 4px;
+}
+

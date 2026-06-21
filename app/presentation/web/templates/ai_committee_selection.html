@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}AI 投委会选股 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="aics-page">
+    <section class="aics-hero">
+        <div>
+            <div class="aics-kicker">AI Committee Selection</div>
+            <h1 class="aics-title">AI 投委会选股</h1>
+            <p class="aics-subtitle">保留原 AI 投委会，本页新增短线选股工作台：Regime Manager 先判断五大指数状态，再由投委会把策略武器库收敛为十大天王阵列，从全 A 选出 3-5 只短线狙击标的，并用 50 万模拟资金跟踪止盈止损。</p>
+        </div>
+        <div class="aics-actions">
+            <a class="aics-btn" href="/ai-committee">原 AI 投委会</a>
+            <button class="aics-btn" type="button" id="trackBtn">跟踪止盈止损</button>
+            <button class="aics-btn aics-btn-primary" type="button" id="runBtn">运行投委选股</button>
+        </div>
+    </section>
+
+    <div class="aics-layout">
+        <div class="aics-page">
+            <section class="aics-section">
+                <div class="aics-section-head">
+                    <h2 class="aics-section-title">五大市场状态</h2>
+                    <span class="aics-muted" id="regimeSummary">等待运行</span>
+                </div>
+                <div class="aics-grid-5" id="indexGrid"></div>
+            </section>
+
+            <section class="aics-section">
+                <div class="aics-section-head">
+                    <h2 class="aics-section-title">AI 投委会阵容</h2>
+                    <span class="aics-muted">总指挥 + 6 个专业 Agent + 陈小群短线选手</span>
+                </div>
+                <div class="aics-agents" id="agentGrid"></div>
+            </section>
+
+            <section class="aics-section">
+                <div class="aics-section-head">
+                    <h2 class="aics-section-title">十大天王阵列</h2>
+                    <span class="aics-muted">按市场状态动态启用</span>
+                </div>
+                <div class="aics-strategies" id="strategyGrid"></div>
+            </section>
+
+            <section class="aics-section">
+                <div class="aics-section-head">
+                    <h2 class="aics-section-title">短线狙击标的</h2>
+                    <span class="aics-muted" id="selectionHint">运行后展示 3-5 只候选</span>
+                </div>
+                <div class="aics-stock-list" id="stockList">
+                    <div class="aics-empty">尚未运行投委选股。</div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="aics-page">
+            <section class="aics-section">
+                <div class="aics-section-head">
+                    <h2 class="aics-section-title">50 万模拟组合</h2>
+                    <span class="aics-muted" id="capitalUpdated">实时视图</span>
+                </div>
+                <div class="aics-stats">
+                    <div class="aics-stat">
+                        <div class="aics-stat-label">初始资金</div>
+                        <div class="aics-stat-value" id="statCapital">--</div>
+                    </div>
+                    <div class="aics-stat">
+                        <div class="aics-stat-label">可用现金</div>
+                        <div class="aics-stat-value" id="statCash">--</div>
+                    </div>
+                    <div class="aics-stat">
+                        <div class="aics-stat-label">持仓数量</div>
+                        <div class="aics-stat-value" id="statPositions">--</div>
+                    </div>
+                    <div class="aics-stat">
+                        <div class="aics-stat-label">浮动盈亏</div>
+                        <div class="aics-stat-value" id="statPnl">--</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="aics-section">
+                <div class="aics-section-head">
+                    <h2 class="aics-section-title">投委会纪要</h2>
+                </div>
+                <div class="aics-muted" id="reasoningBox">运行后展示总指挥汇总意见。</div>
+            </section>
+
+            <section class="aics-section">
+                <div class="aics-section-head">
+                    <h2 class="aics-section-title">持仓跟踪</h2>
+                    <span class="aics-muted" id="tradeCount">0 条</span>
+                </div>
+                <div class="aics-trade-list" id="tradeList">
+                    <div class="aics-empty">暂无交易记录。</div>
+                </div>
+            </section>
+        </aside>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+(function () {
+    const state = {
+        config: null,
+        lastRun: null
+    };
+
+    const bucketLabels = {
+        bull: '牛市主攻',
+        bear: '熊市防守',
+        sideways: '震荡/万能'
+    };
+
+    const regimeLabels = {
+        bull: '牛市/偏多',
+        bear: '熊市/防守',
+        sideways: '震荡/均衡'
+    };
+
+    function esc(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function money(value) {
+        const n = Number(value || 0);
+        return n.toLocaleString('zh-CN', { maximumFractionDigits: 0 });
+    }
+
+    function pct(value) {
+        const n = Number(value || 0);
+        return (n > 0 ? '+' : '') + n.toFixed(2) + '%';
+    }
+
+    function badgeClass(regime) {
+        if (regime === '牛市' || regime === 'bull') return 'aics-badge aics-badge-bull';
+        if (regime === '熊市' || regime === 'bear') return 'aics-badge aics-badge-bear';
+        return 'aics-badge';
+    }
+
+    async function fetchJson(url, options) {
+        const res = await fetch(url, Object.assign({ credentials: 'same-origin' }, options || {}));
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || (json.status && json.status !== 'success')) {
+            throw new Error(json.message || json.error?.message || '请求失败');
+        }
+        return json.data || {};
+    }
+
+    function renderConfig(config) {
+        state.config = config;
+        const agents = config.agents || [];
+        document.getElementById('agentGrid').innerHTML = agents.map(agent => `
+            <div class="aics-agent-card">
+                <div class="aics-agent-name">${esc(agent.name)}</div>
+                <div class="aics-badge">${esc(agent.role)}</div>
+                <div class="aics-agent-focus">${esc(agent.focus)}</div>
+            </div>
+        `).join('');
+
+        renderIndexes(config.markets || []);
+        renderStrategies(config.strategy_array || [], null);
+        document.getElementById('statCapital').textContent = money(config.capital);
+    }
+
+    function renderIndexes(indexes) {
+        const rows = indexes && indexes.length ? indexes : (state.config?.markets || []);
+        document.getElementById('indexGrid').innerHTML = rows.map(item => `
+            <div class="aics-index-card">
+                <div class="aics-index-name">${esc(item.name)}</div>
+                <div class="aics-muted aics-symbol-mt">${esc(item.symbol)}</div>
+                <div class="aics-actions-mt">
+                    <span class="${badgeClass(item.regime)}">${esc(item.regime || '待分析')}</span>
+                </div>
+                <div class="${Number(item.change_pct || 0) >= 0 ? 'aics-positive' : 'aics-negative'} aics-change-mt">
+                    ${item.change_pct == null ? '--' : pct(item.change_pct)}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderStrategies(strategies, activeIds) {
+        const groups = { bull: [], bear: [], sideways: [] };
+        strategies.forEach(item => {
+            const bucket = item.regime_bucket || 'sideways';
+            if (!groups[bucket]) groups[bucket] = [];
+            groups[bucket].push(item);
+        });
+        document.getElementById('strategyGrid').innerHTML = Object.keys(groups).map(bucket => `
+            <div class="aics-strategy-card" data-bucket="${esc(bucket)}">
+                <div class="aics-section-title">${bucketLabels[bucket] || bucket}</div>
+                <div class="aics-muted aics-group-count">${groups[bucket].length} 个策略</div>
+                ${groups[bucket].map(item => {
+                    const active = !activeIds || activeIds.has(item.id);
+                    return `<div class="aics-strategy-item${active ? '' : ' aics-strategy-dim'}">
+                        <strong>${esc(item.name)}</strong>
+                        <span class="aics-muted">${esc(item.class_name)}</span>
+                    </div>`;
+                }).join('')}
+            </div>
+        `).join('');
+    }
+
+    function renderSelection(payload) {
+        const stocks = payload.selected_stocks || [];
+        document.getElementById('regimeSummary').textContent =
+            `${regimeLabels[payload.overall_regime] || payload.overall_regime || '未知'} · 风险 ${payload.risk_level || '--'}`;
+        document.getElementById('reasoningBox').textContent = payload.reasoning || '暂无纪要';
+        document.getElementById('selectionHint').textContent = `本次选出 ${stocks.length} 只`;
+        renderIndexes(payload.indexes || []);
+        if (state.config) {
+            const activeIds = new Set((payload.strategy_array || []).map(item => item.id));
+            renderStrategies(state.config.strategy_array || [], activeIds);
+        }
+        document.getElementById('stockList').innerHTML = stocks.length ? stocks.map(stock => `
+            <div class="aics-stock-card">
+                <div>
+                    <div class="aics-stock-name">${esc(stock.symbol)} ${esc(stock.name)}</div>
+                    <div class="aics-muted aics-rationale-mt">${esc(stock.rationale)}</div>
+                    <div class="aics-stock-meta">
+                        <span class="aics-badge">评分 ${esc(stock.sniper_score)}</span>
+                        <span class="aics-badge">${esc(stock.strategy)}</span>
+                        <span class="aics-badge">买入 ${esc(stock.entry_price)}</span>
+                        <span class="aics-badge">止损 ${esc(stock.stop_loss)}</span>
+                        <span class="aics-badge">止盈 ${esc(stock.take_profit)}</span>
+                    </div>
+                </div>
+                <div class="aics-stock-actions">
+                    <a class="aics-btn" href="/stock/${encodeURIComponent(stock.symbol)}?m=CN">详情</a>
+                    ${window.qcWatchlistButton ? window.qcWatchlistButton(stock.symbol, stock.name, '加自选', 'aics-btn') : ''}
+                </div>
+            </div>
+        `).join('') : '<div class="aics-empty">当前没有满足风控门禁的短线标的。</div>';
+    }
+
+    function renderStatus(status) {
+        document.getElementById('statCapital').textContent = money(status.capital || 500000);
+        document.getElementById('statCash').textContent = money(status.available_cash);
+        document.getElementById('statPositions').textContent = String(status.position_count || 0);
+        const pnl = Number(status.floating_pnl || 0);
+        const pnlEl = document.getElementById('statPnl');
+        pnlEl.textContent = money(pnl);
+        pnlEl.className = 'aics-stat-value ' + (pnl >= 0 ? 'aics-positive' : 'aics-negative');
+        renderTrades(status.trade_history || []);
+    }
+
+    function renderTrades(trades) {
+        document.getElementById('tradeCount').textContent = `${trades.length} 条`;
+        if (!trades.length) {
+            document.getElementById('tradeList').innerHTML = '<div class="aics-empty">暂无交易记录。</div>';
+            return;
+        }
+        document.getElementById('tradeList').innerHTML = trades.slice(0, 12).map(item => `
+            <div class="aics-trade-row">
+                <strong>${esc(item.symbol)} ${esc(item.name)}</strong>
+                <span class="aics-muted">${esc(item.strategy)}</span>
+                <span>${esc(item.status)}</span>
+                <span>现价 ${esc(item.current_price)}</span>
+                <span>止损 ${esc(item.stop_loss)}</span>
+                <span class="${Number(item.pnl_pct || 0) >= 0 ? 'aics-positive' : 'aics-negative'}">${pct(item.pnl_pct)}</span>
+            </div>
+        `).join('');
+    }
+
+    async function loadConfig() {
+        const config = await fetchJson('/api/v1/ai-committee-selection/config');
+        renderConfig(config);
+    }
+
+    async function loadStatus() {
+        const status = await fetchJson('/api/v1/ai-committee-selection/status');
+        renderStatus(status);
+    }
+
+    async function runSelection() {
+        const btn = document.getElementById('runBtn');
+        btn.disabled = true;
+        btn.textContent = '运行中...';
+        try {
+            const payload = await fetchJson('/api/v1/ai-committee-selection/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ capital: 500000, min_positions: 3, max_positions: 5 })
+            });
+            state.lastRun = payload;
+            renderSelection(payload);
+            await loadStatus();
+            if (window.showToast) showToast('AI 投委会选股完成', 'success');
+        } catch (err) {
+            if (window.showToast) showToast(err.message || '运行失败', 'error');
+            else alert(err.message || '运行失败');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '运行投委选股';
+        }
+    }
+
+    async function trackPositions() {
+        const btn = document.getElementById('trackBtn');
+        btn.disabled = true;
+        btn.textContent = '跟踪中...';
+        try {
+            await fetchJson('/api/v1/ai-committee-selection/track', { method: 'POST' });
+            await loadStatus();
+            if (window.showToast) showToast('止盈止损状态已刷新', 'success');
+        } catch (err) {
+            if (window.showToast) showToast(err.message || '跟踪失败', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '跟踪止盈止损';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+        document.getElementById('runBtn').addEventListener('click', runSelection);
+        document.getElementById('trackBtn').addEventListener('click', trackPositions);
+        try {
+            await loadConfig();
+            await loadStatus();
+        } catch (err) {
+            if (window.showToast) showToast(err.message || '页面数据加载失败', 'error');
+        }
+    });
+})();
+</script>
+{% endblock %}

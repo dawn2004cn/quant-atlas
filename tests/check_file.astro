@@ -1,0 +1,8 @@
+import os
+for f in os.listdir(r'E:\project\workspace\myrepo\quant-atlas\app\presentation\web\emplates'):
+    if f.lower() == 'self_stocks.html':
+        path = os.path.join(r'E:\project\workspace\myrepo\quant-atlas\app\presentation\web\emplates', f)
+        size = os.path.getsize(path)
+        print(f'EXACT: {f} = {size} bytes')
+        data = open(path, 'rb').read()
+        print(f'FIRST 300 BYTES: {data[:300]}')

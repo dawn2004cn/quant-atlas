@@ -1,0 +1,7 @@
+/**
+ * components/trading-dna-spiral.css — Trading DNA spiral
+ */
+
+#trading-dna-spiral-panel canvas {
+    image-rendering: auto;
+}

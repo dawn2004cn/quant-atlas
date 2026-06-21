@@ -1,0 +1,11 @@
+/**
+ * components/wisdom-mesh-browser.css — Wisdom mesh browser
+ */
+
+#wisdom-mesh-browser .strategy-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+#wisdom-mesh-browser .strategy-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}

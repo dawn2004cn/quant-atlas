@@ -1,0 +1,13 @@
+/* src/themes/light.css */
+[data-theme="light"] {
+  --quant-bg: #f6f8fb;
+  --quant-fg: #0f172a;
+  --quant-muted: #64748b;
+  --quant-surface: #ffffff;
+  --quant-panel: rgba(255, 255, 255, 0.92);
+  --quant-bar: rgba(255, 255, 255, 0.88);
+  --quant-accent: #0e7a43;
+  --quant-accent-2: #2563eb;
+  --quant-danger: #dc2626;
+  --quant-warn: #d97706;
+}

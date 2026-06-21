@@ -1,0 +1,55 @@
+..................................s..................................... [  5%]
+........................F
+================================== FAILURES ===================================
+________________________ test_static_ux_helpers_exist _________________________
+
+    def test_static_ux_helpers_exist() -> None:
+        root = Path(__file__).resolve().parents[1]
+>       assert (root / "static" / "js" / "decision_brief.js").is_file()
+E       AssertionError: assert False
+E        +  where False = is_file()
+E        +    where is_file = (((WindowsPath('E:/project/workspace/myrepo/quant-atlas/tests') / 'static') / 'js') / 'decision_brief.js').is_file
+
+tests\api\test_phase62_ux_contract.py:70: AssertionError
+============================== warnings summary ===============================
+tests\domain\test_events.py:27
+  E:\project\workspace\myrepo\quant-atlas\tests\domain\test_events.py:27: PytestCollectionWarning: cannot collect test class 'TestEventHandler' because it has a __init__ constructor (from: tests/domain/test_events.py)
+    class TestEventHandler(EventHandler):
+
+tests\smoke\test_simple1.py:19
+  E:\project\workspace\myrepo\quant-atlas\tests\smoke\test_simple1.py:19: PytestUnknownMarkWarning: Unknown pytest.mark.e2e - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.e2e
+
+tests/api/test_api_contract.py::TestHealthEndpoints::test_api_health_returns_200
+  C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\flask\sessions.py:215: UserWarning: 'localhost' is not a valid cookie domain, it must contain a '.'. Add an entry to your hosts file, for example 'localhost.localdomain', and use that instead.
+    warnings.warn(
+
+tests/api/test_market_api.py::test_market_sentiment
+  C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but tests/api/test_market_api.py::test_market_sentiment returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/api/test_market_api.py::test_market_movements
+  C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but tests/api/test_market_api.py::test_market_movements returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+tests/api/test_market_api.py::test_market_rankings
+  C:\Users\dawn2\AppData\Roaming\Python\Python312\site-packages\_pytest\python.py:170: PytestReturnNotNoneWarning: Test functions should return None, but tests/api/test_market_api.py::test_market_rankings returned <class 'bool'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [1] tests\api\test_api_direct.py:8: Legacy services.market_service tests
+SKIPPED [1] tests\application\test_phase22_research_data_optimizer.py:14: Pre-existing broken import — skipped
+SKIPPED [1] tests\infrastructure\test_jqka_all.py:7: Manual JQKA integration test
+SKIPPED [1] tests\infrastructure\test_xueqiu_news.py:7: Manual Xueqiu integration test; run as script only
+SKIPPED [1] tests\unit\test_all.py:8: Legacy root-level service_container tests
+SKIPPED [1] tests\unit\test_cache_backup.py:8: Legacy cache_factory tests
+SKIPPED [1] tests\api\test_endpoints.py:30: Requires running HTTP server at 127.0.0.1:5000
+FAILED tests/api/test_phase62_ux_contract.py::test_static_ux_helpers_exist - ...
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!

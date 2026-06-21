@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Swarm Designer - Quant Atlas 7.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/swarm.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3" x-data="swarmDesigner()" x-init="init()">
+    <div class="mb-3">
+        <h1 class="page-title">🕸️ Swarm Designer</h1>
+        <p class="page-subtitle text-muted">可视化编排 Agent 拓扑 — 拖拽积木块调整执行序，联动动态 Agent 权重</p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+        <select class="form-select form-select-sm swd-preset-select" x-model="presetId" @change="loadPreset()">
+            <option value="research_default">研究图谱（TopologyLoader · 与 graph.py 同步）</option>
+            <option value="integrated_parallel">集成并行流水线</option>
+            <option value="debate_pipeline">辩论仲裁流水线</option>
+        </select>
+        <input type="text" class="form-control form-control-sm swd-symbol-input" x-model="topologySymbol" placeholder="标的代码">
+        <button type="button" class="btn-soft btn-sm" @click="loadAgentTopology()">刷新动态权重</button>
+        <button type="button" class="btn-soft btn-sm" @click="loadPreset()">加载预设</button>
+        <button type="button" class="btn-brand btn-sm" @click="validate()">校验拓扑</button>
+        <button type="button" class="btn-soft btn-sm" @click="save()">保存到我的拓扑</button>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-3">
+            <div class="section-shell mb-3">
+                <div class="text-xs font-bold text-muted mb-2">积木块面板（点击添加）</div>
+                <div class="swarm-palette">
+                    <template x-for="b in blocks" :key="b.kind + b.label">
+                        <button type="button" class="btn-soft btn-sm" @click="addBlock(b)" x-text="b.label"></button>
+                    </template>
+                </div>
+            </div>
+            <div class="section-shell topology-panel" x-show="agentTopology.regime">
+                <div class="text-xs font-bold text-muted mb-2">动态拓扑 · <span x-text="topologySymbol"></span></div>
+                <div class="text-muted mb-2">
+                    市况: <strong x-text="agentTopology.regime || '—'"></strong>
+                </div>
+                <template x-for="row in topologyWeightRows" :key="row.role">
+                    <div class="topology-weight-row">
+                        <span x-text="row.label"></span>
+                        <span class="weight-badge" x-text="row.weight.toFixed(2)"></span>
+                    </div>
+                </template>
+                <div class="text-muted mt-2" x-text="agentTopology.topology_notes || ''" class="swd-notes-sm"></div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="section-shell">
+                <div class="text-xs font-bold text-muted mb-2">流水线画布（拖拽调整顺序，点击删除）</div>
+                <div class="swarm-canvas" @dragover.prevent @drop.prevent="dropOnCanvas($event)">
+                    <template x-for="(n, idx) in topology.nodes" :key="n.id">
+                        <div class="swarm-block"
+                             :class="['kind-' + n.kind, dragOverIdx === idx ? 'drag-over' : '']"
+                             draggable="true"
+                             @dragstart="dragStart(idx, $event)"
+                             @dragover.prevent="dragOver(idx)"
+                             @dragleave="dragLeave(idx)"
+                             @drop.prevent="dropAt(idx)"
+                             @click="removeAt(idx)">
+                            <span x-text="n.label || n.id"></span>
+                            <span class="text-muted text-xs" x-text="' · ' + n.kind"></span>
+                            <span class="weight-badge" x-show="weightFor(n)" x-text="'×' + weightFor(n).toFixed(2)"></span>
+                        </div>
+                        <span x-show="idx < topology.nodes.length - 1" class="text-muted align-self-center">→</span>
+                    </template>
+                </div>
+                <div class="text-sm text-muted mt-2" x-show="validationMsg" x-text="validationMsg"></div>
+            </div>
+            <div class="section-shell mt-3">
+                <div class="text-xs font-bold text-muted mb-2">JSON 图描述符</div>
+                <pre class="text-xs swd-json-pre" x-text="jsonPreview"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+function swarmDesigner() {
+    const ROLE_LABELS = {
+        macro_analyst: '宏观',
+        fundamental_analyst: '基本面',
+        technical_analyst: '技术面',
+        sentiment_analyst: '情绪',
+        backtest_optimizer: '回测优化',
+        bull: '多头',
+        bear: '空头',
+    };
+    return {
+        presetId: 'integrated_parallel',
+        blocks: [],
+        topology: { id: '', name: '', nodes: [], edges: [], entry_node: '', exit_node: '' },
+        validationMsg: '',
+        dragIdx: null,
+        dragOverIdx: null,
+        topologySymbol: '600519',
+        agentTopology: {},
+        get jsonPreview() {
+            return JSON.stringify(this.topology, null, 2);
+        },
+        get topologyWeightRows() {
+            const weights = this.agentTopology.agent_weights || {};
+            return Object.keys(weights).map((role) => ({
+                role,
+                label: ROLE_LABELS[role] || role,
+                weight: Number(weights[role]) || 1,
+            })).sort((a, b) => b.weight - a.weight);
+        },
+        init() {
+            fetch('/api/v1/swarm/topology/blocks', { credentials: 'same-origin' })
+                .then((r) => r.json())
+                .then((res) => { this.blocks = (res.data || res).blocks || []; })
+                .catch(() => {});
+            this.loadPreset();
+            this.loadAgentTopology();
+        },
+        loadPreset() {
+            fetch('/api/v1/swarm/topology/presets/' + encodeURIComponent(this.presetId), { credentials: 'same-origin' })
+                .then((r) => r.json())
+                .then((res) => {
+                    const d = res.data || res;
+                    if (d.topology) this.topology = d.topology;
+                })
+                .catch(() => {});
+        },
+        loadAgentTopology() {
+            const sym = (this.topologySymbol || '600519').trim();
+            fetch('/api/v1/system/agent-topology?symbol=' + encodeURIComponent(sym) + '&market=CN', {
+                credentials: 'same-origin',
+            })
+                .then((r) => r.json())
+                .then((res) => { this.agentTopology = res.data || res; })
+                .catch(() => { this.agentTopology = {}; });
+        },
+        weightFor(node) {
+            const role = (node.agent_role || '').trim();
+            const weights = this.agentTopology.agent_weights || {};
+            if (!role || weights[role] === undefined) return null;
+            return Number(weights[role]);
+        },
+        rebuildEdges() {
+            const nodes = this.topology.nodes || [];
+            const edges = [];
+            for (let i = 0; i < nodes.length - 1; i++) {
+                edges.push({ from: nodes[i].id, to: nodes[i + 1].id });
+            }
+            this.topology.edges = edges;
+            if (nodes.length) {
+                this.topology.entry_node = nodes[0].id;
+                this.topology.exit_node = nodes[nodes.length - 1].id;
+            }
+        },
+        addBlock(b) {
+            const id = (b.agent_role || b.kind) + '_' + (this.topology.nodes.length + 1);
+            this.topology.nodes.push({
+                id: id,
+                kind: b.kind,
+                agent_role: b.agent_role || '',
+                label: b.label,
+                config: {},
+            });
+            this.rebuildEdges();
+        },
+        removeAt(idx) {
+            this.topology.nodes.splice(idx, 1);
+            this.rebuildEdges();
+        },
+        dragStart(idx, e) {
+            this.dragIdx = idx;
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', String(idx));
+            }
+        },
+        dragOver(idx) {
+            this.dragOverIdx = idx;
+        },
+        dragLeave(idx) {
+            if (this.dragOverIdx === idx) this.dragOverIdx = null;
+        },
+        dropAt(idx) {
+            this._reorder(this.dragIdx, idx);
+        },
+        dropOnCanvas(e) {
+            const nodes = this.topology.nodes || [];
+            if (!nodes.length) return;
+            this._reorder(this.dragIdx, nodes.length - 1);
+        },
+        _reorder(fromIdx, toIdx) {
+            if (fromIdx === null || fromIdx === undefined || fromIdx === toIdx) {
+                this.dragIdx = null;
+                this.dragOverIdx = null;
+                return;
+            }
+            const nodes = [...this.topology.nodes];
+            const [moved] = nodes.splice(fromIdx, 1);
+            nodes.splice(toIdx, 0, moved);
+            this.topology.nodes = nodes;
+            this.dragIdx = null;
+            this.dragOverIdx = null;
+            this.rebuildEdges();
+        },
+        validate() {
+            fetch('/api/v1/swarm/topology/validate', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.topology),
+            }).then((r) => r.json()).then((res) => {
+                const d = res.data || res;
+                const v = d.validation || {};
+                this.validationMsg = v.ok
+                    ? '✅ 拓扑可编译，执行序: ' + (v.execution_order || []).join(' → ')
+                    : '⚠️ 未支持节点: ' + (v.unsupported_nodes || []).join(', ');
+            }).catch(() => { this.validationMsg = '校验失败'; });
+        },
+        save() {
+            fetch('/api/v1/swarm/topology/mine', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.topology),
+            }).then((r) => r.json()).then(() => {
+                this.validationMsg = '已保存到「我的拓扑」';
+            }).catch(() => { this.validationMsg = '保存失败'; });
+        },
+    };
+}
+</script>
+{% endblock %}

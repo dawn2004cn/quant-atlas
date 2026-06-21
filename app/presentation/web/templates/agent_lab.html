@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Agent Lab | Quant Atlas{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Agent Lab</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <button type="button" class="btn btn-sm btn-outline-primary" data-al-action="refresh">Refresh</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Experiments List -->
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Recent Experiments</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush" id="experiments-list">
+                        <li class="list-group-item">Loading experiments...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task DAG Visualization -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Swarm Execution DAG</h5>
+                </div>
+                <div class="card-body">
+                    <div id="dag-container" class="al-dag">
+                        <p class="text-muted p-4">Select an experiment to view execution flow.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+async function refreshExperiments() {
+    const list = document.getElementById('experiments-list');
+    list.innerHTML = '<li class="list-group-item">Loading...</li>';
+    
+    try {
+        const response = await fetch('/api/v1/agent-swarm/experiments');
+        const json = await response.json();
+        const data = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
+        
+        list.innerHTML = '';
+        data.forEach(exp => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item list-group-item-action cursor-pointer';
+            li.innerHTML = `
+                <div><strong>${exp.name}</strong></div>
+                <small class="text-muted">${exp.created_at}</small>
+                <span class="badge ${exp.status === 'running' ? 'bg-primary' : 'bg-success'} float-end">${exp.status}</span>
+            `;
+            li.onclick = () => loadRunDetails(exp.swarm_run_id);
+            list.appendChild(li);
+        });
+    } catch (e) {
+        list.innerHTML = '<li class="list-group-item text-danger">Failed to load experiments</li>';
+    }
+}
+
+async function loadRunDetails(runId) {
+    const container = document.getElementById('dag-container');
+    container.innerHTML = '<p class="p-4">Loading DAG details...</p>';
+    
+    try {
+        const response = await fetch(`/api/v1/agent-swarm/swarm/status/${runId}`);
+        const json = await response.json();
+        const data = json.data ?? json;
+        
+        // Simple DAG visual representation
+        let html = '<div class="p-3">';
+        (data.tasks || []).forEach(task => {
+            html += `
+                <div class="card mb-2">
+                    <div class="card-body py-2">
+                        <strong>Task:</strong> ${task.id} <span class="badge bg-secondary">${task.status}</span><br>
+                        <small>Agent: ${task.agent_id}</small>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = '<p class="text-danger p-4">Error loading DAG details.</p>';
+    }
+}
+
+refreshExperiments();
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-al-action]');
+    if (el && el.dataset.alAction === 'refresh') refreshExperiments();
+});
+</script>
+{% endblock %}

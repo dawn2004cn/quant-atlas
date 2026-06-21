@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 · Quant Atlas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --text: #13202d;
+            --muted: #66788a;
+            --brand: #103f91;
+            --brand-2: #17a2a4;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            font-family: "Noto Sans SC", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(23, 162, 164, 0.24), transparent 30%),
+                radial-gradient(circle at right bottom, rgba(217, 106, 43, 0.24), transparent 26%),
+                linear-gradient(180deg, #f5f0e6 0%, #ece7dd 100%);
+        }
+        .login-shell {
+            width: min(1100px, 100%);
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            border-radius: 34px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.78);
+            box-shadow: 0 24px 80px rgba(16, 33, 52, 0.16);
+        }
+        .hero {
+            padding: 56px;
+            color: #fff;
+            background: linear-gradient(160deg, rgba(16, 63, 145, 0.92), rgba(23, 162, 164, 0.86));
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+        .hero-title {
+            font-family: "Space Grotesk", "Noto Sans SC", sans-serif;
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            line-height: 0.95;
+            margin: 0 0 20px;
+        }
+        .hero-copy {
+            font-size: 1rem;
+            line-height: 1.85;
+            max-width: 460px;
+            opacity: 0.92;
+        }
+        .hero-list { margin-top: 26px; display: grid; gap: 14px; }
+        .hero-item {
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .panel {
+            padding: 56px 46px;
+            background: rgba(255, 253, 248, 0.88);
+        }
+        .panel h1 { margin: 0 0 8px; font-size: 2rem; }
+        .panel p { margin: 0 0 28px; color: var(--muted); }
+        .field { margin-bottom: 18px; }
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        .input {
+            width: 100%;
+            border: 1px solid rgba(19, 32, 45, 0.12);
+            border-radius: 18px;
+            padding: 15px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+        }
+        .submit {
+            width: 100%;
+            border: none;
+            border-radius: 999px;
+            padding: 15px 18px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        }
+        .flash {
+            margin-bottom: 18px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(217, 106, 43, 0.12);
+            color: #8f3d12;
+        }
+        .helper {
+            margin-top: 22px;
+            padding: 18px;
+            border-radius: 18px;
+            background: rgba(16, 63, 145, 0.06);
+            color: var(--muted);
+            line-height: 1.8;
+            font-size: 0.92rem;
+        }
+        @media (max-width: 900px) {
+            .login-shell { grid-template-columns: 1fr; }
+            .hero, .panel { padding: 34px 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-shell">
+        <section class="hero">
+            <div class="hero-badge">Quant Atlas · Flask</div>
+            <h2 class="hero-title">从行情到回测<br>一站式量化工作台</h2>
+            <p class="hero-copy">聚合 A 股全景、个股分析、策略选股、策略回测、自选股与用户管理，适合作为研究与内部工具平台。</p>
+            <div class="hero-list">
+                <div class="hero-item">实时市场全景，统一查看情绪、异动、排行与个股监控。</div>
+                <div class="hero-item">从 K 线、指标、新闻到选股与回测，形成完整研究链路。</div>
+                <div class="hero-item">基于 Flask 分层架构，便于继续扩展数据源和策略模块。</div>
+            </div>
+        </section>
+        <section class="panel">
+            <h1>欢迎回来</h1>
+            <p>登录后进入新的量化工作台首页。</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            <form method="post">
+                <div class="field">
+                    <label for="username">用户名</label>
+                    <input class="input" type="text" id="username" name="username" placeholder="请输入用户名" required>
+                </div>
+                <div class="field">
+                    <label for="password">密码</label>
+                    <input class="input" type="password" id="password" name="password" placeholder="请输入密码" required>
+                </div>
+                <button class="submit" type="submit">进入系统</button>
+            </form>
+            <div class="helper">
+                如果你愿意，我下一步会继续把市场全景、个股详情、自选股这些历史模板也统一清理成同一套新中文文案和视觉风格。
+            </div>
+        </section>
+    </div>
+</body>
+</html>

@@ -1,0 +1,78 @@
+{# Cross-team swarm consensus + anonymous pattern pool #}
+<div class="section-shell ctp-panel"
+    id="cross-team-pulse"
+   
+    x-data="crossTeamPulseCapability()"
+    x-init="init()">
+    <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="panel-title mb-0">🌐 跨团队群体智能</h2>
+            <div class="panel-subtitle">多团队 Arbiter 一致共识 → 元仲裁激活 · 全站异动提醒 · 匿名成败模式共享</div>
+        </div>
+        <button type="button" class="btn-soft btn-sm" @click="refresh()">刷新</button>
+    </div>
+
+    <div class="row mt-3 g-3">
+        <div class="col-md-6">
+            <div class="trade-plan-panel">
+                <div class="text-xs font-bold text-muted mb-2">全站级异动提醒</div>
+                <template x-for="a in alerts" :key="a.id">
+                    <div class="news-item text-sm mb-2">
+                        <span class="badge" :class="a.level === 'warning' ? 'badge-warning' : 'badge-info'" x-text="a.verdict"></span>
+                        <strong class="ml-1" x-text="a.title"></strong>
+                        <div class="text-muted" x-text="a.message"></div>
+                        <div class="text-xs text-muted" x-text="(a.team_count || 0) + ' 团队 · ' + (a.created_at || '')"></div>
+                        <div class="text-xs mt-1" x-show="a.meta_verdict" class="ctp-verdict">
+                            <span>元仲裁 </span>
+                            <strong x-text="a.meta_verdict"></strong>
+                            <span x-text="' · 置信 ' + ((a.meta_confidence || 0) * 100).toFixed(0) + '%'"></span>
+                        </div>
+                        <div class="text-xs text-muted" x-show="a.meta_rationale" x-text="a.meta_rationale"></div>
+                    </div>
+                </template>
+                <div class="text-muted text-sm" x-show="!alerts.length" x-cloak>暂无全站共识异动（需 ≥3 个独立团队对同一标的形成一致 verdict）。</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="trade-plan-panel">
+                <div class="text-xs font-bold text-muted mb-2">匿名成败模式池</div>
+                <div class="text-xs text-muted mb-2" x-text="privacyNote"></div>
+                <template x-for="p in patterns" :key="p.pattern_id">
+                    <div class="d-flex justify-content-between text-sm border-bottom py-1">
+                        <span x-text="p.pattern_key"></span>
+                        <span>
+                            <span class="text-success" x-text="'✓' + (p.success_count||0)"></span>
+                            <span class="text-danger ml-1" x-text="'✗' + (p.failure_count||0)"></span>
+                        </span>
+                    </div>
+                </template>
+                <div class="text-muted text-sm" x-show="!patterns.length" x-cloak>模式池为空，仲裁复盘后将自动匿名汇入。</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function crossTeamPulseCapability() {
+    return {
+        alerts: [],
+        patterns: [],
+        privacyNote: '',
+        init() {
+            this.refresh();
+        },
+        refresh() {
+            Promise.all([
+                fetch('/api/v1/system/cross-team/alerts', { credentials: 'same-origin' }).then((r) => r.json()),
+                fetch('/api/v1/system/cross-team/patterns', { credentials: 'same-origin' }).then((r) => r.json()),
+            ]).then(([aRes, pRes]) => {
+                const ad = aRes.data || aRes;
+                const pd = pRes.data || pRes;
+                this.alerts = ad.alerts || [];
+                this.patterns = pd.patterns || [];
+                this.privacyNote = pd.privacy_note || '';
+            }).catch(() => {});
+        },
+    };
+}
+</script>

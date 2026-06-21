@@ -1,0 +1,53 @@
+{% extends "base.html" %}{% block title %}机构级控制台{% endblock %}{% block content %}
+<div class="container mt-4">
+  <h2>🐋 机构级控制台</h2>
+  <div class="row mt-3">
+    <div class="col-md-6">
+      <div class="card"><div class="card-header">📈 冲击成本预测 (Almgren-Chriss)</div>
+        <div class="card-body"><button class="btn btn-primary" type="button" data-ut-action="runImpact">预测冲击</button><div id="impactResult" class="mt-3"></div></div></div>
+    </div>
+    <div class="col-md-6">
+      <div class="card"><div class="card-header">⚡ 自适应执行算法</div>
+        <div class="card-body"><button class="btn btn-info" type="button" data-ut-action="runExecution">生成执行计划</button><div id="execResult" class="mt-3"></div></div></div>
+    </div>
+    <div class="col-md-6 mt-3">
+      <div class="card"><div class="card-header">🔒 联邦部署</div>
+        <div class="card-body"><button class="btn btn-success" type="button" data-ut-action="runFederated">检查集群</button><div id="fedResult" class="mt-3"></div></div></div>
+    </div>
+    <div class="col-md-6 mt-3">
+      <div class="card"><div class="card-header">🛂 RBAC 权限</div>
+        <div class="card-body"><button class="btn btn-warning" type="button" data-ut-action="runRBAC">查看权限</button><div id="rbacResult" class="mt-3"></div></div></div>
+    </div>
+  </div>
+</div>
+<script nonce="{{ csp_nonce() }}">
+async function postJSON(url, data) {
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{csrf_token()}}'}, body: JSON.stringify(data||{})});
+  return r.json();
+}
+async function runImpact() {
+  const r = await postJSON('/api/v1/user-tiers/institution/impact/almgren-chriss', {symbol:'AAPL',order_value_usd:10000000,side:'buy',price:150});
+  document.getElementById('impactResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+}
+async function runExecution() {
+  const r = await postJSON('/api/v1/user-tiers/institution/execution/adaptive', {symbol:'AAPL',side:'buy',total_quantity:10000,impact_bps:30,urgency:'stealth'});
+  document.getElementById('execResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+}
+async function runFederated() {
+  const r = await fetch('/api/v1/user-tiers/institution/federated/status');
+  const d = await r.json();
+  document.getElementById('fedResult').innerHTML = '<pre>' + JSON.stringify(d, null, 2) + '</pre>';
+}
+async function runRBAC() {
+  const r = await fetch('/api/v1/user-tiers/institution/rbac/me');
+  const d = await r.json();
+  document.getElementById('rbacResult').innerHTML = '<pre>' + JSON.stringify(d, null, 2) + '</pre>';
+}
+document.addEventListener('click', function (e) {
+  const el = e.target.closest('[data-ut-action]');
+  if (!el) return;
+  const fn = window[el.dataset.utAction];
+  if (typeof fn === 'function') fn();
+});
+</script>
+{% endblock %}

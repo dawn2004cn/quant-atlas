@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}因子库 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/factor.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="repo-shell">
+    <div class="repo-header">
+        <div class="repo-header-title">📚 因子库</div>
+        <p class="fr-hero-sub">已发现并验证的 Alpha 因子库，支持搜索和筛选</p>
+        <div class="repo-stats">
+            <div class="repo-stat">
+                <div class="repo-stat-value" id="totalFactors">--</div>
+                <div class="repo-stat-label">因子总数</div>
+            </div>
+            <div class="repo-stat">
+                <div class="repo-stat-value" id="avgSharpe">--</div>
+                <div class="repo-stat-label">平均Sharpe</div>
+            </div>
+            <div class="repo-stat">
+                <div class="repo-stat-value" id="activeFactors">--</div>
+                <div class="repo-stat-label">活跃因子</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="repo-filters">
+        <input type="text" class="repo-search" id="searchInput" placeholder="搜索因子表达式...">
+        <div class="repo-filter-group">
+            <button class="repo-filter active" data-filter="all">全部</button>
+            <button class="repo-filter" data-filter="trending_up">上涨</button>
+            <button class="repo-filter" data-filter="trending_down">下跌</button>
+            <button class="repo-filter" data-filter="ranging">震荡</button>
+            <button class="repo-filter" data-filter="volatile">高波动</button>
+            <button class="repo-filter" data-filter="low_volatility">低波动</button>
+        </div>
+    </div>
+
+    <div class="factor-grid" id="factorGrid">
+        <div class="loading-state">加载中...</div>
+    </div>
+
+    <div class="pagination" id="pagination"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+let currentPage = 1;
+let currentFilter = 'all';
+const pageSize = 12;
+
+$('.repo-filter').on('click', function() {
+    $('.repo-filter').removeClass('active');
+    $(this).addClass('active');
+    currentFilter = $(this).data('filter');
+    currentPage = 1;
+    loadFactors();
+});
+
+$('#searchInput').on('input', debounce(function() {
+    currentPage = 1;
+    loadFactors();
+}, 300));
+
+function debounce(fn, delay) {
+    let timer;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+function loadFactors() {
+    const search = $('#searchInput').val();
+    let url = `/api/v1/alpha-factory/factors?page=${currentPage}&limit=${pageSize}`;
+    if (currentFilter !== 'all') url += `&regime=${currentFilter}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+
+    $('#factorGrid').html('<div class="loading-state">加载中...</div>');
+
+    $.get(url, function(res) {
+        const data = res.data !== undefined ? res.data : res;
+        const factors = data.factors || res.factors || [];
+        if (factors.length === 0) {
+            $('#factorGrid').html(`
+                <div class="empty-state">
+                    <div class="fr-empty-title">暂无因子数据</div>
+                    <div class="fr-empty-hint">
+                        在 Alpha Factory 的"因子实验"标签页<br>提交因子表达式进行验证后<br>因子将自动保存到此库
+                    </div>
+                </div>
+            `);
+            updateStats({total: 0, avg_sharpe: 0, active_count: 0});
+            $('#pagination').html('');
+            return;
+        }
+        renderFactors(factors);
+        renderPagination(data.count || factors.length);
+        updateStats(data);
+    }).fail(function(xhr, status, error) {
+        window.qcLogError('Load factors error', status + ' ' + error);
+        $('#factorGrid').html('<div class="empty-state">加载失败: ' + error + '</div>');
+    });
+}
+
+function renderFactors(factors) {
+    if (!factors.length) {
+        $('#factorGrid').html('<div class="empty-state">暂无因子数据</div>');
+        return;
+    }
+    $('#factorGrid').html(factors.map(f => `
+        <a href="/factor/${f.factor_id}" class="factor-card fr-card-link" aria-label="Factor ${f.factor_id}">
+            <div class="factor-card-formula">${f.formula || 'N/A'}</div>
+            <div class="fr-meta">
+                ${f.name || f.factor_id}
+            </div>
+            <div class="factor-card-metrics">
+                <div class="factor-metric">
+                    <div class="factor-metric-value ${(f.sharpe_ratio || 0) > 0 ? 'positive' : 'negative'}">
+                        ${(f.sharpe_ratio ?? '--').toFixed(2)}
+                    </div>
+                    <div class="factor-metric-label">Sharpe</div>
+                </div>
+                <div class="factor-metric">
+                    <div class="factor-metric-value">${(f.ic_mean ?? '--').toFixed(3)}</div>
+                    <div class="factor-metric-label">IC均值</div>
+                </div>
+                <div class="factor-metric">
+                    <div class="factor-metric-value">${(f.max_drawdown ?? '--').toFixed(1)}%</div>
+                    <div class="factor-metric-label">回撤</div>
+                </div>
+            </div>
+            <div class="factor-card-tags">
+                <span class="factor-tag ${f.regime || 'ranging'}">${getRegimeLabel(f.regime)}</span>
+                <span class="factor-tag fr-tag-brand">
+                    ${f.backtest_period || '3M'}
+                </span>
+            </div>
+        </div>
+    `).join(''));
+}
+
+function getRegimeLabel(regime) {
+    if (!regime) return '未知';
+    const labels = {
+        trending_up: '上涨趋势',
+        trending_down: '下跌趋势',
+        ranging: '震荡',
+        volatile: '高波动',
+        low_volatility: '低波动'
+    };
+    return labels[regime] || regime;
+}
+
+function renderPagination(total) {
+    const pages = Math.ceil(total / pageSize);
+    if (pages <= 1) {
+        $('#pagination').html('');
+        return;
+    }
+    let html = '';
+    for (let i = 1; i <= pages; i++) {
+        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" type="button" data-fr-action="go-page" data-page="${i}">${i}</button>`;
+    }
+    $('#pagination').html(html);
+}
+
+function goPage(page) {
+    currentPage = page;
+    loadFactors();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateStats(res) {
+    const count = res.count !== undefined ? res.count : (res.factors ? res.factors.length : 0);
+    const total = res.total !== undefined ? res.total : count;
+    const avgSharpe = res.avg_sharpe !== undefined ? res.avg_sharpe : (res.avg_sharpe === 0 ? 0 : '--');
+    const activeCount = res.active_count !== undefined ? res.active_count : 0;
+
+    $('#totalFactors').text(total);
+    $('#avgSharpe').text(avgSharpe !== '--' && avgSharpe != null ? avgSharpe.toFixed(2) : '--');
+    $('#activeFactors').text(activeCount);
+}
+
+$(function() {
+    loadFactors();
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-fr-action]');
+        if (el && el.dataset.frAction === 'go-page') goPage(parseInt(el.dataset.page || '1', 10));
+    });
+});
+</script>
+{% endblock %}

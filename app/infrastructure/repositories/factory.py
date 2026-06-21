@@ -1,0 +1,1 @@
+from app.infrastructure.repositories.common.factory import *  # noqa: F403,F401

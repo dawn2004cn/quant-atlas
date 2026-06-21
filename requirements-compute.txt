@@ -1,0 +1,5 @@
+# Optional high-performance compute stack (vectorized backtest / data lake)
+# Canonical: pip install -e ".[compute]"
+# Legacy:    pip install -r requirements-compute.txt
+polars>=0.20.0
+vectorbt>=0.26.0; python_version >= "3.10"

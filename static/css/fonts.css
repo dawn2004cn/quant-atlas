@@ -1,0 +1,31 @@
+/* fonts.css — 本地字体栈，替代 Google Fonts CDN
+ *
+ * Noto Sans SC 和 Space Grotesk 从 Google Fonts 切换为系统回退字体。
+ * 如需完整 Noto Sans SC 字形，请将 woff2 文件放入 static/fonts/ 并取消注释 @font-face。
+ */
+
+/* 候选：如有自托管字体文件可启用
+@font-face {
+  font-family: "Noto Sans SC";
+  src: local("Noto Sans SC"),
+       url("../fonts/NotoSansSC-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Space Grotesk";
+  src: local("Space Grotesk"),
+       url("../fonts/SpaceGrotesk-Regular.woff2") format("woff2");
+  font-weight: 500 700;
+  font-style: normal;
+}
+*/
+
+/* 系统回退字体栈 — 无需下载任何字体文件即可工作 */
+:root {
+  --font-sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei",
+               "Hiragino Sans GB", "Helvetica Neue", -apple-system,
+               BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: "Space Grotesk", "Noto Sans SC", "PingFang SC",
+                  "Microsoft YaHei", "Helvetica Neue", sans-serif;
+}

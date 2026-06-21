@@ -1,0 +1,1 @@
+from app.infrastructure.repositories.analysis_report_repository import *  # noqa: F403,F401

@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+
+{% block title %}用户频谱中心 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="ush-shell">
+    <div class="ush-hero">
+        <h1 class="pw-hero-title">🎯 用户频谱中心</h1>
+        <p class="pw-hero-sub">散户 → 精品店 → 投资公司 → 基金 → 机构 — 五层能力一站式入口</p>
+    </div>
+
+    <div class="ush-tabs" id="ushTabs">
+        <button class="ush-tab active" data-tier="retail">🧭 散户</button>
+        <button class="ush-tab" data-tier="boutique">🔬 精品店</button>
+        <button class="ush-tab" data-tier="investment">📊 投资公司</button>
+        <button class="ush-tab" data-tier="fund">🛡️ 基金</button>
+        <button class="ush-tab" data-tier="institution">🏛️ 机构</button>
+    </div>
+
+    <div id="tier-retail">
+        <div class="ush-links">
+            <a href="/retail-assistant">→ 散户 AI 助手</a>
+            {% if feature_alpha_marketplace %}
+            <a href="/alpha-marketplace">→ Alpha 贡献市场</a>
+            {% endif %}
+        </div>
+        <div class="ush-grid">
+            <div class="ush-card">
+                <h3>NL → Strategy</h3>
+                <div class="ush-form">
+                    <label>自然语言描述</label>
+                    <textarea id="nlInput" rows="3">当 MACD 金叉且 RSI 低于 40 时买入</textarea>
+                    <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-nl-strategy">生成策略</button>
+                </div>
+                <div class="ush-out" id="nlOut">—</div>
+            </div>
+            <div class="ush-card">
+                <h3>心理追踪报告</h3>
+                <button class="ush-btn ush-btn-primary" type="button" data-ush-action="load-psychology">加载报告</button>
+                <div class="ush-out" id="psyOut">—</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tier-boutique" class="qa-is-hidden">
+        <div class="ush-card">
+            <h3>遗传因子挖掘</h3>
+            <div class="ush-form ush-grid">
+                <div><label>代数</label><input id="fmGen" type="number" value="5" /></div>
+                <div><label>种群</label><input id="fmPop" type="number" value="30" /></div>
+            </div>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-factor-mining">运行挖掘</button>
+            <div class="ush-out" id="fmOut">—</div>
+        </div>
+        <div class="ush-card">
+            <h3>另类数据源</h3>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="load-alt-data">列出数据源</button>
+            <div class="ush-out" id="altOut">—</div>
+        </div>
+    </div>
+
+    <div id="tier-investment" class="qa-is-hidden">
+        <div class="ush-card">
+            <h3>宏观周期识别</h3>
+            <div class="ush-form ush-grid">
+                <div><label>通胀指标</label><input id="macroInflation" type="number" step="0.01" value="0.025" /></div>
+                <div><label>GDP 增速</label><input id="macroGdp" type="number" step="0.01" value="0.04" /></div>
+                <div><label>利率</label><input id="macroRate" type="number" step="0.01" value="0.03" /></div>
+                <div><label>波动率</label><input id="macroVol" type="number" step="0.01" value="0.18" /></div>
+            </div>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-macro">分析宏观政体</button>
+            <div class="ush-out" id="macroOut">—</div>
+        </div>
+        <div class="ush-card">
+            <h3>税后收益优化</h3>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-tax">计算税务结转</button>
+            <div class="ush-out" id="taxOut">—</div>
+        </div>
+    </div>
+
+    <div id="tier-fund" class="qa-is-hidden">
+        <div class="ush-links">
+            <a href="/professional-workbench">→ 专业工作台（归因/合规/流水线）</a>
+        </div>
+        <div class="ush-card">
+            <h3>审计链完整性验证</h3>
+            <div class="ush-form">
+                <label>订单 ID（留空验证全链）</label>
+                <input id="auditOrderId" placeholder="ord.xxxxx 或留空" />
+            </div>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="verify-audit">验证哈希链</button>
+            <div class="ush-out" id="auditOut">—</div>
+        </div>
+    </div>
+
+    <div id="tier-institution" class="qa-is-hidden">
+        <div class="ush-links">
+            <a href="/professional-workbench">→ 专业工作台（执行算法 / RBAC / 联邦）</a>
+        </div>
+        <div class="ush-card">
+            <h3>冲击成本预测</h3>
+            <div class="ush-form ush-grid">
+                <div><label>标的</label><input id="impSymbol" value="600519" /></div>
+                <div><label>订单金额 USD</label><input id="impValue" type="number" value="800000" /></div>
+            </div>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-impact">预测冲击</button>
+            <div class="ush-out" id="impOut">—</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+const ush = {
+    base: '/api/v1/user-tiers',
+    async _fetch(path, opts = {}) {
+        const res = await fetch(this.base + path, {
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            ...opts,
+        });
+        const json = await res.json();
+        if (!json.ok && res.status >= 400) throw new Error(json.error || '请求失败');
+        return json;
+    },
+    _show(id, data) {
+        document.getElementById(id).textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    },
+    async runNlStrategy() {
+        try {
+            const json = await this._fetch('/retail/nl-to-strategy', {
+                method: 'POST',
+                body: JSON.stringify({ input: document.getElementById('nlInput').value, preview_backtest: true }),
+            });
+            this._show('nlOut', { readable: json.readable, strategy: json.data, backtest: json.backtest });
+        } catch (e) { this._show('nlOut', e.message); }
+    },
+    async loadPsychology() {
+        try {
+            const json = await this._fetch('/retail/psychology/report');
+            this._show('psyOut', json.data);
+        } catch (e) { this._show('psyOut', e.message); }
+    },
+    async runFactorMining() {
+        try {
+            const json = await this._fetch('/boutique/factor-mining/run', {
+                method: 'POST',
+                body: JSON.stringify({
+                    generations: +document.getElementById('fmGen').value,
+                    population_size: +document.getElementById('fmPop').value,
+                }),
+            });
+            this._show('fmOut', json.data);
+        } catch (e) { this._show('fmOut', e.message); }
+    },
+    async loadAltData() {
+        try {
+            const json = await this._fetch('/boutique/alt-data/sources');
+            this._show('altOut', json.data);
+        } catch (e) { this._show('altOut', e.message); }
+    },
+    async runMacro() {
+        try {
+            const json = await this._fetch('/investment/macro-regime', {
+                method: 'POST',
+                body: JSON.stringify({
+                    indicators: {
+                        inflation: +document.getElementById('macroInflation').value,
+                        gdp_growth: +document.getElementById('macroGdp').value,
+                        interest_rate: +document.getElementById('macroRate').value,
+                        market_volatility: +document.getElementById('macroVol').value,
+                    },
+                }),
+            });
+            this._show('macroOut', json.data);
+        } catch (e) { this._show('macroOut', e.message); }
+    },
+    async runTax() {
+        try {
+            const json = await this._fetch('/investment/tax-optimize', {
+                method: 'POST',
+                body: JSON.stringify({
+                    trades: [
+                        { symbol: '600519', gain: 12000, holding_days: 400 },
+                        { symbol: '000001', gain: -3000, holding_days: 90 },
+                    ],
+                    tax_rate: 0.2,
+                }),
+            });
+            this._show('taxOut', json.data);
+        } catch (e) { this._show('taxOut', e.message); }
+    },
+    async verifyAudit() {
+        const oid = (document.getElementById('auditOrderId').value || '').trim();
+        try {
+            const path = oid ? `/fund/audit/${encodeURIComponent(oid)}/verify` : '/fund/audit/chain/verify';
+            const json = await this._fetch(path);
+            this._show('auditOut', json.data);
+        } catch (e) { this._show('auditOut', e.message); }
+    },
+    async runImpact() {
+        try {
+            const json = await this._fetch('/institution/impact/forecast', {
+                method: 'POST',
+                body: JSON.stringify({
+                    symbol: document.getElementById('impSymbol').value,
+                    order_value_usd: +document.getElementById('impValue').value,
+                    side: 'buy',
+                }),
+            });
+            this._show('impOut', json.data);
+        } catch (e) { this._show('impOut', e.message); }
+    },
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('ushTabs').addEventListener('click', (e) => {
+        const btn = e.target.closest('.ush-tab');
+        if (!btn) return;
+        document.querySelectorAll('.ush-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        const tier = btn.dataset.tier;
+        ['retail','boutique','investment','fund','institution'].forEach(id => {
+            const el = document.getElementById('tier-' + id);
+            if (el) el.style.display = id === tier ? '' : 'none';
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-ush-action]');
+        if (!el || !el.dataset.ushAction) return;
+        const action = el.dataset.ushAction;
+        const map = {
+            'run-nl-strategy': () => ush.runNlStrategy(),
+            'load-psychology': () => ush.loadPsychology(),
+            'run-factor-mining': () => ush.runFactorMining(),
+            'load-alt-data': () => ush.loadAltData(),
+            'run-macro': () => ush.runMacro(),
+            'run-tax': () => ush.runTax(),
+            'verify-audit': () => ush.verifyAudit(),
+            'run-impact': () => ush.runImpact(),
+        };
+        if (map[action]) map[action]();
+    });
+});
+</script>
+{% endblock %}

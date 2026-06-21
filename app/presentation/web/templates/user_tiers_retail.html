@@ -1,0 +1,83 @@
+{% extends "base.html" %}{% block title %}散户助手{% endblock %}{% block content %}
+<div class="container mt-4">
+  <h2>👤 散户助手</h2>
+  <div class="row mt-3">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">📝 自然语言策略</div>
+        <div class="card-body">
+          <form id="nlForm">
+            <textarea class="form-control" rows="3" placeholder="描述你的交易策略...例如：MACD金叉且价格在200日线之上时买入，设置2%止损"></textarea>
+            <button class="btn btn-primary mt-2" type="submit">生成策略</button>
+          </form>
+          <div id="nlResult" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">🧠 AI 投资教练</div>
+        <div class="card-body">
+          <form id="mentorForm">
+            <input class="form-control" placeholder="输入股票代码">
+            <button class="btn btn-info mt-2" type="submit">获取建议</button>
+          </form>
+          <div id="mentorResult" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mt-3">
+      <div class="card">
+        <div class="card-header">🔁 一键跟单</div>
+        <div class="card-body">
+          <button class="btn btn-success" type="button" data-ut-action="loadCopyTrade">查看跟单组合</button>
+          <div id="copyResult" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mt-3">
+      <div class="card">
+        <div class="card-header">🧘 交易心理</div>
+        <div class="card-body">
+          <button class="btn btn-warning" type="button" data-ut-action="loadPsychology">查看心理报告</button>
+          <div id="psychResult" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script nonce="{{ csp_nonce() }}">
+async function postJSON(url, data) {
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{csrf_token()}}'}, body: JSON.stringify(data||{})});
+  return r.json();
+}
+document.getElementById('nlForm').onsubmit = async e => {
+  e.preventDefault();
+  const text = e.target.querySelector('textarea').value;
+  const r = await postJSON('/api/v1/user-tiers/retail/nl-to-strategy', {input: text});
+  document.getElementById('nlResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+};
+document.getElementById('mentorForm').onsubmit = async e => {
+  e.preventDefault();
+  const sym = e.target.querySelector('input').value;
+  const r = await postJSON('/api/v1/user-tiers/retail/mentor/advise', {symbol: sym});
+  document.getElementById('mentorResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+};
+async function loadCopyTrade() {
+  const r = await fetch('/api/v1/user-tiers/retail/copy-trade/portfolio');
+  const d = await r.json();
+  document.getElementById('copyResult').innerHTML = '<pre>' + JSON.stringify(d, null, 2) + '</pre>';
+}
+async function loadPsychology() {
+  const r = await fetch('/api/v1/user-tiers/retail/psychology/insights');
+  const d = await r.json();
+  document.getElementById('psychResult').innerHTML = '<pre>' + JSON.stringify(d, null, 2) + '</pre>';
+}
+document.addEventListener('click', function (e) {
+  const el = e.target.closest('[data-ut-action]');
+  if (!el) return;
+  const fn = window[el.dataset.utAction];
+  if (typeof fn === 'function') fn();
+});
+</script>
+{% endblock %}

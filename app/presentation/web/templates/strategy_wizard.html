@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>策略向导 - QuantAtlas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy-wizard.css') }}">
+</head>
+<body>
+    <div id="wizard-toast" class="wizard-toast" role="alert"></div>
+    <div class="wizard-container">
+        <h1>策略向导</h1>
+        <p>用 4 步创建一个可预览、可落地的量化策略。</p>
+
+        <div class="step-indicator">
+            <div class="step active" id="step1-tab">1. 选择模板</div>
+            <div class="step" id="step2-tab">2. 配置参数</div>
+            <div class="step" id="step3-tab">3. 风险与预览</div>
+            <div class="step" id="step4-tab">4. 创建策略</div>
+        </div>
+
+        <div class="wizard-step active" id="step1">
+            <h3>选择策略模板</h3>
+            <div id="template-list">正在加载模板...</div>
+            <div class="wizard-nav">
+                <div></div>
+                <button class="btn btn-primary" type="button" data-wizard-action="go-step" data-step="2">下一步</button>
+            </div>
+        </div>
+
+        <div class="wizard-step" id="step2">
+            <h3>配置策略参数</h3>
+            <div id="config-form">请先选择一个模板。</div>
+            <div class="wizard-nav">
+                <button class="btn btn-secondary" type="button" data-wizard-action="go-step" data-step="1">上一步</button>
+                <button class="btn btn-primary" type="button" data-wizard-action="go-step" data-step="3">下一步</button>
+            </div>
+        </div>
+
+        <div class="wizard-step" id="step3">
+            <h3>风险设置与性能预览</h3>
+            <div class="param-group">
+                <label>风险等级</label>
+                <select id="risk_level" class="btn sw-risk-select">
+                    <option value="conservative">保守（低风险）</option>
+                    <option value="moderate" selected>均衡（中等风险）</option>
+                    <option value="aggressive">进取（高收益目标）</option>
+                </select>
+            </div>
+            <button class="btn btn-primary sw-preview-btn" type="button" data-wizard-action="run-preview">执行快速预览</button>
+            <div id="preview-area"></div>
+            <div class="wizard-nav">
+                <button class="btn btn-secondary" type="button" data-wizard-action="go-step" data-step="2">上一步</button>
+                <button class="btn btn-primary" type="button" data-wizard-action="go-step" data-step="4">下一步</button>
+            </div>
+        </div>
+
+        <div class="wizard-step" id="step4">
+            <h3>准备创建</h3>
+            <div class="param-group">
+                <label>策略名称</label>
+                <input type="text" id="strategy_name" placeholder="例如：我的趋势策略">
+            </div>
+            <p>点击“创建策略”后，系统会基于当前模板和参数生成策略实例。</p>
+            <div class="wizard-nav">
+                <button class="btn btn-secondary" type="button" data-wizard-action="go-step" data-step="3">上一步</button>
+                <button class="btn btn-primary" type="button" data-wizard-action="finalize">创建策略</button>
+            </div>
+        </div>
+    </div>
+
+    <script nonce="{{ csp_nonce() }}">
+        let currentStep = 1;
+        let selectedTemplateId = null;
+        let userParams = {};
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[ch]));
+        }
+
+        function showWizardMessage(message, isError = false) {
+            const toast = document.getElementById('wizard-toast');
+            toast.textContent = message;
+            toast.className = isError ? 'wizard-toast error' : 'wizard-toast success';
+        }
+
+        async function wizardFetch(url, options = {}) {
+            const res = await fetch(url, options);
+            const payload = await res.json().catch(() => ({}));
+            const data = payload && payload.success === true && payload.data !== undefined
+                ? payload.data
+                : payload;
+            if (!res.ok) {
+                throw new Error(
+                    payload.error?.message || data.error?.message || data.message || data.error || `HTTP ${res.status}`
+                );
+            }
+            return data;
+        }
+
+        async function loadTemplates() {
+            const list = document.getElementById('template-list');
+            try {
+                list.innerHTML = '正在加载模板...';
+                const data = await wizardFetch('/api/v1/strategy/wizard/templates');
+                list.innerHTML = '';
+                data.templates.forEach(t => {
+                    const card = document.createElement('div');
+                    card.className = 'template-card' + (t.is_recommended ? ' selected' : '');
+                    card.innerHTML = `<strong>${escapeHtml(t.name)}</strong>${t.is_recommended ? ' <span class="sw-badge-ai">AI 推荐</span>' : ''}<br><small>${escapeHtml(t.description)}</small><br><em>${escapeHtml(t.category)} | ${escapeHtml(t.risk_profile)}</em>`;
+                    card.onclick = () => {
+                        document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+                        card.classList.add('selected');
+                        selectedTemplateId = t.id;
+                    };
+                    if (t.is_recommended) selectedTemplateId = t.id;
+                    list.appendChild(card);
+                });
+            } catch (err) {
+                list.innerHTML = '<p class="sw-err">模板加载失败。</p>';
+                showWizardMessage(err.message || '模板加载失败', true);
+            }
+        }
+
+        async function loadConfig() {
+            if (!selectedTemplateId) return;
+            const form = document.getElementById('config-form');
+            try {
+                form.innerHTML = '正在加载参数...';
+                const data = await wizardFetch(`/api/v1/strategy/wizard/template/${selectedTemplateId}`);
+                form.innerHTML = `<h4>${escapeHtml(data.name)}</h4>`;
+                Object.entries(data.default_params || {}).forEach(([key, val]) => {
+                    const group = document.createElement('div');
+                    group.className = 'param-group';
+                    group.innerHTML = `<label>${escapeHtml(key)}</label><input type="text" data-param="${escapeHtml(key)}" value="${escapeHtml(val)}">`;
+                    form.appendChild(group);
+                });
+            } catch (err) {
+                form.innerHTML = '<p class="sw-err">参数加载失败。</p>';
+                showWizardMessage(err.message || '参数加载失败', true);
+            }
+        }
+
+        async function runPreview() {
+            const params = {};
+            document.querySelectorAll('[data-param]').forEach(input => {
+                params[input.dataset.param] = input.value;
+            });
+
+            const area = document.getElementById('preview-area');
+            area.innerHTML = '<p>正在计算预览...</p>';
+            try {
+                const data = await wizardFetch('/api/v1/strategy/wizard/preview', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ template_id: selectedTemplateId, params: params })
+                });
+
+                if (data.status === 'success' && data.metrics) {
+                    const m = data.metrics;
+                    area.innerHTML = `
+                        <div class="preview-results">
+                            <strong>预期表现（1年）</strong>
+                            <div class="metric-grid">
+                                <div class="metric-box"><div class="metric-val">${escapeHtml(m.expected_return)}</div><div class="metric-label">收益</div></div>
+                                <div class="metric-box"><div class="metric-val">${escapeHtml(m.max_drawdown)}</div><div class="metric-label">最大回撤</div></div>
+                                <div class="metric-box"><div class="metric-val">${escapeHtml(m.sharpe_ratio)}</div><div class="metric-label">夏普</div></div>
+                            </div>
+                            ${data.is_synthetic ? '<div class="qc-ux-banner qc-ux-banner--danger" class="sw-synth-banner">⚠ 使用合成数据预览，非真实行情。完整回测请走策略回测引擎。</div>' : ''}
+                            <p class="sw-preview-foot">${escapeHtml(data.warning || '')}</p>
+                        </div>`;
+                } else {
+                    area.innerHTML = `<div class="preview-results"><strong>预览完成</strong><pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre></div>`;
+                }
+                showWizardMessage('预览完成', false);
+            } catch (err) {
+                area.innerHTML = '<p class="sw-err">预览失败。</p>';
+                showWizardMessage(err.message || '预览失败', true);
+            }
+        }
+
+        async function finalizeStrategy() {
+            const name = document.getElementById('strategy_name').value || '未命名策略';
+            const risk = document.getElementById('risk_level').value;
+            const params = {};
+            document.querySelectorAll('[data-param]').forEach(input => {
+                params[input.dataset.param] = input.value;
+            });
+
+            try {
+                const data = await wizardFetch('/api/v1/strategy/wizard/create', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        template_id: selectedTemplateId,
+                        params: params,
+                        risk_settings: { risk_level: risk, name: name }
+                    })
+                });
+                if (data.status === 'created') {
+                    showWizardMessage('策略创建成功：' + data.strategy_id, false);
+                    window.location.href = '/strategies';
+                } else {
+                    showWizardMessage(data.message || '策略创建失败', true);
+                }
+            } catch (err) {
+                showWizardMessage(err.message || '策略创建失败', true);
+            }
+        }
+
+        function goToStep(step) {
+            if (step === 2 && !selectedTemplateId) {
+                showWizardMessage('请先选择一个模板。', true);
+                return;
+            }
+            if (step === 2) loadConfig();
+
+            document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+
+            document.getElementById('step' + step).classList.add('active');
+            document.getElementById('step' + step + '-tab').classList.add('active');
+            currentStep = step;
+        }
+
+        loadTemplates();
+
+        document.addEventListener('click', function (ev) {
+            const el = ev.target.closest('[data-wizard-action]');
+            if (!el) return;
+            const action = el.dataset.wizardAction;
+            if (action === 'go-step') goToStep(Number(el.dataset.step));
+            else if (action === 'run-preview') runPreview();
+            else if (action === 'finalize') finalizeStrategy();
+        });
+    </script>
+</body>
+</html>

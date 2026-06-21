@@ -1,0 +1,767 @@
+{% extends "base.html" %}
+
+{% block title %}市场全景 - A股量化监控{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --color-red: #f5222d;
+        --color-green: #52c41a;
+        --color-blue: #1890ff;
+        --color-orange: #fa8c16;
+        --bg-light: #fafafa;
+        --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    
+    body {
+        background-color: var(--bg-light);
+    }
+    
+    .panel {
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+    
+    .panel-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .panel-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #262626;
+        display: flex;
+        align-items: center;
+    }
+    
+    .panel-title span:first-child {
+        margin-right: 8px;
+    }
+    
+    .panel-actions {
+        display: flex;
+        align-items: center;
+    }
+    
+    .btn-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 8px;
+        border-radius: 4px;
+        transition: all 0.3s;
+    }
+    
+    .btn-icon:hover {
+        background: #f0f0f0;
+    }
+    
+    .time-badge {
+        font-size: 12px;
+        color: #8c8c8c;
+        padding: 4px 8px;
+        background: #f5f5f5;
+        border-radius: 4px;
+        margin-right: 12px;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    th, td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    th {
+        background: #fafafa;
+        font-weight: 600;
+        color: #262626;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+    }
+    
+    th:hover {
+        background: #f0f0f0;
+    }
+    
+    th.sortable::after {
+        content: ' ▼';
+        font-size: 10px;
+        color: #8c8c8c;
+        margin-left: 4px;
+    }
+    
+    th.sortable.asc::after {
+        content: ' ▲';
+    }
+    
+    tr:hover {
+        background: #fafafa;
+    }
+    
+    .positive {
+        color: var(--color-red);
+    }
+    
+    .negative {
+        color: var(--color-green);
+    }
+    
+    .stock-link {
+        cursor: pointer;
+        text-decoration: none;
+        color: #262626;
+    }
+    
+    .stock-link:hover {
+        color: var(--color-blue);
+        text-decoration: underline;
+    }
+    
+    .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: #8c8c8c;
+    }
+    
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f0f0f0;
+        border-top: 4px solid var(--color-blue);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+        color: #8c8c8c;
+    }
+    
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+    
+    .filter-buttons {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    
+    .filter-btn {
+        padding: 6px 12px;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    
+    .filter-btn:hover {
+        border-color: var(--color-blue);
+        color: var(--color-blue);
+    }
+    
+    .filter-btn.active {
+        background: var(--color-blue);
+        color: white;
+        border-color: var(--color-blue);
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 24px;
+        gap: 8px;
+    }
+    
+    .page-btn {
+        padding: 6px 12px;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    
+    .page-btn:hover {
+        border-color: var(--color-blue);
+        color: var(--color-blue);
+    }
+    
+    .page-btn.active {
+        background: var(--color-blue);
+        color: white;
+        border-color: var(--color-blue);
+    }
+    
+    .page-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    
+    .summary-stat {
+        background: white;
+        border-radius: 8px;
+        padding: 16px;
+        box-shadow: var(--shadow-sm);
+        text-align: center;
+    }
+    
+    .summary-stat-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--color-blue);
+        margin-bottom: 4px;
+    }
+    
+    .summary-stat-label {
+        font-size: 14px;
+        color: #8c8c8c;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- 市场统计 -->
+    <div class="summary-stats">
+        <div class="summary-stat">
+            <div class="summary-stat-value" id="totalStocks">--</div>
+            <div class="summary-stat-label">总股票数</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value positive" id="limitUp">--</div>
+            <div class="summary-stat-label">涨停</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value positive" id="upStocks">--</div>
+            <div class="summary-stat-label">上涨</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value" id="flatStocks">--</div>
+            <div class="summary-stat-label">平盘</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value negative" id="downStocks">--</div>
+            <div class="summary-stat-label">下跌</div>
+        </div>
+        <div class="summary-stat">
+            <div class="summary-stat-value negative" id="limitDown">--</div>
+            <div class="summary-stat-label">跌停</div>
+        </div>
+    </div>
+    
+    <!-- 过滤器 -->
+    <div class="panel mb-4">
+        <div class="panel-header">
+            <div class="panel-title">
+                <span>🔍</span>
+                <span>市场过滤</span>
+            </div>
+            <div class="panel-actions">
+                <div class="time-badge" id="lastUpdate">--</div>
+                <button class="btn-icon" onclick="loadMarketData()" title="刷新">
+                    🔄
+                </button>
+            </div>
+        </div>
+        <div class="filter-buttons p-4" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <button class="filter-btn active" onclick="setFilter('all')">全部</button>
+            <button class="filter-btn" onclick="setFilter('limit_up')">涨停</button>
+            <button class="filter-btn" onclick="setFilter('up')">上涨</button>
+            <button class="filter-btn" onclick="setFilter('flat')">平盘</button>
+            <button class="filter-btn" onclick="setFilter('down')">下跌</button>
+            <button class="filter-btn" onclick="setFilter('limit_down')">跌停</button>
+            <div style="margin-left: 12px; padding-left: 12px; border-left: 1px solid #e8e8e8;">
+                <label style="margin-right: 8px; font-size: 14px; color: #8c8c8c;">分组:</label>
+                <select id="groupFilter" style="padding: 6px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px;" onchange="loadMarketData()">
+                    <option value="all">全市场</option>
+                    <option value="self">自选股</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 股票列表 -->
+    <div class="panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <span>📊</span>
+                <span>全市场股票列表</span>
+                <span style="font-size: 14px; font-weight: 500; color: #8c8c8c; margin-left: 8px;" id="stockCount">--</span>
+            </div>
+        </div>
+        <div class="table-container">
+            <table id="stockTable">
+                <thead>
+                    <tr>
+                        <th class="sortable" onclick="sortTable('code')">股票代码</th>
+                        <th class="sortable" onclick="sortTable('name')">股票名称</th>
+                        <th class="sortable" onclick="sortTable('price')">现价</th>
+                        <th class="sortable" onclick="sortTable('change_pct')">涨幅</th>
+                        <th class="sortable" onclick="sortTable('change_amount')">涨跌额</th>
+                        <th class="sortable" onclick="sortTable('amount')">成交额</th>
+                        <th class="sortable" onclick="sortTable('volume')">成交量</th>
+                        <th class="sortable" onclick="sortTable('volume_ratio')">量比</th>
+                        <th class="sortable" onclick="sortTable('turnover')">换手率</th>
+                        <th class="sortable" onclick="sortTable('amplitude')">振幅</th>
+                        <th class="sortable" onclick="sortTable('pe')">市盈率-动态</th>
+                        <th class="sortable" onclick="sortTable('pb')">市净率</th>
+                        <th class="sortable" onclick="sortTable('total_market_cap')">总市值</th>
+                        <th class="sortable" onclick="sortTable('circulating_market_cap')">流通市值</th>
+                        <th class="sortable" onclick="sortTable('prev_close')">昨收</th>
+                        <th>涨停原因类型</th>
+                        <th>近期指标指示</th>
+                        <th>细分行业</th>
+                        <th>首次涨停时间</th>
+                        <th>最终涨停时间</th>
+                    </tr>
+                </thead>
+                <tbody id="stockTableBody">
+                    <tr>
+                        <td colspan="20" class="loading-container">
+                            <div class="loading-spinner"></div>
+                            <div>正在加载全市场数据...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination" id="pagination">
+            <!-- 分页按钮将通过 JavaScript 生成 -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allStocks = [];
+let filteredStocks = [];
+let currentPage = 1;
+const pageSize = 50;
+let currentFilter = 'all';
+let sortField = 'change_pct';
+let sortOrder = 'desc';
+let groups = [];
+
+// 加载分组列表
+function loadGroups(callback) {
+    $.ajax({
+        url: '/api/v1/stock-groups',
+        method: 'GET',
+        success: function(response) {
+            if (!response.status || response.status === 'success') {
+                groups = response.groups || [];
+                const groupFilter = $('#groupFilter');
+                // 保留默认选项
+                groupFilter.html('<option value="all">全市场</option><option value="self">自选股</option>');
+                
+                // 添加自定义分组
+                (response.groups || []).forEach(function(group) {
+                    if (group.name !== '自选股') {
+                        groupFilter.append(`<option value="group-${group.id}">${group.name}</option>`);
+                    }
+                });
+                if (callback) {
+                    callback();
+                }
+            }
+        },
+        error: function() {
+            console.error('加载分组失败');
+            if (callback) {
+                callback();
+            }
+        }
+    });
+}
+
+// 加载市场数据
+function loadMarketData() {
+    const groupFilter = $('#groupFilter').val();
+    let url = '/api/v1/markets/CN/quotes';
+    
+    // 根据选择的分组设置不同的 API 路径
+    if (groupFilter === 'self') {
+        // 获取自选股分组的ID
+        let selfGroupId = null;
+        for (let i = 0; i < groups.length; i++) {
+            if (groups[i].name === '自选股') {
+                selfGroupId = groups[i].id;
+                break;
+            }
+        }
+        if (selfGroupId) {
+            url = `/api/v1/stock-groups/${selfGroupId}/stocks`;
+        }
+    } else if (groupFilter.startsWith('group-')) {
+        const groupId = groupFilter.split('-')[1];
+        url = `/api/v1/stock-groups/${groupId}/stocks`;
+    }
+    
+    // 显示加载状态
+    $('#stockTableBody').html(`
+        <tr>
+            <td colspan="20" class="loading-container">
+                <div class="loading-spinner"></div>
+                <div>正在加载数据...</div>
+            </td>
+        </tr>
+    `);
+    
+    $.ajax({
+        url: url,
+        method: 'GET',
+        dataType: 'json',
+        timeout: 30000, // 30秒超时
+        success: function(response) {
+            const stocks = response.stocks || [];
+            if (!response.status || response.status === 'success') {
+                allStocks = stocks;
+                filteredStocks = allStocks;
+                updateStats(stocks);
+                
+                // 更新过滤器按钮状态
+                updateFilterButtons();
+                
+                // 应用过滤器（如果有）
+                if (currentFilter !== 'all') {
+                    applyFilter();
+                } else {
+                    renderTable();
+                    renderPagination();
+                }
+                
+                // 显示数据来源和时间
+                const dataSource = response.data_source === 'cache' ? '缓存' : '实时';
+                const asyncStatus = response.async_updating ? ' (后台更新中...)' : '';
+                $('#lastUpdate').text(`${new Date().toLocaleTimeString()} ${dataSource}${asyncStatus}`);
+                $('#stockCount').text(`(${filteredStocks.length} 只)`);
+            } else {
+                showError(response.message || '加载失败');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('加载失败:', status, error);
+            let errorMsg = '加载失败，请重试';
+            if (status === 'timeout') {
+                errorMsg = '加载超时，请刷新页面重试';
+            } else if (xhr.responseText) {
+                try {
+                    const resp = JSON.parse(xhr.responseText);
+                    errorMsg = resp.message || errorMsg;
+                } catch(e) {
+                    errorMsg = `服务器错误: ${xhr.status}`;
+                }
+            }
+            showError(errorMsg);
+        }
+    });
+}
+
+// 显示错误信息
+function showError(message) {
+    $('#stockTableBody').html(`
+        <tr>
+            <td colspan="20" class="empty-state">
+                <div class="empty-icon">😕</div>
+                <div class="empty-text">${message}</div>
+                <button class="filter-btn mt-3" onclick="loadMarketData()">重新加载</button>
+            </td>
+        </tr>
+    `);
+}
+
+// 更新过滤器按钮状态
+function updateFilterButtons() {
+    $('.filter-btn').removeClass('active');
+    const filterText = getFilterText(currentFilter);
+    $(`.filter-btn`).each(function() {
+        if ($(this).text() === filterText) {
+            $(this).addClass('active');
+        }
+    });
+}
+
+// 更新统计数据
+function updateStats(stocks) {
+    const total = stocks.length;
+    const limitUp = stocks.filter(s => s.change_pct >= 9.9).length;
+    const up = stocks.filter(s => s.change_pct > 0).length;
+    const flat = stocks.filter(s => s.change_pct === 0).length;
+    const down = stocks.filter(s => s.change_pct < 0).length;
+    const limitDown = stocks.filter(s => s.change_pct <= -9.9).length;
+    
+    $('#totalStocks').text(total);
+    $('#limitUp').text(limitUp);
+    $('#upStocks').text(up);
+    $('#flatStocks').text(flat);
+    $('#downStocks').text(down);
+    $('#limitDown').text(limitDown);
+}
+
+// 设置过滤器
+function setFilter(filter) {
+    currentFilter = filter;
+    currentPage = 1;
+    
+    // 更新按钮状态
+    $('.filter-btn').removeClass('active');
+    $(`.filter-btn:contains('${getFilterText(filter)}')`).addClass('active');
+    
+    // 应用过滤
+    applyFilter();
+}
+
+// 获取过滤器文本
+function getFilterText(filter) {
+    const filterMap = {
+        'all': '全部',
+        'limit_up': '涨停',
+        'up': '上涨',
+        'flat': '平盘',
+        'down': '下跌',
+        'limit_down': '跌停'
+    };
+    return filterMap[filter] || '全部';
+}
+
+// 应用过滤
+function applyFilter() {
+    switch (currentFilter) {
+        case 'limit_up':
+            filteredStocks = allStocks.filter(s => s.change_pct >= 9.9);
+            break;
+        case 'up':
+            filteredStocks = allStocks.filter(s => s.change_pct > 0 && s.change_pct < 29.9);
+            break;
+        case 'flat':
+            filteredStocks = allStocks.filter(s => s.change_pct === 0);
+            break;
+        case 'down':
+            filteredStocks = allStocks.filter(s => s.change_pct < 0 && s.change_pct > -29.9);
+            break;
+        case 'limit_down':
+            filteredStocks = allStocks.filter(s => s.change_pct <= -9.9);
+            break;
+        default:
+            filteredStocks = allStocks;
+    }
+    
+    renderTable();
+    renderPagination();
+    $('#stockCount').text(`(${filteredStocks.length} 只)`);
+}
+
+// 排序表格
+function sortTable(field) {
+    // 切换排序顺序
+    if (sortField === field) {
+        sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        sortField = field;
+        sortOrder = 'desc';
+    }
+    
+    // 更新排序图标
+    $('.sortable').removeClass('asc');
+    if (sortOrder === 'asc') {
+        $(`th:contains('${getFieldText(field)}')`).addClass('asc');
+    }
+    
+    // 排序数据
+    filteredStocks.sort((a, b) => {
+        let aVal = a[field] || 0;
+        let bVal = b[field] || 0;
+        
+        if (typeof aVal === 'string') {
+            aVal = aVal.toLowerCase();
+            bVal = bVal.toLowerCase();
+        }
+        
+        if (sortOrder === 'asc') {
+            return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        } else {
+            return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+        }
+    });
+    
+    renderTable();
+}
+
+// 获取字段文本
+function getFieldText(field) {
+    const fieldMap = {
+        'code': '股票代码',
+        'name': '股票名称',
+        'price': '现价',
+        'change_pct': '涨幅',
+        'amount': '成交额',
+        'volume': '成交量',
+        'turnover': '换手率',
+        'prev_close': '昨收'
+    };
+    return fieldMap[field] || field;
+}
+
+// 渲染表格
+function renderTable() {
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const pageStocks = filteredStocks.slice(start, end);
+    
+    if (pageStocks.length === 0) {
+        $('#stockTableBody').html(`
+            <tr>
+                <td colspan="20" class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <div class="empty-text">暂无数据</div>
+                </td>
+            </tr>
+        `);
+        return;
+    }
+    
+    let html = '';
+    pageStocks.forEach(function(stock) {
+        const changeClass = stock.change_pct >= 0 ? 'positive' : 'negative';
+        const changeSign = stock.change_pct >= 0 ? '+' : '';
+        
+        html += `
+        <tr>
+            <td><a href="/stock/${stock.code}" class="stock-link">${stock.code}</a></td>
+            <td><a href="/stock/${stock.code}" class="stock-link">${stock.name}</a></td>
+            <td>¥${(stock.price || 0).toFixed(2)}</td>
+            <td class="${changeClass}">${changeSign}${(stock.change_pct || 0).toFixed(2)}%</td>
+            <td class="${changeClass}">${changeSign}${(stock.change_amount || 0).toFixed(2)}</td>
+            <td>${formatAmount(stock.amount || 0)}</td>
+            <td>${formatAmount(stock.volume || 0)}</td>
+            <td>${(stock.volume_ratio || 1.0).toFixed(2)}</td>
+            <td>${(stock.turnover || 0).toFixed(2)}%</td>
+            <td>${(stock.amplitude || 0).toFixed(2)}%</td>
+            <td>${(stock.pe || 0).toFixed(2)}</td>
+            <td>${(stock.pb || 0).toFixed(2)}</td>
+            <td>${formatAmount(stock.total_market_cap || 0)}</td>
+            <td>${formatAmount(stock.circulating_market_cap || 0)}</td>
+            <td>¥${(stock.prev_close || 0).toFixed(2)}</td>
+            <td>${stock.limit_up_reason || '-'}</td>
+            <td>${getStrategyIndicators(stock)}</td>
+            <td>${stock.industry || '-'}</td>
+            <td>${stock.first_limit_up_time || '-'}</td>
+            <td>${stock.final_limit_up_time || '-'}</td>
+        </tr>
+        `;
+    });
+    
+    $('#stockTableBody').html(html);
+}
+
+// 渲染分页
+function renderPagination() {
+    const totalPages = Math.ceil(filteredStocks.length / pageSize);
+    let html = '';
+    
+    // 上一页
+    html += `<button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>`;
+    
+    // 页码
+    for (let i = 1; i <= totalPages; i++) {
+        if (i <= 5 || (i > currentPage - 3 && i < currentPage + 3) || i >= totalPages - 4) {
+            html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})"><strong>${i}</strong></button>`;
+        } else if (i === 6 || i === totalPages - 5) {
+            html += `<button class="page-btn" disabled>...</button>`;
+        }
+    }
+    
+    // 下一页
+    html += `<button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>`;
+    
+    $('#pagination').html(html);
+}
+
+// 改变页码
+function changePage(page) {
+    if (page < 1 || page > Math.ceil(filteredStocks.length / pageSize)) {
+        return;
+    }
+    currentPage = page;
+    renderTable();
+    renderPagination();
+}
+
+// 格式化金额
+function formatAmount(amount) {
+    if (amount >= 100000000) {
+        return (amount / 100000000).toFixed(2) + '亿';
+    } else if (amount >= 10000) {
+        return (amount / 10000).toFixed(2) + '万';
+    }
+    return amount.toFixed(0);
+}
+
+// 获取策略指标指示
+function getStrategyIndicators(stock) {
+    // 这里可以根据实际的策略逻辑返回指标指示
+    return '中性';
+}
+
+// 初始化
+$(document).ready(function() {
+    // 从 URL 获取过滤器参数
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterParam = urlParams.get('filter');
+    if (filterParam) {
+        currentFilter = filterParam;
+    }
+    
+    // 先加载分组列表，再加载市场数据
+    loadGroups(function() {
+        loadMarketData();
+    });
+});
+</script>
+{% endblock %}

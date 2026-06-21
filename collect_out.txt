@@ -1,0 +1,388 @@
+﻿tests/agents/test_debate_bus.py: 2
+tests/agents/test_rdagent_artifact_registry.py: 1
+tests/agents/test_rdagent_job_store.py: 1
+tests/agents/test_rdagent_submission_validate.py: 4
+tests/agents/test_topology_compiler.py: 2
+tests/agents/test_topology_loader.py: 2
+tests/agents/test_topology_save.py: 1
+tests/ai_agent/test_ai_chat_service_dynamic_tools.py: 4
+tests/api/test_api_contract.py: 5
+tests/api/test_api_endpoints.py: 2
+tests/api/test_api_error_handlers.py: 7
+tests/api/test_api_qlib_gate.py: 1
+tests/api/test_api_with_login.py: 1
+tests/api/test_auth_login_flow.py: 1
+tests/api/test_endpoints.py: 1
+tests/api/test_error_codes.py: 5
+tests/api/test_frontend_api.py: 1
+tests/api/test_market_api.py: 3
+tests/api/test_phase26_health_tdx_deps.py: 2
+tests/api/test_phase27_factor_lifecycle_health.py: 4
+tests/api/test_phase45_ui_opt_workbench.py: 7
+tests/api/test_phase47_48_ui_opt.py: 6
+tests/api/test_phase50_compare_preflight.py: 7
+tests/api/test_phase51_task_feedback.py: 4
+tests/api/test_phase55_focus_context.py: 4
+tests/api/test_phase57_task_stream.py: 4
+tests/api/test_phase58_decision_discovery.py: 5
+tests/api/test_phase60_task_preload.py: 4
+tests/api/test_phase61_decision_brief.py: 3
+tests/api/test_phase62_ux_contract.py: 3
+tests/api/test_phase_e_provenance.py: 2
+tests/api/test_phase_f_degraded_response.py: 4
+tests/api/test_request_parsers.py: 5
+tests/api/test_research_pipeline_and_gate.py: 5
+tests/api/test_response_builders.py: 4
+tests/api/test_response_format.py: 7
+tests/api/test_route_deps.py: 4
+tests/api/test_route_deps_data_optimizer.py: 1
+tests/api/test_route_deps_fingpt_recommendation.py: 3
+tests/api/test_route_deps_infra_memory.py: 4
+tests/api/test_route_deps_portfolio.py: 2
+tests/api/test_route_deps_portfolio_routes.py: 3
+tests/api/test_workflow_stream.py: 2
+tests/application/test_agent_platform.py: 30
+tests/application/test_agent_topology_service.py: 1
+tests/application/test_alert_center_cross_team.py: 2
+tests/application/test_arbiter_review_learning.py: 2
+tests/application/test_auth_register_public.py: 3
+tests/application/test_basic_market_longhu_backfill.py: 2
+tests/application/test_behavior_topology.py: 2
+tests/application/test_behavior_topology_guardian.py: 1
+tests/application/test_borderless_execution_service.py: 6
+tests/application/test_collaboration_service.py: 2
+tests/application/test_cross_team_meta_learning_service.py: 3
+tests/application/test_data_backfill_tasks.py: 3
+tests/application/test_data_router_mysql_history.py: 7
+tests/application/test_data_truth_guardian_service.py: 4
+tests/application/test_debate_arbiter_llm.py: 2
+tests/application/test_debate_arbiter_service.py: 1
+tests/application/test_decision_replay_space_service.py: 2
+tests/application/test_decision_theater_service.py: 1
+tests/application/test_decision_trace_and_module_wiring.py: 2
+tests/application/test_enhanced_market_audit.py: 2
+tests/application/test_evidence_graph_service.py: 1
+tests/application/test_evidence_replay_service.py: 1
+tests/application/test_factor_catalog_export.py: 1
+tests/application/test_factor_ic_autopublish_merge.py: 1
+tests/application/test_factor_ic_task.py: 3
+tests/application/test_factor_monitor_summary.py: 1
+tests/application/test_hot_sector_storage_service.py: 2
+tests/application/test_hyper_simulator_service.py: 4
+tests/application/test_intent_decomposer.py: 3
+tests/application/test_jarvis_proactive.py: 1
+tests/application/test_jarvis_semantic_router.py: 3
+tests/application/test_live_research_document.py: 2
+tests/application/test_llm_config_unified.py: 1
+tests/application/test_llm_provider_convergence.py: 6
+tests/application/test_meta_arbiter_service.py: 3
+tests/application/test_narrative_synthesis_service.py: 4
+tests/application/test_news_backfill_tasks.py: 1
+tests/application/test_ohlcv_incremental_policy.py: 5
+tests/application/test_page_preference_layout.py: 1
+tests/application/test_phase24_hot_sector_history_validation.py: 5
+tests/application/test_phase25_tdx_hot_sector_decay.py: 2
+tests/application/test_phase33_unified_attribution.py: 2
+tests/application/test_phase34_alert_center.py: 3
+tests/application/test_phase35_strategy_snapshots.py: 6
+tests/application/test_phase36_sdk_facade.py: 5
+tests/application/test_phase40_alert_notification.py: 8
+tests/application/test_phase42_strategy_snapshot_v3.py: 6
+tests/application/test_phase4_decision_feedback.py: 3
+tests/application/test_phase52_alignment_sampling.py: 7
+tests/application/test_phase53_hypothesis_analysis.py: 6
+tests/application/test_phase54_market_fact_trace.py: 6
+tests/application/test_phase56_data_coverage.py: 4
+tests/application/test_phase59_timeline_sandbox.py: 3
+tests/application/test_phase64_workflow_hub_refactor.py: 3
+tests/application/test_phase65_microkernel_personalization.py: 5
+tests/application/test_phase66_user_spectrum.py: 4
+tests/application/test_phase68_federated.py: 4
+tests/application/test_pool_and_ai_services.py: 2
+tests/application/test_prediction_selection.py: 3
+tests/application/test_prompt_evolution_service.py: 5
+tests/application/test_qlib_pipeline.py: 5
+tests/application/test_qlib_service.py: 2
+tests/application/test_quant_tools.py: 8
+tests/application/test_quant_tools_agent_suffix.py: 2
+tests/application/test_request_executor.py: 4
+tests/application/test_research_roles.py: 16
+tests/application/test_scanner_lifecycle.py: 1
+tests/application/test_scanner_once.py: 3
+tests/application/test_scenario_optimizer_service.py: 3
+tests/application/test_scheduled_cn_history_daily.py: 5
+tests/application/test_sequence_chain_team_scope.py: 2
+tests/application/test_simulation_gateway_service.py: 5
+tests/application/test_smart_briefing_narrative.py: 1
+tests/application/test_sprint6_ai_and_context.py: 3
+tests/application/test_strategy_copilot_service.py: 1
+tests/application/test_tdx_dayk_sync_factory.py: 5
+tests/application/test_team_blackboard_realtime.py: 1
+tests/application/test_team_blackboard_service.py: 3
+tests/application/test_team_workflow_service.py: 3
+tests/application/test_timescale_dayk_dual_write.py: 3
+tests/application/test_trading_bot_execution_driver.py: 2
+tests/application/test_trading_risk_and_trace.py: 3
+tests/application/test_trading_workflow.py: 14
+tests/application/test_user_lifecycle_sql.py: 1
+tests/application/test_voice_briefing_service.py: 2
+tests/bootstrap/test_bootstrap_components.py: 2
+tests/bootstrap/test_diagnosis_report_wiring.py: 1
+tests/bootstrap/test_factory_helpers.py: 1
+tests/bootstrap/test_phase31_runtime_config_validator.py: 6
+tests/bootstrap/test_phase32_celery_autodiscover.py: 4
+tests/bootstrap/test_phase41_alert_beat.py: 2
+tests/bootstrap/test_registry_baseline.py: 2
+tests/bootstrap/test_security_headers.py: 2
+tests/bootstrap/test_service_loader.py: 3
+tests/bootstrap/test_service_readiness.py: 2
+tests/bootstrap/test_user_service_di.py: 1
+tests/bootstrap/test_watchlist_signal_flag_wiring.py: 4
+tests/contract/test_api_integrity.py: 3
+tests/contract/test_market_facade_contract.py: 1
+tests/core/test_alpha_governance_vote_history.py: 1
+tests/core/test_application_event_forwarded.py: 1
+tests/core/test_circuit_breaker.py: 22
+tests/core/test_context_module_manifest.py: 2
+tests/core/test_degraded_context.py: 4
+tests/core/test_distributed_event_bus.py: 4
+tests/core/test_event_bridge.py: 4
+tests/core/test_event_bus_priority_ttl.py: 4
+tests/core/test_event_serialization.py: 5
+tests/core/test_llm_observability.py: 13
+tests/core/test_mesh_agent_discovery.py: 3
+tests/core/test_modules_shim.py: 1
+tests/core/test_password_hash.py: 17
+tests/core/test_phase7_capability_data.py: 19
+tests/core/test_rate_limiter.py: 4
+tests/core/test_runtime_config_redis.py: 4
+tests/core/test_secure_share_token.py: 3
+tests/core/test_sequence_chain.py: 3
+tests/domain/test_aggregates.py: 25
+tests/domain/test_alpha_metadata_standard.py: 4
+tests/domain/test_byzantine_consensus.py: 3
+tests/domain/test_comprehensive.py: 17
+tests/domain/test_domain_models.py: 12
+tests/domain/test_domain_services.py: 24
+tests/domain/test_events.py: 18
+tests/domain/test_market_data_bus.py: 17
+tests/domain/test_market_regime_service.py: 12
+tests/domain/test_new_architecture.py: 9
+tests/domain/test_order_state_machine.py: 16
+tests/domain/test_phase_10_hot_swap.py: 3
+tests/domain/test_pre_trade_preflight_service.py: 15
+tests/domain/test_strategy_plugin.py: 12
+tests/domain/test_strategy_pool.py: 8
+tests/domain/test_topology_schema.py: 3
+tests/domain/test_trade_outcome_review_service.py: 10
+tests/facade/test_ai_facade.py: 5
+tests/facade/test_application_facade_entry.py: 1
+tests/facade/test_backtest_facade.py: 6
+tests/facade/test_facade_dtos.py: 5
+tests/facade/test_market_facade.py: 9
+tests/infrastructure/agent/swarm/test_command_safety.py: 6
+tests/infrastructure/providers/test_external_news.py: 1
+tests/infrastructure/providers/test_fundamentals.py: 3
+tests/infrastructure/providers/test_indicators.py: 2
+tests/infrastructure/providers/test_industry.py: 1
+tests/infrastructure/providers/test_market_data.py: 4
+tests/infrastructure/providers/test_msn.py: 1
+tests/infrastructure/providers/test_news.py: 2
+tests/infrastructure/providers/test_tdx.py: 1
+tests/infrastructure/providers/test_tdx_files.py: 1
+tests/infrastructure/providers/test_web_search.py: 1
+tests/infrastructure/pytdx/test_pytdx_catalog.py: 2
+tests/infrastructure/pytdx/test_pytdx_live.py: 2
+tests/infrastructure/repositories/mysql/test_mysql_tdx_dayk_repository_ddl_locks.py: 4
+tests/infrastructure/test_arrow_client.py: 6
+tests/infrastructure/test_arrow_compute.py: 10
+tests/infrastructure/test_cn_ohlcv_merge.py: 1
+tests/infrastructure/test_cn_portal_news.py: 1
+tests/infrastructure/test_cn_sse_calendar.py: 2
+tests/infrastructure/test_cn_tdx_provider.py: 3
+tests/infrastructure/test_cn_ths_sectors_fetch.py: 3
+tests/infrastructure/test_csv_qlib_providers.py: 5
+tests/infrastructure/test_execution_driver.py: 5
+tests/infrastructure/test_factor_expression_gate.py: 4
+tests/infrastructure/test_jqka_news.py: 4
+tests/infrastructure/test_jwt_token_service.py: 3
+tests/infrastructure/test_legacy_tdx_adapter.py: 1
+tests/infrastructure/test_market_provider_fallback.py: 6
+tests/infrastructure/test_market_provider_instance_state.py: 1
+tests/infrastructure/test_market_provider_quote_gateway.py: 1
+tests/infrastructure/test_mysql_connection.py: 1
+tests/infrastructure/test_mysql_dayk_read_export.py: 3
+tests/infrastructure/test_mysql_history_reload_tables.py: 2
+tests/infrastructure/test_mysql_repository_ports.py: 6
+tests/infrastructure/test_news_archive_repository.py: 1
+tests/infrastructure/test_oauth_provider.py: 1
+tests/infrastructure/test_oauth_user_repository.py: 1
+tests/infrastructure/test_ollama_prompt_adapter.py: 1
+tests/infrastructure/test_phase11_adapters.py: 17
+tests/infrastructure/test_providers_all.py: 17
+tests/infrastructure/test_qfq_hfq_calculator.py: 1
+tests/infrastructure/test_qlib_gate_benchmark.py: 1
+tests/infrastructure/test_realtime_stream.py: 8
+tests/infrastructure/test_smart_degrade_gateway.py: 2
+tests/infrastructure/test_stock_cache_injection.py: 3
+tests/infrastructure/test_symbol_normalizer.py: 6
+tests/infrastructure/test_task_message_store.py: 1
+tests/infrastructure/test_tdx_adapter.py: 1
+tests/infrastructure/test_tdx_block.py: 2
+tests/infrastructure/test_tdx_local_reader.py: 3
+tests/infrastructure/test_tdx_paths.py: 2
+tests/infrastructure/test_tencent_quote_gateway.py: 1
+tests/infrastructure/test_tencent_quote_mapper.py: 4
+tests/infrastructure/test_timescale_ohlcv_package.py: 3
+tests/infrastructure/test_truth_sentry.py: 1
+tests/infrastructure/test_unified_data_truth.py: 3
+tests/infrastructure/test_user_repository_port.py: 3
+tests/infrastructure/test_xdxr_cache.py: 1
+tests/integration/test_adata_api.py: 4
+tests/integration/test_api_availability.py: 3
+tests/integration/test_integration.py: 14
+tests/integration/test_investment_committee.py: 5
+tests/integration/test_jarvis_phase13_integration.py: 2
+tests/integration/test_mesh_multi_node.py: 2
+tests/integration/test_p0_infrastructure.py: 4
+tests/integration/test_rust_integration.py: 1
+tests/integration/test_task_layer_boundaries.py: 1
+tests/integration/test_v1_v9_acceptance_smoke.py: 12
+tests/modules/ai_agent/test_prompt_trace.py: 2
+tests/modules/ai_agent/test_prompt_versioning.py: 2
+tests/modules/data/test_sync_service.py: 5
+tests/modules/execution/test_trade_pipeline.py: 3
+tests/modules/market_data/test_market_service_core.py: 3
+tests/modules/market_data/test_market_service_fetch.py: 2
+tests/modules/market_data/test_quote_fetch_policy.py: 2
+tests/modules/portfolio/test_portfolio_service.py: 4
+tests/modules/strategy/test_backtest_service_core.py: 3
+tests/modules/strategy/test_strategy_wizard_service_nested.py: 1
+tests/modules/strategy/test_vectorbt_adapter.py: 2
+tests/modules/user/test_auth_service.py: 9
+tests/modules/user/test_user_service.py: 16
+tests/perf/test_smoke_benchmark.py: 3
+tests/perf/test_update_baseline_doc.py: 2
+tests/presentation/api/test_dto_validation_injection.py: 1
+tests/presentation/api/test_portfolio_dispatcher.py: 2
+tests/presentation/api/test_portfolio_users_dispatcher.py: 3
+tests/presentation/api/test_quant_ai_dispatcher.py: 2
+tests/presentation/api/test_trade_plan_dispatcher.py: 2
+tests/presentation/api/test_v1_dispatchers.py: 50
+tests/presentation/api/v1/factor/test_helpers.py: 3
+tests/presentation/api/v1/portfolio_users/test_runtime.py: 2
+tests/presentation/api/v1/quant_ai/test_quant_ai_runtime.py: 3
+tests/presentation/api/v1/trade_plan/test_trade_plan_runtime.py: 2
+tests/presentation/test_alpha_marketplace_route_helpers.py: 2
+tests/presentation/test_auth_oauth_routes.py: 3
+tests/presentation/test_csrf_html.py: 1
+tests/presentation/test_page_shell.py: 1
+tests/presentation/test_route_loader.py: 2
+tests/presentation/test_routes_v1_ui.py: 1
+tests/presentation/test_static_files_security.py: 3
+tests/presentation/test_v2_backtest_async.py: 2
+tests/presentation/test_v2_jwt_auth.py: 2
+tests/regression/test_indicator_consistency.py: 1
+tests/security/test_security.py: 6
+tests/sidecar/test_market_sidecar.py: 2
+tests/smoke/test_app_boot.py: 3
+tests/smoke/test_app_bootstrap.py: 1
+tests/smoke/test_custom_trading_workflow_compile.py: 1
+tests/smoke/test_phase44_ux_smoke.py: 4
+tests/smoke/test_phase67_wiring_smoke.py: 5
+tests/smoke/test_phase69_route_boot.py: 4
+tests/smoke/test_route_smoke_critical.py: 5
+tests/smoke/test_simple1.py: 1
+tests/tasks/test_backtest_tasks.py: 2
+tests/unit/archetype_clusterer_test.py: 2
+tests/unit/domain/test_base.py: 21
+tests/unit/domain/test_circular_import.py: 3
+tests/unit/domain/test_entities.py: 28
+tests/unit/domain/test_enums.py: 17
+tests/unit/domain/test_presentation_dip.py: 2
+tests/unit/domain/test_timeseries_dip.py: 5
+tests/unit/test_backtest_cache.py: 1
+tests/unit/test_backtest_chart.py: 1
+tests/unit/test_backtest_data.py: 1
+tests/unit/test_beijing_stock.py: 1
+tests/unit/test_cache_data.py: 1
+tests/unit/test_cli.py: 1
+tests/unit/test_cluster_event_bus.py: 4
+tests/unit/test_concrete_user_knowledge_service.py: 4
+tests/unit/test_final_value_calculation.py: 1
+tests/unit/test_history_data.py: 1
+tests/unit/test_kline_data.py: 1
+tests/unit/test_layer_boundaries.py: 3
+tests/unit/test_long_term_selector.py: 1
+tests/unit/test_long_term_selector_fix.py: 1
+tests/unit/test_market_all_cache.py: 1
+tests/unit/test_market_movements.py: 2
+tests/unit/test_new_long_term_selector.py: 1
+tests/unit/test_news_relevance.py: 3
+tests/unit/test_p0_infrastructure.py: 17
+tests/unit/test_phase28_presentation_cleanup.py: 4
+tests/unit/test_phase29_presentation_cleanup.py: 6
+tests/unit/test_phase30_celery_worker_cleanup.py: 5
+tests/unit/test_read_astock.py: 1
+tests/unit/test_service_factories.py: 6
+tests/unit/test_settings_provider.py: 2
+tests/unit/test_sohu_beijing.py: 1
+tests/unit/test_sohu_data.py: 1
+tests/unit/test_stock_screener_engine.py: 1
+tests/unit/test_strategies.py: 2
+tests/unit/test_tau_strategy.py: 1
+tests/unit/test_tdx_strategy.py: 1
+
+=================================== ERRORS ====================================
+________________ ERROR collecting tests/api/test_api_direct.py ________________
+ImportError while importing test module 'E:\project\workspace\myrepo\quant-atlas\tests\api\test_api_direct.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+D:\ProgramData\miniconda3\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\api\test_api_direct.py:11: in <module>
+    from services.market_service import MarketService
+E   ModuleNotFoundError: No module named 'services'
+____________ ERROR collecting tests/integration/test_web_search.py ____________
+import file mismatch:
+imported module 'test_web_search' has this __file__ attribute:
+  E:\project\workspace\myrepo\quant-atlas\tests\infrastructure\providers\test_web_search.py
+which is not the same as the test file we want to collect:
+  E:\project\workspace\myrepo\quant-atlas\tests\integration\test_web_search.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules
+_ ERROR collecting tests/modules/execution/test_trade_outcome_review_service.py _
+import file mismatch:
+imported module 'test_trade_outcome_review_service' has this __file__ attribute:
+  E:\project\workspace\myrepo\quant-atlas\tests\domain\test_trade_outcome_review_service.py
+which is not the same as the test file we want to collect:
+  E:\project\workspace\myrepo\quant-atlas\tests\modules\execution\test_trade_outcome_review_service.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules
+____ ERROR collecting tests/presentation/api/v1/portfolio/test_helpers.py _____
+import file mismatch:
+imported module 'test_helpers' has this __file__ attribute:
+  E:\project\workspace\myrepo\quant-atlas\tests\presentation\api\v1\factor\test_helpers.py
+which is not the same as the test file we want to collect:
+  E:\project\workspace\myrepo\quant-atlas\tests\presentation\api\v1\portfolio\test_helpers.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules
+============================== warnings summary ===============================
+tests\domain\test_events.py:27
+  E:\project\workspace\myrepo\quant-atlas\tests\domain\test_events.py:27: PytestCollectionWarning: cannot collect test class 'TestEventHandler' because it has a __init__ constructor (from: tests/domain/test_events.py)
+    class TestEventHandler(EventHandler):
+
+tests\smoke\test_simple1.py:19
+  E:\project\workspace\myrepo\quant-atlas\tests\smoke\test_simple1.py:19: PytestUnknownMarkWarning: Unknown pytest.mark.e2e - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.e2e
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [1] tests\application\test_phase22_research_data_optimizer.py:14: Pre-existing broken import 鈥?skipped
+SKIPPED [1] tests\infrastructure\test_jqka_all.py:7: Manual JQKA integration test
+SKIPPED [1] tests\infrastructure\test_xueqiu_news.py:7: Manual Xueqiu integration test; run as script only
+SKIPPED [1] tests\unit\test_all.py:8: Legacy root-level service_container tests
+SKIPPED [1] tests\unit\test_cache_backup.py:8: Legacy cache_factory tests
+ERROR tests/api/test_api_direct.py
+ERROR tests/integration/test_web_search.py
+ERROR tests/modules/execution/test_trade_outcome_review_service.py
+ERROR tests/presentation/api/v1/portfolio/test_helpers.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 4 errors during collection !!!!!!!!!!!!!!!!!!!

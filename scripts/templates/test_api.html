@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API Test</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body { padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { border-color: #28a745; background-color: #f8f9fa; }
+        .error { border-color: #dc3545; background-color: #f8d7da; }
+        .data-display { white-space: pre-wrap; font-family: monospace; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Test Page</h1>
+        
+        <div class="test-section" id="test-market-movements">
+            <h3>Test Market Movements API</h3>
+            <button class="btn btn-primary" onclick="testMarketMovements()">Test API</button>
+            <div id="movements-result" class="data-display"></div>
+        </div>
+        
+        <div class="test-section" id="test-market-rankings">
+            <h3>Test Market Rankings API</h3>
+            <button class="btn btn-primary" onclick="testMarketRankings()">Test API</button>
+            <div id="rankings-result" class="data-display"></div>
+        </div>
+        
+        <div class="test-section" id="test-market-sentiment">
+            <h3>Test Market Sentiment API</h3>
+            <button class="btn btn-primary" onclick="testMarketSentiment()">Test API</button>
+            <div id="sentiment-result" class="data-display"></div>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        function testMarketMovements() {
+            const resultDiv = $('#movements-result');
+            resultDiv.html('Loading...');
+            
+            $.ajax({
+                url: '/api/v1/markets/CN/movements',
+                method: 'GET',
+                success: function(response) {
+                    console.log('Market Movements Response:', response);
+                    resultDiv.html(JSON.stringify(response, null, 2));
+                    $('#test-market-movements').addClass('success').removeClass('error');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    resultDiv.html('Error: ' + error);
+                    $('#test-market-movements').addClass('error').removeClass('success');
+                }
+            });
+        }
+        
+        function testMarketRankings() {
+            const resultDiv = $('#rankings-result');
+            resultDiv.html('Loading...');
+            
+            $.ajax({
+                url: '/api/v1/markets/CN/panorama',
+                method: 'GET',
+                success: function(response) {
+                    console.log('Market Rankings Response:', response);
+                    resultDiv.html(JSON.stringify(response, null, 2));
+                    $('#test-market-rankings').addClass('success').removeClass('error');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    resultDiv.html('Error: ' + error);
+                    $('#test-market-rankings').addClass('error').removeClass('success');
+                }
+            });
+        }
+        
+        function testMarketSentiment() {
+            const resultDiv = $('#sentiment-result');
+            resultDiv.html('Loading...');
+            
+            $.ajax({
+                url: '/api/v1/markets/CN/sentiment',
+                method: 'GET',
+                success: function(response) {
+                    console.log('Market Sentiment Response:', response);
+                    resultDiv.html(JSON.stringify(response, null, 2));
+                    $('#test-market-sentiment').addClass('success').removeClass('error');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error:', error);
+                    resultDiv.html('Error: ' + error);
+                    $('#test-market-sentiment').addClass('error').removeClass('success');
+                }
+            });
+        }
+        
+        // 页面加载时自动测试所有API
+        $(document).ready(function() {
+            testMarketMovements();
+            testMarketRankings();
+            testMarketSentiment();
+        });
+    </script>
+</body>
+</html>

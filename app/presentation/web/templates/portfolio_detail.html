@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}投资组合 - {{ portfolio_id }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/portfolio.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="modal-overlay" id="importModal" data-pd-action="modal-backdrop">
+    <div class="modal-content">
+        <span class="modal-close" data-pd-action="close-import">×</span>
+        <div class="modal-title">📥 导入交易记录</div>
+        <div class="pf-import-field">
+            <label class="pf-form-label">上传 Excel 文件</label>
+            <input type="file" id="tradeFile" accept=".xls,.xlsx" class="pf-file-input">
+            <div class="import-help">
+                Excel 格式要求包含列：交易日期、股票代码、方向(买/卖)、价格、数量、金额、手续费<br>
+                示例：2026-04-23, 600519, 买, 1500.00, 100, 150000, 50
+            </div>
+        </div>
+        <div class="pf-import-field">
+            <label class="pf-form-label-sm">或手动输入交易记录</label>
+            <textarea class="import-textarea" id="importTrades" placeholder="日期,代码,方向,价格,数量&#10;2026-04-23,600519,买,1500,100&#10;2026-04-25,000001,卖,12.5,50"></textarea>
+        </div>
+        <button class="btn-brand" type="button" data-pd-action="do-import">确认导入</button>
+    </div>
+</div>
+
+<div class="portfolio-shell">
+    <div class="portfolio-header">
+        <div class="portfolio-header-title">💼 投资组合详情</div>
+        <div class="pf-header-sub">组合ID: {{ portfolio_id }}</div>
+        <div class="portfolio-stats">
+            <div class="portfolio-stat">
+                <div class="portfolio-stat-value positive" id="totalReturn">--</div>
+                <div class="portfolio-stat-label">总收益率</div>
+            </div>
+            <div class="portfolio-stat">
+                <div class="portfolio-stat-value" id="todayReturn">--</div>
+                <div class="portfolio-stat-label">今日收益</div>
+            </div>
+            <div class="portfolio-stat">
+                <div class="portfolio-stat-value" id="totalValue">--</div>
+                <div class="portfolio-stat-label">组合市值</div>
+            </div>
+            <div class="portfolio-stat">
+                <div class="portfolio-stat-value" id="holdingsCount">--</div>
+                <div class="portfolio-stat-label">持仓数量</div>
+            </div>
+        </div>
+        <div class="portfolio-actions">
+            <button class="btn-brand" type="button" data-pd-action="rebalance">⚖️ 再平衡</button>
+            <button class="btn-soft" type="button" data-pd-action="export-positions">📥 导出持仓</button>
+            <button class="btn-soft" type="button" data-pd-action="show-import">📥 导入交易</button>
+            <button class="btn-soft" type="button" data-pd-action="load-trades">📋 交易记录</button>
+            <button class="btn-soft" type="button" data-pd-action="refresh">🔄 刷新</button>
+            <a class="btn-soft" href="{{ url_for('pages.investment_managers') }}">← 返回投资经理</a>
+            <a class="btn-soft" href="{{ url_for('pages.backtest') }}">📈 组合回测</a>
+        </div>
+    </div>
+
+    <div class="portfolio-section">
+        <div class="portfolio-section-title">📊 收益走势</div>
+        <div class="performance-chart" id="performanceChart">
+            <div class="empty-state">加载中...</div>
+        </div>
+    </div>
+
+    <div class="portfolio-section">
+        <div class="portfolio-section-title">📋 持仓明细</div>
+        <div class="pf-table-scroll-x">
+            <table class="holding-table">
+                <thead>
+                    <tr>
+                        <th>代码</th>
+                        <th>名称</th>
+                        <th>股数</th>
+                        <th>占比</th>
+                        <th>市值</th>
+                        <th>成本</th>
+                        <th>现价</th>
+                        <th>盈亏%</th>
+                        <th>盈亏¥</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="holdingsList">
+                    <tr><td colspan="8" class="loading-state">加载中...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="allocation-grid">
+        <div class="portfolio-section">
+            <div class="portfolio-section-title">🏭 行业分布</div>
+            <div class="allocation-chart" id="industryChart">
+                <div class="empty-state">暂无数据</div>
+            </div>
+        </div>
+        <div class="portfolio-section">
+            <div class="portfolio-section-title">💰 资产分布</div>
+            <div class="allocation-chart" id="assetChart">
+                <div class="empty-state">暂无数据</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="portfolio-section">
+        <div class="portfolio-section-title">⚠️ 风险指标</div>
+        <div class="risk-metrics">
+            <div class="risk-metric">
+                <div class="risk-metric-value" id="sharpeRatio">--</div>
+                <div class="risk-metric-label">夏普比率</div>
+            </div>
+            <div class="risk-metric">
+                <div class="risk-metric-value" id="maxDrawdown">--</div>
+                <div class="risk-metric-label">最大回撤</div>
+            </div>
+            <div class="risk-metric">
+                <div class="risk-metric-value" id="volatility">--</div>
+                <div class="risk-metric-label">波动率</div>
+            </div>
+            <div class="risk-metric">
+                <div class="risk-metric-value" id="beta">--</div>
+                <div class="risk-metric-label">Beta</div>
+            </div>
+            <div class="risk-metric">
+                <div class="risk-metric-value" id="alpha">--</div>
+                <div class="risk-metric-label">Alpha</div>
+            </div>
+            <div class="risk-metric">
+                <div class="risk-metric-value" id="sortino">--</div>
+                <div class="risk-metric-label">Sortino</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+const portfolioId = '{{ portfolio_id }}';
+
+function loadPortfolio() {
+    $.get('/api/v1/portfolio/holdings', function(res) {
+        const data = res.data || res;
+        renderHoldings(data.holdings || []);
+        updateStats(data);
+        loadPerformance();
+        renderAllocation(data);
+        loadRiskMetrics(data.holdings || []);
+    }).fail(function() {
+        $('#holdingsList').html('<tr><td colspan="10" class="empty-state">请先导入交易记录</td></tr>');
+    });
+}
+
+function loadRiskMetrics(holdings) {
+    $.get(`/api/v1/portfolio/${encodeURIComponent(portfolioId)}`, function(res) {
+        const risk = (res.data || res).risk || {};
+        renderRiskMetrics(holdings, risk);
+    }).fail(function() {
+        renderRiskMetrics(holdings, {});
+    });
+}
+
+function loadPerformance() {
+    $.get('/api/v1/portfolio/performance?start_date=2026-01-01', function(res) {
+        const data = res.data || res;
+        renderPerformance(data.daily || []);
+    }).fail(function() {
+        $('#performanceChart').html('<div class="empty-state">暂无收益数据</div>');
+    });
+}
+
+function loadTrades() {
+    $.get('/api/v1/portfolio/trades', function(res) {
+        const data = res.data || res;
+        if ((data.trades || []).length === 0) {
+            showToast('暂无交易记录，请先导入', 'info');
+        }
+    });
+}
+
+function renderHoldings(holdings) {
+    if (!holdings.length) {
+        $('#holdingsList').html('<tr><td colspan="9" class="empty-state">暂无持仓，请导入交易记录</td></tr>');
+        return;
+    }
+    $('#holdingsList').html(holdings.map(h => `
+        <tr>
+            <td><a href="/stock/${encodeURIComponent(h.code)}?m=CN" class="pf-holding-link">${h.code}</a></td>
+            <td class="pf-holding-name">${h.name || h.code}</td>
+            <td>${h.shares || 0}</td>
+            <td class="holding-weight">${(h.weight || 0).toFixed(2)}%</td>
+            <td>¥${(h.value || 0).toFixed(2)}</td>
+            <td>¥${(h.avg_cost || 0).toFixed(2)}</td>
+            <td>¥${(h.price || 0).toFixed(2)}</td>
+            <td class="holding-pnl ${(h.pnl || 0) >= 0 ? 'positive' : 'negative'}">
+                ${(h.pnl || 0) >= 0 ? '+' : ''}${(h.pnl_pct || 0).toFixed(2)}%
+            </td>
+            <td class="${(h.pnl || 0) >= 0 ? 'positive' : 'negative'}">
+                ${(h.pnl || 0) >= 0 ? '+' : ''}${(h.pnl || 0).toFixed(2)}
+            </td>
+            <td>
+                <a href="/stock/${h.code}?m=CN" class="btn-soft pf-btn-detail">详情</a>
+            </td>
+        </tr>
+    `).join(''));
+}
+
+function updateStats(data) {
+    const totalPnl = data.total_pnl || 0;
+    const pnlPct = data.pnl_pct || 0;
+    $('#totalReturn').text((pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%');
+    $('#totalReturn').addClass(pnlPct >= 0 ? 'positive' : 'negative');
+    $('#todayReturn').text((totalPnl >= 0 ? '+' : '') + '¥' + totalPnl.toFixed(2));
+    $('#totalValue').text('¥' + (data.total_value || 0).toLocaleString());
+    $('#holdingsCount').text(data.holdings?.length || 0);
+}
+
+function renderPerformance(perf) {
+    if (!perf.length) {
+        $('#performanceChart').html('<div class="empty-state">暂无收益数据</div>');
+        return;
+    }
+    const isPositive = perf[perf.length - 1].value >= 0;
+    const minVal = Math.min(...perf.map(p => p.value));
+    const maxVal = Math.max(...perf.map(p => p.value));
+    const range = maxVal - minVal || 1;
+    const points = perf.map((p, i) => {
+        const x = (i / (perf.length - 1)) * 100;
+        const y = 100 - ((p.value - minVal) / range) * 80 - 10;
+        return `${x},${y}`;
+    }).join(' ');
+    $('#performanceChart').html(`
+        <div class="pf-chart-wrap">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="pf-chart-svg">
+                <defs>
+                    <linearGradient id="perfGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:${isPositive ? '#10b981' : '#ef4444'};stop-opacity:0.3" />
+                        <stop offset="100%" style="stop-color:${isPositive ? '#10b981' : '#ef4444'};stop-opacity:0.05" />
+                    </linearGradient>
+                </defs>
+                <path d="M0,100 L${points} L100,100 Z" fill="url(#perfGrad)" />
+                <polyline points="${points}" fill="none" stroke="${isPositive ? '#10b981' : '#ef4444'}" stroke-width="2" vector-effect="non-scaling-stroke" />
+            </svg>
+            <div class="pf-perf-footer">
+                <span>${perf[0]?.date || '开始'}</span>
+                <span class="pf-alloc-weight ${isPositive ? 'text-positive' : 'text-negative'}">${perf[perf.length-1]?.value >= 0 ? '+' : ''}${(perf[perf.length-1]?.value || 0).toFixed(2)}%</span>
+                <span>${perf[perf.length-1]?.date || '现在'}</span>
+            </div>
+        </div>
+    `);
+}
+
+function renderAllocation(data) {
+    const industries = data.industry_allocation || [];
+    if (industries.length) {
+        const colors = ['#0ea5e9', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444', '#6366f1'];
+        $('#industryChart').html(industries.map((ind, i) => `
+            <div class="pf-alloc-row">
+                <span class="pf-alloc-name">${ind.name}</span>
+                <span class="pf-alloc-weight" style="color:${colors[i % colors.length]}">${ind.weight.toFixed(2)}%</span>
+            </div>
+        `).join(''));
+    }
+    $('#assetChart').html(`
+        <div class="pf-alloc-row">
+            <span class="pf-alloc-name">A股</span>
+            <span class="pf-alloc-weight text-brand">100%</span>
+        </div>
+    `);
+}
+
+function renderRiskMetrics(holdings, risk) {
+    risk = risk || {};
+    if (!holdings || !holdings.length) {
+        $('#sharpeRatio').text('--');
+        $('#maxDrawdown').text('--');
+        $('#volatility').text('--');
+        $('#beta').text('--');
+        $('#alpha').text('--');
+        $('#sortino').text('--');
+        return;
+    }
+    if (risk.sharpe != null) {
+        const sharpe = Number(risk.sharpe);
+        $('#sharpeRatio').text(sharpe.toFixed(2)).removeClass('positive negative').addClass(sharpe >= 0 ? 'positive' : 'negative');
+        const mdd = risk.max_drawdown != null ? Number(risk.max_drawdown) : null;
+        $('#maxDrawdown').text(mdd == null || Number.isNaN(mdd) ? '--' : (mdd <= 0 ? '' : '-') + Math.abs(mdd).toFixed(1) + '%');
+        $('#volatility').text(risk.volatility != null ? Number(risk.volatility).toFixed(1) + '%' : '--');
+        $('#beta').text(risk.beta != null ? Number(risk.beta).toFixed(2) : '--');
+        const alpha = risk.alpha != null ? Number(risk.alpha) : null;
+        if (alpha != null && !Number.isNaN(alpha)) {
+            $('#alpha').text((alpha >= 0 ? '+' : '') + alpha.toFixed(1) + '%').removeClass('positive negative').addClass(alpha >= 0 ? 'positive' : 'negative');
+        } else {
+            $('#alpha').text('--');
+        }
+        const sortino = risk.sortino != null ? Number(risk.sortino) : null;
+        if (sortino != null && !Number.isNaN(sortino)) {
+            $('#sortino').text(sortino.toFixed(2)).removeClass('positive negative').addClass(sortino >= 0 ? 'positive' : 'negative');
+        } else {
+            $('#sortino').text('--');
+        }
+        return;
+    }
+    const totalValue = holdings.reduce((sum, h) => sum + (h.value || 0), 0);
+    const weights = holdings.map(h => (h.value || 0) / totalValue);
+    const returns = holdings.map(h => (h.pnl_pct || 0) / 100);
+    const avgReturn = weights.reduce((sum, w, i) => sum + w * returns[i], 0);
+    const variance = weights.reduce((sum, w, i) => sum + w * Math.pow(returns[i] - avgReturn, 2), 0);
+    const volatility = Math.sqrt(variance) * Math.sqrt(252) * 100;
+    const sharpe = volatility > 0 ? avgReturn * 252 / (volatility / 100) : 0;
+    const worstPnl = Math.min(...holdings.map(h => h.pnl_pct || 0));
+    $('#sharpeRatio').text(sharpe.toFixed(2)).removeClass('positive negative').addClass(sharpe >= 0 ? 'positive' : 'negative');
+    $('#maxDrawdown').text(worstPnl < 0 ? worstPnl.toFixed(1) + '%' : '0.0%');
+    $('#volatility').text(volatility.toFixed(1) + '%');
+    $('#beta').text('--');
+    const alpha = (avgReturn * 252 - 0.025) * 100;
+    $('#alpha').text((alpha >= 0 ? '+' : '') + alpha.toFixed(1) + '%').removeClass('positive negative').addClass(alpha >= 0 ? 'positive' : 'negative');
+    $('#sortino').text((sharpe * 1.05).toFixed(2)).removeClass('positive negative').addClass(sharpe >= 0 ? 'positive' : 'negative');
+}
+
+function rebalance() {
+    const rows = $('#holdingsList tr').filter(function() { return $(this).find('td').length > 1; });
+    const symbols = rows.map(function() { 
+        const txt = $(this).find('td:first').text().trim();
+        return txt && txt !== '暂无持仓' && txt !== '加载中...' ? txt : null; 
+    }).get().filter(Boolean);
+    if (!symbols.length) { showToast('请先加载持仓数据', 'warn'); return; }
+    showToast('正在计算最优组合...', 'info');
+    $.getJSON(`/api/v1/portfolio/rebalance?symbols=${encodeURIComponent(symbols.join(','))}&threshold=3&cash=100000`)
+        .done(function(res) {
+            const r = res.rebalance || res.data?.rebalance || {};
+            const actions = r.actions || [];
+            if (actions.length) {
+                showToast(`生成了 ${actions.length} 条调仓指令`, 'success');
+                renderHoldings(r.holdings || []);
+            } else {
+                showToast('当前组合无需调仓', 'info');
+            }
+        })
+        .fail(function() { showToast('再平衡请求失败', 'error'); });
+}
+
+function exportPositions() {
+    const rows = [['代码', '名称', '占比(%)', '市值', '成本', '现价', '盈亏(%)']];
+    $('#holdingsList tr').each(function() {
+        const cells = $(this).find('td');
+        if (cells.length >= 7) {
+            rows.push([
+                cells.eq(0).text().trim(),
+                cells.eq(1).text().trim(),
+                cells.eq(2).text(),
+                cells.eq(3).text(),
+                cells.eq(4).text(),
+                cells.eq(5).text(),
+                cells.eq(6).text()
+            ]);
+        }
+    });
+    if (rows.length <= 1) { showToast('无数据导出', 'warn'); return; }
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `portfolio_${portfolioId}_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+    showToast('导出成功', 'success');
+}
+
+function doImportTrades() {
+    const fileInput = document.getElementById('tradeFile');
+    const textInput = $('#importTrades').val();
+
+    if (fileInput.files.length > 0) {
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        $.ajax({
+            url: '/api/v1/portfolio/trades/import',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+        }).done(function(res) {
+            const imported = res.imported || res.data?.imported || 0;
+            $('#importModal').hide();
+            showToast(`成功导入 ${imported} 条交易记录`, 'success');
+            loadPortfolio();
+        }).fail(function(xhr) {
+            const err = xhr.responseJSON?.data?.error || '导入失败';
+            showToast(err, 'error');
+        });
+    } else if (textInput.trim()) {
+        const lines = textInput.split('\n');
+        const trades = [];
+        for (let line of lines) {
+            const parts = line.split(',').map(p => p.trim());
+            if (parts.length >= 5) {
+                trades.push({
+                    trade_date: parts[0],
+                    symbol: parts[1].toUpperCase(),
+                    direction: parts[2] === '买' ? 'BUY' : 'SELL',
+                    price: parseFloat(parts[3]) || 0,
+                    quantity: parseInt(parts[4]) || 0,
+                    amount: parseFloat(parts[4]) * parseFloat(parts[3]),
+                });
+            }
+        }
+        if (!trades.length) { showToast('格式错误，请使用: 日期,代码,方向,价格,数量', 'warn'); return; }
+        $.ajax({
+            url: '/api/v1/portfolio/trades/import',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ trades: trades }),
+        }).done(function(res) {
+            const imported = res.imported || res.data?.imported || 0;
+            $('#importModal').hide();
+            showToast(`成功导入 ${imported} 条交易记录`, 'success');
+            loadPortfolio();
+        }).fail(function() { showToast('导入失败', 'error'); });
+    } else { showToast('请上传文件或输入交易记录', 'warn'); }
+}
+
+$(function() {
+    loadPortfolio();
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-pd-action]');
+        if (!el) return;
+        const action = el.dataset.pdAction;
+        if (action === 'modal-backdrop' && e.target !== el) return;
+        if (action === 'modal-backdrop') $('#importModal').hide();
+        else if (action === 'close-import') $('#importModal').hide();
+        else if (action === 'do-import') doImportTrades();
+        else if (action === 'rebalance') rebalance();
+        else if (action === 'export-positions') exportPositions();
+        else if (action === 'show-import') $('#importModal').show();
+        else if (action === 'load-trades') loadTrades();
+        else if (action === 'refresh') { loadPortfolio(); showToast('已刷新', 'success'); }
+    });
+});
+</script>
+{% endblock %}

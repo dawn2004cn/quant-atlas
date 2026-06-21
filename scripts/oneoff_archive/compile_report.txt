@@ -1,0 +1,15 @@
+OK: app/bootstrap_components/service_wiring.py
+OK: app/modules/ai_agent/services/ai_evidence_service.py
+OK: app/agents/research/integrated_graph.py
+OK: app/application/services/analytics/briefing_service.py
+OK: app/application/services/data/cn_realtime_quote_service.py
+OK: app/application/services/data/tdx_block_stats_service.py
+FAIL: app/application/services/integration/integration_stack_service.py L62: invalid character '¿' (U+00BF)
+FAIL: app/application/services/strategy/recommendation_service.py L124: unterminated string literal (detected at line 124)
+OK: app/application/services/trading/trade_plan_service.py
+OK: app/modules/ai_agent/services/event_impact_estimator_service.py
+FAIL: app/modules/ai_agent/services/jarvis_command_service.py L45: unterminated string literal (detected at line 45)
+FAIL: app/modules/market_data/services/hot_sector_storage_service.py L101: invalid character '°' (U+00B0)
+FAIL: app/presentation/api/routes_market_sentiment.py L49: invalid non-printable character U+008D
+FAIL: app/presentation/api/routes_v1_stock.py L1119: invalid character '¸' (U+00B8)
+FAIL: app/tasks/task_wiring.py L635: invalid character '»' (U+00BB)

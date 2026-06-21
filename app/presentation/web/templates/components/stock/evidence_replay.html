@@ -1,0 +1,107 @@
+{# Capability Component: Deep Replay — 证据时间轴回溯 #}
+<div
+    class="section-shell"
+    id="evidence-replay"
+    x-data="evidenceReplayCapability()"
+    x-init="init()"
+>
+    <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="panel-title mb-0">证据回溯 (Deep Replay)</h2>
+            <div class="panel-subtitle">拖动时间轴查看历史结论，支持 What-if 假设</div>
+        </div>
+        <button type="button" class="btn-soft btn-sm" @click="loadTimeline()">刷新时间轴</button>
+    </div>
+    <div class="mt-3">
+        <label class="text-xs font-bold text-muted">回溯时刻（分钟前）</label>
+        <input type="range" min="0" max="120" step="5" x-model.number="minutesAgo" @input="onScrub()" class="form-range">
+        <div class="text-sm text-muted" x-text="'当前锚点：' + minutesAgo + ' 分钟前 · 节点 ' + nodes.length + ' 个'"></div>
+    </div>
+    <div class="mt-2 er-scroll">
+        <template x-if="!nodes.length">
+            <div class="text-muted text-sm">暂无回放节点，运行 AI 研究或等待辩论事件。</div>
+        </template>
+        <template x-for="n in nodes.slice().reverse().slice(0, 12)" :key="n.timestamp + (n.event_type || '')">
+            <div class="qc-timeline-marker">
+                <div class="d-flex justify-content-between gap-2">
+                    <strong x-text="n.event_type || 'event'"></strong>
+                    <span class="text-muted text-xs" x-text="n.timestamp || ''"></span>
+                </div>
+                <div class="text-muted text-sm mt-1" x-text="n.summary || ''"></div>
+            </div>
+        </template>
+    </div>
+    <div class="mt-3 d-flex flex-wrap gap-2 align-items-end">
+        <div class="flex-grow-1">
+            <label class="text-xs font-bold text-muted">修改假设 (What-if)</label>
+            <input class="input-soft form-control form-control-sm" x-model="hypothesis" placeholder="若业绩不及预期，是否仍看多？">
+        </div>
+        <button type="button" class="btn-brand btn-sm" @click="runWhatIf()">运行 What-if</button>
+    </div>
+    <div class="mt-2 text-sm" x-show="whatIfVerdict" x-cloak>
+        <span class="badge bg-secondary" x-text="whatIfVerdict"></span>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function evidenceReplayCapability() {
+    return {
+        minutesAgo: 60,
+        nodes: [],
+        _allNodes: [],
+        hypothesis: '',
+        whatIfVerdict: '',
+        init() {
+            this.loadTimeline();
+        },
+        loadTimeline() {
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '').toUpperCase();
+            const mkt = (typeof MS_MARKET !== 'undefined' ? MS_MARKET : 'CN').toUpperCase();
+            if (!sym) return;
+            fetch('/api/v1/ai/evidence/replay?symbol=' + encodeURIComponent(sym) + '&market=' + encodeURIComponent(mkt) + '&minutes_back=120', {
+                credentials: 'same-origin',
+            })
+                .then((r) => r.json())
+                .then((res) => {
+                    const d = res.data || res;
+                    this._allNodes = d.nodes || [];
+                    this.applyScrub();
+                })
+                .catch(() => {});
+        },
+        onScrub() {
+            this.applyScrub();
+        },
+        applyScrub() {
+            const cutoff = Date.now() - this.minutesAgo * 60 * 1000;
+            this.nodes = (this._allNodes || []).filter((n) => {
+                const t = Date.parse(n.timestamp || '');
+                return !Number.isNaN(t) && t <= cutoff;
+            });
+        },
+        runWhatIf() {
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '').toUpperCase();
+            const mkt = (typeof MS_MARKET !== 'undefined' ? MS_MARKET : 'CN').toUpperCase();
+            if (!sym || !this.hypothesis.trim()) return;
+            fetch('/api/v1/ai/evidence/what-if', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    symbol: sym,
+                    market: mkt,
+                    user_hypothesis: this.hypothesis.trim(),
+                    minutes_ago: this.minutesAgo,
+                }),
+            })
+                .then((r) => r.json())
+                .then((res) => {
+                    const d = res.data || res;
+                    const hypo = (d.what_if_bundle || {}).hypothesis_evaluation || {};
+                    this.whatIfVerdict = hypo.verdict || hypo.summary || (d.ok ? '已评估' : '评估失败');
+                })
+                .catch(() => { this.whatIfVerdict = 'What-if 请求失败'; });
+        },
+    };
+}
+</script>

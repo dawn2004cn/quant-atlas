@@ -1,0 +1,17 @@
+# 可选：Qlib 相关重型依赖，与主 requirements.txt 分离安装。
+# 安装与部署步骤：docs/QLIB_DEPLOY.md
+# 路线图与 API：docs/roadmap_qlib_rd_agent.md（建议 Linux / Docker）。
+#
+# 与 TradingAgents-CN：Qlib 仅使用本仓库 config/qlib_config.yaml 的 provider_uri（默认 instance/qlib_bin），
+# 与 TA-CN 的 tushare / Mongo 等数据源并行、互不覆盖；LangGraph 六分析师流水线不依赖 pyqlib。
+#
+# 说明：阶段 1 的导出 CSV / 示例因子 / 简易回测 **不依赖** 本文件即可运行（ENABLE_QLIB=1）。
+# CSV → qlib.bin：需安装 pyqlib；转换逻辑见 app/infrastructure/qlib/vendor_ms_dump_bin.py（来自 microsoft/qlib MIT）。
+#
+# Canonical: pip install -e ".[qlib]"
+# Legacy:    pip install -r requirements-qlib.txt
+#
+# 示例（版本需按官方文档调整）:
+pyqlib>=0.9.0
+# RD-Agent(Q) 已在主 requirements.txt / pyproject 运行时依赖中；无需重复安装。
+# 分布式任务（可选）: pip install celery redis
