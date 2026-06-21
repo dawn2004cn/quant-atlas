@@ -4,10 +4,10 @@ Supports key rotation via API_JWT_KEY_VERSIONS (comma-separated base64 keys
 with optional :version suffix).  Defaults to HS256; set API_JWT_ALG=RS256
 to use asymmetric signatures.
 
-RS256 keys are loaded from environment variables:
-  API_JWT_RSA_PRIVATE_KEY   Base64-encoded PEM private key (for signing)
-  API_JWT_RSA_PUBLIC_KEYS   Comma-separated Base64 PEM public keys, optional
-                            :version suffix for rotation (for verification)
+RS256 keys are loaded from (in priority order):
+  1. File paths: JWT_PRIVATE_KEY_PATH / JWT_PUBLIC_KEY_PATH (PEM files on disk)
+  2. Environment variables: API_JWT_RSA_PRIVATE_KEY / API_JWT_RSA_PUBLIC_KEYS
+     (Base64-encoded PEM content, with optional :version suffix for rotation)
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ import hashlib
 import hmac
 import json
 import time
+from pathlib import Path
 from typing import Any
 
 from cryptography.hazmat.primitives import hashes, serialization
@@ -114,6 +115,18 @@ def _active_key_version() -> str:
 
 
 def _load_rsa_private_key() -> Any:
+    key_path = (get_runtime("JWT_PRIVATE_KEY_PATH") or "").strip()
+    if key_path:
+        pem_path = Path(key_path)
+        if pem_path.exists():
+            pem_bytes = pem_path.read_bytes()
+            try:
+                return serialization.load_pem_private_key(
+                    pem_bytes, password=None, backend=default_backend()
+                )
+            except Exception as exc:
+                raise ValidationError(f"Failed to load RSA private key from {key_path}: {exc}") from exc
+        raise ValidationError(f"JWT_PRIVATE_KEY_PATH={key_path} but file not found")
     raw = (get_runtime("API_JWT_RSA_PRIVATE_KEY") or "").strip()
     if not raw:
         raise ValidationError("RS256 selected but API_JWT_RSA_PRIVATE_KEY is not set")
@@ -135,9 +148,29 @@ def _load_rsa_public_key(pem_base64: str) -> Any:
         return None
 
 
+def _load_public_key_from_path() -> Any | None:
+    key_path = (get_runtime("JWT_PUBLIC_KEY_PATH") or "").strip()
+    if not key_path:
+        return None
+    pem_path = Path(key_path)
+    if not pem_path.exists():
+        logger.warning("JWT_PUBLIC_KEY_PATH=%s but file not found", key_path)
+        return None
+    try:
+        pem_bytes = pem_path.read_bytes()
+        return serialization.load_pem_public_key(pem_bytes, backend=default_backend())
+    except Exception as exc:
+        logger.warning("Failed to load RSA public key from %s: %s", key_path, exc)
+        return None
+
+
 def _rsa_public_key_versions() -> dict[str, Any]:
-    raw = (get_runtime("API_JWT_RSA_PUBLIC_KEYS") or "").strip()
     versions: dict[str, Any] = {}
+    file_pub = _load_public_key_from_path()
+    if file_pub is not None:
+        versions[_DEFAULT_KEY_VERSION] = file_pub
+        return versions
+    raw = (get_runtime("API_JWT_RSA_PUBLIC_KEYS") or "").strip()
     if raw:
         for part in raw.split(","):
             part = part.strip()
