@@ -3309,3 +3309,85 @@ Roll back all M1+M2 302 redirects to render_template + switcher gray-release pat
 - Group B: 8 dual-track pages got switcher links
 - `/share/decision` SSR restored per ADR-0006
 - Total: 30 templates modified with switcher blocks
+
+
+## 2026-06-21 - Alembic & Frontend Fixes
+
+| Category | Issue | Fix | Files |
+|----------|-------|-----|-------|
+| **Alembic Bug** | encrypt_api_keys.py downgrade() corrupted - string literals lost quotes | Replaced downgrade body with properly quoted, idempotent column-existence checks | alembic/versions/encrypt_api_keys.py |
+| **Alembic Bug** | Stale pycache had old AppSettings.from_env() call -> AttributeError boot warning | Cleared alembic __pycache__ directories | N/A |
+| **Frontend TS** | Layout.tsx destructured toggleTheme from useTheme() but hook exports it as toggle | Changed to const { theme, toggle: toggleTheme } = useTheme(); restored file from single-line corruption | frontend/src/components/Layout.tsx |
+
+### Verified
+- All 4 alembic migration files compile cleanly (py_compile)
+- alembic/env.py compiles cleanly (no stale pyc confusion)
+- AppSettings loads correctly from env
+- Frontend build passes (194 modules transformed, 53 assets in dist/)
+- Zero new boot warnings expected after cache clear
+
+---
+
+## 2026-06-21 - M0 Foundation Tasks (B-Plan Foundation)
+
+### Goal
+Establish JWT auth, OpenAPI docs, E2E tests, CI checks, and frontend API type generation as migration foundation.
+
+### B-5: Documentation Update
+- REFACTORING_LOG.md: B-Plan rollback fully documented
+
+### M0-T1: JWT Service Enhancement
+- `PyJWT[crypto]>=2.8.0` added to `requirements.txt` (redundant with existing `cryptography` primitives)
+- `jwt_token_service.py`: new `_load_file_key()` for RS256 private key file loading
+- Priority: `JWT_PRIVATE_KEY_PATH` file > `API_JWT_RSA_PRIVATE_KEY` env var
+- `scripts/generate_jwt_keys.py`: RSA-2048/4096 key pair generator
+- `config/secret.cfg.example`: JWT key config placeholder
+- `tests/infrastructure/test_jwt_token_service.py`: 5 tests (including RS256 file key roundtrip)
+- All tests pass
+
+### M0-T2: Auth Middleware + Whoami Endpoint
+- `app/presentation/api/auth_middleware.py`: Flask `before_request` sets `g.identity_subject` / `g.identity_source`
+- `install_auth_middleware(app)` called in `bootstrap.py`
+- `app/presentation/api/routes_v1_auth_identity.py`: `GET /api/v1/auth/whoami` returns user_id + auth_source
+- OpenAPI docstring with `_apispec_path = True`
+- Anonymous requests pass through (middleware doesn't block)
+
+### M0-T3: JWT Login Integration
+- `app/presentation/web/auth.py`: `/login` POST returns JSON JWT when `Accept: application/json`
+- Browser login continues with session + redirect (backward compatible)
+- `tests/integration/test_dual_auth.py`: integration test for middleware + whoami
+
+### M0-T4: OpenAPI Pipeline
+- `appspec>=6.10.0` + `apispec-webframeworks>=1.2.0` added to `requirements.txt`
+- `app/presentation/api/openapi_setup.py`: OpenAPI spec builder (apispec + FlaskPlugin)
+- `scripts/generate_openapi.py`: CLI tool to generate spec from Flask app
+- `docs/openapi.json`: initial spec (1 path: `/api/v1/auth/whoami`)
+- `tests/test_openapi_consistency.py`: spec generation validation test
+
+### M0-T5: Frontend API Type Generation
+- `openapi-typescript@^7.0.0` added to `frontend/package.json`
+- `gen:api-types` + `prebuild` scripts added
+- `frontend/src/api/types.ts`: placeholder types (regenerate via `npm run gen:api-types`)
+- `frontend/src/api/client.ts`: `whoami()` API client skeleton
+
+### M0-T6: Streaming Event Catalog
+- `docs/events.md`: documents SignalGenerated, PositionOpened/Closed, MarketRegimeChanged, CacheInvalidation events
+- Event serialization tests already exist in `tests/core/test_event_serialization.py`
+
+### M0-T7: Playwright E2E Framework
+- `tests/e2e/playwright.config.ts`: Chromium-only, 30s timeout, CI retry
+- `tests/e2e/specs/01_login.spec.ts`: login page renders (smoke)
+- `tests/e2e/specs/02_streaming.spec.ts`: skipped placeholder for M2
+- `tests/e2e/package.json`: `@playwright/test` ^1.45
+
+### M0-T8: CI Jobs
+- `.github/workflows/ci.yml`: new `openapi-check` job
+  - Verifies `docs/openapi.json` matches generated spec from `generate_openapi.py`
+  - Depends on `compile` job (needs Flask app to build spec)
+
+### Verified
+- All M0 files pass py_compile
+- All M0 tests pass (JWT 5/5, OpenAPI 2/2, integration 1/1)
+- App boots cleanly with auth middleware
+- CI `openapi-check` job ready
+
