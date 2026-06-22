@@ -158,6 +158,19 @@ def create_portfolio_risk_app() -> Any:
         def health():
             return {"status": "ok", "service": "portfolio-risk", "version": "2d"}
 
+        # Register with service discovery
+        try:
+            from app.core.service_discovery import register_service
+            register_service(
+                name="portfolio_risk",
+                url="http://localhost:5401",
+                health_path="/health",
+                timeout=10.0,
+            )
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).debug("Service discovery registration skipped: %s", exc)
+
         return app
     except ImportError:
         raise RuntimeError("Flask is required for portfolio/risk service")

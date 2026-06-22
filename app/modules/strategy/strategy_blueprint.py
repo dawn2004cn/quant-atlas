@@ -214,6 +214,19 @@ def create_strategy_app() -> Any:
         def health():
             return {"status": "ok", "service": "strategy", "version": "2b"}
 
+        # Register with service discovery
+        try:
+            from app.core.service_discovery import register_service
+            register_service(
+                name="strategy",
+                url="http://localhost:5201",
+                health_path="/health",
+                timeout=10.0,
+            )
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).debug("Service discovery registration skipped: %s", exc)
+
         return app
     except ImportError:
         raise RuntimeError("Flask is required for strategy service")

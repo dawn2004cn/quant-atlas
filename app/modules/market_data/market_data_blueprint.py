@@ -151,6 +151,19 @@ def create_market_data_app() -> Any:
         def health():
             return {"status": "ok", "service": "market-data", "version": "2a"}
 
+        # Register with service discovery
+        try:
+            from app.core.service_discovery import register_service
+            register_service(
+                name="market_data",
+                url="http://localhost:5101",
+                health_path="/health",
+                timeout=10.0,
+            )
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).debug("Service discovery registration skipped: %s", exc)
+
         return app
     except ImportError:
         raise RuntimeError("Flask is required for market data service")

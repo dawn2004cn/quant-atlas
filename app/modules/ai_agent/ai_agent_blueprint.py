@@ -204,6 +204,19 @@ def create_ai_agent_app() -> Any:
         def health():
             return {"status": "ok", "service": "ai-agent", "version": "2c"}
 
+        # Register with service discovery
+        try:
+            from app.core.service_discovery import register_service
+            register_service(
+                name="ai_agent",
+                url="http://localhost:5301",
+                health_path="/health",
+                timeout=15.0,
+            )
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).debug("Service discovery registration skipped: %s", exc)
+
         return app
     except ImportError:
         raise RuntimeError("Flask is required for AI agent service")

@@ -147,6 +147,19 @@ def create_system_user_app() -> Any:
         def health():
             return {"status": "ok", "service": "system-user", "version": "2f"}
 
+        # Register with service discovery
+        try:
+            from app.core.service_discovery import register_service
+            register_service(
+                name="system_user",
+                url="http://localhost:5601",
+                health_path="/health",
+                timeout=10.0,
+            )
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).debug("Service discovery registration skipped: %s", exc)
+
         return app
     except ImportError:
         raise RuntimeError("Flask is required for system/user service")
