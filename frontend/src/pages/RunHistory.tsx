@@ -4,6 +4,10 @@ import useSWR from "swr";
 import { fetchMlflowRuns } from "../lib/api";
 import type { MlflowRun } from "../types/mlflow";
 
+function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
+}
+
 function formatPct(value: number | undefined) {
   if (value == null || Number.isNaN(value)) return "—";
   const pct = Math.abs(value) <= 1 ? value * 100 : value;
@@ -77,32 +81,32 @@ export function RunHistoryPage() {
   }, [runs, selected]);
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-[1400px] space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">回测历史</h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-zinc-500">
             MLflow 实验记录 · <code>/api/v1/mlflow/runs</code>
           </p>
         </div>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => void mutate()}>
+        <button type="button" className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800/60 hover:text-zinc-200" onClick={() => void mutate()}>
           刷新
         </button>
       </div>
 
-      {isLoading ? <p className="text-slate-500">加载中…</p> : null}
+      {isLoading ? <p className="text-zinc-500">加载中…</p> : null}
       {error ? (
         <p className="text-error">加载失败：{error instanceof Error ? error.message : "unknown"}</p>
       ) : null}
       {!isLoading && data && !data.available ? (
-        <div className="glass-card p-6 text-sm text-slate-500">
+        <Panel className="p-6 text-sm text-zinc-500">
           MLflow 未配置。请设置 <code>MLFLOW_TRACKING_URI</code> 并完成一次回测后重试。
           也可使用<a className="link mx-1" href="/run-history">经典版历史页</a>。
-        </div>
+        </Panel>
       ) : null}
 
       {data?.available && runs.length === 0 ? (
-        <div className="glass-card p-6 text-sm text-slate-500">暂无回测记录。</div>
+        <Panel className="p-6 text-sm text-zinc-500">暂无回测记录。</Panel>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -113,35 +117,35 @@ export function RunHistoryPage() {
             <button
               key={run.id}
               type="button"
-              className={`glass-card text-left p-4 transition ${isSelected ? "ring-2 ring-brand" : ""}`}
+              className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 text-left p-4 transition ${isSelected ? "ring-2 ring-brand" : ""}`}
               onClick={() => toggle(run.id)}
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="font-semibold">{run.name}</div>
-                  <div className="text-xs text-slate-500">{run.date}</div>
+                  <div className="text-xs text-zinc-500">{run.date}</div>
                 </div>
                 <input type="checkbox" readOnly checked={isSelected} />
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 text-center text-sm">
                 <div>
-                  <div className={positive ? "text-emerald-600" : "text-rose-600"}>
+                  <div className={positive ? "text-emerald-400" : "text-rose-400"}>
                     {formatPct(run.returns)}
                   </div>
-                  <div className="text-xs text-slate-500">总收益</div>
+                  <div className="text-xs text-zinc-500">总收益</div>
                 </div>
                 <div>
                   <div>{run.sharpe != null ? Number(run.sharpe).toFixed(2) : "—"}</div>
-                  <div className="text-xs text-slate-500">夏普</div>
+                  <div className="text-xs text-zinc-500">夏普</div>
                 </div>
                 <div>
-                  <div className="text-rose-600">{formatPct(run.maxdd)}</div>
-                  <div className="text-xs text-slate-500">最大回撤</div>
+                  <div className="text-rose-400">{formatPct(run.maxdd)}</div>
+                  <div className="text-xs text-zinc-500">最大回撤</div>
                 </div>
               </div>
               <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                <span className="badge badge-ghost">{run.strategy}</span>
-                <span className="badge badge-ghost">{run.symbol}</span>
+                <span className="rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold bg-zinc-800/60 text-zinc-400">{run.strategy}</span>
+                <span className="rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold bg-zinc-800/60 text-zinc-400">{run.symbol}</span>
                 {run.uiUrl ? (
                   <a
                     className="link"
@@ -160,16 +164,16 @@ export function RunHistoryPage() {
       </div>
 
       {selected.size >= 2 ? (
-        <div className="glass-card flex flex-wrap items-center justify-between gap-3 p-4">
+        <Panel className="flex flex-wrap items-center justify-between gap-3 p-4">
           <span className="text-sm">已选 {selected.size} 条（最多 4 条）</span>
           {compareHref ? (
-            <Link className="btn btn-primary btn-sm" to={compareHref}>
+            <Link className="rounded-lg bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/30 transition-colors hover:bg-emerald-500/20" to={compareHref}>
               在回测页对决
             </Link>
           ) : (
-            <span className="text-xs text-slate-500">对比需选择同一标的的记录</span>
+            <span className="text-xs text-zinc-500">对比需选择同一标的的记录</span>
           )}
-        </div>
+        </Panel>
       ) : null}
     </div>
   );

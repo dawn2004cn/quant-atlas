@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: system-user
+  namespace: quant-atlas
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: system-user
+  template:
+    metadata:
+      labels:
+        app: system-user
+    spec:
+      containers:
+        - name: system-user
+          image: quant-atlas/system-user:latest
+          ports:
+            - containerPort: 5601
+          env:
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: quant-atlas-config
+                  key: REDIS_URL
+            - name: MYSQL_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: quant-atlas-config
+                  key: MYSQL_URL
+            - name: SERVICE_PORT
+              value: "5601"
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: quant-atlas-secrets
+                  key: SECRET_KEY
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5601
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5601
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2000m"
+              memory: "2Gi"

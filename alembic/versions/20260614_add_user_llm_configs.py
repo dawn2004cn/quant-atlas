@@ -11,7 +11,10 @@ use user_id=0.
 """
 
 from alembic import op
+import logging
 import sqlalchemy as sa
+
+logger = logging.getLogger(__name__)
 
 # revision identifiers, used by Alembic.
 revision = "add_user_llm_configs"
@@ -21,6 +24,10 @@ depends_on = None
 
 
 def upgrade() -> None:
+    conn = op.get_bind()
+    if conn.dialect.has_table(conn, "user_llm_configs"):
+        logger.info("user_llm_configs already exists, skipping")
+        return
     op.create_table(
         "user_llm_configs",
         sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),

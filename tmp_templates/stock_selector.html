@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/stock-selector" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('stock-selector')">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block title %}选股中心 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
+{% endblock %}
+
+{% block content %}
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="选股中心使用提示">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">先跑一杞?TopN</div>
+        <p class="qc-ux-step-desc">先用默认参数跑通一次，再根据白盒漏斗逐步调整筛选逻辑，避免“上来就调参”銆?/p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.backtest') }}">回测验证</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">加入观察鍗?/a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">数据源与异步</div>
+        <p class="qc-ux-step-desc">部分数据源依璧?Qlib/模型评分或异步任务；异常先看集成中枢与消息中心銆?/p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.message_center') }}">消息中心</a>
+    </div>
+</section>
+
+<div class="selector-container">
+    <section class="section-shell">
+        <div class="hero-caption">Selection Center</div>
+        <h1 class="page-title">选股中心</h1>
+        <p class="page-subtitle">运行短线、中线或长线选股策略，并生成报告</p>
+        <div class="ss-hero-links">
+            <a href="{{ url_for('pages.alpha_factory') }}" class="btn-soft">🧬 Alpha Factory</a>
+            <a href="{{ url_for('pages.factor_repository') }}" class="btn-soft">📚 因子搴?/a>
+            <a href="{{ url_for('pages.backtest') }}" class="btn-soft">📈 策略回测</a>
+        </div>
+    </section>
+
+    <section class="section-shell form-section">
+        <form id="selectorForm">
+            <div class="form-row">
+                <div>
+                    <label class="label">时间维度</label>
+                    <div class="ss-radio-row">
+                        <label class="ss-radio-label">
+                            <input type="radio" name="selectorType" value="long" checked>长线
+                        </label>
+                        <label class="ss-radio-label">
+                            <input type="radio" name="selectorType" value="mid">中线
+                        </label>
+                        <label class="ss-radio-label">
+                            <input type="radio" name="selectorType" value="short">短线
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="label" for="topN">Top N</label>
+                    <input type="number" class="input-soft" id="topN" value="5" min="1" max="50">
+                </div>
+                <div>
+                    <label class="label" for="marketSelect">市场</label>
+                    <select id="marketSelect" class="select-soft">
+                        <option value="CN" selected>A鑲?/option>
+                        <option value="US">美股</option>
+                        <option value="HK">港股</option>
+                        <option value="CRYPTO">加密</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label" for="dataSourceSelect">数据婧?/label>
+                    <select id="dataSourceSelect" class="select-soft">
+                        <option value="legacy" selected>legacy</option>
+                        <option value="qlib_factors">qlib_factors</option>
+                        <option value="model_score">model_score</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="btn-brand">运行</button>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">策略白盒</h2>
+                <div class="panel-subtitle">把选股逻辑、参数和过滤路径直接呈现出来，先让用户理解，再让用户运行銆?/div>
+            </div>
+            <a class="btn-soft" href="{{ url_for('pages.architecture_roadmap') }}">查看演进计划</a>
+        </div>
+        <div class="whitebox-grid">
+            <div>
+                <div class="dsl-box" id="selectorDslPreview"></div>
+                <div class="explain-grid">
+                    <div class="explain-card">
+                        <div class="explain-title">时间维度</div>
+                        <p class="explain-copy" id="selectorTypeExplain">长线更偏基本面和低换手，中短线更偏量价信号銆?/p>
+                    </div>
+                    <div class="explain-card">
+                        <div class="explain-title">Top N</div>
+                        <p class="explain-copy" id="topNExplain">Top N 越小，结果越聚焦，但也更容易错过边缘机会銆?/p>
+                    </div>
+                    <div class="explain-card">
+                        <div class="explain-title">数据婧?/div>
+                        <p class="explain-copy" id="dataSourceExplain">legacy 适合稳定兜底，qlib_factors 适合因子研究，model_score 适合模型排序銆?/p>
+                    </div>
+                </div>
+            </div>
+            <div class="funnel-box" id="selectorFunnel"></div>
+        </div>
+    </section>
+
+    <section class="section-shell ss-section-lego">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">🧱 投研乐高</h2>
+                <div class="panel-subtitle">可视化拖拽选股逻辑，像玩乐高一样搭建您的私人策鐣?/div>
+            </div>
+            <button class="btn-brand btn-sm" data-ss-action="open-lego" type="button">打开编辑鍣?/button>
+        </div>
+        <div id="legoPresets" class="mt-3">
+            <div class="ss-preset-row">
+                <span class="badge-soft" data-ss-action="lego-preset" data-preset="金叉反转" role="button" tabindex="0" class="ss-badge-preset">金叉反转</span>
+                <span class="badge-soft" data-ss-action="lego-preset" data-preset="低估鍊? role="button" tabindex="0" class="ss-badge-preset">低估鍊?/span>
+                <span class="badge-soft" data-ss-action="lego-preset" data-preset="动量突破" role="button" tabindex="0" class="ss-badge-preset">动量突破</span>
+                <span class="badge-soft" data-ss-action="lego-preset" data-preset="业绩反转" role="button" tabindex="0" class="ss-badge-preset">业绩反转</span>
+                <span class="badge-soft" data-ss-action="lego-preset" data-preset="北向资金" role="button" tabindex="0" class="ss-badge-preset">北向资金</span>
+            </div>
+            <div class="text-xs text-muted mt-2">点击预设快速应用，或打开编辑器自定义</div>
+        </div>
+    </section>
+
+    <section class="qa-is-hidden section-shell result-section" id="selectorResult">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">选股结果</h2>
+                <div class="panel-subtitle" id="resultSummary">--</div>
+                <div class="panel-subtitle" id="strategyInfo" class="ss-strategy-meta"></div>
+            </div>
+        </div>
+        <div id="resultContainer" class="result-table table-responsive"></div>
+        <div class="ss-result-actions">
+            <button id="generateReportBtn" class="qa-is-hidden btn-soft">生成报告</button>
+        </div>
+        <div id="reportContainer" class="report-container"></div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+$(document).ready(function() {
+    let lastResults = [];
+    updateWhitebox();
+
+    $('#selectorForm').submit(function(e) {
+        e.preventDefault();
+        const selectorType = $('input[name="selectorType"]:checked').val();
+        const topN = parseInt($('#topN').val(), 10);
+
+        $('#selectorResult').hide();
+        
+$.ajax({
+            url: '/api/v1/selector/run',
+            method: 'POST',
+            contentType: 'application/json',
+            beforeSend: function() {
+                $('#selectorResult').show();
+                $('#resultContainer').html('<div class="empty-state">选股中，请稍鍊?..</div>');
+                $('#generateReportBtn').hide();
+            },
+            data: JSON.stringify({
+                type: selectorType,
+                top_n: topN,
+                market: $('#marketSelect').val(),
+                data_source: $('#dataSourceSelect').val(),
+            }),
+            success: function(res) {
+                lastResults = res.data || res.results || [];
+                var meta = res.meta || {};
+                var strategyInfo = '策略: ' + (meta.strategy || 'unknown') + ' | 数据婧? ' + (meta.data_source || 'legacy');
+                $('#strategyInfo').text(strategyInfo);
+                displaySelectorResult(lastResults);
+            },
+            error: function() {
+                showToast('请求失败', 'error');
+            }
+        });
+    });
+
+    $('#selectorForm').on('change input', 'input, select', updateWhitebox);
+
+    function displaySelectorResult(data) {
+        $('#selectorResult').show();
+        $('#resultSummary').text(`鍏?${data.length} 只股票`);
+        
+        var strategyInfo = '';
+        $('#strategyInfo').text(strategyInfo);
+        
+        if (!data.length) {
+            $('#resultContainer').html('<div class="empty-state">暂无选股结果</div>');
+            $('#generateReportBtn').hide();
+            return;
+        }
+        
+        let tableHtml = `
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>代码</th>
+                        <th>名称</th>
+                        <th>价格</th>
+                        <th>评分</th>
+                        <th>评级</th>
+                        <th>信号</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        data.forEach(stock => {
+            tableHtml += `
+                <tr>
+                    <td><a href="/stock/${stock.code}?m=CN">${stock.code}</a></td>
+                    <td>${stock.name}</td>
+                    <td>¥${stock.price.toFixed(2)}</td>
+                    <td>${stock.score.toFixed(2)}</td>
+                    <td>${stock.rating}</td>
+                    <td>${(stock.buy_signals || []).join(', ')}</td>
+                    <td>${qcWatchlistButton(stock.code, stock.name || stock.code, '加自閫?, 'btn-soft btn-sm')}</td>
+                </tr>
+            `;
+        });
+        tableHtml += `</tbody></table>`;
+        $('#resultContainer').html(tableHtml);
+        $('#generateReportBtn').show();
+        $('#reportContainer').empty();
+    }
+
+    $('#generateReportBtn').click(function() {
+        const selectorType = $('input[name="selectorType"]:checked').val();
+        
+        $.ajax({
+            url: '/api/v1/selector/report',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ type: selectorType, stocks: lastResults }),
+            success: function(res) {
+                $('#reportContainer').addClass('markdown-body').html(qcRenderMarkdown(res.report || ''));
+            },
+            error: function() {
+                showToast('报告请求失败', 'error');
+            }
+        });
+    });
+});
+
+function openLegoEditor() {
+    showToast('可视化编辑器开发中，可先使用预设快速选股', 'info');
+}
+
+function applyLegoPreset(preset) {
+    const presets = {
+        '金叉反转': { strategy: 'ma_cross', params: { short: 5, long: 20 } },
+        '低估鍊?: { strategy: 'value', params: { pe: 20, pb: 2 } },
+        '动量突破': { strategy: 'momentum', params: { period: 20, threshold: 5 } },
+        '业绩反转': { strategy: 'earnings', params: { growth: 20 } },
+        '北向资金': { strategy: 'northbound', params: { days: 5, amount: 100000000 } },
+    };
+    
+    const config = presets[preset];
+    if (config) {
+        $('#dataSourceSelect').val(config.strategy === 'value' ? 'legacy' : 'qlib_factors');
+        $('#topN').val(config.strategy === 'momentum' ? 10 : 5);
+        updateWhitebox(config);
+        showToast(`已应用銆?{preset}」策略，点击运行开始选股`, 'success');
+    }
+}
+
+function updateWhitebox(presetConfig) {
+    const type = $('input[name="selectorType"]:checked').val() || 'long';
+    const topN = parseInt($('#topN').val(), 10) || 5;
+    const market = $('#marketSelect').val() || 'CN';
+    const dataSource = $('#dataSourceSelect').val() || 'legacy';
+    const labels = { long: 'long_term_value', mid: 'mid_term_rotation', short: 'short_term_momentum' };
+    const typeCopy = {
+        long: '长线更偏基本面、估值安全边际和稳定现金流銆?,
+        mid: '中线更偏行业轮动、趋势延续和资金确认銆?,
+        short: '短线更偏成交放量、动量突破和风险快速止损銆?
+    };
+    const sourceCopy = {
+        legacy: 'legacy 使用现有稳定规则，适合兜底和日常选股銆?,
+        qlib_factors: 'qlib_factors 使用因子数据，更适合研究和回测联动銆?,
+        model_score: 'model_score 使用模型分数排序，更适合批量候选压缩銆?
+    };
+    const strategy = presetConfig ? presetConfig.strategy : labels[type];
+    const params = presetConfig ? presetConfig.params : {
+        market: market,
+        top_n: topN,
+        data_source: dataSource,
+        risk_guard: type === 'short' ? 'strict_stop_loss' : 'drawdown_guard',
+        explain: true
+    };
+    const dsl = {
+        strategy: strategy,
+        selector_type: type,
+        params: params,
+        output: {
+            rank_by: dataSource === 'model_score' ? 'model_score' : 'composite_score',
+            limit: topN,
+            include_reasons: true
+        }
+    };
+    $('#selectorDslPreview').text(JSON.stringify(dsl, null, 2));
+    $('#selectorTypeExplain').text(typeCopy[type]);
+    $('#topNExplain').text(`当前返回 Top ${topN}。建议先鐪?Top ${Math.min(topN, 10)} 的解释，再进入回测验证。`);
+    $('#dataSourceExplain').text(sourceCopy[dataSource]);
+    renderFunnel(type, topN, dataSource);
+}
+
+function renderFunnel(type, topN, dataSource) {
+    const base = { CN: 5300, US: 6200, HK: 2600, CRYPTO: 800 }[$('#marketSelect').val()] || 5300;
+    const quality = Math.round(base * (type === 'short' ? 0.42 : type === 'mid' ? 0.35 : 0.28));
+    const signal = Math.round(quality * (dataSource === 'model_score' ? 0.38 : dataSource === 'qlib_factors' ? 0.46 : 0.55));
+    const risk = Math.max(topN, Math.round(signal * (type === 'short' ? 0.28 : 0.34)));
+    const finalCount = Math.min(topN, risk);
+    const steps = [
+        ['市场股票姹?, base],
+        ['质量与流动性过婊?, quality],
+        ['策略信号命中', signal],
+        ['风险门禁后候閫?, risk],
+        ['最终输鍑?, finalCount]
+    ];
+    $('#selectorFunnel').html(steps.map(([name, count]) => {
+        const pct = Math.max(4, Math.round(count / base * 100));
+        return `
+            <div class="funnel-step">
+                <div class="funnel-top"><span class="funnel-name">${name}</span><span class="funnel-count">${count}</span></div>
+                <div class="funnel-bar"><div class="funnel-fill" style="width:${pct}%"></div></div>
+            </div>
+        `;
+    }).join(''));
+}
+
+function handleSsAction(event) {
+    const el = event.target.closest('[data-ss-action]');
+    if (!el) return;
+    const action = el.dataset.ssAction;
+    if (action === 'open-lego') openLegoEditor();
+    else if (action === 'lego-preset') applyLegoPreset(el.dataset.preset || '');
+}
+document.addEventListener('click', handleSsAction);
+
+</script>
+{% endblock %}

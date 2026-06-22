@@ -69,6 +69,7 @@ class AlphaMarketplaceService:
         compliance_service: Any | None = None,
         evolution_service: Any | None = None,
         wallet_service: Any | None = None,
+        broker: Any | None = None,
     ):
         self._token_svc = token_service or TokenizedAlphaService()
         self._compliance = compliance_service

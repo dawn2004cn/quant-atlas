@@ -25,6 +25,8 @@ class StrategyApplicationService(BaseApplicationService):
         backtest_provider: BacktestProvider,
         market_provider: MarketDataProvider,
         indicator_provider: IndicatorProvider | None = None,
+        news_provider=None,
+        **kwargs,
     ):
         super().__init__()
         self._strategy_provider = strategy_provider

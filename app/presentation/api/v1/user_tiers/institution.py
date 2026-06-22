@@ -7,6 +7,7 @@ from flask_login import login_required, current_user
 
 from app.core.rbac_guard import require_rbac
 from app.core.registry import register_routes
+from app.presentation.api.decorators import require_role
 from app.presentation.api.v1.user_tiers._http import tier_not_found, tier_success
 
 _bp = Blueprint("institution", __name__)

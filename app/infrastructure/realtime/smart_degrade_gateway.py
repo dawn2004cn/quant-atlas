@@ -1,5 +1,5 @@
-from __future__ import annotations
-"""Smart Degrade Gateway — adapt quote delivery mode from SystemPulse / Redis latency."""
+﻿from __future__ import annotations
+"""Smart Degrade Gateway adapt quote delivery mode from SystemPulse / Redis latency."""
 
 import time
 from dataclasses import dataclass, field
@@ -13,9 +13,9 @@ logger = get_logger(__name__)
 
 
 class StreamMode(str, Enum):
-    STREAM = "stream"  # all subscribed symbols push at base interval
-    BATCH = "batch"  # core stream + non-core batch pull
-    DEGRADED = "degraded"  # core-only minimal stream
+    STREAM = "stream"
+    BATCH = "batch"
+    DEGRADED = "degraded"
 
 
 @dataclass
@@ -26,8 +26,8 @@ class StreamTopology:
     redis_latency_ms: float = 0.0
     core_symbols: list[str] = field(default_factory=list)
     batch_symbols: list[str] = field(default_factory=list)
-    stream_interval_sec: int = 15
-    batch_interval_sec: int = 60
+    stream_interval_sec: int = 5
+    batch_interval_sec: int = 30
     reason: str = ""
 
 
@@ -76,14 +76,14 @@ class SmartDegradeGateway:
             batch = all_upper
             core = core[:3]
 
-        base_iv = max(5, get_runtime_int("WS_QUOTE_INTERVAL_SEC", 15))
+        base_iv = max(1, get_runtime_int("WS_QUOTE_INTERVAL_SEC", 5))
         self._topology = StreamTopology(
             mode=mode,
             redis_latency_ms=round(latency, 2),
             core_symbols=core,
             batch_symbols=batch if mode != StreamMode.STREAM else [],
             stream_interval_sec=base_iv,
-            batch_interval_sec=max(30, base_iv * 4),
+            batch_interval_sec=max(20, base_iv * 4),
             reason=reason,
         )
         return self._topology
@@ -117,7 +117,6 @@ class SmartDegradeGateway:
         if not url:
             try:
                 from app.config import get_settings
-
                 s = get_settings()
                 url = getattr(s, "task_message_redis_url", None) or getattr(
                     s, "celery_broker_url", None
@@ -128,7 +127,6 @@ class SmartDegradeGateway:
             return 0.0
         try:
             from app.infrastructure.redis_client import RedisClientPool
-
             client = RedisClientPool.get(url).client
             t0 = time.perf_counter()
             client.ping()
@@ -146,7 +144,6 @@ class SmartDegradeGateway:
                 from app.modules.system.services.system.system_pulse_service import (
                     SystemPulseService,
                 )
-
                 pulse = SystemPulseService().build_pulse(pulse_ctx)
                 for comp in pulse.components:
                     if comp.id == "redis" and comp.status != "ok":

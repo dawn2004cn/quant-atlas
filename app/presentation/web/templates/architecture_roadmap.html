@@ -1,24 +1,32 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
-{% block title %}架构演进 - Quant Atlas{% endblock %}
+{% block title %}鏋舵瀯婕旇繘 - Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
 {% endblock %}
+{% block spa_switcher %}
+<a href="/app/architecture_roadmap" class="spa-switcher-link"
+   data-spa-switcher="architecture_roadmap">
+  璇曡瘯鏂扮増 鈫?
+</a>
+{% endblock %%}
+
+
 
 {% block content %}
 <div class="roadmap-hero">
     <div class="roadmap-hero-head">
         <div>
             <div class="hero-caption">Phase 4+ Architecture Map</div>
-            <h1 class="page-title">架构演进与页面落点</h1>
-            <p class="page-subtitle">把 quantatlas_plan.md 的重构建议拆成用户可感知的页面能力、适合嵌入的现有入口，以及只应留在后台的工程能力。</p>
+            <h1 class="page-title">鏋舵瀯婕旇繘涓庨〉闈㈣惤鐐?/h1>
+            <p class="page-subtitle">鎶?quantatlas_plan.md 鐨勯噸鏋勫缓璁媶鎴愮敤鎴峰彲鎰熺煡鐨勯〉闈㈣兘鍔涖€侀€傚悎宓屽叆鐨勭幇鏈夊叆鍙ｏ紝浠ュ強鍙簲鐣欏湪鍚庡彴鐨勫伐绋嬭兘鍔涖€?/p>
         </div>
         <div class="roadmap-actions">
-            <a class="btn-brand" href="/observability">打开观测台</a>
-            <a class="btn-soft" href="/integration-hub">集成中枢</a>
-            <a class="btn-soft" href="/capabilities">能力总览</a>
-            <a class="btn-soft" href="/research-pipeline">研究闭环</a>
+            <a class="btn-brand" href="/observability">鎵撳紑瑙傛祴鍙?/a>
+            <a class="btn-soft" href="/integration-hub">闆嗘垚涓灑</a>
+            <a class="btn-soft" href="/capabilities">鑳藉姏鎬昏</a>
+            <a class="btn-soft" href="/research-pipeline">鐮旂┒闂幆</a>
         </div>
     </div>
     <div id="roadmapFreshnessStrip" class="qc-freshness-strip market-freshness-strip--hero qa-is-hidden" aria-live="polite"></div>
@@ -29,34 +37,34 @@
 <div class="roadmap-summary">
     <div class="roadmap-stat">
         <strong>7</strong>
-        <span class="muted">建议可以直接页面化</span>
+        <span class="muted">寤鸿鍙互鐩存帴椤甸潰鍖?/span>
     </div>
     <div class="roadmap-stat">
         <strong>4</strong>
-        <span class="muted">更适合集成到现有页面</span>
+        <span class="muted">鏇撮€傚悎闆嗘垚鍒扮幇鏈夐〉闈?/span>
     </div>
     <div class="roadmap-stat">
         <strong>3</strong>
-        <span class="muted">应先作为后台能力落地</span>
+        <span class="muted">搴斿厛浣滀负鍚庡彴鑳藉姏钀藉湴</span>
     </div>
     <div class="roadmap-stat">
-        <strong id="uxSurfaceCount">—</strong>
-        <span class="muted">用户中心已落地页面（ui_surfaces）</span>
+        <strong id="uxSurfaceCount">鈥?/strong>
+        <span class="muted">鐢ㄦ埛涓績宸茶惤鍦伴〉闈紙ui_surfaces锛?/span>
     </div>
 </div>
 
 <div class="section-shell">
     <div class="panel-head">
         <div>
-            <h2 class="panel-title">用户中心链路落地对照</h2>
+            <h2 class="panel-title">鐢ㄦ埛涓績閾捐矾钀藉湴瀵圭収</h2>
             <div class="panel-subtitle">
-                数据来自 <code>GET /api/v1/ux/decision-flow</code> · 版本 <span id="uxContractVersion">—</span>
+                鏁版嵁鏉ヨ嚜 <code>GET /api/v1/ux/decision-flow</code> 路 鐗堟湰 <span id="uxContractVersion">鈥?/span>
             </div>
         </div>
         <div class="roadmap-panel-actions">
-            <input type="text" id="uxCheckSymbol" class="input-soft roadmap-symbol-input" placeholder="自检代码 600519">
-            <button type="button" class="btn-brand btn-sm" id="roadmapRunSelfCheck">运行自检</button>
-            <button type="button" class="btn-soft btn-sm" id="roadmapReloadContract">刷新契约</button>
+            <input type="text" id="uxCheckSymbol" class="input-soft roadmap-symbol-input" placeholder="鑷浠ｇ爜 600519">
+            <button type="button" class="btn-brand btn-sm" id="roadmapRunSelfCheck">杩愯鑷</button>
+            <button type="button" class="btn-soft btn-sm" id="roadmapReloadContract">鍒锋柊濂戠害</button>
         </div>
     </div>
     <div id="roadmapSelfCheckResults" class="roadmap-self-check"></div>
@@ -64,14 +72,14 @@
         <table class="fit-table">
             <thead>
                 <tr>
-                    <th>页面</th>
-                    <th>已接入能力</th>
-                    <th>路径</th>
-                    <th>状态</th>
+                    <th>椤甸潰</th>
+                    <th>宸叉帴鍏ヨ兘鍔?/th>
+                    <th>璺緞</th>
+                    <th>鐘舵€?/th>
                 </tr>
             </thead>
             <tbody id="uxSurfacesBody">
-                <tr><td colspan="4" class="fit-desc">加载契约中…</td></tr>
+                <tr><td colspan="4" class="fit-desc">鍔犺浇濂戠害涓€?/td></tr>
             </tbody>
         </table>
     </div>
@@ -80,10 +88,10 @@
 <div class="section-shell">
     <div class="panel-head">
         <div>
-            <h2 class="panel-title">refacter 路线图落地对照</h2>
-            <div class="panel-subtitle">Agent 进化 · 散户助手 · 基础设施 · 多市场 — 数据来自 <code>refactor-status</code> 与 <code>timeseries-health</code></div>
+            <h2 class="panel-title">refacter 璺嚎鍥捐惤鍦板鐓?/h2>
+            <div class="panel-subtitle">Agent 杩涘寲 路 鏁ｆ埛鍔╂墜 路 鍩虹璁炬柦 路 澶氬競鍦?鈥?鏁版嵁鏉ヨ嚜 <code>refactor-status</code> 涓?<code>timeseries-health</code></div>
         </div>
-        <a class="btn-soft btn-sm" href="/retail-assistant">散户助手</a>
+        <a class="btn-soft btn-sm" href="/retail-assistant">鏁ｆ埛鍔╂墜</a>
     </div>
     <div id="roadmapRefactorStatus"></div>
 </div>
@@ -91,34 +99,34 @@
 <div class="section-shell">
     <div class="panel-head">
         <div>
-            <h2 class="panel-title">以用户为中心的功能视角</h2>
-            <div class="panel-subtitle">同一套技术升级，最终要分别服务研究员、交易执行者、管理员和产品决策者。</div>
+            <h2 class="panel-title">浠ョ敤鎴蜂负涓績鐨勫姛鑳借瑙?/h2>
+            <div class="panel-subtitle">鍚屼竴濂楁妧鏈崌绾э紝鏈€缁堣鍒嗗埆鏈嶅姟鐮旂┒鍛樸€佷氦鏄撴墽琛岃€呫€佺鐞嗗憳鍜屼骇鍝佸喅绛栬€呫€?/div>
         </div>
     </div>
     <div class="user-center-grid">
         <div class="user-card">
-            <h2>投研用户</h2>
-            <p>需要更快找到机会、理解原因、验证假设，并能回看 AI 为什么得出某个结论。</p>
-            <div class="user-need"><strong>最该增强</strong><span class="badge-soft">解释链路</span></div>
-            <div class="user-need"><strong>页面落点</strong><span>AI 投委会 / 研究闭环</span></div>
+            <h2>鎶曠爺鐢ㄦ埛</h2>
+            <p>闇€瑕佹洿蹇壘鍒版満浼氥€佺悊瑙ｅ師鍥犮€侀獙璇佸亣璁撅紝骞惰兘鍥炵湅 AI 涓轰粈涔堝緱鍑烘煇涓粨璁恒€?/p>
+            <div class="user-need"><strong>鏈€璇ュ寮?/strong><span class="badge-soft">瑙ｉ噴閾捐矾</span></div>
+            <div class="user-need"><strong>椤甸潰钀界偣</strong><span>AI 鎶曞浼?/ 鐮旂┒闂幆</span></div>
         </div>
         <div class="user-card">
-            <h2>量化研究员</h2>
-            <p>需要把策略因子从代码里解耦出来，快速试验参数，并追踪每次回测的输入输出。</p>
-            <div class="user-need"><strong>最该增强</strong><span class="badge-soft">策略白盒</span></div>
-            <div class="user-need"><strong>页面落点</strong><span>量化实验室 / 参数优化</span></div>
+            <h2>閲忓寲鐮旂┒鍛?/h2>
+            <p>闇€瑕佹妸绛栫暐鍥犲瓙浠庝唬鐮侀噷瑙ｈ€﹀嚭鏉ワ紝蹇€熻瘯楠屽弬鏁帮紝骞惰拷韪瘡娆″洖娴嬬殑杈撳叆杈撳嚭銆?/p>
+            <div class="user-need"><strong>鏈€璇ュ寮?/strong><span class="badge-soft">绛栫暐鐧界洅</span></div>
+            <div class="user-need"><strong>椤甸潰钀界偣</strong><span>閲忓寲瀹為獙瀹?/ 鍙傛暟浼樺寲</span></div>
         </div>
         <div class="user-card">
-            <h2>交易与风控</h2>
-            <p>需要知道任务是否仍可信、数据是否新鲜、熔断是否触发，以及异常后下一步怎么处理。</p>
-            <div class="user-need"><strong>最该增强</strong><span class="badge-soft">状态可见</span></div>
-            <div class="user-need"><strong>页面落点</strong><span>任务详情 / 集成中枢</span></div>
+            <h2>浜ゆ槗涓庨鎺?/h2>
+            <p>闇€瑕佺煡閬撲换鍔℃槸鍚︿粛鍙俊銆佹暟鎹槸鍚︽柊椴溿€佺啍鏂槸鍚﹁Е鍙戯紝浠ュ強寮傚父鍚庝笅涓€姝ユ€庝箞澶勭悊銆?/p>
+            <div class="user-need"><strong>鏈€璇ュ寮?/strong><span class="badge-soft">鐘舵€佸彲瑙?/span></div>
+            <div class="user-need"><strong>椤甸潰钀界偣</strong><span>浠诲姟璇︽儏 / 闆嗘垚涓灑</span></div>
         </div>
         <div class="user-card">
-            <h2>系统管理员</h2>
-            <p>需要把服务、缓存、事件、外部 API 和慢调用放在同一个可诊断视图里。</p>
-            <div class="user-need"><strong>最该增强</strong><span class="badge-soft">Trace + 事件</span></div>
-            <div class="user-need"><strong>页面落点</strong><span>观测台 / 架构演进</span></div>
+            <h2>绯荤粺绠＄悊鍛?/h2>
+            <p>闇€瑕佹妸鏈嶅姟銆佺紦瀛樸€佷簨浠躲€佸閮?API 鍜屾參璋冪敤鏀惧湪鍚屼竴涓彲璇婃柇瑙嗗浘閲屻€?/p>
+            <div class="user-need"><strong>鏈€璇ュ寮?/strong><span class="badge-soft">Trace + 浜嬩欢</span></div>
+            <div class="user-need"><strong>椤甸潰钀界偣</strong><span>瑙傛祴鍙?/ 鏋舵瀯婕旇繘</span></div>
         </div>
     </div>
 </div>
@@ -126,35 +134,35 @@
 <div class="section-shell">
     <div class="panel-head">
         <div>
-            <h2 class="panel-title">用户旅程增强地图</h2>
-            <div class="panel-subtitle">从发现机会到复盘归档，每一步都应该有清晰状态、下一步动作和可追溯证据。</div>
+            <h2 class="panel-title">鐢ㄦ埛鏃呯▼澧炲己鍦板浘</h2>
+            <div class="panel-subtitle">浠庡彂鐜版満浼氬埌澶嶇洏褰掓。锛屾瘡涓€姝ラ兘搴旇鏈夋竻鏅扮姸鎬併€佷笅涓€姝ュ姩浣滃拰鍙拷婧瘉鎹€?/div>
         </div>
     </div>
     <div class="journey-row">
         <div class="journey-step">
             <div class="journey-kicker">Step 01</div>
-            <div class="journey-title">发现机会</div>
-            <div class="journey-desc">在市场全景、自选股、信号旗里展示异常波动、数据新鲜度和触发事件。</div>
+            <div class="journey-title">鍙戠幇鏈轰細</div>
+            <div class="journey-desc">鍦ㄥ競鍦哄叏鏅€佽嚜閫夎偂銆佷俊鍙锋棗閲屽睍绀哄紓甯告尝鍔ㄣ€佹暟鎹柊椴滃害鍜岃Е鍙戜簨浠躲€?/div>
         </div>
         <div class="journey-step">
             <div class="journey-kicker">Step 02</div>
-            <div class="journey-title">解释原因</div>
-            <div class="journey-desc">在 AI 投委会展示 AgentContext、证据来源、冲突观点和置信度变化。</div>
+            <div class="journey-title">瑙ｉ噴鍘熷洜</div>
+            <div class="journey-desc">鍦?AI 鎶曞浼氬睍绀?AgentContext銆佽瘉鎹潵婧愩€佸啿绐佽鐐瑰拰缃俊搴﹀彉鍖栥€?/div>
         </div>
         <div class="journey-step">
             <div class="journey-kicker">Step 03</div>
-            <div class="journey-title">验证策略</div>
-            <div class="journey-desc">在回测和参数优化页显示 DSL 参数、版本、样本范围和门禁判定。</div>
+            <div class="journey-title">楠岃瘉绛栫暐</div>
+            <div class="journey-desc">鍦ㄥ洖娴嬪拰鍙傛暟浼樺寲椤垫樉绀?DSL 鍙傛暟銆佺増鏈€佹牱鏈寖鍥村拰闂ㄧ鍒ゅ畾銆?/div>
         </div>
         <div class="journey-step">
             <div class="journey-kicker">Step 04</div>
-            <div class="journey-title">执行跟踪</div>
-            <div class="journey-desc">在任务详情页展示排队、执行、回调、重试、失败原因与消息通知。</div>
+            <div class="journey-title">鎵ц璺熻釜</div>
+            <div class="journey-desc">鍦ㄤ换鍔¤鎯呴〉灞曠ず鎺掗槦銆佹墽琛屻€佸洖璋冦€侀噸璇曘€佸け璐ュ師鍥犱笌娑堟伅閫氱煡銆?/div>
         </div>
         <div class="journey-step">
             <div class="journey-kicker">Step 05</div>
-            <div class="journey-title">复盘沉淀</div>
-            <div class="journey-desc">把任务 Trace、策略版本、Agent 结论和真实结果沉淀到研究闭环。</div>
+            <div class="journey-title">澶嶇洏娌夋穩</div>
+            <div class="journey-desc">鎶婁换鍔?Trace銆佺瓥鐣ョ増鏈€丄gent 缁撹鍜岀湡瀹炵粨鏋滄矇娣€鍒扮爺绌堕棴鐜€?/div>
         </div>
     </div>
 </div>
@@ -162,61 +170,61 @@
 <div class="section-shell">
     <div class="panel-head">
         <div>
-            <h2 class="panel-title">页面功能增强清单</h2>
-            <div class="panel-subtitle">按用户价值排序，先补“能减少迷茫和等待”的页面状态，再补高级配置。</div>
+            <h2 class="panel-title">椤甸潰鍔熻兘澧炲己娓呭崟</h2>
+            <div class="panel-subtitle">鎸夌敤鎴蜂环鍊兼帓搴忥紝鍏堣ˉ鈥滆兘鍑忓皯杩疯尗鍜岀瓑寰呪€濈殑椤甸潰鐘舵€侊紝鍐嶈ˉ楂樼骇閰嶇疆銆?/div>
         </div>
     </div>
-    <div class="enhance-toolbar" aria-label="功能优先级筛选">
-        <button class="enhance-filter active" type="button" data-filter="all">全部</button>
-        <button class="enhance-filter" type="button" data-filter="p0">P0 立即可见</button>
-        <button class="enhance-filter" type="button" data-filter="p1">P1 工作流增强</button>
-        <button class="enhance-filter" type="button" data-filter="p2">P2 治理指标</button>
+    <div class="enhance-toolbar" aria-label="鍔熻兘浼樺厛绾х瓫閫?>
+        <button class="enhance-filter active" type="button" data-filter="all">鍏ㄩ儴</button>
+        <button class="enhance-filter" type="button" data-filter="p0">P0 绔嬪嵆鍙</button>
+        <button class="enhance-filter" type="button" data-filter="p1">P1 宸ヤ綔娴佸寮?/button>
+        <button class="enhance-filter" type="button" data-filter="p2">P2 娌荤悊鎸囨爣</button>
     </div>
     <div class="enhance-grid" id="enhanceGrid">
         <div class="enhance-card" data-priority="p0">
-            <div class="enhance-head"><div class="enhance-title">任务详情：统一时间线</div><span class="priority-chip priority-p0">P0</span></div>
-            <div class="enhance-desc">把异步提交、队列等待、Agent 执行、回调通知、失败重试串成一条线，用户不用猜任务卡在哪里。</div>
-            <a class="btn-soft" href="/task/pending">查看任务详情</a>
+            <div class="enhance-head"><div class="enhance-title">浠诲姟璇︽儏锛氱粺涓€鏃堕棿绾?/div><span class="priority-chip priority-p0">P0</span></div>
+            <div class="enhance-desc">鎶婂紓姝ユ彁浜ゃ€侀槦鍒楃瓑寰呫€丄gent 鎵ц銆佸洖璋冮€氱煡銆佸け璐ラ噸璇曚覆鎴愪竴鏉＄嚎锛岀敤鎴蜂笉鐢ㄧ寽浠诲姟鍗″湪鍝噷銆?/div>
+            <a class="btn-soft" href="/task/pending">鏌ョ湅浠诲姟璇︽儏</a>
         </div>
         <div class="enhance-card" data-priority="p0">
-            <div class="enhance-head"><div class="enhance-title">观测台：Trace 搜索与慢调用排行</div><span class="priority-chip priority-p0">P0</span></div>
-            <div class="enhance-desc">支持按 Trace ID、任务 ID、股票代码检索，把 API、Agent、数据库日志放在同一屏。</div>
-            <a class="btn-soft" href="/observability">打开观测台</a>
+            <div class="enhance-head"><div class="enhance-title">瑙傛祴鍙帮細Trace 鎼滅储涓庢參璋冪敤鎺掕</div><span class="priority-chip priority-p0">P0</span></div>
+            <div class="enhance-desc">鏀寔鎸?Trace ID銆佷换鍔?ID銆佽偂绁ㄤ唬鐮佹绱紝鎶?API銆丄gent銆佹暟鎹簱鏃ュ織鏀惧湪鍚屼竴灞忋€?/div>
+            <a class="btn-soft" href="/observability">鎵撳紑瑙傛祴鍙?/a>
         </div>
         <div class="enhance-card" data-priority="p0">
-            <div class="enhance-head"><div class="enhance-title">选股器：策略参数面板</div><span class="priority-chip priority-p0">P0</span></div>
-            <div class="enhance-desc">把硬编码筛选条件改成可读的 DSL 摘要，展示每个条件过滤了多少股票。</div>
-            <a class="btn-soft" href="/stock-selector">打开选股器</a>
+            <div class="enhance-head"><div class="enhance-title">閫夎偂鍣細绛栫暐鍙傛暟闈㈡澘</div><span class="priority-chip priority-p0">P0</span></div>
+            <div class="enhance-desc">鎶婄‖缂栫爜绛涢€夋潯浠舵敼鎴愬彲璇荤殑 DSL 鎽樿锛屽睍绀烘瘡涓潯浠惰繃婊や簡澶氬皯鑲＄エ銆?/div>
+            <a class="btn-soft" href="/stock-selector">鎵撳紑閫夎偂鍣?/a>
         </div>
         <div class="enhance-card" data-priority="p1">
-            <div class="enhance-head"><div class="enhance-title">AI 投委会：上下文透明化</div><span class="priority-chip priority-p1">P1</span></div>
-            <div class="enhance-desc">展示 MarketSnapshot、UserPreference、HistoryMemory，让用户知道 AI 到底拿了哪些输入。</div>
-            <a class="btn-soft" href="/ai-committee">打开 AI 投委会</a>
+            <div class="enhance-head"><div class="enhance-title">AI 鎶曞浼氾細涓婁笅鏂囬€忔槑鍖?/div><span class="priority-chip priority-p1">P1</span></div>
+            <div class="enhance-desc">灞曠ず MarketSnapshot銆乁serPreference銆丠istoryMemory锛岃鐢ㄦ埛鐭ラ亾 AI 鍒板簳鎷夸簡鍝簺杈撳叆銆?/div>
+            <a class="btn-soft" href="/ai-committee">鎵撳紑 AI 鎶曞浼?/a>
         </div>
         <div class="enhance-card" data-priority="p1">
-            <div class="enhance-head"><div class="enhance-title">研究闭环：人工纠偏节点</div><span class="priority-chip priority-p1">P1</span></div>
-            <div class="enhance-desc">对误判、证据不足、参数越界的结果提供人工确认和回滚入口。</div>
-            <a class="btn-soft" href="/research-pipeline">打开研究闭环</a>
+            <div class="enhance-head"><div class="enhance-title">鐮旂┒闂幆锛氫汉宸ョ籂鍋忚妭鐐?/div><span class="priority-chip priority-p1">P1</span></div>
+            <div class="enhance-desc">瀵硅鍒ゃ€佽瘉鎹笉瓒炽€佸弬鏁拌秺鐣岀殑缁撴灉鎻愪緵浜哄伐纭鍜屽洖婊氬叆鍙ｃ€?/div>
+            <a class="btn-soft" href="/research-pipeline">鎵撳紑鐮旂┒闂幆</a>
         </div>
         <div class="enhance-card" data-priority="p0">
-            <div class="enhance-head"><div class="enhance-title">集成中枢：数据新鲜度与任务进度</div><span class="priority-chip priority-p0">已落地</span></div>
-            <div class="enhance-desc">活跃任务、快捷同步、任务消息流与分阶段 Celery 进度已接入。</div>
-            <a class="btn-soft" href="/integration-hub">打开集成中枢</a>
+            <div class="enhance-head"><div class="enhance-title">闆嗘垚涓灑锛氭暟鎹柊椴滃害涓庝换鍔¤繘搴?/div><span class="priority-chip priority-p0">宸茶惤鍦?/span></div>
+            <div class="enhance-desc">娲昏穬浠诲姟銆佸揩鎹峰悓姝ャ€佷换鍔℃秷鎭祦涓庡垎闃舵 Celery 杩涘害宸叉帴鍏ャ€?/div>
+            <a class="btn-soft" href="/integration-hub">鎵撳紑闆嗘垚涓灑</a>
         </div>
         <div class="enhance-card" data-priority="p0">
-            <div class="enhance-head"><div class="enhance-title">个股详情：决策简报 + 采纳计划</div><span class="priority-chip priority-p0">已落地</span></div>
-            <div class="enhance-desc">decision-brief、归因时间轴、sector_context、POST trade-plan/adopt 已串联。</div>
-            <a class="btn-soft" href="/stock/600519?m=CN#decision-brief-strip">示例个股</a>
+            <div class="enhance-head"><div class="enhance-title">涓偂璇︽儏锛氬喅绛栫畝鎶?+ 閲囩撼璁″垝</div><span class="priority-chip priority-p0">宸茶惤鍦?/span></div>
+            <div class="enhance-desc">decision-brief銆佸綊鍥犳椂闂磋酱銆乻ector_context銆丳OST trade-plan/adopt 宸蹭覆鑱斻€?/div>
+            <a class="btn-soft" href="/stock/600519?m=CN#decision-brief-strip">绀轰緥涓偂</a>
         </div>
         <div class="enhance-card" data-priority="p2">
-            <div class="enhance-head"><div class="enhance-title">能力总览：决策链路自检</div><span class="priority-chip priority-p2">P2</span></div>
-            <div class="enhance-desc">按 ux/decision-flow 探针批量检测 API；本页亦可运行同款自检。</div>
-            <a class="btn-soft" href="/capabilities">打开能力总览</a>
+            <div class="enhance-head"><div class="enhance-title">鑳藉姏鎬昏锛氬喅绛栭摼璺嚜妫€</div><span class="priority-chip priority-p2">P2</span></div>
+            <div class="enhance-desc">鎸?ux/decision-flow 鎺㈤拡鎵归噺妫€娴?API锛涙湰椤典害鍙繍琛屽悓娆捐嚜妫€銆?/div>
+            <a class="btn-soft" href="/capabilities">鎵撳紑鑳藉姏鎬昏</a>
         </div>
         <div class="enhance-card" data-priority="p2">
-            <div class="enhance-head"><div class="enhance-title">架构演进：事件订阅图</div><span class="priority-chip priority-p2">P2</span></div>
-            <div class="enhance-desc">EventBus 落地后展示事件发布者、订阅者、失败重试和最近吞吐。</div>
-            <a class="btn-soft" href="/architecture-roadmap">查看当前页</a>
+            <div class="enhance-head"><div class="enhance-title">鏋舵瀯婕旇繘锛氫簨浠惰闃呭浘</div><span class="priority-chip priority-p2">P2</span></div>
+            <div class="enhance-desc">EventBus 钀藉湴鍚庡睍绀轰簨浠跺彂甯冭€呫€佽闃呰€呫€佸け璐ラ噸璇曞拰鏈€杩戝悶鍚愩€?/div>
+            <a class="btn-soft" href="/architecture-roadmap">鏌ョ湅褰撳墠椤?/a>
         </div>
     </div>
 </div>
@@ -226,86 +234,86 @@
         <div class="section-shell">
             <div class="panel-head">
                 <div>
-                    <h2 class="panel-title">页面落点矩阵</h2>
-                    <div class="panel-subtitle">按“用户是否需要操作或判断”来决定入口，不把纯工程细节暴露成独立页面。</div>
+                    <h2 class="panel-title">椤甸潰钀界偣鐭╅樀</h2>
+                    <div class="panel-subtitle">鎸夆€滅敤鎴锋槸鍚﹂渶瑕佹搷浣滄垨鍒ゆ柇鈥濇潵鍐冲畾鍏ュ彛锛屼笉鎶婄函宸ョ▼缁嗚妭鏆撮湶鎴愮嫭绔嬮〉闈€?/div>
                 </div>
             </div>
             <div class="fit-table-wrap">
                 <table class="fit-table">
                     <thead>
                         <tr>
-                            <th>能力</th>
-                            <th>页面体现</th>
-                            <th>落点</th>
-                            <th>状态</th>
+                            <th>鑳藉姏</th>
+                            <th>椤甸潰浣撶幇</th>
+                            <th>钀界偣</th>
+                            <th>鐘舵€?/th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="fit-name">策略 DSL / 参数热加载</td>
-                            <td class="fit-desc">展示因子阈值、风控线、策略模板与变更记录，支持在线调整非敏感参数。</td>
-                            <td><a class="badge-soft" href="/stock-selector">智能选股</a> <a class="badge-soft" href="/optimize">参数优化</a></td>
-                            <td><span class="status-chip status-integrate">集成现有页</span></td>
+                            <td class="fit-name">绛栫暐 DSL / 鍙傛暟鐑姞杞?/td>
+                            <td class="fit-desc">灞曠ず鍥犲瓙闃堝€笺€侀鎺х嚎銆佺瓥鐣ユā鏉夸笌鍙樻洿璁板綍锛屾敮鎸佸湪绾胯皟鏁撮潪鏁忔劅鍙傛暟銆?/td>
+                            <td><a class="badge-soft" href="/stock-selector">鏅鸿兘閫夎偂</a> <a class="badge-soft" href="/optimize">鍙傛暟浼樺寲</a></td>
+                            <td><span class="status-chip status-integrate">闆嗘垚鐜版湁椤?/span></td>
                         </tr>
                         <tr>
-                            <td class="fit-name">AgentContext 标准化</td>
-                            <td class="fit-desc">把市场快照、用户偏好、历史记忆作为 Agent 输入面板，减少黑盒字符串拼接感。</td>
-                            <td><a class="badge-soft" href="/agent-center">Agent 中心</a> <a class="badge-soft" href="/ai-committee">AI 投委会</a></td>
-                            <td><span class="status-chip status-integrate">集成现有页</span></td>
+                            <td class="fit-name">AgentContext 鏍囧噯鍖?/td>
+                            <td class="fit-desc">鎶婂競鍦哄揩鐓с€佺敤鎴峰亸濂姐€佸巻鍙茶蹇嗕綔涓?Agent 杈撳叆闈㈡澘锛屽噺灏戦粦鐩掑瓧绗︿覆鎷兼帴鎰熴€?/td>
+                            <td><a class="badge-soft" href="/agent-center">Agent 涓績</a> <a class="badge-soft" href="/ai-committee">AI 鎶曞浼?/a></td>
+                            <td><span class="status-chip status-integrate">闆嗘垚鐜版湁椤?/span></td>
                         </tr>
                         <tr>
-                            <td class="fit-name">Agent 工作流状态机</td>
-                            <td class="fit-desc">呈现选股、研报分析、策略验证、人工纠偏的执行步骤与回滚点。</td>
-                            <td><a class="badge-soft" href="/research-pipeline">研究闭环</a></td>
-                            <td><span class="status-chip status-integrate">集成现有页</span></td>
+                            <td class="fit-name">Agent 宸ヤ綔娴佺姸鎬佹満</td>
+                            <td class="fit-desc">鍛堢幇閫夎偂銆佺爺鎶ュ垎鏋愩€佺瓥鐣ラ獙璇併€佷汉宸ョ籂鍋忕殑鎵ц姝ラ涓庡洖婊氱偣銆?/td>
+                            <td><a class="badge-soft" href="/research-pipeline">鐮旂┒闂幆</a></td>
+                            <td><span class="status-chip status-integrate">闆嗘垚鐜版湁椤?/span></td>
                         </tr>
                         <tr>
-                            <td class="fit-name">EventBus 事件流</td>
-                            <td class="fit-desc">显示 MarketDataUpdated、TradeExecuted 等领域事件的发布、订阅与失败重试。</td>
-                            <td><a class="badge-soft" href="/architecture-roadmap">架构演进</a></td>
-                            <td><span class="status-chip status-new">新增页面</span></td>
+                            <td class="fit-name">EventBus 浜嬩欢娴?/td>
+                            <td class="fit-desc">鏄剧ず MarketDataUpdated銆乀radeExecuted 绛夐鍩熶簨浠剁殑鍙戝竷銆佽闃呬笌澶辫触閲嶈瘯銆?/td>
+                            <td><a class="badge-soft" href="/architecture-roadmap">鏋舵瀯婕旇繘</a></td>
+                            <td><span class="status-chip status-new">鏂板椤甸潰</span></td>
                         </tr>
                         <tr>
-                            <td class="fit-name">全链路追踪</td>
-                            <td class="fit-desc">按 Trace ID 串起 API、Agent、数据库、外部 API 调用，定位投研任务失败原因。</td>
-                            <td><a class="badge-soft" href="/observability">观测台</a></td>
-                            <td><span class="status-chip status-integrate">集成现有页</span></td>
+                            <td class="fit-name">鍏ㄩ摼璺拷韪?/td>
+                            <td class="fit-desc">鎸?Trace ID 涓茶捣 API銆丄gent銆佹暟鎹簱銆佸閮?API 璋冪敤锛屽畾浣嶆姇鐮斾换鍔″け璐ュ師鍥犮€?/td>
+                            <td><a class="badge-soft" href="/observability">瑙傛祴鍙?/a></td>
+                            <td><span class="status-chip status-integrate">闆嗘垚鐜版湁椤?/span></td>
                         </tr>
                         <tr>
-                            <td class="fit-name">缓存 / 冷热数据分层</td>
-                            <td class="fit-desc">展示 Redis、Parquet、Qlib bin 的健康度、命中率、预热状态和数据新鲜度。</td>
-                            <td><a class="badge-soft" href="/integration-hub">集成中枢</a></td>
-                            <td><span class="status-chip status-integrate">集成现有页</span></td>
+                            <td class="fit-name">缂撳瓨 / 鍐风儹鏁版嵁鍒嗗眰</td>
+                            <td class="fit-desc">灞曠ず Redis銆丳arquet銆丵lib bin 鐨勫仴搴峰害銆佸懡涓巼銆侀鐑姸鎬佸拰鏁版嵁鏂伴矞搴︺€?/td>
+                            <td><a class="badge-soft" href="/integration-hub">闆嗘垚涓灑</a></td>
+                            <td><span class="status-chip status-integrate">闆嗘垚鐜版湁椤?/span></td>
                         </tr>
                         <tr>
-                            <td class="fit-name">异步任务与回调</td>
-                            <td class="fit-desc">复杂复盘任务采用提交、排队、执行、通知四段式反馈，页面展示任务时间线。</td>
-                            <td><a class="badge-soft" href="/task/pending">任务详情</a> <a class="badge-soft" href="/message-center">消息中心</a></td>
-                            <td><span class="status-chip status-new">补强详情页</span></td>
+                            <td class="fit-name">寮傛浠诲姟涓庡洖璋?/td>
+                            <td class="fit-desc">澶嶆潅澶嶇洏浠诲姟閲囩敤鎻愪氦銆佹帓闃熴€佹墽琛屻€侀€氱煡鍥涙寮忓弽棣堬紝椤甸潰灞曠ず浠诲姟鏃堕棿绾裤€?/td>
+                            <td><a class="badge-soft" href="/task/pending">浠诲姟璇︽儏</a> <a class="badge-soft" href="/message-center">娑堟伅涓績</a></td>
+                            <td><span class="status-chip status-new">琛ュ己璇︽儏椤?/span></td>
                         </tr>
                         <tr>
-                            <td class="fit-name">Polars / Dask / Ray 计算加速</td>
-                            <td class="fit-desc">用户只需要看到任务耗时、吞吐量和资源队列，不需要直接配置计算框架。</td>
-                            <td><a class="badge-soft" href="/backtest">策略回测</a> <a class="badge-soft" href="/integration-hub">集成中枢</a></td>
-                            <td><span class="status-chip status-backend">后台优先</span></td>
+                            <td class="fit-name">Polars / Dask / Ray 璁＄畻鍔犻€?/td>
+                            <td class="fit-desc">鐢ㄦ埛鍙渶瑕佺湅鍒颁换鍔¤€楁椂銆佸悶鍚愰噺鍜岃祫婧愰槦鍒楋紝涓嶉渶瑕佺洿鎺ラ厤缃绠楁鏋躲€?/td>
+                            <td><a class="badge-soft" href="/backtest">绛栫暐鍥炴祴</a> <a class="badge-soft" href="/integration-hub">闆嗘垚涓灑</a></td>
+                            <td><span class="status-chip status-backend">鍚庡彴浼樺厛</span></td>
                         </tr>
                         <tr>
-                            <td class="fit-name">用户中心决策链路</td>
-                            <td class="fit-desc">决策简报、行情鲜度、归因时间轴、策略采纳观察单、活跃任务续传；契约见 ux/decision-flow。</td>
-                            <td><a class="badge-soft" href="/capabilities">能力总览</a> <a class="badge-soft" href="/daily-workbench">操盘台</a> <a class="badge-soft" href="/message-center">消息中心</a></td>
-                            <td><span class="status-chip status-integrate">已落地</span></td>
+                            <td class="fit-name">鐢ㄦ埛涓績鍐崇瓥閾捐矾</td>
+                            <td class="fit-desc">鍐崇瓥绠€鎶ャ€佽鎯呴矞搴︺€佸綊鍥犳椂闂磋酱銆佺瓥鐣ラ噰绾宠瀵熷崟銆佹椿璺冧换鍔＄画浼狅紱濂戠害瑙?ux/decision-flow銆?/td>
+                            <td><a class="badge-soft" href="/capabilities">鑳藉姏鎬昏</a> <a class="badge-soft" href="/daily-workbench">鎿嶇洏鍙?/a> <a class="badge-soft" href="/message-center">娑堟伅涓績</a></td>
+                            <td><span class="status-chip status-integrate">宸茶惤鍦?/span></td>
                         </tr>
                         <tr>
                             <td class="fit-name">API DTO / Contract</td>
-                            <td class="fit-desc">ux/decision-flow 描述页面落点与 self_check_probes；能力总览/本页可一键自检。</td>
-                            <td><a class="badge-soft" href="/capabilities">能力总览</a> <a class="badge-soft" href="/architecture-roadmap">本页对照表</a></td>
-                            <td><span class="status-chip status-integrate">已落地</span></td>
+                            <td class="fit-desc">ux/decision-flow 鎻忚堪椤甸潰钀界偣涓?self_check_probes锛涜兘鍔涙€昏/鏈〉鍙竴閿嚜妫€銆?/td>
+                            <td><a class="badge-soft" href="/capabilities">鑳藉姏鎬昏</a> <a class="badge-soft" href="/architecture-roadmap">鏈〉瀵圭収琛?/a></td>
+                            <td><span class="status-chip status-integrate">宸茶惤鍦?/span></td>
                         </tr>
                         <tr>
-                            <td class="fit-name">DI 容器深化 / 适配器标准化</td>
-                            <td class="fit-desc">纯工程治理项，适合用健康检查和架构指标体现，不应干扰业务用户。</td>
-                            <td><a class="badge-soft" href="/architecture-roadmap">架构演进</a></td>
-                            <td><span class="status-chip status-later">治理项</span></td>
+                            <td class="fit-name">DI 瀹瑰櫒娣卞寲 / 閫傞厤鍣ㄦ爣鍑嗗寲</td>
+                            <td class="fit-desc">绾伐绋嬫不鐞嗛」锛岄€傚悎鐢ㄥ仴搴锋鏌ュ拰鏋舵瀯鎸囨爣浣撶幇锛屼笉搴斿共鎵颁笟鍔＄敤鎴枫€?/td>
+                            <td><a class="badge-soft" href="/architecture-roadmap">鏋舵瀯婕旇繘</a></td>
+                            <td><span class="status-chip status-later">娌荤悊椤?/span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -315,41 +323,41 @@
         <div class="section-shell">
             <div class="panel-head">
                 <div>
-                    <h2 class="panel-title">实施阶段</h2>
-                    <div class="panel-subtitle">先做能验证效果的薄切片，再扩展到全局架构。</div>
+                    <h2 class="panel-title">瀹炴柦闃舵</h2>
+                    <div class="panel-subtitle">鍏堝仛鑳介獙璇佹晥鏋滅殑钖勫垏鐗囷紝鍐嶆墿灞曞埌鍏ㄥ眬鏋舵瀯銆?/div>
                 </div>
             </div>
             <div class="phase-lane">
                 <div class="phase-card">
-                    <div class="phase-badge">短期<br>1-2 周</div>
+                    <div class="phase-badge">鐭湡<br>1-2 鍛?/div>
                     <div>
-                        <div class="phase-title">热配置、审计自动化、观测台补强</div>
-                        <div class="phase-desc">把策略阈值、风控线、任务 Trace ID 和审计记录变成用户能看懂的运行状态。</div>
+                        <div class="phase-title">鐑厤缃€佸璁¤嚜鍔ㄥ寲銆佽娴嬪彴琛ュ己</div>
+                        <div class="phase-desc">鎶婄瓥鐣ラ槇鍊笺€侀鎺х嚎銆佷换鍔?Trace ID 鍜屽璁¤褰曞彉鎴愮敤鎴疯兘鐪嬫噦鐨勮繍琛岀姸鎬併€?/div>
                         <div class="phase-links">
-                            <a class="btn-soft" href="/observability">Trace 查询</a>
-                            <a class="btn-soft" href="/optimize">参数优化</a>
+                            <a class="btn-soft" href="/observability">Trace 鏌ヨ</a>
+                            <a class="btn-soft" href="/optimize">鍙傛暟浼樺寲</a>
                         </div>
                     </div>
                 </div>
                 <div class="phase-card">
-                    <div class="phase-badge">中期<br>3-5 周</div>
+                    <div class="phase-badge">涓湡<br>3-5 鍛?/div>
                     <div>
-                        <div class="phase-title">EventBus 与 Agent 状态机</div>
-                        <div class="phase-desc">从命令式调用转向事件驱动，让行情更新、扫描、交易计划和持仓刷新解耦。</div>
+                        <div class="phase-title">EventBus 涓?Agent 鐘舵€佹満</div>
+                        <div class="phase-desc">浠庡懡浠ゅ紡璋冪敤杞悜浜嬩欢椹卞姩锛岃琛屾儏鏇存柊銆佹壂鎻忋€佷氦鏄撹鍒掑拰鎸佷粨鍒锋柊瑙ｈ€︺€?/div>
                         <div class="phase-links">
-                            <a class="btn-soft" href="/research-pipeline">研究闭环</a>
-                            <a class="btn-soft" href="/agent-center">Agent 中心</a>
+                            <a class="btn-soft" href="/research-pipeline">鐮旂┒闂幆</a>
+                            <a class="btn-soft" href="/agent-center">Agent 涓績</a>
                         </div>
                     </div>
                 </div>
                 <div class="phase-card">
-                    <div class="phase-badge">长期<br>6+ 周</div>
+                    <div class="phase-badge">闀挎湡<br>6+ 鍛?/div>
                     <div>
-                        <div class="phase-title">计算下沉与协议层升级</div>
-                        <div class="phase-desc">把大规模回测和因子挖掘迁出 Web 进程，同时提高 API 契约覆盖率。</div>
+                        <div class="phase-title">璁＄畻涓嬫矇涓庡崗璁眰鍗囩骇</div>
+                        <div class="phase-desc">鎶婂ぇ瑙勬ā鍥炴祴鍜屽洜瀛愭寲鎺樿縼鍑?Web 杩涚▼锛屽悓鏃舵彁楂?API 濂戠害瑕嗙洊鐜囥€?/div>
                         <div class="phase-links">
-                            <a class="btn-soft" href="/backtest">策略回测</a>
-                            <a class="btn-soft" href="/capabilities">能力总览</a>
+                            <a class="btn-soft" href="/backtest">绛栫暐鍥炴祴</a>
+                            <a class="btn-soft" href="/capabilities">鑳藉姏鎬昏</a>
                         </div>
                     </div>
                 </div>
@@ -361,42 +369,42 @@
         <div class="section-shell">
             <div class="panel-head">
                 <div>
-                    <h2 class="panel-title">新增页面建议</h2>
-                    <div class="panel-subtitle">真正值得独立成页的，应该承载跨模块判断。</div>
+                    <h2 class="panel-title">鏂板椤甸潰寤鸿</h2>
+                    <div class="panel-subtitle">鐪熸鍊煎緱鐙珛鎴愰〉鐨勶紝搴旇鎵胯浇璺ㄦā鍧楀垽鏂€?/div>
                 </div>
             </div>
             <div class="decision-card">
-                <h3>架构演进</h3>
-                <p>当前页面负责展示重构计划、页面落点和阶段优先级，适合给产品和工程共同对齐。</p>
+                <h3>鏋舵瀯婕旇繘</h3>
+                <p>褰撳墠椤甸潰璐熻矗灞曠ず閲嶆瀯璁″垝銆侀〉闈㈣惤鐐瑰拰闃舵浼樺厛绾э紝閫傚悎缁欎骇鍝佸拰宸ョ▼鍏卞悓瀵归綈銆?/p>
             </div>
             <div class="decision-card">
-                <h3>任务详情增强</h3>
-                <p>复盘、回测、Agent 工作流都应复用同一条任务时间线，展示排队、执行、回调和失败原因。</p>
+                <h3>浠诲姟璇︽儏澧炲己</h3>
+                <p>澶嶇洏銆佸洖娴嬨€丄gent 宸ヤ綔娴侀兘搴斿鐢ㄥ悓涓€鏉′换鍔℃椂闂寸嚎锛屽睍绀烘帓闃熴€佹墽琛屻€佸洖璋冨拰澶辫触鍘熷洜銆?/p>
             </div>
             <div class="decision-card">
-                <h3>观测台增强</h3>
-                <p>保留现有入口，补齐 Trace、事件流、熔断状态和慢调用排行，而不是再开一个监控页面。</p>
+                <h3>瑙傛祴鍙板寮?/h3>
+                <p>淇濈暀鐜版湁鍏ュ彛锛岃ˉ榻?Trace銆佷簨浠舵祦銆佺啍鏂姸鎬佸拰鎱㈣皟鐢ㄦ帓琛岋紝鑰屼笉鏄啀寮€涓€涓洃鎺ч〉闈€?/p>
             </div>
         </div>
 
         <div class="section-shell">
             <div class="panel-head">
                 <div>
-                    <h2 class="panel-title">不建议页面化</h2>
-                    <div class="panel-subtitle">这些能力应通过稳定性和性能改善让用户感知。</div>
+                    <h2 class="panel-title">涓嶅缓璁〉闈㈠寲</h2>
+                    <div class="panel-subtitle">杩欎簺鑳藉姏搴旈€氳繃绋冲畾鎬у拰鎬ц兘鏀瑰杽璁╃敤鎴锋劅鐭ャ€?/div>
                 </div>
             </div>
             <div class="decision-card">
-                <h3>DI 容器迁移</h3>
-                <p>是测试性和可维护性收益，不需要业务页面；最多在能力总览展示依赖健康度。</p>
+                <h3>DI 瀹瑰櫒杩佺Щ</h3>
+                <p>鏄祴璇曟€у拰鍙淮鎶ゆ€ф敹鐩婏紝涓嶉渶瑕佷笟鍔￠〉闈紱鏈€澶氬湪鑳藉姏鎬昏灞曠ず渚濊禆鍋ュ悍搴︺€?/p>
             </div>
             <div class="decision-card">
-                <h3>适配器标准化</h3>
-                <p>适合以集成中枢的连接状态和错误边界体现，不做单独配置入口。</p>
+                <h3>閫傞厤鍣ㄦ爣鍑嗗寲</h3>
+                <p>閫傚悎浠ラ泦鎴愪腑鏋㈢殑杩炴帴鐘舵€佸拰閿欒杈圭晫浣撶幇锛屼笉鍋氬崟鐙厤缃叆鍙ｃ€?/p>
             </div>
             <div class="decision-card">
-                <h3>序列化替换</h3>
-                <p>msgspec、zero-copy 等属于性能实现细节，页面只展示吞吐、延迟和缓存命中率。</p>
+                <h3>搴忓垪鍖栨浛鎹?/h3>
+                <p>msgspec銆亃ero-copy 绛夊睘浜庢€ц兘瀹炵幇缁嗚妭锛岄〉闈㈠彧灞曠ず鍚炲悙銆佸欢杩熷拰缂撳瓨鍛戒腑鐜囥€?/p>
             </div>
         </div>
     </div>
@@ -413,7 +421,7 @@ async function loadRoadmapUxContract() {
     try {
         const contract = await QAUserCenter.loadDecisionFlowContract('CN', sym);
         const verEl = document.getElementById('uxContractVersion');
-        if (verEl) verEl.textContent = contract.version || '—';
+        if (verEl) verEl.textContent = contract.version || '鈥?;
         const countEl = document.getElementById('uxSurfaceCount');
         const surfaces = contract.ui_surfaces || [];
         if (countEl) countEl.textContent = String(surfaces.length);
@@ -421,7 +429,7 @@ async function loadRoadmapUxContract() {
     } catch (e) {
         if (tbody) {
             tbody.innerHTML =
-                '<tr><td colspan="4" class="fit-desc">契约加载失败：' +
+                '<tr><td colspan="4" class="fit-desc">濂戠害鍔犺浇澶辫触锛? +
                 (e.message || e) +
                 '</td></tr>';
         }

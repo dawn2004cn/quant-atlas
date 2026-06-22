@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from app.core.mesh.unified_data_lake import UnifiedDataStore, DataQuery, DataScope
 import pandas as pd
@@ -6,6 +6,7 @@ import sqlite3
 import os
 from typing import Any, Dict, List, Optional
 from app.config import BASE_DIR
+
 
 class SQLiteDataLakeStore(UnifiedDataStore):
     """
@@ -35,46 +36,45 @@ class SQLiteDataLakeStore(UnifiedDataStore):
 
     async def fetch_data(self, query: DataQuery) -> pd.DataFrame:
         """Fetch data from the unified SQLite lake."""
-        # In a real scenario, we would optimize this query for ClickHouse/QuestDB
         with sqlite3.connect(self.db_path) as conn:
             sql = "SELECT timestamp, column_name, value FROM time_series_data WHERE symbol = ? AND market = ?"
             params = [query.symbol, query.market]
-            
+
             if query.start_date:
                 sql += " AND timestamp >= ?"
                 params.append(query.start_date.isoformat())
             if query.end_date:
                 sql += " AND timestamp <= ?"
                 params.append(query.end_date.isoformat())
-                
+
             df = pd.read_sql_query(sql, conn, params=params)
-            
+
             if df.empty:
                 return pd.DataFrame()
 
-            # Pivot the data from long format (symbol, ts, col, val) to wide format (symbol, ts, col1, col2...)
-            df = df.pivot(index='timestamp', columns='column_name', values='value')
+            # Pivot from long format to wide format
+            df = df.pivot(index="timestamp", columns="column_name", values="value")
             return df
 
     async def write_data(self, symbol: str, data: pd.DataFrame, scope: DataScope):
         """Write wide-format data into the long-format lake table."""
         with sqlite3.connect(self.db_path) as conn:
-            # Assume index is timestamp
             for col in data.columns:
-                # Convert column to rows for long format
                 df_long = data[[col]].reset_index()
-                df_long.columns = ['timestamp', 'value']
-                df_long['symbol'] = symbol
-                df_long['column_name'] = col
-                df_long['scope'] = scope.value
-                
-                # Simplified insertion
-                records = df_long.values.tolist()
+                df_long.columns = ["timestamp", "value"]
+                df_long["symbol"] = symbol
+                df_long["column_name"] = col
+                df_long["scope"] = scope.value
+
+                # Build correct (symbol, timestamp, value, column_name, scope) tuples
+                records = [
+                    (row["symbol"], str(row["timestamp"]), float(row["value"]),
+                     row["column_name"], row["scope"])
+                    for _, row in df_long.iterrows()
+                ]
                 conn.executemany(
                     "INSERT OR REPLACE INTO time_series_data (symbol, timestamp, value, column_name, scope) VALUES (?, ?, ?, ?, ?)",
-                    # Need to map columns correctly to the table
-                    # This is a simplification for the bridge implementation
-                    [(row[1], row[0], row[2], row[3], row[4]) for row in records] 
+                    records,
                 )
 
     def get_health_status(self) -> Dict[str, Any]:
@@ -82,5 +82,5 @@ class SQLiteDataLakeStore(UnifiedDataStore):
             "type": "sqlite_bridge",
             "path": self.db_path,
             "status": "healthy",
-            "metrics": {"latency": "low", "reliability": "high"}
+            "metrics": {"latency": "low", "reliability": "high"},
         }

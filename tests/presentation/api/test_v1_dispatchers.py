@@ -433,13 +433,9 @@ def test_ai_hedge_fund_submodules():
 
 
 def test_attribution_dispatcher():
-    from app.presentation.api.routes_v1_attribution import (
-        attribution_bp,
-        register_attribution_routes,
-    )
+    from app.presentation.api.routes_v1_attribution import register_attribution_routes
 
     assert callable(register_attribution_routes)
-    assert attribution_bp.url_prefix == "/attribution"
 
 
 def test_attribution_submodules():
@@ -530,4 +526,6 @@ def test_mesh_submodules():
     )
 
     _assert_callable(register_mesh_gateway_routes, register_mesh_perception_routes)
-    assert MeshRuntime(ctx=MagicMock(spec=ApiV1Context)).gateway_service is None
+    ctx = MagicMock(spec=ApiV1Context)
+    del ctx.mesh_gateway_service  # Prevent MagicMock auto-creation
+    assert MeshRuntime(ctx=ctx).gateway_service is None

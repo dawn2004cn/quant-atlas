@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}自然语言策略生成器 - Quant Atlas{% endblock %}
 
@@ -8,7 +8,7 @@
 
 {% block spa_switcher %}
 <a href="/app/nl-strategy" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('nl-strategy')">
+   data-spa-switcher="nl-strategy">
   试试新版 →
 </a>
 {% endblock %}
@@ -284,10 +284,10 @@ function showResults(previewPayload, swarmResult) {
         summaryEl.innerHTML = '<p><strong>策略描述：</strong>' + escapeHtml(r.summary || '') + '</p>' +
             '<p><strong>条件数量：</strong>' + (r.conditions ? r.conditions.length : '—') + '</p>' +
             '<p><strong>风险规则：</strong>' + (r.risk_rules ? r.risk_rules.length : '—') + '</p>' +
-            '<button class="btn btn-sm btn-outline-secondary" onclick="downloadStrategyCode()">📥 下载完整代码</button>';
+            '<button class="btn btn-sm btn-outline-secondary" data-action="download-strategy-code">📥 下载完整代码</button>';
     } else if (summaryEl) {
         summaryEl.innerHTML = '<p>策略已生成并在服务端保存。</p>' +
-            '<button class="btn btn-sm btn-outline-secondary" onclick="downloadStrategyCode()">📥 下载代码</button>';
+            '<button class="btn btn-sm btn-outline-secondary" data-action="download-strategy-code">📥 下载代码</button>';
     }
 
     let totalReturn = parseMetricNumber(metrics.expected_return ?? pm.expected_return);
@@ -501,6 +501,7 @@ document.addEventListener('click', function (event) {
     else if (action === 'optimize') optimizeStrategy();
     else if (action === 'switch-code-tab') switchCodeTab(el.dataset.tab || 'python');
     else if (action === 'export-code') exportCode(el.dataset.format || 'pine');
+    else if (action === 'download-strategy-code') downloadStrategyCode();
 });
 </script>
 {% endblock %}

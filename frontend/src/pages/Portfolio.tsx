@@ -6,25 +6,45 @@ import type {
   OptimizationResult,
   RebalanceAlert,
   RiskBudgetItem,
-  PortfolioAttribution,
 } from "../types/portfolio";
 import { apiFetchV1 } from "../lib/api";
 
-/* ── API Helpers ── */
+/* ── API ── */
 function fetchSnapshot(symbols: string): Promise<{ portfolio: { total_value: number; cash: number; positions: PortfolioPosition[]; returns: { total_return_pct: number; total_pnl: number; benchmark_return_pct?: number; alpha_pct?: number } } }> {
   return apiFetchV1(`/portfolio/snapshot?symbols=${encodeURIComponent(symbols)}&cash=100000`);
 }
 
-function fetchOptimize(symbols: string[], method: string, riskAversion: number): Promise<{ optimization: OptimizationResult }> {
-  return apiFetchV1("/portfolio/optimize", {
-    method: "POST",
-    body: JSON.stringify({ symbols, method, risk_aversion: riskAversion }),
-  });
+const DEFAULT_SYMBOLS = "600519,000858,600036,601318,000333,600900";
+const ALLOC_COLORS = ["#10b981","#3b82f6","#8b5cf6","#d946ef","#ec4899","#f43f5e","#f97316","#eab308","#06b6d4"];
+
+type Tab = "holdings" | "optimize" | "rebalance" | "risk";
+
+function fmtPct(v?: number | null, signed = false): string {
+  if (v == null || Number.isNaN(v)) return "--";
+  return `${signed && v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
 }
 
-const DEFAULT_SYMBOLS = "600519,000858,600036,601318,000333,600900";
+function pctClass(v?: number | null): string {
+  if (v == null) return "text-zinc-400";
+  return v >= 0 ? "text-emerald-400" : "text-rose-400";
+}
 
-type Tab = "holdings" | "optimize" | "rebalance" | "attribution" | "risk";
+function MetricCard({ label, value, note, positive, negative }: { label: string; value: string; note: string; positive?: boolean; negative?: boolean }) {
+  return (
+    <div className="rounded-xl bg-zinc-900/50 p-4 ring-1 ring-zinc-800/50">
+      <div className="text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">{label}</div>
+      <div className={`mt-1 text-2xl font-black font-mono tabular-nums ${
+        positive ? "text-emerald-400" : negative ? "text-rose-400" : "text-zinc-100"
+      }`}>{value}</div>
+      <div className="mt-0.5 text-xs text-zinc-600">{note}</div>
+    </div>
+  );
+}
+
+/* ── Surface wrapper ── */
+function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
+}
 
 export function PortfolioPage() {
   const { mutate } = useSWRConfig();
@@ -34,7 +54,6 @@ export function PortfolioPage() {
   const [riskAversion, setRiskAversion] = useState(1.0);
   const [rebalanceThreshold, setRebalanceThreshold] = useState(5);
 
-  /* ── Data Fetching ── */
   const symbolsList = symbolsInput.split(",").map((s) => s.trim()).filter(Boolean);
 
   const { data: snapshot, error: snapErr, isLoading: snapLoading } = useSWR(
@@ -45,20 +64,16 @@ export function PortfolioPage() {
 
   const { data: optimizeData, error: optErr, isLoading: optLoading } = useSWR(
     tab === "optimize" ? ["portfolio/optimize", symbolsList.join(","), method, riskAversion] : null,
-    () => fetchOptimize(symbolsList, method, riskAversion),
+    () => apiFetchV1<{ optimization: OptimizationResult }>("/portfolio/optimize", {
+      method: "POST",
+      body: JSON.stringify({ symbols: symbolsList, method, risk_aversion: riskAversion }),
+    }),
   );
 
   const { data: rebalanceData, error: rebErr, isLoading: rebLoading } = useSWR(
     tab === "rebalance" ? ["portfolio/rebalance", symbolsList.join(","), rebalanceThreshold] : null,
-    () => apiFetchV1<{ rebalance: { snapshot: { total_value: number; cash: number; positions: PortfolioPosition[] }; actions: RebalanceAlert[]; holdings: PortfolioPosition[] } }>(
+    () => apiFetchV1<{ rebalance: { actions: RebalanceAlert[] } }>(
       `/portfolio/rebalance?symbols=${encodeURIComponent(symbolsList.join(","))}&cash=100000&threshold=${rebalanceThreshold / 100}`,
-    ),
-  );
-
-  const { data: attributionData, isLoading: attrLoading } = useSWR(
-    tab === "attribution" ? ["portfolio/attribution"] : null,
-    () => apiFetchV1<{ attribution: PortfolioAttribution }>(
-      "/portfolio/attribution?portfolio_return=8&benchmark_return=5&alpha=3",
     ),
   );
 
@@ -75,296 +90,238 @@ export function PortfolioPage() {
   const returns = snapshot?.portfolio?.returns;
 
   return (
-    <div className="space-y-5">
-      {/* ── Header ── */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold">组合管理</h1>
-          <p className="text-sm text-slate-500">Markowitz 有效前沿优化 · Black-Litterman 观点融合 · 归因分析</p>
+    <div className="mx-auto max-w-[1400px] space-y-5">
+      {/* Header */}
+      <div>
+        <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
+          Portfolio Management
         </div>
+        <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100">组合管理</h1>
       </div>
 
-      {/* ── Symbol Input ── */}
-      <div className="glass-card flex flex-wrap items-center gap-3 p-4">
-        <label className="text-sm font-semibold text-slate-500">标的（逗号分隔）</label>
+      {/* Symbol input */}
+      <Panel className="flex flex-wrap items-center gap-3 p-4">
+        <label className="text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">
+          标的
+        </label>
         <input
           type="text"
-          className="input input-bordered input-sm flex-1 min-w-[200px]"
           value={symbolsInput}
           onChange={(e) => setSymbolsInput(e.target.value)}
+          className="flex-1 rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-1.5 font-mono text-xs text-zinc-200 placeholder-zinc-600 focus:border-emerald-500/40 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 min-w-[200px]"
         />
-        <button type="button" className="btn btn-primary btn-sm" onClick={() => mutate(undefined)}>
+        <button type="button" onClick={() => mutate(undefined)} className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800/60 hover:text-zinc-200">
           刷新
         </button>
-      </div>
+      </Panel>
 
-      {/* ── Stats Cards ── */}
-      {snapshot && (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <StatCard label="组合总值" value={`¥${(snapshot.portfolio.total_value ?? 0).toLocaleString()}`} note="持仓 + 现金" />
-          <StatCard
-            label="持仓收益"
-            value={`${(returns?.total_return_pct ?? 0) >= 0 ? "+" : ""}${(returns?.total_return_pct ?? 0).toFixed(2)}%`}
-            note={`¥${(returns?.total_pnl ?? 0).toLocaleString()}`}
-            positive={(returns?.total_return_pct ?? 0) >= 0}
-          />
-          <StatCard label="基准收益" value={`${(returns?.benchmark_return_pct ?? 0).toFixed(2)}%`} note="沪深300 YTD" />
-          <StatCard
-            label="阿尔法"
-            value={`${(returns?.alpha_pct ?? 0) >= 0 ? "+" : ""}${(returns?.alpha_pct ?? 0).toFixed(2)}%`}
-            note="超额收益"
-            positive={(returns?.alpha_pct ?? 0) >= 0}
-          />
+      {snapErr && (
+        <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">
+          加载失败：{snapErr.message}
         </div>
       )}
 
-      {snapErr && <div className="alert alert-error">加载失败：{snapErr.message}</div>}
+      {/* Metric cards */}
+      {snapshot && (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <MetricCard label="组合总值" value={`¥${(snapshot.portfolio.total_value ?? 0).toLocaleString()}`} note="持仓 + 现金" />
+          <MetricCard label="持仓收益" value={fmtPct(returns?.total_return_pct, true)} note={`¥${(returns?.total_pnl ?? 0).toLocaleString()}`} positive={(returns?.total_return_pct ?? 0) >= 0} negative={(returns?.total_return_pct ?? 0) < 0} />
+          <MetricCard label="基准收益" value={fmtPct(returns?.benchmark_return_pct)} note="沪深300 YTD" />
+          <MetricCard label="阿尔法" value={fmtPct(returns?.alpha_pct, true)} note="超额收益" positive={(returns?.alpha_pct ?? 0) >= 0} negative={(returns?.alpha_pct ?? 0) < 0} />
+        </div>
+      )}
 
-      {/* ── Tabs ── */}
-      <div className="tabs tabs-box">
-        {(["holdings", "optimize", "rebalance", "attribution", "risk"] as Tab[]).map((t) => (
-          <button key={t} type="button" className={`tab ${tab === t ? "tab-active" : ""}`} onClick={() => setTab(t)}>
-            {tabLabel(t)}
+      {/* Tabs */}
+      <div className="flex gap-px rounded-lg bg-zinc-800/60 p-0.5 w-fit">
+        {(["holdings", "optimize", "rebalance", "risk"] as Tab[]).map((t) => (
+          <button key={t} type="button" onClick={() => setTab(t)}
+            className={`rounded-md px-4 py-1.5 text-xs font-medium transition-all ${
+              tab === t ? "bg-zinc-800 text-zinc-200 shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            {t === "holdings" ? "持仓" : t === "optimize" ? "优化" : t === "rebalance" ? "再平衡" : "风险预算"}
           </button>
         ))}
       </div>
 
-      {/* ── Holdings Tab ── */}
+      {/* Holdings */}
       {tab === "holdings" && (
-        <section className="glass-card overflow-x-auto p-4">
-          <table className="table w-full">
+        <Panel className="overflow-x-auto">
+          <table className="w-full text-sm">
             <thead>
-              <tr>
-                <th>代码</th>
-                <th>名称</th>
-                <th>持仓</th>
-                <th>现价</th>
-                <th>市值</th>
-                <th>权重</th>
-                <th>收益</th>
+              <tr className="border-b border-zinc-800/60 text-left text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">
+                <th className="px-4 py-3">代码</th>
+                <th className="px-4 py-3">名称</th>
+                <th className="px-4 py-3 text-right">持仓</th>
+                <th className="px-4 py-3 text-right">现价</th>
+                <th className="px-4 py-3 text-right">市值</th>
+                <th className="px-4 py-3 text-right">权重</th>
+                <th className="px-4 py-3 text-right">收益</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-zinc-800/30">
               {positions.map((pos: PortfolioPosition) => (
-                <tr key={pos.symbol}>
-                  <td><code>{pos.symbol}</code></td>
-                  <td>{pos.name ?? "--"}</td>
-                  <td>{pos.shares}</td>
-                  <td>¥{pos.price?.toFixed(2) ?? "--"}</td>
-                  <td>¥{(pos.market_value ?? 0).toLocaleString()}</td>
-                  <td>{(pos.weight * 100).toFixed(1)}%</td>
-                  <td className={pctClass(pos.return_pct)}>
-                    {pos.return_pct != null ? `${pos.return_pct >= 0 ? "+" : ""}${pos.return_pct.toFixed(2)}%` : "--"}
-                  </td>
+                <tr key={pos.symbol} className="transition-colors hover:bg-zinc-800/30">
+                  <td className="px-4 py-3 font-mono text-xs text-zinc-400">{pos.symbol}</td>
+                  <td className="px-4 py-3 font-medium text-zinc-200">{pos.name ?? "--"}</td>
+                  <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{pos.shares}</td>
+                  <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">¥{pos.price?.toFixed(2) ?? "--"}</td>
+                  <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">¥{(pos.market_value ?? 0).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{(pos.weight * 100).toFixed(1)}%</td>
+                  <td className={`px-4 py-3 text-right font-mono tabular-nums font-semibold ${pctClass(pos.return_pct)}`}>{fmtPct(pos.return_pct, true)}</td>
                 </tr>
               ))}
               {!positions.length && (
-                <tr><td colSpan={7} className="text-center text-slate-500 py-8">暂无持仓数据</td></tr>
+                <tr><td colSpan={7} className="px-4 py-12 text-center text-sm text-zinc-600">暂无持仓数据</td></tr>
               )}
             </tbody>
           </table>
-        </section>
+        </Panel>
       )}
 
-      {/* ── Optimize Tab ── */}
+      {/* Optimize */}
       {tab === "optimize" && (
-        <section className="glass-card space-y-4 p-4">
+        <Panel className="space-y-4 p-5">
           <div className="flex flex-wrap items-center gap-4">
-            <label className="text-sm font-semibold text-slate-500">优化方法</label>
-            <select className="select select-bordered select-sm" value={method} onChange={(e) => setMethod(e.target.value as "markowitz" | "black_litterman")}>
-              <option value="markowitz">Markowitz（有效前沿）</option>
-              <option value="black_litterman">Black-Litterman（融合观点）</option>
+            <select className="rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-1.5 font-mono text-xs text-zinc-200" value={method} onChange={(e) => setMethod(e.target.value as "markowitz" | "black_litterman")}>
+              <option value="markowitz">Markowitz</option>
+              <option value="black_litterman">Black-Litterman</option>
             </select>
-            <label className="text-sm font-semibold text-slate-500">风险偏好</label>
-            <select className="select select-bordered select-sm" value={riskAversion} onChange={(e) => setRiskAversion(Number(e.target.value))}>
+            <select className="rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-1.5 font-mono text-xs text-zinc-200" value={riskAversion} onChange={(e) => setRiskAversion(Number(e.target.value))}>
               <option value={0.5}>保守</option>
               <option value={1.0}>平衡</option>
               <option value={2.0}>激进</option>
             </select>
           </div>
 
-          {optLoading && <div className="text-sm text-slate-500">计算中...</div>}
-          {optErr && <div className="alert alert-error">{optErr.message}</div>}
+          {optLoading && <p className="text-sm text-zinc-500">计算中...</p>}
+          {optErr && <p className="text-sm text-rose-400">{optErr.message}</p>}
 
           {optimizeData?.optimization && (
             <>
               <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800">
-                  <div className="text-xs text-slate-500">预期年化收益</div>
-                  <div className="text-lg font-bold text-emerald-600">{(optimizeData.optimization.expected_return * 100).toFixed(2)}%</div>
+                <div className="rounded-lg bg-zinc-800/40 p-3">
+                  <div className="text-[10px] font-mono uppercase text-zinc-500">预期年化收益</div>
+                  <div className="mt-1 text-lg font-bold font-mono tabular-nums text-emerald-400">{(optimizeData.optimization.expected_return * 100).toFixed(2)}%</div>
                 </div>
-                <div className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800">
-                  <div className="text-xs text-slate-500">预期年化波动</div>
-                  <div className="text-lg font-bold">{(optimizeData.optimization.expected_volatility * 100).toFixed(2)}%</div>
+                <div className="rounded-lg bg-zinc-800/40 p-3">
+                  <div className="text-[10px] font-mono uppercase text-zinc-500">预期年化波动</div>
+                  <div className="mt-1 text-lg font-bold font-mono tabular-nums text-zinc-200">{(optimizeData.optimization.expected_volatility * 100).toFixed(2)}%</div>
                 </div>
-                <div className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800">
-                  <div className="text-xs text-slate-500">夏普比率</div>
-                  <div className="text-lg font-bold text-brand">{optimizeData.optimization.sharpe_ratio.toFixed(3)}</div>
+                <div className="rounded-lg bg-zinc-800/40 p-3">
+                  <div className="text-[10px] font-mono uppercase text-zinc-500">夏普比率</div>
+                  <div className="mt-1 text-lg font-bold font-mono tabular-nums text-emerald-400">{optimizeData.optimization.sharpe_ratio.toFixed(3)}</div>
                 </div>
               </div>
 
               <div>
-                <h3 className="mb-2 text-sm font-bold text-slate-500">最优配置</h3>
+                <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">最优配置</p>
                 <div className="flex flex-wrap gap-2">
-                  {Object.entries(optimizeData.optimization.optimal_weights).map(([sym, weight]) => (
-                    <div key={sym} className="rounded-xl bg-brand/10 px-4 py-2 text-sm font-semibold">
-                      {sym}: {(weight * 100).toFixed(1)}%
-                    </div>
+                  {Object.entries(optimizeData.optimization.optimal_weights).map(([sym, w]) => (
+                    <span key={sym} className="rounded-md bg-emerald-500/10 px-3 py-1.5 font-mono text-xs text-emerald-400">
+                      {sym} {(w * 100).toFixed(1)}%
+                    </span>
                   ))}
                 </div>
               </div>
 
-              {/* Allocation bar */}
-              <div className="flex h-6 overflow-hidden rounded-full">
-                {Object.entries(optimizeData.optimization.optimal_weights).map(([sym, weight], i) => (
-                  <div
-                    key={sym}
-                    className="flex items-center justify-center text-xs font-bold text-white"
-                    style={{ width: `${weight * 100}%`, backgroundColor: ALLOC_COLORS[i % ALLOC_COLORS.length] }}
-                    title={`${sym}: ${(weight * 100).toFixed(1)}%`}
-                  >
-                    {(weight * 100) > 8 ? `${sym} ${(weight * 100).toFixed(0)}%` : null}
+              <div className="flex h-5 overflow-hidden rounded-full">
+                {Object.entries(optimizeData.optimization.optimal_weights).map(([sym, w], i) => (
+                  <div key={sym} className="flex items-center justify-center text-[9px] font-bold text-white" style={{ width: `${w * 100}%`, backgroundColor: ALLOC_COLORS[i % ALLOC_COLORS.length] }}>
+                    {(w * 100) > 8 ? `${sym}` : null}
                   </div>
                 ))}
               </div>
             </>
           )}
-        </section>
+        </Panel>
       )}
 
-      {/* ── Rebalance Tab ── */}
+      {/* Rebalance */}
       {tab === "rebalance" && (
-        <section className="glass-card space-y-4 p-4">
+        <Panel className="space-y-4 p-5">
           <div className="flex items-center gap-3">
-            <label className="text-sm font-semibold text-slate-500">偏离度阈值</label>
-            <select className="select select-bordered select-sm" value={rebalanceThreshold} onChange={(e) => setRebalanceThreshold(Number(e.target.value))}>
+            <label className="text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">偏离度阈值</label>
+            <select className="rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-1.5 font-mono text-xs text-zinc-200" value={rebalanceThreshold} onChange={(e) => setRebalanceThreshold(Number(e.target.value))}>
               <option value={2}>2%</option>
               <option value={5}>5%</option>
               <option value={10}>10%</option>
             </select>
           </div>
 
-          {rebLoading && <div className="text-sm text-slate-500">计算中...</div>}
-          {rebErr && <div className="alert alert-error">{rebErr.message}</div>}
+          {rebLoading && <p className="text-sm text-zinc-500">计算中...</p>}
+          {rebErr && <p className="text-sm text-rose-400">{rebErr.message}</p>}
 
           {rebalanceData?.rebalance && (
-            <>
-              <div className="overflow-x-auto">
-                <table className="table w-full">
-                  <thead>
-                    <tr><th>标的</th><th>当前权重</th><th>目标权重</th><th>偏离</th><th>操作</th><th>金额</th></tr>
-                  </thead>
-                  <tbody>
-                    {(rebalanceData.rebalance.actions ?? []).map((a: RebalanceAlert) => (
-                      <tr key={a.symbol}>
-                        <td><code>{a.symbol}</code></td>
-                        <td>{(a.current_weight * 100).toFixed(1)}%</td>
-                        <td>{(a.target_weight * 100).toFixed(1)}%</td>
-                        <td className={pctClass(a.deviation)}>{a.deviation >= 0 ? "+" : ""}{(a.deviation * 100).toFixed(2)}%</td>
-                        <td>
-                          <span className={`badge ${a.action === "buy" ? "badge-success" : a.action === "sell" ? "badge-warning" : "badge-ghost"}`}>
-                            {actionLabel(a.action)}
-                          </span>
-                        </td>
-                        <td>¥{Math.abs(a.amount).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                    {!rebalanceData.rebalance.actions?.length && (
-                      <tr><td colSpan={6} className="py-8 text-center text-slate-500">当前组合无需再平衡</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-        </section>
-      )}
-
-      {/* ── Attribution Tab ── */}
-      {tab === "attribution" && (
-        <section className="glass-card space-y-4 p-4">
-          {attrLoading && <div className="text-sm text-slate-500">加载中...</div>}
-          {attributionData?.attribution && (
-            <div className="grid grid-cols-3 gap-3">
-              <AttributionCard label="组合收益" value={`${(attributionData.attribution.portfolio_return * 100).toFixed(2)}%`} />
-              <AttributionCard label="基准收益" value={`${(attributionData.attribution.benchmark_return * 100).toFixed(2)}%`} />
-              <AttributionCard label="超额阿尔法" value={`${(attributionData.attribution.alpha * 100).toFixed(2)}%`} positive={attributionData.attribution.alpha >= 0} />
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-800/60 text-left text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">
+                    <th className="px-4 py-3">标的</th>
+                    <th className="px-4 py-3 text-right">当前权重</th>
+                    <th className="px-4 py-3 text-right">目标权重</th>
+                    <th className="px-4 py-3 text-right">偏离</th>
+                    <th className="px-4 py-3 text-right">操作</th>
+                    <th className="px-4 py-3 text-right">金额</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/30">
+                  {(rebalanceData.rebalance.actions ?? []).map((a: RebalanceAlert) => (
+                    <tr key={a.symbol} className="transition-colors hover:bg-zinc-800/30">
+                      <td className="px-4 py-3 font-mono text-xs text-zinc-400">{a.symbol}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{(a.current_weight * 100).toFixed(1)}%</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{(a.target_weight * 100).toFixed(1)}%</td>
+                      <td className={`px-4 py-3 text-right font-mono tabular-nums font-semibold ${pctClass(a.deviation)}`}>{a.deviation >= 0 ? "+" : ""}{(a.deviation * 100).toFixed(2)}%</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
+                          a.action === "buy" ? "bg-emerald-500/10 text-emerald-400" :
+                          a.action === "sell" ? "bg-rose-500/10 text-rose-400" :
+                          "bg-zinc-800/60 text-zinc-500"
+                        }`}>{a.action === "buy" ? "买入" : a.action === "sell" ? "卖出" : "持有"}</span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">¥{Math.abs(a.amount).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  {!rebalanceData.rebalance.actions?.length && (
+                    <tr><td colSpan={6} className="px-4 py-12 text-center text-sm text-zinc-600">当前组合无需再平衡</td></tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
-        </section>
+        </Panel>
       )}
 
-      {/* ── Risk Tab ── */}
+      {/* Risk */}
       {tab === "risk" && (
-        <section className="glass-card space-y-4 p-4">
-          {riskLoading && <div className="text-sm text-slate-500">加载中...</div>}
+        <Panel className="space-y-4 p-5">
+          {riskLoading && <p className="text-sm text-zinc-500">加载中...</p>}
           {riskData?.risk_budget && (
             <div className="overflow-x-auto">
-              <table className="table w-full">
+              <table className="w-full text-sm">
                 <thead>
-                  <tr><th>标的</th><th>风险贡献</th><th>边际风险</th><th>Component VaR</th></tr>
+                  <tr className="border-b border-zinc-800/60 text-left text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">
+                    <th className="px-4 py-3">标的</th>
+                    <th className="px-4 py-3 text-right">风险贡献</th>
+                    <th className="px-4 py-3 text-right">边际风险</th>
+                    <th className="px-4 py-3 text-right">Component VaR</th>
+                  </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-zinc-800/30">
                   {riskData.risk_budget.map((r: RiskBudgetItem) => (
-                    <tr key={r.symbol}>
-                      <td><code>{r.symbol}</code></td>
-                      <td>{(r.contribution_pct * 100).toFixed(1)}%</td>
-                      <td>{r.marginal_risk.toFixed(4)}</td>
-                      <td>{r.component_var.toFixed(4)}</td>
+                    <tr key={r.symbol} className="transition-colors hover:bg-zinc-800/30">
+                      <td className="px-4 py-3 font-mono text-xs text-zinc-400">{r.symbol}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{(r.contribution_pct * 100).toFixed(1)}%</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{r.marginal_risk.toFixed(4)}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{r.component_var.toFixed(4)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </section>
+        </Panel>
       )}
     </div>
   );
 }
-
-/* ── Sub-components ── */
-
-function StatCard({ label, value, note, positive }: { label: string; value: string; note: string; positive?: boolean }) {
-  return (
-    <div className={`glass-card rounded-2xl p-4 ${positive === true ? "border-emerald-200" : positive === false ? "border-rose-200" : ""}`}>
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</div>
-      <div className={`mt-1 text-2xl font-black ${positive === true ? "text-emerald-600" : positive === false ? "text-rose-600" : ""}`}>{value}</div>
-      <div className="text-xs text-slate-400">{note}</div>
-    </div>
-  );
-}
-
-function AttributionCard({ label, value, positive }: { label: string; value: string; positive?: boolean }) {
-  return (
-    <div className="rounded-xl bg-slate-100 p-4 dark:bg-slate-800">
-      <div className="text-xs font-semibold text-slate-500">{label}</div>
-      <div className={`text-xl font-bold ${positive === true ? "text-emerald-600" : positive === false ? "text-rose-600" : ""}`}>{value}</div>
-    </div>
-  );
-}
-
-function pctClass(value?: number) {
-  if (value == null) return "";
-  return value >= 0 ? "text-emerald-600" : "text-rose-600";
-}
-
-function tabLabel(tab: Tab): string {
-  switch (tab) {
-    case "holdings": return "持仓";
-    case "optimize": return "优化";
-    case "rebalance": return "再平衡";
-    case "attribution": return "归因";
-    case "risk": return "风险预算";
-  }
-}
-
-function actionLabel(action: "buy" | "sell" | "hold"): string {
-  switch (action) {
-    case "buy": return "买入";
-    case "sell": return "卖出";
-    case "hold": return "持有";
-  }
-}
-
-const ALLOC_COLORS = ["#6366f1", "#8b5cf6", "#a855f7", "#d946ef", "#ec4899", "#f43f5e", "#f97316", "#eab308", "#22c55e"];

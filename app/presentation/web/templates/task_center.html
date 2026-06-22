@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}任务中心 - Quant Atlas{% endblock %}
 
@@ -8,7 +8,7 @@
 
 {% block spa_switcher %}
 <a href="/app/task-center" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('task-center')">
+   data-spa-switcher="task-center">
   试试新版 →
 </a>
 {% endblock %}

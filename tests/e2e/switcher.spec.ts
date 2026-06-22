@@ -1,23 +1,50 @@
 /**
- * E2E test placeholder for switcher grayscale mechanism.
+ * E2E tests for Flask↔SPA switcher grayscale mechanism.
  *
- * M1 第一页迁移时启用，验证 switcher → 跳转 → 回跳完整链路。
- *
- * Items to verify when unskipping:
- * 1. Flask page renders {% block spa_switcher %} with link to /app/<page>
+ * Verifies:
+ * 1. Flask page renders {% block spa_switcher %} with data-spa-switcher link
  * 2. Clicking switcher link navigates to SPA page
- * 3. SPA page shows "回到经典版" link when enableBackToClassic={true}
- * 4. Clicking "回到经典版" navigates back to Flask page
+ * 3. SPA page shows back-to-classic link
+ * 4. Clicking back-to-classic navigates back to Flask page
  * 5. Telemetry events are emitted for both directions
  */
 import { test, expect } from "@playwright/test";
 
-test.skip("switcher: Flask → SPA → back-to-classic roundtrip", async ({ page }) => {
-  // Placeholder: enable when M1 first page migration is complete
-  // 1. Navigate to Flask page
-  // 2. Verify spa_switcher block is visible
-  // 3. Click "试试新版 →"
-  // 4. Assert SPA page loaded with "回到经典版" link
-  // 5. Click "回到经典版"
-  // 6. Assert back on Flask page
+const PUBLIC_FLASK_PAGES = [
+  { path: "/login", slug: "login" },
+];
+
+for (const { path, slug } of PUBLIC_FLASK_PAGES) {
+  test(`switcher roundtrip: ${path} → /app${path} → ${path}`, async ({ page }) => {
+    // 1. Navigate to Flask page
+    await page.goto(path);
+
+    // 2. Verify spa_switcher block is visible with data-spa-switcher attribute
+    const switcherLink = page.locator(`a[data-spa-switcher='${slug}']`);
+    await expect(switcherLink).toBeVisible();
+    await expect(switcherLink).toHaveText(/试试新版/);
+
+    // 3. Click "试试新版 →"
+    await switcherLink.click();
+
+    // 4. Assert SPA page loaded
+    await expect(page).toHaveURL(new RegExp(`/app${path.replace(/\/$/, "")}`));
+
+    // 5. Verify back-to-classic link exists
+    const backToClassic = page.locator("a[href='/login']");
+    await expect(backToClassic).toBeVisible();
+
+    // 6. Click back-to-classic
+    await backToClassic.click();
+
+    // 7. Assert back on Flask page
+    await expect(page).toHaveURL(new RegExp(path));
+  });
+}
+
+test("switcher telemetry endpoint accepts POST", async ({ request }) => {
+  const resp = await request.post("/api/v1/telemetry/switcher", {
+    data: { event: "switch_to_spa", page: "test" },
+  });
+  expect([200, 202, 204]).toContain(resp.status());
 });

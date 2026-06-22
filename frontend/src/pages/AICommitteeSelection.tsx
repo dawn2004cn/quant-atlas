@@ -2,6 +2,10 @@ import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
+function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
+}
+
 type CommitteeVote = {
   member: string;
   approve: boolean;
@@ -35,45 +39,45 @@ export function AICommitteeSelectionPage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={3} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无选股数据</div>;
+  if (error) return <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">加载失败：{error.message}</div>;
+  if (!data) return <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-400">暂无选股数据</div>;
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-[1400px] space-y-5">
       <div>
         <h1 className="text-2xl font-bold">AI 委员会选股</h1>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-zinc-500">
           基于委员会投票共识的精选标的，共识阈值：{(data.threshold * 100).toFixed(0)}%
         </p>
         {data.updated_at && (
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-zinc-400">
             更新于：{new Date(data.updated_at).toLocaleString("zh-CN")}
           </p>
         )}
       </div>
 
-      <div className="glass-card p-3 text-sm">
+      <Panel className="p-3 text-sm">
         <span className="font-semibold">候选总数：</span>
         <span>{data.total_candidates}</span>
         <span className="ml-4 font-semibold">选中：</span>
         <span>{data.selected_stocks.length}</span>
-      </div>
+      </Panel>
 
       {data.selected_stocks.length === 0 ? (
-        <div className="alert alert-warning">当前无满足共识阈值的选股结果</div>
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-400">当前无满足共识阈值的选股结果</div>
       ) : (
         data.selected_stocks.map((stock) => (
-          <div key={stock.symbol} className="glass-card space-y-3 p-4">
+          <Panel key={stock.symbol} className="space-y-3 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h2 className="text-lg font-bold">
                   {stock.symbol}
-                  <span className="ml-2 text-xs font-normal text-slate-500">{stock.market}</span>
+                  <span className="ml-2 text-xs font-normal text-zinc-500">{stock.market}</span>
                 </h2>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500">共识</span>
-                <span className={`text-lg font-bold ${stock.consensus >= data.threshold ? "text-emerald-600" : "text-amber-600"}`}>
+                <span className="text-xs text-zinc-500">共识</span>
+                <span className={`text-lg font-bold ${stock.consensus >= data.threshold ? "text-emerald-400" : "text-amber-400"}`}>
                   {(stock.consensus * 100).toFixed(0)}%
                 </span>
               </div>
@@ -82,7 +86,7 @@ export function AICommitteeSelectionPage() {
             {/* Confidence bar */}
             <div>
               <div className="mb-1 flex justify-between text-xs">
-                <span className="text-slate-500">信心指数</span>
+                <span className="text-zinc-500">信心指数</span>
                 <span className="font-bold">{(stock.confidence * 100).toFixed(1)}%</span>
               </div>
               <progress className="progress progress-primary w-full" value={stock.confidence} max={1} />
@@ -90,41 +94,41 @@ export function AICommitteeSelectionPage() {
 
             {/* Vote counts */}
             <div className="flex gap-4 text-xs">
-              <span className="text-emerald-600">赞成：{stock.votes_for}/{stock.total_votes}</span>
-              <span className="text-rose-600">反对：{stock.votes_against}/{stock.total_votes}</span>
+              <span className="text-emerald-400">赞成：{stock.votes_for}/{stock.total_votes}</span>
+              <span className="text-rose-400">反对：{stock.votes_against}/{stock.total_votes}</span>
             </div>
 
             {stock.summary && (
-              <p className="text-sm text-slate-600">{stock.summary}</p>
+              <p className="text-sm text-zinc-400">{stock.summary}</p>
             )}
 
             {/* Vote breakdown */}
             {stock.vote_breakdown.length > 0 && (
               <details className="group">
-                <summary className="cursor-pointer text-xs font-bold text-slate-500">
+                <summary className="cursor-pointer text-xs font-bold text-zinc-500">
                   查看投票详情
                 </summary>
                 <div className="mt-2 space-y-2">
                   {stock.vote_breakdown.map((vote) => (
                     <div
                       key={vote.member}
-                      className="rounded-lg bg-slate-50 p-2 text-xs dark:bg-slate-800"
+                      className="rounded-lg bg-zinc-50 p-2 text-xs dark:bg-zinc-800"
                     >
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{vote.member}</span>
-                        <span className={`badge badge-xs ${vote.approve ? "badge-success" : "badge-error"}`}>
+                        <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${vote.approve ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30" : "bg-rose-500/15 text-rose-400 ring-1 ring-rose-500/30"}`}>
                           {vote.approve ? "赞成" : "反对"}
                         </span>
                       </div>
                       {vote.rationale && (
-                        <p className="mt-1 text-slate-500">{vote.rationale}</p>
+                        <p className="mt-1 text-zinc-500">{vote.rationale}</p>
                       )}
                     </div>
                   ))}
                 </div>
               </details>
             )}
-          </div>
+          </Panel>
         ))
       )}
     </div>

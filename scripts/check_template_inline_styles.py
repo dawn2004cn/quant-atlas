@@ -18,22 +18,22 @@ STYLE_ALLOWLIST: dict[str, int] = {
     "components/skeleton.html": 8,
     "global_radar.html": 6,
     "self_stocks.html": 5,
-    "portfolio_detail.html": 3,
     "ai_investment_committee.html": 3,
+    "portfolio_detail.html": 3,
     "nl_strategy.html": 2,
     "components/strategy/evidence_card.html": 2,
-    "truth_droplet.html": 1,
-    "swarm_dashboard.html": 1,
-    "strategy_compare.html": 1,
-    "stock_selector.html": 1,
-    "signal_observations.html": 1,
-    "selection_result.html": 1,
-    "portfolio.html": 1,
+    "agent_center.html": 1,
+    "ai_hedge_fund.html": 1,
     "factor_detail.html": 1,
+    "portfolio.html": 1,
+    "selection_result.html": 1,
+    "signal_observations.html": 1,
+    "stock_selector.html": 1,
+    "strategy_compare.html": 1,
+    "swarm_dashboard.html": 1,
+    "truth_droplet.html": 1,
     "components/stock/resonance_meter.html": 1,
     "components/stock/live_research_lab.html": 1,
-    "ai_hedge_fund.html": 1,
-    "agent_center.html": 1,
 }
 
 MAX_TOTAL_STYLE = sum(STYLE_ALLOWLIST.values())
@@ -49,7 +49,7 @@ def scan() -> tuple[list[str], dict[str, int]]:
 
     for path in sorted(TPL.rglob("*.html")):
         rel = _rel(path)
-        text = path.read_text(encoding="utf-8")
+        text = path.read_text(encoding="utf-8", errors="replace")
         n_style = text.count("style=")
         if n_style:
             counts[rel] = n_style

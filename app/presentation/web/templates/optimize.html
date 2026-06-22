@@ -1,69 +1,77 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
-{% block title %}参数优化 · Quant Atlas{% endblock %}
+{% block title %}鍙傛暟浼樺寲 路 Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
 {% endblock %}
+{% block spa_switcher %}
+<a href="/app/optimize" class="spa-switcher-link"
+   data-spa-switcher="optimize">
+  璇曡瘯鏂扮増 鈫?
+</a>
+{% endblock %%}
+
+
 
 {% block content %}
 <div class="opt-page">
     <section class="section-shell opt-hero">
         <div class="hero-caption">Parameter Lab</div>
-        <h1 class="page-title">参数优化</h1>
+        <h1 class="page-title">鍙傛暟浼樺寲</h1>
         <p class="page-subtitle">
-            围绕策略信号、资金曲线与风险指标，在统一回测引擎上迭代参数区间。当前页为<strong>研究工作台入口</strong>：
-            可跳转至「策略回测」逐策略验证，或在「量化实验室」对比因子与模型表现；全网格自动寻优接口将在后续版本接入同一套 <code>/api/v1/backtest</code> 管线。
+            鍥寸粫绛栫暐淇″彿銆佽祫閲戞洸绾夸笌椋庨櫓鎸囨爣锛屽湪缁熶竴鍥炴祴寮曟搸涓婅凯浠ｅ弬鏁板尯闂淬€傚綋鍓嶉〉涓?strong>鐮旂┒宸ヤ綔鍙板叆鍙?/strong>锛?
+            鍙烦杞嚦銆岀瓥鐣ュ洖娴嬨€嶉€愮瓥鐣ラ獙璇侊紝鎴栧湪銆岄噺鍖栧疄楠屽銆嶅姣斿洜瀛愪笌妯″瀷琛ㄧ幇锛涘叏缃戞牸鑷姩瀵讳紭鎺ュ彛灏嗗湪鍚庣画鐗堟湰鎺ュ叆鍚屼竴濂?<code>/api/v1/backtest</code> 绠＄嚎銆?
         </p>
     </section>
 
     <section class="section-shell opt-panel">
         <div class="panel-head">
             <div>
-                <h2 class="panel-title">推荐工作流</h2>
-                <div class="panel-subtitle">先定标的与区间，再人工或半自动扫参，最后沉淀为自选与告警</div>
+                <h2 class="panel-title">鎺ㄨ崘宸ヤ綔娴?/h2>
+                <div class="panel-subtitle">鍏堝畾鏍囩殑涓庡尯闂达紝鍐嶄汉宸ユ垨鍗婅嚜鍔ㄦ壂鍙傦紝鏈€鍚庢矇娣€涓鸿嚜閫変笌鍛婅</div>
             </div>
-            <span class="badge-soft">52+ 内置策略</span>
+            <span class="badge-soft">52+ 鍐呯疆绛栫暐</span>
         </div>
         <ol class="step-list">
-            <li>在 <a href="/backtest">策略回测</a> 中选择分组与策略，固定起止日期与初始资金，建立基准曲线。</li>
-            <li>记录夏普、最大回撤与交易次数；对敏感参数（如均线周期、RSI 阈值）做小步长网格。</li>
-            <li>结合 <a href="/quant-lab">量化实验室</a> 的因子健康与 IC 摘要，避免过拟合单一区间。</li>
-            <li>将满意组合加入 <a href="/self-stocks">自选股</a> 或消息中心任务，持续跟踪样本外表现。</li>
+            <li>鍦?<a href="/backtest">绛栫暐鍥炴祴</a> 涓€夋嫨鍒嗙粍涓庣瓥鐣ワ紝鍥哄畾璧锋鏃ユ湡涓庡垵濮嬭祫閲戯紝寤虹珛鍩哄噯鏇茬嚎銆?/li>
+            <li>璁板綍澶忔櫘銆佹渶澶у洖鎾や笌浜ゆ槗娆℃暟锛涘鏁忔劅鍙傛暟锛堝鍧囩嚎鍛ㄦ湡銆丷SI 闃堝€硷級鍋氬皬姝ラ暱缃戞牸銆?/li>
+            <li>缁撳悎 <a href="/quant-lab">閲忓寲瀹為獙瀹?/a> 鐨勫洜瀛愬仴搴蜂笌 IC 鎽樿锛岄伩鍏嶈繃鎷熷悎鍗曚竴鍖洪棿銆?/li>
+            <li>灏嗘弧鎰忕粍鍚堝姞鍏?<a href="/self-stocks">鑷€夎偂</a> 鎴栨秷鎭腑蹇冧换鍔★紝鎸佺画璺熻釜鏍锋湰澶栬〃鐜般€?/li>
         </ol>
     </section>
 
     <div class="opt-grid">
         <a class="opt-card" href="/backtest">
-            <span class="badge-soft">核心</span>
-            <h3>策略回测</h3>
-            <p>按「趋势突破、均值回归、恐慌抄底、机构资金」分组浏览全部注册策略，支持 A 股常用代码与日期区间；开启 Qlib 时可选用买入持有实验管线对照。</p>
-            <span class="go">打开回测 →</span>
+            <span class="badge-soft">鏍稿績</span>
+            <h3>绛栫暐鍥炴祴</h3>
+            <p>鎸夈€岃秼鍔跨獊鐮淬€佸潎鍊煎洖褰掋€佹亹鎱屾妱搴曘€佹満鏋勮祫閲戙€嶅垎缁勬祻瑙堝叏閮ㄦ敞鍐岀瓥鐣ワ紝鏀寔 A 鑲″父鐢ㄤ唬鐮佷笌鏃ユ湡鍖洪棿锛涘紑鍚?Qlib 鏃跺彲閫夌敤涔板叆鎸佹湁瀹為獙绠＄嚎瀵圭収銆?/p>
+            <span class="go">鎵撳紑鍥炴祴 鈫?/span>
         </a>
         <a class="opt-card" href="/quant-lab">
-            <span class="badge-soft">因子 / 模型</span>
-            <h3>量化实验室</h3>
-            <p>因子目录、IC 监控、模型预测与回测对比接口集中在此；适合在优化参数前检查特征是否衰减或漂移。</p>
-            <span class="go">进入实验室 →</span>
+            <span class="badge-soft">鍥犲瓙 / 妯″瀷</span>
+            <h3>閲忓寲瀹為獙瀹?/h3>
+            <p>鍥犲瓙鐩綍銆両C 鐩戞帶銆佹ā鍨嬮娴嬩笌鍥炴祴瀵规瘮鎺ュ彛闆嗕腑鍦ㄦ锛涢€傚悎鍦ㄤ紭鍖栧弬鏁板墠妫€鏌ョ壒寰佹槸鍚﹁“鍑忔垨婕傜Щ銆?/p>
+            <span class="go">杩涘叆瀹為獙瀹?鈫?/span>
         </a>
         <a class="opt-card" href="/research-pipeline">
-            <span class="badge-soft">闭环</span>
-            <h3>研究闭环</h3>
-            <p>查看 Qlib / RD-Agent 能力与数据管线状态，把回测结论与研发任务串联，便于团队协作与复现。</p>
-            <span class="go">查看管线 →</span>
+            <span class="badge-soft">闂幆</span>
+            <h3>鐮旂┒闂幆</h3>
+            <p>鏌ョ湅 Qlib / RD-Agent 鑳藉姏涓庢暟鎹绾跨姸鎬侊紝鎶婂洖娴嬬粨璁轰笌鐮斿彂浠诲姟涓茶仈锛屼究浜庡洟闃熷崗浣滀笌澶嶇幇銆?/p>
+            <span class="go">鏌ョ湅绠＄嚎 鈫?/span>
         </a>
     </div>
 
     <section class="section-shell opt-panel">
         <div class="panel-head">
             <div>
-                <h2 class="panel-title">关于自动网格搜索</h2>
-                <div class="panel-subtitle">规划中的能力，不影响当前手动流程</div>
+                <h2 class="panel-title">鍏充簬鑷姩缃戞牸鎼滅储</h2>
+                <div class="panel-subtitle">瑙勫垝涓殑鑳藉姏锛屼笉褰卞搷褰撳墠鎵嬪姩娴佺▼</div>
             </div>
         </div>
         <div class="empty-hint">
-            服务端将提供「参数空间 JSON → 异步任务 → 结果表」的一体化 API，并与 Celery 任务队列、消息中心对齐。
-            在此之前，请优先使用本页链接的现有能力完成研究与验证。
+            鏈嶅姟绔皢鎻愪緵銆屽弬鏁扮┖闂?JSON 鈫?寮傛浠诲姟 鈫?缁撴灉琛ㄣ€嶇殑涓€浣撳寲 API锛屽苟涓?Celery 浠诲姟闃熷垪銆佹秷鎭腑蹇冨榻愩€?
+            鍦ㄦ涔嬪墠锛岃浼樺厛浣跨敤鏈〉閾炬帴鐨勭幇鏈夎兘鍔涘畬鎴愮爺绌朵笌楠岃瘉銆?
         </div>
     </section>
 </div>

@@ -1,10 +1,18 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('workbench.title') }} - Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/workbench.css') }}">
 {% endblock %}
+{% block spa_switcher %}
+<a href="/app/daily_workbench" class="spa-switcher-link"
+   data-spa-switcher="daily_workbench">
+  试试新版 →
+</a>
+{% endblock %}
+
+
 
 {% block content %}
 <div id="wbGlobalError" class="qc-ux-banner qc-ux-banner--danger qa-is-hidden" role="alert"></div>

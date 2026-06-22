@@ -49,6 +49,9 @@ def test_capabilities_registry_includes_team_components() -> None:
 
         login_user(U())
         resp = fn()
+        # success_response returns (Response, status_code) tuple per Flask convention
+        if isinstance(resp, tuple):
+            resp = resp[0]
         body = resp.get_json()
         data = body.get("data") or body
         assert "team-blackboard" in data["stock_detail"]

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}AI 聊天 - Quant Atlas{% endblock %}
 
 {% block extra_css %}
@@ -7,7 +7,7 @@
 
 {% block spa_switcher %}
 <a href="/app/ai-chat" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('ai-chat')">
+   data-spa-switcher="ai-chat">
   试试新版 →
 </a>
 {% endblock %}

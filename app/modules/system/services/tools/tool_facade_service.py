@@ -12,6 +12,7 @@ from app.domain.ports.cn_fundamentals_port import CnFundamentalsPort
 from app.modules.market_data.services.stock_service import StockApplicationService
 from app.modules.strategy.services.strategy.strategy_service import StrategyApplicationService
 from app.infrastructure.capabilities.registry import CapabilityRegistry
+from app.modules.system.services.helpers.cn_fundamentals_access import get_cn_fundamentals_port
 
 
 _tool_facade_service_instance = None
@@ -65,8 +66,8 @@ class ToolFacadeService(ToolFacadePort):
 
     def __init__(
         self,
-        market_provider: MarketDataProvider,
-        stock_service: StockApplicationService,
+        market_provider: MarketDataProvider | None = None,
+        stock_service: StockApplicationService | None = None,
         archive: NewsArchiveRepository | None = None,
         fundamental_provider: CnFundamentalsPort | None = None,
         strategy_service: StrategyApplicationService | None = None,

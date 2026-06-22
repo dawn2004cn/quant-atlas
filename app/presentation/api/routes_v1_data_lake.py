@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timedelta
@@ -17,7 +17,7 @@ from app.presentation.api.decorators import require_role
 logger = get_logger(__name__)
 
 
-@register_routes(name="data_lake")
+@register_routes(name="data_lake", context="data", description="Unified Data Lake health and migration")
 def register_data_lake_routes(blueprint, ctx):
     """Register routes for Data Lake management and health."""
     del ctx
@@ -36,10 +36,11 @@ def register_data_lake_routes(blueprint, ctx):
 
     @blueprint.route("/data-lake/migrate", methods=["POST"])
     @require_role("can_manage_users")
-    async def trigger_migration():
+    def trigger_migration():
+        """Trigger full legacy DB migration to the unified data lake."""
         runner = registry.get("data_migration_runner")
         try:
-            result = await runner.run_full_migration()
+            result = asyncio.run(runner.run_full_migration())
             return success_response(data=result)
         except Exception as e:
             logger.exception("Migration failed")
@@ -74,5 +75,26 @@ def register_data_lake_routes(blueprint, ctx):
             )
         except Exception as e:
             logger.exception("Verification failed for %s", symbol)
+            payload = error_payload(ErrorCode.INTERNAL_ERROR, str(e))
+            return jsonify(payload), ErrorCode.INTERNAL_ERROR.http_status
+
+    @blueprint.route("/data-lake/stats", methods=["GET"])
+    def get_lake_stats():
+        """Show lake migration manifest and store health."""
+        lake_manager: DataLakeManager = registry.get("data_lake_manager")
+        try:
+            status = lake_manager.get_lake_status()
+            store_health = lake_manager._store.get_health_status()
+            return success_response(
+                data={
+                    "lake": status,
+                    "store": store_health,
+                    "engine": status.get("engine"),
+                    "target": status.get("target_engine"),
+                    "migration_pct": status.get("progress_pct", 0),
+                }
+            )
+        except Exception as e:
+            logger.exception("Failed to fetch lake stats")
             payload = error_payload(ErrorCode.INTERNAL_ERROR, str(e))
             return jsonify(payload), ErrorCode.INTERNAL_ERROR.http_status

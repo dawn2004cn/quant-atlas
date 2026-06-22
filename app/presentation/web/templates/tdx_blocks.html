@@ -1,550 +1,550 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block spa_switcher %}
 <a href="/app/tdx-blocks" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('tdx-blocks')">
-  �����°� ��
+   data-spa-switcher="tdx-blocks">
+  试试新版 →
 </a>
-{% endblock %}
-
-<!-- v4: batch quotes -->
-
-{% block title %}通达信板�?- Quant Atlas{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
-{% endblock %}
-
-
-
-{% block content %}
-
-{% for h in ux_env_hints|default([]) %}
-
-<div class="qc-ux-banner qc-ux-banner--info">
-
-  <div class="qc-ux-banner__title">{{ h.title }}</div>
-
-  <div class="qc-ux-banner__body">{{ h.body }}</div>
-
-  {% if h.href and h.label %}
-
-  <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
-
-  {% endif %}
-
-</div>
-
-{% endfor %}
-
-
-
-<section class="qc-ux-onboarding" aria-label="通达信离线数据提�?>
-
-  <div class="qc-ux-step">
-
-    <span class="qc-ux-step-num">1</span>
-
-    <div class="qc-ux-step-title">先确认本机数�?/div>
-
-    <p class="qc-ux-step-desc">板块与成分股依赖本机通达信目录。若为空，先配置 <code>TDX_ROOT_PATH</code> 并执行「入库基础数据」�?/p>
-
-    <a class="btn-soft btn-sm" href="{{ url_for('pages.capabilities') }}">能力总览</a>
-
-    <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
-
-  </div>
-
-  <div class="qc-ux-step">
-
-    <span class="qc-ux-step-num">2</span>
-
-    <div class="qc-ux-step-title">回到实盘语境</div>
-
-    <p class="qc-ux-step-desc">板块用于发现主题与扩散路径；确认后建议回操盘�?自选做跟踪与复盘�?/p>
-
-    <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘�?/a>
-
-    <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">自选股</a>
-
-  </div>
-
-</section>
-
-
-
-<section class="section-shell">
-
-  <div class="panel-head">
-
-    <div>
-
-      <div class="hero-caption">TDX Base Data</div>
-
-      <h1 class="page-title">通达信板�?/h1>
-
-      <p class="page-subtitle">
-
-        板块与成分股来自本机通达�?<code>T0002/hq_cache</code>（需先入库）；行情与 <a href="/market-panorama">市场全景</a> 共用 <strong>全市场快�?/strong>（SQLite 缓存，秒级），仅补缺才走 Pytdx/腾讯�?
-
-        在线热点�?<a href="/hot-sectors">热点板块</a>�?
-
-      </p>
-
-    </div>
-
-    <div class="filter-bar">
-
-      <select id="kindSel" class="select-soft">
-
-        <option value="">全部</option>
-
-        <option value="zs">指数</option>
-
-        <option value="gn">概念</option>
-
-        <option value="fg">风格</option>
-
-      </select>
-
-      <input type="number" id="limitSel" class="select-soft select-soft--narrow" value="60" min="20" max="120" step="10" title="板块数量上限">
-
-      <button class="btn-brand" type="button" data-tdx-action="load-blocks">刷新</button>
-
-      <button class="btn-soft" type="button" data-tdx-action="ingest-base">入库基础数据</button>
-
-      <span class="text-muted market-meta-hint" id="loadHint"></span>
-
-    </div>
-
-  </div>
-
-  <div id="tdxFreshnessStrip" class="qc-freshness-strip market-freshness-strip qa-is-hidden" aria-live="polite"></div>
-  <div id="tdxActiveJobs" class="market-jobs-hint"></div>
-
-  <div id="blocksBox" class="table-container"></div>
-
-</section>
-
-{% endblock %}
-
-
-
-{% block extra_js %}
-
-<script nonce="{{ csp_nonce() }}">
-
-function esc(t){ return $('<div>').text(String(t ?? '')).html(); }
-
-function apiIsSuccess(res) {
-  if (!res) return false;
-  if (res.status === 'success' || res.ok === true) return true;
-  if (res.success === true) return true;
-  return res.data !== undefined;
-}
-
-function extractApiItems(res) {
-  if (!res) return [];
-  var d = res.data;
-  if (Array.isArray(d)) return d;
-  if (d && typeof d === 'object') {
-    if (Array.isArray(d.items)) return d.items;
-    if (Array.isArray(d.blocks)) return d.blocks;
-    if (Array.isArray(d.sectors)) return d.sectors;
-    if (Array.isArray(d.summaries)) return d.summaries;
-  }
-  if (Array.isArray(res.items)) return res.items;
-  return [];
-}
-
-function formatPct(pct) {
-
-  if (pct == null || isNaN(pct)) return '--';
-
-  var n = Number(pct);
-
-  return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
-
-}
-
-function formatRiseRatio(rr) {
-
-  if (rr == null || isNaN(rr)) return '--';
-
-  return (Number(rr) * 100).toFixed(0) + '%';
-
-}
-
-function formatAmount(amount) {
-
-  var n = Number(amount) || 0;
-
-  if (!Number.isFinite(n) || n <= 0) return '--';
-
-  if (n >= 1e8) return (n / 1e8).toFixed(2) + '�?;
-
-  if (n >= 1e4) return (n / 1e4).toFixed(2) + '�?;
-
-  return n.toFixed(0);
-
-}
-
-function changeClass(pct) {
-
-  if (pct > 0) return 'positive';
-
-  if (pct < 0) return 'negative';
-
-  return '';
-
-}
-
-function kindLabel(k) {
-
-  if (k === 'zs') return '指数';
-
-  if (k === 'gn') return '概念';
-
-  if (k === 'fg') return '风格';
-
-  return k || '--';
-
-}
-
-
-
-var activeBlock = { kind: '', name: '' };
-
-
-
-function bindBlockTableEvents() {
-
-  $('#blocksTable').off('click', 'tbody tr').on('click', 'tbody tr', function() {
-
-    $('#blocksTable tbody tr').removeClass('active-row');
-
-    $(this).addClass('active-row');
-
-    showMembers($(this).data('kind'), $(this).data('name'));
-
-  });
-
-  $('#blocksTable').off('keydown').on('keydown', function(e) {
-
-    var $rows = $('#blocksTable tbody tr');
-
-    var $active = $rows.filter('.active-row');
-
-    var idx = $rows.index($active);
-
-    if (e.key === 'ArrowDown' && idx < $rows.length - 1) {
-
-      $rows.eq(idx + 1).trigger('click');
-
-      e.preventDefault();
-
-    } else if (e.key === 'ArrowUp' && idx > 0) {
-
-      $rows.eq(idx - 1).trigger('click');
-
-      e.preventDefault();
-
-    }
-
-  });
-
-}
-
-
-
-function renderBlockTable(items, withStats) {
-
-  if (!items || !items.length) {
-
-    $('#blocksBox').html('<div class="empty-state">暂无板块数据，请先点击「入库基础数据」�?/div>');
-
-    return;
-
-  }
-
-  var html = '<div class="row"><div class="col-md-7"><div class="blocks-list tdx-scroll">';
-
-  html += '<table class="table" id="blocksTable" tabindex="0"><thead><tr>';
-
-  if (withStats) {
-
-    html += '<th>类型</th><th>板块</th><th>涨幅</th><th>涨股�?/th><th>�?�?/th><th>成分</th><th>成交�?/th><th>龙头</th><th>龙头涨幅</th>';
-
-  } else {
-
-    html += '<th>类型</th><th>板块</th><th>更新时间</th>';
-
-  }
-
-  html += '</tr></thead><tbody>';
-
-  items.forEach(function(x, idx) {
-
-    var k = String(x.block_kind || '');
-
-    var name = String(x.block_name || x.name || '');
-
-    var activeClass = (activeBlock.kind === k && activeBlock.name === name) ? ' class="active-row"' : '';
-
-    html += '<tr' + activeClass + ' data-kind="' + esc(k) + '" data-name="' + esc(name) + '">';
-
-    html += '<td><span class="tdx-kind">' + esc(kindLabel(k)) + '</span></td>';
-
-    html += '<td class="block-name"><strong>' + esc(name) + '</strong></td>';
-
-    if (withStats) {
-
-      var up = Number(x.rise_count || 0);
-
-      var down = Number(x.fall_count || 0);
-
-      html += '<td class="' + changeClass(x.change_pct) + '">' + formatPct(x.change_pct) + '</td>';
-
-      html += '<td>' + formatRiseRatio(x.rise_ratio) + '</td>';
-
-      html += '<td><span class="positive">' + up + '</span>/<span class="negative">' + down + '</span></td>';
-
-      html += '<td>' + esc(x.member_count != null ? x.member_count : '--') + '</td>';
-
-      html += '<td>' + formatAmount(x.total_amount) + '</td>';
-
-      html += '<td title="' + esc(x.leader_symbol || '') + '">' + esc(x.leader_name || '--') + '</td>';
-
-      html += '<td class="' + changeClass(x.leader_change_pct) + '">' + formatPct(x.leader_change_pct) + '</td>';
-
-    } else {
-
-      html += '<td><code>' + esc(x.updated_at || '') + '</code></td>';
-
-    }
-
-    html += '</tr>';
-
-  });
-
-  html += '</tbody></table></div></div><div class="col-md-5" id="membersBox"></div></div>';
-
-  $('#blocksBox').html(html);
-
-  bindBlockTableEvents();
-
-}
-
-
-
-function loadBlocks(){
-
-  var kind = $('#kindSel').val() || '';
-
-  var limit = Math.min(120, Math.max(20, parseInt($('#limitSel').val(), 10) || 60));
-
-  $('#blocksBox').html('<div class="loading-state">正在加载板块汇总（批量行情）�?/div>');
-
-  $('#loadHint').text('');
-
-  var t0 = Date.now();
-
-  var summaryUrl = '/api/v1/tdx/blocks/summaries?limit=' + limit + (kind ? ('&kind=' + encodeURIComponent(kind)) : '');
-
-  $.getJSON(summaryUrl).done(function(res){
-
-    var items = extractApiItems(res);
-
-    $('#loadHint').text('汇�?' + (items.length || 0) + ' �?· ' + ((Date.now() - t0) / 1000).toFixed(1) + 's');
-
-    if (!items || !items.length) {
-
-      var fallback = '/api/v1/tdx/blocks' + (kind ? ('?kind=' + encodeURIComponent(kind)) : '');
-
-      $.getJSON(fallback).done(function(res2) { renderBlockTable(extractApiItems(res2), false); })
-
-        .fail(function() { $('#blocksBox').html('<div class="empty-state">暂无板块数据，请先入库�?/div>'); });
-
-      return;
-
-    }
-
-    renderBlockTable(items, true);
-    $('#membersBox').html('<div class="empty-state tdx-empty-pad">点击左侧板块查看成分�?/div>');
-    if (window.QAUserCenter) {
-      var snap = items[0] && items[0].updated_at;
-      QAUserCenter.renderHotSectorFreshness(document.getElementById('tdxFreshnessStrip'), {
-        snapshot_at: snap,
-        source_mode: 'tdx_snapshot',
-        updated_at: snap
-      });
-    }
-
-  }).fail(function(){
-
-    var url = '/api/v1/tdx/blocks' + (kind ? ('?kind=' + encodeURIComponent(kind)) : '');
-
-    $.getJSON(url).done(function(res) { renderBlockTable(extractApiItems(res), false); })
-
-      .fail(function() { $('#blocksBox').html('<div class="empty-state">加载失败</div>'); });
-
-  });
-
-}
-
-
-
-function ingestBase(){
-
-  $('.btn-soft,.btn-brand').prop('disabled', true);
-
-  $('#loadHint').text('入库中�?);
-
-  $.ajax({
-
-    url: '/api/v1/tdx/base-data/ingest',
-
-    method: 'POST',
-
-    contentType: 'application/json',
-
-    data: JSON.stringify({})
-
-  }).always(function(){
-
-    $('.btn-soft,.btn-brand').prop('disabled', false);
-
-  }).done(function(){
-
-    loadBlocks();
-
-  }).fail(function(){
-
-    $('#loadHint').text('入库失败');
-
-  });
-
-}
-
-
-
-function showMembers(kind, name){
-
-  activeBlock = { kind: kind, name: name };
-
-  var $box = $('#membersBox');
-
-  $box.html('<div class="loading-state">加载成分股（通达信实时）�?/div>');
-
-  var url = '/api/v1/tdx/blocks/' + encodeURIComponent(kind) + '/' + encodeURIComponent(name)
-
-    + '/members?with_quotes=1&limit=300';
-
-  $.getJSON(url).done(function(res){
-
-    var items = extractApiItems(res);
-
-    if (!items || !items.length) {
-
-      $box.html('<div class="empty-state">无成分股数据</div>');
-
-      return;
-
-    }
-
-    renderMembers(items, name);
-
-  }).fail(function(){
-
-    $box.html('<div class="empty-state">加载失败</div>');
-
-  });
-
-}
-
-
-
-function renderMembers(items, blockName) {
-
-  var html = '<div class="panel-head"><div><h3 class="panel-title">成分�?· ' + esc(blockName) + '</h3>';
-
-  html += '<div class="panel-subtitle">�?' + items.length + ' �?· 按涨跌幅排序</div></div></div>';
-
-  html += '<div class="table-container tdx-scroll"><table class="table" id="membersTable"><thead><tr>';
-
-  html += '<th>代码</th><th>名称</th><th>现价</th><th>涨跌</th><th>涨跌�?/th><th>换手</th><th>成交�?/th><th>行业</th><th>链路</th>';
-
-  html += '</tr></thead><tbody>';
-
-  items.forEach(function(x) {
-
-    var sym = String(x.symbol || '');
-
-    var route = sym;
-
-    var price = x.price != null ? Number(x.price) : null;
-
-    var changePct = x.change_pct != null ? Number(x.change_pct) : null;
-
-    var changeAmt = x.change_amount != null ? Number(x.change_amount) : null;
-
-    var cls = changeClass(changePct);
-
-    var pctStr = changePct != null ? (changePct >= 0 ? '+' : '') + changePct.toFixed(2) + '%' : '--';
-
-    var amtStr = changeAmt != null ? (changeAmt >= 0 ? '+' : '') + changeAmt.toFixed(2) : '--';
-
-    var priceStr = price != null ? '¥' + price.toFixed(2) : '--';
-
-    var turnover = x.turnover != null ? Number(x.turnover).toFixed(2) + '%' : '--';
-
-    html += '<tr>' +
-
-      '<td><code>' + esc(sym) + '</code></td>' +
-
-      '<td><a href="/stock/' + encodeURIComponent(route) + '?m=CN">' + esc(x.name || sym) + '</a></td>' +
-
-      '<td class="price-cell">' + priceStr + '</td>' +
-
-      '<td class="' + cls + '">' + amtStr + '</td>' +
-
-      '<td class="' + cls + '">' + pctStr + '</td>' +
-
-      '<td>' + esc(turnover) + '</td>' +
-
-      '<td>' + formatAmount(x.amount) + '</td>' +
-
-      '<td>' + esc(x.industry || '--') + '</td>' +
-      '<td><a class="btn-soft btn-sm" href="/stock/' + encodeURIComponent(route) + '?m=CN#decision-brief-strip">简�?/a></td>' +
-
-      '</tr>';
-
-  });
-
-  html += '</tbody></table></div>';
-
-  $('#membersBox').html(html);
-
-}
-
-
-
-$(function(){
-  loadBlocks();
-  document.addEventListener('click', function (e) {
-    const el = e.target.closest('[data-tdx-action]');
-    if (!el) return;
-    const action = el.dataset.tdxAction;
-    if (action === 'load-blocks') loadBlocks();
-    else if (action === 'ingest-base') ingestBase();
-  });
-  if (window.QAUserCenter) {
-    QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('tdxFreshnessStrip'));
-    QAUserCenter.mountActiveJobsPanel('tdxActiveJobs', 5);
-    setInterval(function () { QAUserCenter.mountActiveJobsPanel('tdxActiveJobs', 5); }, 12000);
-  }
-});
-
-</script>
-
-{% endblock %}
-
+{% endblock %}
+
+<!-- v4: batch quotes -->
+
+{% block title %}通达信板鍧?- Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
+{% endblock %}
+
+
+
+{% block content %}
+
+{% for h in ux_env_hints|default([]) %}
+
+<div class="qc-ux-banner qc-ux-banner--info">
+
+  <div class="qc-ux-banner__title">{{ h.title }}</div>
+
+  <div class="qc-ux-banner__body">{{ h.body }}</div>
+
+  {% if h.href and h.label %}
+
+  <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+
+  {% endif %}
+
+</div>
+
+{% endfor %}
+
+
+
+<section class="qc-ux-onboarding" aria-label="通达信离线数据提绀?>
+
+  <div class="qc-ux-step">
+
+    <span class="qc-ux-step-num">1</span>
+
+    <div class="qc-ux-step-title">先确认本机数鎹?/div>
+
+    <p class="qc-ux-step-desc">板块与成分股依赖本机通达信目录。若为空，先配置 <code>TDX_ROOT_PATH</code> 并执行「入库基础数据」銆?/p>
+
+    <a class="btn-soft btn-sm" href="{{ url_for('pages.capabilities') }}">能力总览</a>
+
+    <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
+
+  </div>
+
+  <div class="qc-ux-step">
+
+    <span class="qc-ux-step-num">2</span>
+
+    <div class="qc-ux-step-title">回到实盘语境</div>
+
+    <p class="qc-ux-step-desc">板块用于发现主题与扩散路径；确认后建议回操盘鍙?自选做跟踪与复盘銆?/p>
+
+    <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘鍙?/a>
+
+    <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">自选股</a>
+
+  </div>
+
+</section>
+
+
+
+<section class="section-shell">
+
+  <div class="panel-head">
+
+    <div>
+
+      <div class="hero-caption">TDX Base Data</div>
+
+      <h1 class="page-title">通达信板鍧?/h1>
+
+      <p class="page-subtitle">
+
+        板块与成分股来自本机通达淇?<code>T0002/hq_cache</code>（需先入库）；行情与 <a href="/market-panorama">市场全景</a> 共用 <strong>全市场快鐓?/strong>（SQLite 缓存，秒级），仅补缺才走 Pytdx/腾讯銆?
+
+        在线热点瑙?<a href="/hot-sectors">热点板块</a>銆?
+
+      </p>
+
+    </div>
+
+    <div class="filter-bar">
+
+      <select id="kindSel" class="select-soft">
+
+        <option value="">全部</option>
+
+        <option value="zs">指数</option>
+
+        <option value="gn">概念</option>
+
+        <option value="fg">风格</option>
+
+      </select>
+
+      <input type="number" id="limitSel" class="select-soft select-soft--narrow" value="60" min="20" max="120" step="10" title="板块数量上限">
+
+      <button class="btn-brand" type="button" data-tdx-action="load-blocks">刷新</button>
+
+      <button class="btn-soft" type="button" data-tdx-action="ingest-base">入库基础数据</button>
+
+      <span class="text-muted market-meta-hint" id="loadHint"></span>
+
+    </div>
+
+  </div>
+
+  <div id="tdxFreshnessStrip" class="qc-freshness-strip market-freshness-strip qa-is-hidden" aria-live="polite"></div>
+  <div id="tdxActiveJobs" class="market-jobs-hint"></div>
+
+  <div id="blocksBox" class="table-container"></div>
+
+</section>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script nonce="{{ csp_nonce() }}">
+
+function esc(t){ return $('<div>').text(String(t ?? '')).html(); }
+
+function apiIsSuccess(res) {
+  if (!res) return false;
+  if (res.status === 'success' || res.ok === true) return true;
+  if (res.success === true) return true;
+  return res.data !== undefined;
+}
+
+function extractApiItems(res) {
+  if (!res) return [];
+  var d = res.data;
+  if (Array.isArray(d)) return d;
+  if (d && typeof d === 'object') {
+    if (Array.isArray(d.items)) return d.items;
+    if (Array.isArray(d.blocks)) return d.blocks;
+    if (Array.isArray(d.sectors)) return d.sectors;
+    if (Array.isArray(d.summaries)) return d.summaries;
+  }
+  if (Array.isArray(res.items)) return res.items;
+  return [];
+}
+
+function formatPct(pct) {
+
+  if (pct == null || isNaN(pct)) return '--';
+
+  var n = Number(pct);
+
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+
+}
+
+function formatRiseRatio(rr) {
+
+  if (rr == null || isNaN(rr)) return '--';
+
+  return (Number(rr) * 100).toFixed(0) + '%';
+
+}
+
+function formatAmount(amount) {
+
+  var n = Number(amount) || 0;
+
+  if (!Number.isFinite(n) || n <= 0) return '--';
+
+  if (n >= 1e8) return (n / 1e8).toFixed(2) + '浜?;
+
+  if (n >= 1e4) return (n / 1e4).toFixed(2) + '涓?;
+
+  return n.toFixed(0);
+
+}
+
+function changeClass(pct) {
+
+  if (pct > 0) return 'positive';
+
+  if (pct < 0) return 'negative';
+
+  return '';
+
+}
+
+function kindLabel(k) {
+
+  if (k === 'zs') return '指数';
+
+  if (k === 'gn') return '概念';
+
+  if (k === 'fg') return '风格';
+
+  return k || '--';
+
+}
+
+
+
+var activeBlock = { kind: '', name: '' };
+
+
+
+function bindBlockTableEvents() {
+
+  $('#blocksTable').off('click', 'tbody tr').on('click', 'tbody tr', function() {
+
+    $('#blocksTable tbody tr').removeClass('active-row');
+
+    $(this).addClass('active-row');
+
+    showMembers($(this).data('kind'), $(this).data('name'));
+
+  });
+
+  $('#blocksTable').off('keydown').on('keydown', function(e) {
+
+    var $rows = $('#blocksTable tbody tr');
+
+    var $active = $rows.filter('.active-row');
+
+    var idx = $rows.index($active);
+
+    if (e.key === 'ArrowDown' && idx < $rows.length - 1) {
+
+      $rows.eq(idx + 1).trigger('click');
+
+      e.preventDefault();
+
+    } else if (e.key === 'ArrowUp' && idx > 0) {
+
+      $rows.eq(idx - 1).trigger('click');
+
+      e.preventDefault();
+
+    }
+
+  });
+
+}
+
+
+
+function renderBlockTable(items, withStats) {
+
+  if (!items || !items.length) {
+
+    $('#blocksBox').html('<div class="empty-state">暂无板块数据，请先点击「入库基础数据」銆?/div>');
+
+    return;
+
+  }
+
+  var html = '<div class="row"><div class="col-md-7"><div class="blocks-list tdx-scroll">';
+
+  html += '<table class="table" id="blocksTable" tabindex="0"><thead><tr>';
+
+  if (withStats) {
+
+    html += '<th>类型</th><th>板块</th><th>涨幅</th><th>涨股姣?/th><th>娑?璺?/th><th>成分</th><th>成交棰?/th><th>龙头</th><th>龙头涨幅</th>';
+
+  } else {
+
+    html += '<th>类型</th><th>板块</th><th>更新时间</th>';
+
+  }
+
+  html += '</tr></thead><tbody>';
+
+  items.forEach(function(x, idx) {
+
+    var k = String(x.block_kind || '');
+
+    var name = String(x.block_name || x.name || '');
+
+    var activeClass = (activeBlock.kind === k && activeBlock.name === name) ? ' class="active-row"' : '';
+
+    html += '<tr' + activeClass + ' data-kind="' + esc(k) + '" data-name="' + esc(name) + '">';
+
+    html += '<td><span class="tdx-kind">' + esc(kindLabel(k)) + '</span></td>';
+
+    html += '<td class="block-name"><strong>' + esc(name) + '</strong></td>';
+
+    if (withStats) {
+
+      var up = Number(x.rise_count || 0);
+
+      var down = Number(x.fall_count || 0);
+
+      html += '<td class="' + changeClass(x.change_pct) + '">' + formatPct(x.change_pct) + '</td>';
+
+      html += '<td>' + formatRiseRatio(x.rise_ratio) + '</td>';
+
+      html += '<td><span class="positive">' + up + '</span>/<span class="negative">' + down + '</span></td>';
+
+      html += '<td>' + esc(x.member_count != null ? x.member_count : '--') + '</td>';
+
+      html += '<td>' + formatAmount(x.total_amount) + '</td>';
+
+      html += '<td title="' + esc(x.leader_symbol || '') + '">' + esc(x.leader_name || '--') + '</td>';
+
+      html += '<td class="' + changeClass(x.leader_change_pct) + '">' + formatPct(x.leader_change_pct) + '</td>';
+
+    } else {
+
+      html += '<td><code>' + esc(x.updated_at || '') + '</code></td>';
+
+    }
+
+    html += '</tr>';
+
+  });
+
+  html += '</tbody></table></div></div><div class="col-md-5" id="membersBox"></div></div>';
+
+  $('#blocksBox').html(html);
+
+  bindBlockTableEvents();
+
+}
+
+
+
+function loadBlocks(){
+
+  var kind = $('#kindSel').val() || '';
+
+  var limit = Math.min(120, Math.max(20, parseInt($('#limitSel').val(), 10) || 60));
+
+  $('#blocksBox').html('<div class="loading-state">正在加载板块汇总（批量行情）鈥?/div>');
+
+  $('#loadHint').text('');
+
+  var t0 = Date.now();
+
+  var summaryUrl = '/api/v1/tdx/blocks/summaries?limit=' + limit + (kind ? ('&kind=' + encodeURIComponent(kind)) : '');
+
+  $.getJSON(summaryUrl).done(function(res){
+
+    var items = extractApiItems(res);
+
+    $('#loadHint').text('汇鎬?' + (items.length || 0) + ' 涓?· ' + ((Date.now() - t0) / 1000).toFixed(1) + 's');
+
+    if (!items || !items.length) {
+
+      var fallback = '/api/v1/tdx/blocks' + (kind ? ('?kind=' + encodeURIComponent(kind)) : '');
+
+      $.getJSON(fallback).done(function(res2) { renderBlockTable(extractApiItems(res2), false); })
+
+        .fail(function() { $('#blocksBox').html('<div class="empty-state">暂无板块数据，请先入库銆?/div>'); });
+
+      return;
+
+    }
+
+    renderBlockTable(items, true);
+    $('#membersBox').html('<div class="empty-state tdx-empty-pad">点击左侧板块查看成分鑲?/div>');
+    if (window.QAUserCenter) {
+      var snap = items[0] && items[0].updated_at;
+      QAUserCenter.renderHotSectorFreshness(document.getElementById('tdxFreshnessStrip'), {
+        snapshot_at: snap,
+        source_mode: 'tdx_snapshot',
+        updated_at: snap
+      });
+    }
+
+  }).fail(function(){
+
+    var url = '/api/v1/tdx/blocks' + (kind ? ('?kind=' + encodeURIComponent(kind)) : '');
+
+    $.getJSON(url).done(function(res) { renderBlockTable(extractApiItems(res), false); })
+
+      .fail(function() { $('#blocksBox').html('<div class="empty-state">加载失败</div>'); });
+
+  });
+
+}
+
+
+
+function ingestBase(){
+
+  $('.btn-soft,.btn-brand').prop('disabled', true);
+
+  $('#loadHint').text('入库中鈥?);
+
+  $.ajax({
+
+    url: '/api/v1/tdx/base-data/ingest',
+
+    method: 'POST',
+
+    contentType: 'application/json',
+
+    data: JSON.stringify({})
+
+  }).always(function(){
+
+    $('.btn-soft,.btn-brand').prop('disabled', false);
+
+  }).done(function(){
+
+    loadBlocks();
+
+  }).fail(function(){
+
+    $('#loadHint').text('入库失败');
+
+  });
+
+}
+
+
+
+function showMembers(kind, name){
+
+  activeBlock = { kind: kind, name: name };
+
+  var $box = $('#membersBox');
+
+  $box.html('<div class="loading-state">加载成分股（通达信实时）鈥?/div>');
+
+  var url = '/api/v1/tdx/blocks/' + encodeURIComponent(kind) + '/' + encodeURIComponent(name)
+
+    + '/members?with_quotes=1&limit=300';
+
+  $.getJSON(url).done(function(res){
+
+    var items = extractApiItems(res);
+
+    if (!items || !items.length) {
+
+      $box.html('<div class="empty-state">无成分股数据</div>');
+
+      return;
+
+    }
+
+    renderMembers(items, name);
+
+  }).fail(function(){
+
+    $box.html('<div class="empty-state">加载失败</div>');
+
+  });
+
+}
+
+
+
+function renderMembers(items, blockName) {
+
+  var html = '<div class="panel-head"><div><h3 class="panel-title">成分鑲?· ' + esc(blockName) + '</h3>';
+
+  html += '<div class="panel-subtitle">鍏?' + items.length + ' 鍙?· 按涨跌幅排序</div></div></div>';
+
+  html += '<div class="table-container tdx-scroll"><table class="table" id="membersTable"><thead><tr>';
+
+  html += '<th>代码</th><th>名称</th><th>现价</th><th>涨跌</th><th>涨跌骞?/th><th>换手</th><th>成交棰?/th><th>行业</th><th>链路</th>';
+
+  html += '</tr></thead><tbody>';
+
+  items.forEach(function(x) {
+
+    var sym = String(x.symbol || '');
+
+    var route = sym;
+
+    var price = x.price != null ? Number(x.price) : null;
+
+    var changePct = x.change_pct != null ? Number(x.change_pct) : null;
+
+    var changeAmt = x.change_amount != null ? Number(x.change_amount) : null;
+
+    var cls = changeClass(changePct);
+
+    var pctStr = changePct != null ? (changePct >= 0 ? '+' : '') + changePct.toFixed(2) + '%' : '--';
+
+    var amtStr = changeAmt != null ? (changeAmt >= 0 ? '+' : '') + changeAmt.toFixed(2) : '--';
+
+    var priceStr = price != null ? '¥' + price.toFixed(2) : '--';
+
+    var turnover = x.turnover != null ? Number(x.turnover).toFixed(2) + '%' : '--';
+
+    html += '<tr>' +
+
+      '<td><code>' + esc(sym) + '</code></td>' +
+
+      '<td><a href="/stock/' + encodeURIComponent(route) + '?m=CN">' + esc(x.name || sym) + '</a></td>' +
+
+      '<td class="price-cell">' + priceStr + '</td>' +
+
+      '<td class="' + cls + '">' + amtStr + '</td>' +
+
+      '<td class="' + cls + '">' + pctStr + '</td>' +
+
+      '<td>' + esc(turnover) + '</td>' +
+
+      '<td>' + formatAmount(x.amount) + '</td>' +
+
+      '<td>' + esc(x.industry || '--') + '</td>' +
+      '<td><a class="btn-soft btn-sm" href="/stock/' + encodeURIComponent(route) + '?m=CN#decision-brief-strip">简鎶?/a></td>' +
+
+      '</tr>';
+
+  });
+
+  html += '</tbody></table></div>';
+
+  $('#membersBox').html(html);
+
+}
+
+
+
+$(function(){
+  loadBlocks();
+  document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-tdx-action]');
+    if (!el) return;
+    const action = el.dataset.tdxAction;
+    if (action === 'load-blocks') loadBlocks();
+    else if (action === 'ingest-base') ingestBase();
+  });
+  if (window.QAUserCenter) {
+    QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('tdxFreshnessStrip'));
+    QAUserCenter.mountActiveJobsPanel('tdxActiveJobs', 5);
+    setInterval(function () { QAUserCenter.mountActiveJobsPanel('tdxActiveJobs', 5); }, 12000);
+  }
+});
+
+</script>
+
+{% endblock %}
+

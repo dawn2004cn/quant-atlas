@@ -26,8 +26,8 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
 
     def __init__(
         self,
-        market_provider: object,
-        industry_provider: object,
+        market_provider: object | None = None,
+        industry_provider: object | None = None,
         stock_cache: StockCachePort | None = None,
         cache: CachePort | None = None,
     ):
@@ -729,6 +729,19 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.error("get_history failed for %s: %s", symbol, e)
             return []
 
+    async def get_history_async(self, symbol: str, market: MarketCode, *, start: str, end: str) -> list[dict]:
+        """Async version of get_history ? non-blocking bar retrieval."""
+        import asyncio
+        try:
+            provider = self._market_provider
+            if not hasattr(provider, "get_stock_history"):
+                self.logger.warning("market_provider has no get_stock_history method")
+                return []
+            return await asyncio.to_thread(provider.get_stock_history, symbol, market, start, end)
+        except Exception as e:
+            self.logger.error("get_history_async failed for %s: %s", symbol, e)
+            return []
+
     def get_history_bars(
         self,
         symbol: str,
@@ -776,3 +789,6 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
 
 
 __all__ = ["MarketApplicationService"]
+
+# Back-compat alias used by wiring modules
+MarketService = MarketApplicationService

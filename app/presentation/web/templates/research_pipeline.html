@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}研究闭环管线 - Quant Atlas{% endblock %}
 
@@ -8,7 +8,7 @@
 
 {% block spa_switcher %}
 <a href="/app/research-pipeline" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('research-pipeline')">
+   data-spa-switcher="research-pipeline">
   试试新版 →
 </a>
 {% endblock %}

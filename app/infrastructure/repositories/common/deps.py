@@ -231,7 +231,7 @@ def create_investment_manager_repository(settings: AppSettings, session_factory=
     from .facades.investment_manager_repository import InvestmentManagerRepository
 
     if settings.use_mysql:
-        return InvestmentManagerRepository(mysql=settings.mysql, session_factory=session_factory)
+        return InvestmentManagerRepository(db_path=Path(settings.sqlite_path).parent / "investment_managers.db")
     return InvestmentManagerRepository(
         db_path=Path(settings.sqlite_path).parent / "investment_managers.db"
     )
@@ -444,6 +444,19 @@ def create_tdx_block_repository(settings: AppSettings):
     if not settings.use_mysql or settings.mysql is None:
         return None
     from ..mysql.mysql_tdx_block_repository import MySQLTdxBlockRepository
+
+def create_collaboration_repository(settings, session_factory=None):
+    """Create CollaborationRepository with fallback to JSON if MySQL unavailable."""
+    from pathlib import Path
+    if settings.use_mysql and session_factory is not None:
+        try:
+            from ..mysql.mysql_collaboration_repository import MySQLCollaborationRepository
+            return MySQLCollaborationRepository(session_factory())
+        except Exception:
+            pass
+    from app.infrastructure.repositories.common.json_repositories import JsonCollaborationRepository
+    return JsonCollaborationRepository(Path(settings.sqlite_path).parent / "collaboration.json")
+
 
     return MySQLTdxBlockRepository(settings.mysql)
 

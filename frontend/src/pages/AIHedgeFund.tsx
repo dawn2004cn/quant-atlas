@@ -2,6 +2,10 @@ import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
+function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
+}
+
 type HedgeFundStatus = {
   nav: {
     current: number;
@@ -38,58 +42,58 @@ export function AIHedgeFundPage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={4} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无对冲基金数据</div>;
+  if (error) return <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">加载失败：{error.message}</div>;
+  if (!data) return <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-400">暂无对冲基金数据</div>;
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-[1400px] space-y-5">
       <div>
         <h1 className="text-2xl font-bold">AI 对冲基金</h1>
-        <p className="text-sm text-slate-500">AI 驱动的自动化对冲基金管理面板</p>
+        <p className="text-sm text-zinc-500">AI 驱动的自动化对冲基金管理面板</p>
         {data.updated_at && (
-          <p className="mt-1 text-xs text-slate-400">
+          <p className="mt-1 text-xs text-zinc-400">
             更新于：{new Date(data.updated_at).toLocaleString("zh-CN")}
           </p>
         )}
       </div>
 
       {/* NAV */}
-      <div className="glass-card p-4">
-        <h2 className="mb-3 text-sm font-bold text-slate-500">基金净值</h2>
+      <Panel className="p-4">
+        <h2 className="mb-3 text-sm font-bold text-zinc-500">基金净值</h2>
         <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-            <div className="text-xs text-slate-500">当前净值</div>
+          <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+            <div className="text-xs text-zinc-500">当前净值</div>
             <div className="text-2xl font-bold">{data.nav.current.toFixed(4)}</div>
           </div>
-          <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-            <div className="text-xs text-slate-500">日涨跌幅</div>
-            <div className={`text-2xl font-bold ${data.nav.daily_change_pct >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+          <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+            <div className="text-xs text-zinc-500">日涨跌幅</div>
+            <div className={`text-2xl font-bold ${data.nav.daily_change_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
               {data.nav.daily_change_pct >= 0 ? "+" : ""}
               {data.nav.daily_change_pct.toFixed(2)}%
             </div>
           </div>
-          <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-            <div className="text-xs text-slate-500">累计收益</div>
-            <div className={`text-2xl font-bold ${data.nav.inception_return_pct >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+          <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+            <div className="text-xs text-zinc-500">累计收益</div>
+            <div className={`text-2xl font-bold ${data.nav.inception_return_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
               {data.nav.inception_return_pct >= 0 ? "+" : ""}
               {data.nav.inception_return_pct.toFixed(2)}%
             </div>
           </div>
         </div>
-      </div>
+      </Panel>
 
       {/* Returns */}
-      <div className="glass-card p-4">
-        <h2 className="mb-3 text-sm font-bold text-slate-500">收益表现</h2>
+      <Panel className="p-4">
+        <h2 className="mb-3 text-sm font-bold text-zinc-500">收益表现</h2>
         <div className="grid grid-cols-4 gap-3">
           {(["daily", "weekly", "monthly", "yearly"] as const).map((period) => {
             const val = data.returns[period];
             return (
-              <div key={period} className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                <div className="text-xs text-slate-500">
+              <div key={period} className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                <div className="text-xs text-zinc-500">
                   {period === "daily" ? "日收益" : period === "weekly" ? "周收益" : period === "monthly" ? "月收益" : "年收益"}
                 </div>
-                <div className={`text-lg font-bold ${val >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                <div className={`text-lg font-bold ${val >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                   {val >= 0 ? "+" : ""}
                   {val.toFixed(2)}%
                 </div>
@@ -97,41 +101,41 @@ export function AIHedgeFundPage() {
             );
           })}
         </div>
-      </div>
+      </Panel>
 
       {/* Metrics */}
-      <div className="glass-card p-4">
-        <h2 className="mb-3 text-sm font-bold text-slate-500">风险指标</h2>
+      <Panel className="p-4">
+        <h2 className="mb-3 text-sm font-bold text-zinc-500">风险指标</h2>
         <div className="grid grid-cols-4 gap-3">
-          <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-            <div className="text-xs text-slate-500">夏普比</div>
+          <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+            <div className="text-xs text-zinc-500">夏普比</div>
             <div className="text-lg font-bold">{data.metrics.sharpe.toFixed(3)}</div>
           </div>
-          <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-            <div className="text-xs text-slate-500">最大回撤</div>
-            <div className="text-lg font-bold text-rose-600">
+          <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+            <div className="text-xs text-zinc-500">最大回撤</div>
+            <div className="text-lg font-bold text-rose-400">
               {Math.abs(data.metrics.max_drawdown_pct).toFixed(2)}%
             </div>
           </div>
-          <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-            <div className="text-xs text-slate-500">胜率</div>
+          <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+            <div className="text-xs text-zinc-500">胜率</div>
             <div className="text-lg font-bold">{(data.metrics.win_rate * 100).toFixed(1)}%</div>
           </div>
-          <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-            <div className="text-xs text-slate-500">总交易</div>
+          <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+            <div className="text-xs text-zinc-500">总交易</div>
             <div className="text-lg font-bold">{data.metrics.total_trades}</div>
           </div>
         </div>
-      </div>
+      </Panel>
 
       {/* Positions */}
-      <div className="glass-card p-4">
-        <h2 className="mb-3 text-sm font-bold text-slate-500">当前持仓</h2>
+      <Panel className="p-4">
+        <h2 className="mb-3 text-sm font-bold text-zinc-500">当前持仓</h2>
         {data.positions.length === 0 ? (
-          <p className="text-sm text-slate-400">暂无持仓</p>
+          <p className="text-sm text-zinc-400">暂无持仓</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="table table-sm">
+            <table className="w-full text-sm">
               <thead>
                 <tr>
                   <th>标的</th>
@@ -147,12 +151,12 @@ export function AIHedgeFundPage() {
                     <td className="font-medium">{pos.symbol}</td>
                     <td>{pos.market}</td>
                     <td>
-                      <span className={`badge badge-xs ${pos.direction === "long" ? "badge-success" : "badge-error"}`}>
+                      <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${pos.direction === "long" ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30" : "bg-rose-500/15 text-rose-400 ring-1 ring-rose-500/30"}`}>
                         {pos.direction === "long" ? "多头" : "空头"}
                       </span>
                     </td>
                     <td className="text-right">{pos.weight_pct.toFixed(1)}%</td>
-                    <td className={`text-right font-bold ${pos.pnl_pct >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                    <td className={`text-right font-bold ${pos.pnl_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                       {pos.pnl_pct >= 0 ? "+" : ""}
                       {pos.pnl_pct.toFixed(2)}%
                     </td>
@@ -162,7 +166,7 @@ export function AIHedgeFundPage() {
             </table>
           </div>
         )}
-      </div>
+      </Panel>
     </div>
   );
 }

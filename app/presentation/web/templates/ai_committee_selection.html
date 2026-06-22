@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}AI 投委会选股 - Quant Atlas{% endblock %}
 
@@ -8,7 +8,7 @@
 
 {% block spa_switcher %}
 <a href="/app/ai-committee-selection" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('ai-committee-selection')">
+   data-spa-switcher="ai-committee-selection">
   试试新版 →
 </a>
 {% endblock %}

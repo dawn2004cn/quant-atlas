@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}任务详情 - {{ task_id }}{% endblock %}
 
@@ -8,7 +8,7 @@
 
 {% block spa_switcher %}
 <a href="/app/task/{{ task_id }}" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('task-detail')">
+   data-spa-switcher="task-detail">
   试试新版 →
 </a>
 {% endblock %}

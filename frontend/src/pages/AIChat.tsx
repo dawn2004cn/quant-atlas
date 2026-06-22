@@ -3,6 +3,10 @@ import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
+function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
+}
+
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
@@ -121,20 +125,17 @@ export function AIChatPage() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-[1400px] space-y-5">
       <div>
         <h1 className="text-2xl font-bold">AI 对话</h1>
-        <p className="text-sm text-slate-500">与投资研究助手自然语言交流</p>
+        <p className="text-sm text-zinc-500">与投资研究助手自然语言交流</p>
       </div>
 
-      <div
-        ref={listRef}
-        className="glass-card flex h-[60vh] flex-col gap-4 overflow-y-auto p-4"
-      >
+      <Panel className="flex h-[60vh] flex-col gap-4 overflow-y-auto p-4">
         {isEmpty && !error && (
           <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
             <div className="text-4xl">🤖</div>
-            <p className="text-sm text-slate-400 max-w-md">
+            <p className="max-w-md text-sm text-zinc-400">
               你好！我是 Quant Atlas 投资助手。你可以问我关于市场分析、个股诊断、策略建议等问题。
             </p>
             <div className="flex flex-wrap justify-center gap-2">
@@ -142,7 +143,7 @@ export function AIChatPage() {
                 <button
                   key={step.label}
                   type="button"
-                  className="btn btn-outline btn-sm"
+                  className="rounded-lg border border-zinc-700/60 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800/60 hover:text-zinc-200"
                   onClick={() => handleSend(step.prompt)}
                   disabled={submitting}
                 >
@@ -162,7 +163,7 @@ export function AIChatPage() {
               className={`chat-bubble max-w-[80%] text-sm ${
                 msg.role === "user"
                   ? "chat-bubble-primary"
-                  : "bg-slate-100 dark:bg-slate-800"
+                  : "bg-zinc-100 dark:bg-zinc-800"
               }`}
             >
               {msg.content || (
@@ -171,14 +172,14 @@ export function AIChatPage() {
             </div>
           </div>
         ))}
-      </div>
+      </Panel>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">{error}</div>}
 
       <div className="flex gap-2">
         <input
           type="text"
-          className="input input-bordered flex-1"
+          className="rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:border-emerald-500/40 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 flex-1"
           placeholder="输入你的问题..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -192,7 +193,7 @@ export function AIChatPage() {
         />
         <button
           type="button"
-          className="btn btn-primary"
+          className="rounded-lg bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-400 ring-1 ring-emerald-500/30 transition-colors hover:bg-emerald-500/20"
           onClick={() => handleSend(input)}
           disabled={!input.trim() || submitting}
         >

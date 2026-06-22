@@ -1,39 +1,27 @@
-from app.core.logger import get_logger
-from app.core.typed_registry import get_registry
+"""Execution service wiring — investment manager, trade execution."""
 
-logger = get_logger(__name__)
+from __future__ import annotations
 
-def _make_fast_path_parameter_store(reg, **kwargs):
-    from app.modules.execution.services.fast_path_parameter_store import FastPathParameterStore
-    # In a real env, we'd inject a Redis client here
-    return FastPathParameterStore(redis_client=None)
+import logging
+from typing import Any
 
-def _make_fast_path_orchestrator(reg, **kwargs):
-    from app.modules.execution.services.fast_path_orchestrator import FastPathOrchestrator
-    return FastPathOrchestrator(
-        pre_trade_validator=reg.get("pre_trade_validator"),
-        risk_guard=reg.get("risk_service"),
-        execution_gateway=reg.get("borderless_execution_service"),
-        parameter_store=reg.get("fast_path_parameter_store"),
+from app.core.registry import register_factory
+
+logger = logging.getLogger(__name__)
+
+
+def _make_investment_manager_service(reg: Any) -> Any:
+    from app.modules.execution.services.investment_manager_service import InvestmentManagerService
+    from app.infrastructure.repositories.deps import create_investment_manager_repository, create_stock_cache, create_signal_flag_pool_repository
+    from app.config import get_settings
+    settings = get_settings()
+    sf = getattr(reg, "_session_factory", None)
+    repo = create_investment_manager_repository(settings, session_factory=sf)
+    return InvestmentManagerService(
+        repo,
+        stock_cache=create_stock_cache(),
+        signal_flag_pool=create_signal_flag_pool_repository(settings),
     )
 
-def _make_fast_path_trigger(reg, **kwargs):
-    from app.modules.execution.services.fast_path_trigger_service import FastPathTriggerService
-    from app.core.event_bus import get_event_bus
-    return FastPathTriggerService(
-        event_bus=get_event_bus(),
-        orchestrator=reg.get("fast_path_orchestrator"),
-        parameter_store=reg.get("fast_path_parameter_store"),
-    )
 
-def wire_execution_fast_path():
-    reg = get_registry()
-    reg.register_factory("fast_path_parameter_store", _make_fast_path_parameter_store)
-    reg.register_factory("fast_path_orchestrator", _make_fast_path_orchestrator)
-    reg.register_factory("fast_path_trigger", _make_fast_path_trigger)
-    
-    # Eagerly initialize the trigger service so it starts listening to events
-    try:
-        reg.get("fast_path_trigger")
-    except Exception:
-        logger.debug("fast_path_trigger not available, will init lazy")
+register_factory("investment_manager_service", _make_investment_manager_service)

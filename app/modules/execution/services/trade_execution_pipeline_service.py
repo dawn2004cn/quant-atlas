@@ -224,6 +224,10 @@ class TradeExecutionPipelineService:
             "value": round(order_value, 2),
             "status": "accepted",
         }
+        # Record BUY for T+1 settlement tracking (A-share)
+        if direction == SignalDirection.BUY and self._is_cn_symbol(sym):
+            self._validator._settlement_tracker.record_buy(sym)
+
         logger.info(
             "Trade pipeline OK: order=%s user=%d %s %d %s",
             order_id,
@@ -263,5 +267,11 @@ class TradeExecutionPipelineService:
         except (SQLAlchemyError, OSError, RuntimeError, ValueError, TypeError):
             logger.exception("Failed to log compliance violation for order %s", order_id)
 
+
+    @staticmethod
+    def _is_cn_symbol(symbol: str) -> bool:
+        """Check if symbol is A-share for T+1 settlement rules."""
+        from app.infrastructure.providers.cn_backtest_rules import is_cn_symbol as _is_cn
+        return _is_cn(symbol.upper())
 
 __all__ = ["TradeExecutionPipelineService", "PipelineResult"]

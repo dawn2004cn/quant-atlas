@@ -58,9 +58,9 @@ def _make_strategy_wizard_service(reg: Any) -> Any:
 register_factory("strategy_wizard_service", _make_strategy_wizard_service)
 
 
-def _make_smart_daily_briefing_service(_reg: Any) -> Any:
+def _make_smart_daily_briefing_service(reg: Any) -> Any:
     from app.modules.strategy.services.analytics.smart_briefing_service import SmartDailyBriefingService
-    return SmartDailyBriefingService()
+    return SmartDailyBriefingService(strategy_service=reg.get_or_none("strategy_service"))
 
 
 register_factory("smart_daily_briefing_service", _make_smart_daily_briefing_service)
@@ -179,7 +179,6 @@ def _make_stock_service_enhanced(_reg: Any) -> Any:
     return StockServiceEnhanced()
 
 
-register_factory("stock_service_enhanced", _make_stock_service_enhanced)
 
 
 def _make_ai_research_service(_reg: Any) -> Any:
@@ -259,17 +258,10 @@ def _make_moments_service(reg: Any) -> Any:
     return MomentsService(repo)
 
 
-register_factory("moments_service", _make_moments_service)
 
 
-def _make_kronos_service(reg: Any) -> Any:
-    from app.modules.data.services.kronos_service import KronosService
-    settings = get_settings()
-    sf = getattr(reg, "_session_factory", None)
-    return KronosService(settings=settings, session_factory=sf)
 
 
-register_factory("kronos_service", _make_kronos_service)
 
 
 def _make_signal_observation_service(reg: Any) -> Any:
@@ -279,14 +271,14 @@ def _make_signal_observation_service(reg: Any) -> Any:
     settings = get_settings()
     sf = getattr(reg, "_session_factory", None)
     repo = create_signal_observation_repository(sf)
-    return SignalObservationService(repository=repo)
+    return SignalObservationService(observation_repository=repo, store_path=getattr(repo, "_store_path", None))
 
 
 register_factory("signal_observation_service", _make_signal_observation_service)
 
 
 def _make_ten_kings_sniper_service(reg: Any) -> Any:
-    from app.modules.strategy.services.strategy.ten_kings_sniper_service import TenKingsSniperService
+    from app.modules.execution.services.ten_kings_sniper_service import TenKingsSniperService
     from app.config import get_settings
     try:
         from app.infrastructure.repositories.deps import create_sniper_repository

@@ -464,6 +464,11 @@ def _wire_from_registry(services: Any) -> None:
 # Load factory registrations from domain wiring modules (side-effect imports).
 from . import wiring_ai  # noqa: E402, F401
 from . import wiring_market  # noqa: E402, F401
+from . import wiring_market_data  # noqa: E402, F401
+from . import wiring_strategy  # noqa: E402, F401
+from . import wiring_data  # noqa: E402, F401
+from . import wiring_system_helpers  # noqa: E402, F401
+from . import wiring_execution  # noqa: E402, F401
 from . import wiring_system  # noqa: E402, F401
 from . import wiring_trading  # noqa: E402, F401
 

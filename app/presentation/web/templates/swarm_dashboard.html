@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}Swarm 任务看板 - Quant Atlas{% endblock %}
 
@@ -8,7 +8,7 @@
 
 {% block spa_switcher %}
 <a href="/app/swarm-dashboard" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('swarm-dashboard')">
+   data-spa-switcher="swarm-dashboard">
   试试新版 →
 </a>
 {% endblock %}

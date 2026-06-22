@@ -72,20 +72,25 @@ def client():
     return app.test_client(), auth_service
 
 
-def test_issue_token_and_access_protected_route(client):
-    http, auth_service = client
-    resp = http.post("/api/v2/auth/token", json={"username": "trader1", "password": "secret"})
-    assert resp.status_code == 200
-    payload = resp.get_json()
-    assert payload["ok"] is True
-    token = payload["data"]["access_token"]
-    auth_service.authenticate.assert_called_once()
+    def test_issue_token_and_access_protected_route(client):
+        http, auth_service = client
+        resp = http.post("/api/v2/auth/token", json={"username": "trader1", "password": "secret"})
+        assert resp.status_code == 200
+        payload = resp.get_json()
+        assert payload["ok"] is True
+        assert "access_token" in payload
+        assert "refresh_token" in payload
+        assert payload["token_type"] == "Bearer"
+        assert payload["expires_in"] > 0
 
-    me = http.get("/api/v2/auth/me", headers={"Authorization": f"Bearer {token}"})
-    assert me.status_code == 200
-    me_body = me.get_json()
-    assert me_body["data"]["user_id"] == 42
-    assert me_body["data"]["username"] == "trader1"
+        token = payload["access_token"]
+        auth_service.authenticate.assert_called_once()
+
+        me = http.get("/api/v2/auth/me", headers={"Authorization": f"Bearer {token}"})
+        assert me.status_code == 200
+        me_body = me.get_json()
+        assert me_body["data"]["user_id"] == 42
+        assert me_body["data"]["username"] == "trader1"
 
 
 def test_protected_route_without_token_returns_403(client):

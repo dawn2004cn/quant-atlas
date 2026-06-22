@@ -297,6 +297,12 @@ def decode_access_token(token: str) -> dict[str, Any]:
         raise AuthorizationError("token_expired")
     if not str(payload.get("sub") or "").strip():
         raise AuthorizationError("invalid_token")
+    # Phase 5: JWT blacklist check
+    jti = payload.get("jti")
+    if jti:
+        from app.infrastructure.auth.jwt_blacklist import is_token_revoked
+        if is_token_revoked(str(jti)):
+            raise AuthorizationError("token_revoked")
     return payload
 
 

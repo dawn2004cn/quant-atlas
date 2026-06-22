@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}消息中心 - Quant Atlas{% endblock %}
 
@@ -8,7 +8,7 @@
 
 {% block spa_switcher %}
 <a href="/app/message-center" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('message-center')">
+   data-spa-switcher="message-center">
   试试新版 →
 </a>
 {% endblock %}

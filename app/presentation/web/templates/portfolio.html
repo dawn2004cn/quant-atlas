@@ -1,281 +1,281 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block spa_switcher %}
 <a href="/app/portfolio" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('portfolio')">
-  �����°� ��
+   data-spa-switcher="portfolio">
+  试试新版 →
 </a>
-{% endblock %}
-
-{% block title %}组合管理 - Quant Atlas{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/portfolio.css') }}">
-{% endblock %}
-
-{% block content %}
-<div class="portfolio-grid">
-  <section class="section-shell portfolio-head">
-    <div class="hero-caption">Portfolio Management</div>
-    <h1 class="page-title">组合管理中心</h1>
-    <p class="page-subtitle">马克维茨有效前沿优化、Black-Litterman 分析师观点融合、归因分析、再平衡提醒与风险预算�?/p>
-
-    <div class="portfolio-controls">
-      <button class="btn-brand btn-optimize" id="btnOptimize">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-inline-mid"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-        一键优�?
-      </button>
-      <select id="method" class="select-soft">
-        <option value="markowitz">马克维茨 (Markowitz)</option>
-        <option value="black_litterman">Black-Litterman (融合观点)</option>
-      </select>
-      <select id="riskAversion" class="select-soft pf-select-risk">
-        <option value="0.5">保守</option>
-        <option value="1.0" selected>平衡</option>
-        <option value="2.0">激�?/option>
-      </select>
-      <span class="text-muted" id="optHint" class="text-88 text-muted"></span>
-    </div>
-  </section>
-
-  <div class="portfolio-stats" id="statsPanel">
-    <div class="stat-box">
-      <div class="stat-box-label">组合总�?/div>
-      <div class="stat-box-value" id="totalValue">¥0</div>
-      <div class="stat-box-note">持仓 + 现金</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-box-label">持仓收益</div>
-      <div class="stat-box-value" id="totalReturn">0.00%</div>
-      <div class="stat-box-note" id="totalPnl">¥0</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-box-label">基准收益</div>
-      <div class="stat-box-value" id="benchmarkReturn">0.00%</div>
-      <div class="stat-box-note">沪深300 YTD</div>
-    </div>
-    <div class="stat-box">
-      <div class="stat-box-label">阿尔�?/div>
-      <div class="stat-box-value" id="alphaValue">0.00%</div>
-      <div class="stat-box-note">超额收益</div>
-    </div>
-  </div>
-
-  <div class="card-grid">
-    <section class="glass-panel">
-      <div class="panel-title-bar">
-        <span class="panel-title-text">当前持仓</span>
-        <button class="btn-soft btn-mini" id="btnRefresh" class="btn-soft btn-mini btn-compact">刷新</button>
-      </div>
-      <div class="table-responsive scroll-panel-320">
-        <table class="table" id="holdingsTable">
-          <thead>
-            <tr>
-              <th>代码</th>
-              <th>持仓</th>
-              <th>现价</th>
-              <th>市�?/th>
-              <th>权重</th>
-              <th>收益</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section class="glass-panel">
-      <div class="panel-title-bar">
-        <span class="panel-title-text">再平衡提�?/span>
-        <span class="text-muted text-82">偏离�?</span>
-      </div>
-      <div id="alertsPanel">
-        <div class="text-center text-muted empty-state-pad">暂无提醒</div>
-      </div>
-    </section>
-  </div>
-
-  <section class="glass-panel pf-section-spaced">
-    <div class="panel-title-bar">
-      <span class="panel-title-text">有效前沿与最优配�?/span>
-      <span class="text-muted text-82">预期收益 vs 波动�?/span>
-    </div>
-    <div class="alloc-bar" id="optimalAlloc" class="alloc-bar pf-alloc-bar-lg"></div>
-    <div id="optimalWeights" class="flex-wrap-gap-8"></div>
-    <div class="frontier-chart" id="frontierChart" class="frontier-chart pf-frontier-flex">
-      点击"一键优�?计算有效前沿
-    </div>
-  </section>
-
-  <section class="glass-panel pf-section-spaced">
-    <div class="panel-title-bar">
-      <span class="panel-title-text">风险预算 (VaR 贡献�?</span>
-    </div>
-    <div class="table-responsive">
-      <table class="table" id="riskTable">
-        <thead>
-          <tr>
-            <th>代码</th>
-            <th>市值权�?/th>
-            <th>VaR贡献</th>
-            <th>边际VaR</th>
-            <th>风险贡献%</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </section>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script nonce="{{ csp_nonce() }}">
-function fmtNum(v, d=2){ const n=Number(v); return Number.isFinite(n)? n.toFixed(d): '--'; }
-function fmtPct(v){ const n=Number(v); return Number.isFinite(n)? (n*100).toFixed(2)+'%': '--'; }
-function esc(s){ return String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
-function showHint(t){ $('#optHint').text(t||''); }
-
-const DEFAULT_SYMBOLS = ['600519','000858','601318','600036','000001'];
-let currentHoldings = {};
-let currentSnapshot = null;
-
-function loadSnapshot(){
-  showHint('加载持仓...');
-  const symbols = DEFAULT_SYMBOLS.join(',');
-  const args = symbols.split(',').map(s => 'shares_'+s.trim()+'=100').join('&');
-  $.getJSON('/api/v1/portfolio/snapshot?'+args+'&cash=100000')
-    .done(res => {
-      const data = (res.data || res.portfolio || {});
-      currentSnapshot = data;
-      renderSnapshot(data);
-      loadAlerts(data);
-      loadRiskBudget(symbols);
-      showHint('已加�?);
-    })
-    .fail(()=> showHint('加载失败'));
-}
-
-function renderSnapshot(data){
-  const total = Number(data.total_value)||0;
-  const ret = Number(data.total_return)||0;
-  const pnl = Number(data.total_pnl)||0;
-  const bm = Number(data.benchmark_return)||0;
-  const alpha = ret - bm;
-
-  $('#totalValue').text('¥'+fmtNum(total,0));
-  const retEl = $('#totalReturn');
-  retEl.text(fmtPct(ret)).attr('class','stat-box-value '+(ret>=0?'positive':'negative'));
-  $('#totalPnl').text((pnl>=0?'+':'¥')+fmtNum(pnl,0));
-  $('#benchmarkReturn').text(fmtPct(bm));
-  $('#alphaValue').text(fmtPct(alpha)).attr('class','stat-box-value '+(alpha>=0?'positive':'negative'));
-
-  const positions = data.positions||[];
-  const tbody = $('#holdingsTable tbody').empty();
-  if(!positions.length){
-    tbody.html('<tr><td colspan="6" class="text-center text-muted">暂无持仓</td></tr>');
-    return;
-  }
-  positions.forEach(p => {
-    currentHoldings[p.symbol] = p.shares;
-    const cls = p.return_pct>=0?'positive':'negative';
-    tbody.append(`<tr>
-      <td><strong>${esc(p.symbol)}</strong></td>
-      <td>${p.shares}</td>
-      <td>¥${fmtNum(p.current_price)}</td>
-      <td>¥${fmtNum(p.current_value,0)}</td>
-      <td>${(p.current_weight*100).toFixed(1)}%</td>
-      <td class="${cls}">${fmtPct(p.return_pct)}</td>
-    </tr>`);
-  });
-}
-
-function loadAlerts(data){
-  const symbols = Object.keys(currentHoldings);
-  if(!symbols.length){ return; }
-  const args = symbols.map(s => 'shares_'+s+'=100').join('&');
-  $.getJSON('/api/v1/portfolio/rebalance?'+args+'&threshold=3')
-    .done(res => {
-      const alerts = (res.data||res).alerts||[];
-      const panel = $('#alertsPanel');
-      if(!alerts.length){
-        panel.html('<div class="text-center text-muted empty-state-pad">暂无偏离提醒</div>');
-        return;
-      }
-      panel.empty();
-      alerts.forEach(a => {
-        const badge = a.urgency==='high'?'alert-high':a.urgency==='medium'?'alert-medium':'alert-low';
-        panel.append(`<div class="pf-alert-row">
-          <span><strong>${esc(a.symbol)}</strong> ${a.action}</span>
-          <span class="alert-badge ${badge}">${(a.deviation*100).toFixed(1)}%</span>
-        </div>`);
-      });
-    });
-}
-
-function loadRiskBudget(symbols){
-  const args = symbols.split(',').map(s => 'shares_'+s.trim()+'=100').join('&');
-  $.getJSON('/api/v1/portfolio/risk-budget?'+args)
-    .done(res => {
-      const risks = (res.data||res).risk_budget||[];
-      const tbody = $('#riskTable tbody').empty();
-      risks.forEach(r => {
-        tbody.append(`<tr>
-          <td><strong>${esc(r.symbol)}</strong></td>
-          <td>${(r.weight*100).toFixed(1)}%</td>
-          <td>¥${fmtNum(r.var_contribution)}</td>
-          <td>${(r.marginal_var*100).toFixed(2)}%</td>
-          <td>${r.risk_contribution_pct.toFixed(1)}%</td>
-        </tr>`);
-      });
-    });
-}
-
-function runOptimization(){
-  const method = $('#method').val();
-  const riskAv = $('#riskAversion').val();
-  const symbols = DEFAULT_SYMBOLS;
-  showHint('优化计算�?..');
-
-  $.post('/api/v1/portfolio/optimize', JSON.stringify({
-    symbols: symbols,
-    method: method,
-    risk_aversion: Number(riskAv)
-  }), null, 'json')
-    .done(res => {
-      const data = (res.data||res).optimization||res;
-      renderOptimization(data);
-      showHint('优化完成');
-    })
-    .fail(()=> showHint('优化失败'));
-}
-
-function renderOptimization(data){
-  const weights = data.optimal_weights||{};
-  const colors = ['#103f91','#17a2a4','#c23616','#118a55','#d96a2b','#66788a'];
-
-  const bar = $('#optimalAlloc').empty();
-  const pills = $('#optimalWeights').empty();
-  let idx = 0;
-  for(const [sym,w] of Object.entries(weights)){
-    const pct = w*100;
-    if(pct<1) continue;
-    bar.append(`<div class="alloc-segment" style="width:${pct}%;background:${colors[idx%colors.length]}"></div>`);
-    pills.append(`<span class="weight-pill">${esc(sym)} ${pct.toFixed(1)}%</span>`);
-    idx++;
-  }
-
-  const chart = $('#frontierChart');
-  chart.html(`<div class="pf-frontier-summary">
-    <div class="pf-frontier-title">预期收益: ${(data.expected_return*100||0).toFixed(2)}%</div>
-    <div class="pf-frontier-muted">波动�? ${(data.volatility*100||0).toFixed(2)}%</div>
-    <div class="pf-frontier-sharpe">夏普比率: <strong>${fmtNum(data.sharpe_ratio)}</strong></div>
-  </div>`);
-}
-
-$(function(){
-  $('#btnOptimize').on('click', runOptimization);
-  $('#btnRefresh').on('click', loadSnapshot);
-  loadSnapshot();
-});
-</script>
-{% endblock %}
+{% endblock %}
+
+{% block title %}组合管理 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/portfolio.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="portfolio-grid">
+  <section class="section-shell portfolio-head">
+    <div class="hero-caption">Portfolio Management</div>
+    <h1 class="page-title">组合管理中心</h1>
+    <p class="page-subtitle">马克维茨有效前沿优化、Black-Litterman 分析师观点融合、归因分析、再平衡提醒与风险预算銆?/p>
+
+    <div class="portfolio-controls">
+      <button class="btn-brand btn-optimize" id="btnOptimize">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-inline-mid"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        一键优鍖?
+      </button>
+      <select id="method" class="select-soft">
+        <option value="markowitz">马克维茨 (Markowitz)</option>
+        <option value="black_litterman">Black-Litterman (融合观点)</option>
+      </select>
+      <select id="riskAversion" class="select-soft pf-select-risk">
+        <option value="0.5">保守</option>
+        <option value="1.0" selected>平衡</option>
+        <option value="2.0">激杩?/option>
+      </select>
+      <span class="text-muted" id="optHint" class="text-88 text-muted"></span>
+    </div>
+  </section>
+
+  <div class="portfolio-stats" id="statsPanel">
+    <div class="stat-box">
+      <div class="stat-box-label">组合总鍊?/div>
+      <div class="stat-box-value" id="totalValue">¥0</div>
+      <div class="stat-box-note">持仓 + 现金</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-label">持仓收益</div>
+      <div class="stat-box-value" id="totalReturn">0.00%</div>
+      <div class="stat-box-note" id="totalPnl">¥0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-label">基准收益</div>
+      <div class="stat-box-value" id="benchmarkReturn">0.00%</div>
+      <div class="stat-box-note">沪深300 YTD</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-box-label">阿尔娉?/div>
+      <div class="stat-box-value" id="alphaValue">0.00%</div>
+      <div class="stat-box-note">超额收益</div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <section class="glass-panel">
+      <div class="panel-title-bar">
+        <span class="panel-title-text">当前持仓</span>
+        <button class="btn-soft btn-mini" id="btnRefresh" class="btn-soft btn-mini btn-compact">刷新</button>
+      </div>
+      <div class="table-responsive scroll-panel-320">
+        <table class="table" id="holdingsTable">
+          <thead>
+            <tr>
+              <th>代码</th>
+              <th>持仓</th>
+              <th>现价</th>
+              <th>市鍊?/th>
+              <th>权重</th>
+              <th>收益</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="glass-panel">
+      <div class="panel-title-bar">
+        <span class="panel-title-text">再平衡提閱?/span>
+        <span class="text-muted text-82">偏离搴?</span>
+      </div>
+      <div id="alertsPanel">
+        <div class="text-center text-muted empty-state-pad">暂无提醒</div>
+      </div>
+    </section>
+  </div>
+
+  <section class="glass-panel pf-section-spaced">
+    <div class="panel-title-bar">
+      <span class="panel-title-text">有效前沿与最优配缃?/span>
+      <span class="text-muted text-82">预期收益 vs 波动鐜?/span>
+    </div>
+    <div class="alloc-bar" id="optimalAlloc" class="alloc-bar pf-alloc-bar-lg"></div>
+    <div id="optimalWeights" class="flex-wrap-gap-8"></div>
+    <div class="frontier-chart" id="frontierChart" class="frontier-chart pf-frontier-flex">
+      点击"一键优鍖?计算有效前沿
+    </div>
+  </section>
+
+  <section class="glass-panel pf-section-spaced">
+    <div class="panel-title-bar">
+      <span class="panel-title-text">风险预算 (VaR 贡献搴?</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table" id="riskTable">
+        <thead>
+          <tr>
+            <th>代码</th>
+            <th>市值权閲?/th>
+            <th>VaR贡献</th>
+            <th>边际VaR</th>
+            <th>风险贡献%</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+function fmtNum(v, d=2){ const n=Number(v); return Number.isFinite(n)? n.toFixed(d): '--'; }
+function fmtPct(v){ const n=Number(v); return Number.isFinite(n)? (n*100).toFixed(2)+'%': '--'; }
+function esc(s){ return String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+function showHint(t){ $('#optHint').text(t||''); }
+
+const DEFAULT_SYMBOLS = ['600519','000858','601318','600036','000001'];
+let currentHoldings = {};
+let currentSnapshot = null;
+
+function loadSnapshot(){
+  showHint('加载持仓...');
+  const symbols = DEFAULT_SYMBOLS.join(',');
+  const args = symbols.split(',').map(s => 'shares_'+s.trim()+'=100').join('&');
+  $.getJSON('/api/v1/portfolio/snapshot?'+args+'&cash=100000')
+    .done(res => {
+      const data = (res.data || res.portfolio || {});
+      currentSnapshot = data;
+      renderSnapshot(data);
+      loadAlerts(data);
+      loadRiskBudget(symbols);
+      showHint('已加杞?);
+    })
+    .fail(()=> showHint('加载失败'));
+}
+
+function renderSnapshot(data){
+  const total = Number(data.total_value)||0;
+  const ret = Number(data.total_return)||0;
+  const pnl = Number(data.total_pnl)||0;
+  const bm = Number(data.benchmark_return)||0;
+  const alpha = ret - bm;
+
+  $('#totalValue').text('¥'+fmtNum(total,0));
+  const retEl = $('#totalReturn');
+  retEl.text(fmtPct(ret)).attr('class','stat-box-value '+(ret>=0?'positive':'negative'));
+  $('#totalPnl').text((pnl>=0?'+':'¥')+fmtNum(pnl,0));
+  $('#benchmarkReturn').text(fmtPct(bm));
+  $('#alphaValue').text(fmtPct(alpha)).attr('class','stat-box-value '+(alpha>=0?'positive':'negative'));
+
+  const positions = data.positions||[];
+  const tbody = $('#holdingsTable tbody').empty();
+  if(!positions.length){
+    tbody.html('<tr><td colspan="6" class="text-center text-muted">暂无持仓</td></tr>');
+    return;
+  }
+  positions.forEach(p => {
+    currentHoldings[p.symbol] = p.shares;
+    const cls = p.return_pct>=0?'positive':'negative';
+    tbody.append(`<tr>
+      <td><strong>${esc(p.symbol)}</strong></td>
+      <td>${p.shares}</td>
+      <td>¥${fmtNum(p.current_price)}</td>
+      <td>¥${fmtNum(p.current_value,0)}</td>
+      <td>${(p.current_weight*100).toFixed(1)}%</td>
+      <td class="${cls}">${fmtPct(p.return_pct)}</td>
+    </tr>`);
+  });
+}
+
+function loadAlerts(data){
+  const symbols = Object.keys(currentHoldings);
+  if(!symbols.length){ return; }
+  const args = symbols.map(s => 'shares_'+s+'=100').join('&');
+  $.getJSON('/api/v1/portfolio/rebalance?'+args+'&threshold=3')
+    .done(res => {
+      const alerts = (res.data||res).alerts||[];
+      const panel = $('#alertsPanel');
+      if(!alerts.length){
+        panel.html('<div class="text-center text-muted empty-state-pad">暂无偏离提醒</div>');
+        return;
+      }
+      panel.empty();
+      alerts.forEach(a => {
+        const badge = a.urgency==='high'?'alert-high':a.urgency==='medium'?'alert-medium':'alert-low';
+        panel.append(`<div class="pf-alert-row">
+          <span><strong>${esc(a.symbol)}</strong> ${a.action}</span>
+          <span class="alert-badge ${badge}">${(a.deviation*100).toFixed(1)}%</span>
+        </div>`);
+      });
+    });
+}
+
+function loadRiskBudget(symbols){
+  const args = symbols.split(',').map(s => 'shares_'+s.trim()+'=100').join('&');
+  $.getJSON('/api/v1/portfolio/risk-budget?'+args)
+    .done(res => {
+      const risks = (res.data||res).risk_budget||[];
+      const tbody = $('#riskTable tbody').empty();
+      risks.forEach(r => {
+        tbody.append(`<tr>
+          <td><strong>${esc(r.symbol)}</strong></td>
+          <td>${(r.weight*100).toFixed(1)}%</td>
+          <td>¥${fmtNum(r.var_contribution)}</td>
+          <td>${(r.marginal_var*100).toFixed(2)}%</td>
+          <td>${r.risk_contribution_pct.toFixed(1)}%</td>
+        </tr>`);
+      });
+    });
+}
+
+function runOptimization(){
+  const method = $('#method').val();
+  const riskAv = $('#riskAversion').val();
+  const symbols = DEFAULT_SYMBOLS;
+  showHint('优化计算涓?..');
+
+  $.post('/api/v1/portfolio/optimize', JSON.stringify({
+    symbols: symbols,
+    method: method,
+    risk_aversion: Number(riskAv)
+  }), null, 'json')
+    .done(res => {
+      const data = (res.data||res).optimization||res;
+      renderOptimization(data);
+      showHint('优化完成');
+    })
+    .fail(()=> showHint('优化失败'));
+}
+
+function renderOptimization(data){
+  const weights = data.optimal_weights||{};
+  const colors = ['#103f91','#17a2a4','#c23616','#118a55','#d96a2b','#66788a'];
+
+  const bar = $('#optimalAlloc').empty();
+  const pills = $('#optimalWeights').empty();
+  let idx = 0;
+  for(const [sym,w] of Object.entries(weights)){
+    const pct = w*100;
+    if(pct<1) continue;
+    bar.append(`<div class="alloc-segment" style="width:${pct}%;background:${colors[idx%colors.length]}"></div>`);
+    pills.append(`<span class="weight-pill">${esc(sym)} ${pct.toFixed(1)}%</span>`);
+    idx++;
+  }
+
+  const chart = $('#frontierChart');
+  chart.html(`<div class="pf-frontier-summary">
+    <div class="pf-frontier-title">预期收益: ${(data.expected_return*100||0).toFixed(2)}%</div>
+    <div class="pf-frontier-muted">波动鐜? ${(data.volatility*100||0).toFixed(2)}%</div>
+    <div class="pf-frontier-sharpe">夏普比率: <strong>${fmtNum(data.sharpe_ratio)}</strong></div>
+  </div>`);
+}
+
+$(function(){
+  $('#btnOptimize').on('click', runOptimization);
+  $('#btnRefresh').on('click', loadSnapshot);
+  loadSnapshot();
+});
+</script>
+{% endblock %}

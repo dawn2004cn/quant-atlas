@@ -74,6 +74,33 @@ const FactorDetailPage = lazy(() => import("./pages/FactorDetail"));
 /* Infra Pages */
 const DataLakeHealthPage = lazy(() => import("./pages/DataLakeHealth"));
 
+/* M2 — Profile & Admin Pages */
+const ProfilePage = lazy(() => import("./pages/Profile"));
+const ObservabilityPage = lazy(() => import("./pages/Observability"));
+const IntegrationHubPage = lazy(() => import("./pages/IntegrationHub"));
+const QuantLabPage = lazy(() => import("./pages/QuantLab"));
+const UserManagementPage = lazy(() => import("./pages/UserManagement"));
+
+/* M3 — Remaining Pages (19) */
+const CapabilitiesPage = lazy(() => import("./pages/Capabilities"));
+const ArchitectureRoadmapPage = lazy(() => import("./pages/ArchitectureRoadmap"));
+const AttributionDashboardPage = lazy(() => import("./pages/AttributionDashboard"));
+const ShadowAccountPage = lazy(() => import("./pages/ShadowAccount"));
+const StocksManagePage = lazy(() => import("./pages/StocksManage"));
+const MomentsPage = lazy(() => import("./pages/Moments"));
+const OptimizePage = lazy(() => import("./pages/Optimize"));
+const RetailAssistantPage = lazy(() => import("./pages/RetailAssistant"));
+const ProfessionalWorkbenchPage = lazy(() => import("./pages/ProfessionalWorkbench"));
+const UserSpectrumHubPage = lazy(() => import("./pages/UserSpectrumHub"));
+const ZenTerminalPage = lazy(() => import("./pages/ZenTerminal"));
+const PortfolioResonancePage = lazy(() => import("./pages/PortfolioResonance"));
+const ZenDashboardPage = lazy(() => import("./pages/ZenDashboard"));
+const UiShowcasePage = lazy(() => import("./pages/UiShowcase"));
+const UserTiersBoutiquePage = lazy(() => import("./pages/UserTiersBoutique"));
+const UserTiersInvestmentPage = lazy(() => import("./pages/UserTiersInvestment"));
+const UserTiersFundPage = lazy(() => import("./pages/UserTiersFund"));
+const UserTiersInstitutionPage = lazy(() => import("./pages/UserTiersInstitution"));
+
 /* Wraps a lazy-loaded page with Suspense + per-route ErrorBoundary */
 function LazyRoute({ children, label }: { children: React.ReactNode; label?: string }) {
   return (
@@ -166,6 +193,33 @@ export default function App() {
 
               {/* Infra Pages */}
               <Route path="data-lake-health" element={<LazyRoute label="DataLakeHealth"><DataLakeHealthPage /></LazyRoute>} />
+
+              {/* M2 — Profile & Admin Pages */}
+              <Route path="profile" element={<LazyRoute label="Profile"><ProfilePage /></LazyRoute>} />
+              <Route path="observability" element={<LazyRoute label="Observability"><ObservabilityPage /></LazyRoute>} />
+              <Route path="integration-hub" element={<LazyRoute label="IntegrationHub"><IntegrationHubPage /></LazyRoute>} />
+              <Route path="quant-lab" element={<LazyRoute label="QuantLab"><QuantLabPage /></LazyRoute>} />
+              <Route path="user-management" element={<LazyRoute label="UserManagement"><UserManagementPage /></LazyRoute>} />
+
+              {/* M3 — Remaining Pages (19) */}
+              <Route path="capabilities" element={<LazyRoute label="Capabilities"><CapabilitiesPage /></LazyRoute>} />
+              <Route path="architecture-roadmap" element={<LazyRoute label="ArchitectureRoadmap"><ArchitectureRoadmapPage /></LazyRoute>} />
+              <Route path="attribution-dashboard" element={<LazyRoute label="AttributionDashboard"><AttributionDashboardPage /></LazyRoute>} />
+              <Route path="shadow-account" element={<LazyRoute label="ShadowAccount"><ShadowAccountPage /></LazyRoute>} />
+              <Route path="stocks-manage" element={<LazyRoute label="StocksManage"><StocksManagePage /></LazyRoute>} />
+              <Route path="moments" element={<LazyRoute label="Moments"><MomentsPage /></LazyRoute>} />
+              <Route path="optimize" element={<LazyRoute label="Optimize"><OptimizePage /></LazyRoute>} />
+              <Route path="retail-assistant" element={<LazyRoute label="RetailAssistant"><RetailAssistantPage /></LazyRoute>} />
+              <Route path="professional-workbench" element={<LazyRoute label="ProfessionalWorkbench"><ProfessionalWorkbenchPage /></LazyRoute>} />
+              <Route path="user-spectrum-hub" element={<LazyRoute label="UserSpectrumHub"><UserSpectrumHubPage /></LazyRoute>} />
+              <Route path="zen-terminal" element={<LazyRoute label="ZenTerminal"><ZenTerminalPage /></LazyRoute>} />
+              <Route path="portfolio-resonance" element={<LazyRoute label="PortfolioResonance"><PortfolioResonancePage /></LazyRoute>} />
+              <Route path="zen-dashboard" element={<LazyRoute label="ZenDashboard"><ZenDashboardPage /></LazyRoute>} />
+              <Route path="ui-showcase" element={<LazyRoute label="UiShowcase"><UiShowcasePage /></LazyRoute>} />
+              <Route path="user-tiers/boutique" element={<LazyRoute label="UserTiersBoutique"><UserTiersBoutiquePage /></LazyRoute>} />
+              <Route path="user-tiers/investment" element={<LazyRoute label="UserTiersInvestment"><UserTiersInvestmentPage /></LazyRoute>} />
+              <Route path="user-tiers/fund" element={<LazyRoute label="UserTiersFund"><UserTiersFundPage /></LazyRoute>} />
+              <Route path="user-tiers/institution" element={<LazyRoute label="UserTiersInstitution"><UserTiersInstitutionPage /></LazyRoute>} />
 
               <Route path="*" element={<NotFoundPage />} />
             </Route>

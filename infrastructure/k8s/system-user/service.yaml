@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: system-user
+  namespace: quant-atlas
+spec:
+  selector:
+    app: system-user
+  ports:
+    - port: 5601
+      targetPort: 5601
+  type: ClusterIP

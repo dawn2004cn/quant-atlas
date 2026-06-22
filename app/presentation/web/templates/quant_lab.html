@@ -1,66 +1,74 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
-{% block title %}量化实验室 - Quant Atlas{% endblock %}
+{% block title %}閲忓寲瀹為獙瀹?- Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
 {% endblock %}
+{% block spa_switcher %}
+<a href="/app/quant-lab" class="spa-switcher-link"
+   data-spa-switcher="quant-lab">
+  璇曡瘯鏂扮増 鈫?
+</a>
+{% endblock %%}
+
+
 
 {% block content %}
 <div class="section-shell">
     <div class="hero-caption">Alpha Sandbox</div>
-    <h1 class="page-title">量化实验室</h1>
-    <p class="page-subtitle">手动编写 Qlib 表达式并实时模拟因子走势。在这里，灵感可以被瞬间验证并投递演化。</p>
+    <h1 class="page-title">閲忓寲瀹為獙瀹?/h1>
+    <p class="page-subtitle">鎵嬪姩缂栧啓 Qlib 琛ㄨ揪寮忓苟瀹炴椂妯℃嫙鍥犲瓙璧板娍銆傚湪杩欓噷锛岀伒鎰熷彲浠ヨ鐬棿楠岃瘉骞舵姇閫掓紨鍖栥€?/p>
 </div>
 
 <div class="lab-grid">
     <div class="lab-main">
         <div class="editor-section">
             <div class="ql-editor-head">
-                <div class="ql-editor-title">🧪 公式试验场</div>
+                <div class="ql-editor-title">馃И 鍏紡璇曢獙鍦?/div>
                 <div class="ql-editor-actions">
-                    <input type="text" id="simSymbol" class="input-soft" placeholder="股票代码" value="600519" class="ql-symbol-input">
-                    <button class="btn-brand" data-ql-action="run-simulation" type="button">🚀 立即模拟</button>
+                    <input type="text" id="simSymbol" class="input-soft" placeholder="鑲＄エ浠ｇ爜" value="600519" class="ql-symbol-input">
+                    <button class="btn-brand" data-ql-action="run-simulation" type="button">馃殌 绔嬪嵆妯℃嫙</button>
                 </div>
             </div>
             
             <textarea id="formulaEditor" class="formula-input" spellcheck="false">Mean($close, 5) / $close</textarea>
             
             <div id="simStats" class="qa-is-hidden ql-stats-row">
-                <span class="stat-pill" id="statMean">均值: --</span>
-                <span class="stat-pill" id="statStd">标准差: --</span>
-                <button class="btn-soft btn-sm ql-evolve-btn" data-ql-action="send-evolution" type="button">🧬 投递至演化工厂</button>
+                <span class="stat-pill" id="statMean">鍧囧€? --</span>
+                <span class="stat-pill" id="statStd">鏍囧噯宸? --</span>
+                <button class="btn-soft btn-sm ql-evolve-btn" data-ql-action="send-evolution" type="button">馃К 鎶曢€掕嚦婕斿寲宸ュ巶</button>
             </div>
         </div>
 
         <div class="lab-chart-container" id="simChart">
-            <div class="loading-tile">输入公式并点击模拟，在此查看因子序列可视化</div>
+            <div class="loading-tile">杈撳叆鍏紡骞剁偣鍑绘ā鎷燂紝鍦ㄦ鏌ョ湅鍥犲瓙搴忓垪鍙鍖?/div>
         </div>
     </div>
 
     <div class="operator-sidebar">
         <div class="op-card">
-            <div class="ql-card-title">📚 Qlib 算子库</div>
+            <div class="ql-card-title">馃摎 Qlib 绠楀瓙搴?/div>
             <div class="ql-op-scroll">
-                <div class="op-item" data-ql-action="insert-op" data-op="Mean($, 20)" role="button" tabindex="0">Mean(x, n) - 均值</div>
-                <div class="op-item" data-ql-action="insert-op" data-op="Std($, 20)" role="button" tabindex="0">Std(x, n) - 标准差</div>
-                <div class="op-item" data-ql-action="insert-op" data-op="ROC($, 10)" role="button" tabindex="0">ROC(x, n) - 变动率</div>
-                <div class="op-item" data-ql-action="insert-op" data-op="Ref($, 1)" role="button" tabindex="0">Ref(x, n) - 历史引用</div>
-                <div class="op-item" data-ql-action="insert-op" data-op="Rank($)" role="button" tabindex="0">Rank(x) - 横截面排名</div>
-                <div class="op-item" data-ql-action="insert-op" data-op="Corr($, $close, 10)" role="button" tabindex="0">Corr(x, y, n) - 相关性</div>
-                <div class="op-item" data-ql-action="insert-op" data-op="EMA($, 12)" role="button" tabindex="0">EMA(x, n) - 指数均线</div>
+                <div class="op-item" data-ql-action="insert-op" data-op="Mean($, 20)" role="button" tabindex="0">Mean(x, n) - 鍧囧€?/div>
+                <div class="op-item" data-ql-action="insert-op" data-op="Std($, 20)" role="button" tabindex="0">Std(x, n) - 鏍囧噯宸?/div>
+                <div class="op-item" data-ql-action="insert-op" data-op="ROC($, 10)" role="button" tabindex="0">ROC(x, n) - 鍙樺姩鐜?/div>
+                <div class="op-item" data-ql-action="insert-op" data-op="Ref($, 1)" role="button" tabindex="0">Ref(x, n) - 鍘嗗彶寮曠敤</div>
+                <div class="op-item" data-ql-action="insert-op" data-op="Rank($)" role="button" tabindex="0">Rank(x) - 妯埅闈㈡帓鍚?/div>
+                <div class="op-item" data-ql-action="insert-op" data-op="Corr($, $close, 10)" role="button" tabindex="0">Corr(x, y, n) - 鐩稿叧鎬?/div>
+                <div class="op-item" data-ql-action="insert-op" data-op="EMA($, 12)" role="button" tabindex="0">EMA(x, n) - 鎸囨暟鍧囩嚎</div>
             </div>
             <p class="ql-hint-sm">
-                提示：使用 <code>$close</code>, <code>$volume</code> 等获取基础行情字段。
+                鎻愮ず锛氫娇鐢?<code>$close</code>, <code>$volume</code> 绛夎幏鍙栧熀纭€琛屾儏瀛楁銆?
             </p>
         </div>
         
         <div class="op-card">
-            <div class="ql-card-title">💡 实验技巧</div>
+            <div class="ql-card-title">馃挕 瀹為獙鎶€宸?/div>
             <ul class="ql-hint-list">
-                <li>尝试使用 <code>Slope($close, 5)</code> 捕捉趋势斜率。</li>
-                <li><code>($close - Low($low, 5)) / (High($high, 5) - Low($low, 5))</code> 可计算 KDJ 风格的超买超卖。</li>
-                <li>配合 <code>Rank</code> 算子消除量纲影响。</li>
+                <li>灏濊瘯浣跨敤 <code>Slope($close, 5)</code> 鎹曟崏瓒嬪娍鏂滅巼銆?/li>
+                <li><code>($close - Low($low, 5)) / (High($high, 5) - Low($low, 5))</code> 鍙绠?KDJ 椋庢牸鐨勮秴涔拌秴鍗栥€?/li>
+                <li>閰嶅悎 <code>Rank</code> 绠楀瓙娑堥櫎閲忕翰褰卞搷銆?/li>
             </ul>
         </div>
     </div>
@@ -84,11 +92,11 @@ function insertOp(op) {
 async function runSimulation() {
     const formula = document.getElementById('formulaEditor').value.trim();
     const symbol = document.getElementById('simSymbol').value.trim();
-    if (!formula) return showToast('请输入公式', 'warning');
+    if (!formula) return showToast('璇疯緭鍏ュ叕寮?, 'warning');
 
     const chartDom = document.getElementById('simChart');
     if (labChart) { labChart.dispose(); labChart = null; }
-    chartDom.innerHTML = '<div class="loading-tile">计算模拟序列中...</div>';
+    chartDom.innerHTML = '<div class="loading-tile">璁＄畻妯℃嫙搴忓垪涓?..</div>';
 
     try {
         const data = await (window.QCApi
@@ -98,18 +106,18 @@ async function runSimulation() {
                 if (!res.ok) throw new Error((json.error && json.error.message) || json.message || ('HTTP ' + res.status));
                 return json.data !== undefined ? json.data : json;
             }));
-        if (!data.series || !data.stats) throw new Error('模拟结果格式异常');
+        if (!data.series || !data.stats) throw new Error('妯℃嫙缁撴灉鏍煎紡寮傚父');
         if (data.meta && data.meta.demo) {
-            showToast(data.meta.disclaimer || '当前为演示模式（随机序列）', 'warning', 6000);
+            showToast(data.meta.disclaimer || '褰撳墠涓烘紨绀烘ā寮忥紙闅忔満搴忓垪锛?, 'warning', 6000);
         }
 
         renderSimChart(data);
         document.getElementById('simStats').style.display = 'flex';
-        document.getElementById('statMean').textContent = `均值: ${Number(data.stats.mean).toFixed(4)}`;
-        document.getElementById('statStd').textContent = `标准差: ${Number(data.stats.std).toFixed(4)}`;
+        document.getElementById('statMean').textContent = `鍧囧€? ${Number(data.stats.mean).toFixed(4)}`;
+        document.getElementById('statStd').textContent = `鏍囧噯宸? ${Number(data.stats.std).toFixed(4)}`;
     } catch (e) {
         if (labChart) { labChart.dispose(); labChart = null; }
-        chartDom.innerHTML = `<div class="loading-tile ql-error">❌ 错误: ${e.message}</div>`;
+        chartDom.innerHTML = `<div class="loading-tile ql-error">鉂?閿欒: ${e.message}</div>`;
     }
 }
 
@@ -118,7 +126,7 @@ function renderSimChart(data) {
     container.innerHTML = '';
     if (labChart) labChart.dispose();
     if (typeof echarts === 'undefined') {
-        container.innerHTML = '<div class="loading-tile ql-error">图表库未加载</div>';
+        container.innerHTML = '<div class="loading-tile ql-error">鍥捐〃搴撴湭鍔犺浇</div>';
         return;
     }
     labChart = echarts.init(container);
@@ -127,13 +135,13 @@ function renderSimChart(data) {
     const values = data.series.map(s => s.value);
 
     labChart.setOption({
-        title: { text: `因子序列模拟: ${data.symbol}`, left: 'center', textStyle: { fontSize: 14 } },
+        title: { text: `鍥犲瓙搴忓垪妯℃嫙: ${data.symbol}`, left: 'center', textStyle: { fontSize: 14 } },
         tooltip: { trigger: 'axis' },
         grid: { top: 60, bottom: 40, left: 50, right: 30 },
         xAxis: { type: 'category', data: dates, boundaryGap: false },
         yAxis: { type: 'value', scale: true },
         series: [{
-            name: '因子值',
+            name: '鍥犲瓙鍊?,
             type: 'line',
             data: values,
             smooth: true,
@@ -151,7 +159,7 @@ function renderSimChart(data) {
 
 function sendToEvolution() {
     const formula = document.getElementById('formulaEditor').value;
-    showToast('已将表达式存入种子库！\nRD-Agent 将在下一轮演化中将其作为优质父级因子。', 'success');
+    showToast('宸插皢琛ㄨ揪寮忓瓨鍏ョ瀛愬簱锛乗nRD-Agent 灏嗗湪涓嬩竴杞紨鍖栦腑灏嗗叾浣滀负浼樿川鐖剁骇鍥犲瓙銆?, 'success');
 }
 
 function handleQlAction(event) {

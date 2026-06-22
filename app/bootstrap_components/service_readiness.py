@@ -38,7 +38,6 @@ OPTIONAL_SERVICE_ATTRS: tuple[str, ...] = (
 FEATURE_FLAG_SERVICE_ATTRS: tuple[str, ...] = (
     "qlib_pipeline_service",
     "rdagent_run_service",
-    "kronos_service",
     "strategy_optimization_service",
 )
 

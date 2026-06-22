@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 
 on:
   push:
@@ -39,6 +39,29 @@ jobs:
         run: ruff format --check app/ tests/ scripts/
       - name: Check lint rules
         run: ruff check app/ tests/ scripts/
+
+  integration:
+    name: Integration (boot + smoke + compile)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install deps
+        run: pip install -e ".[test]" 2>/dev/null || pip install pytest flask
+      - name: Compile-check all Python files
+        run: python -m compileall -q app/ tests/ scripts/
+      - name: Boot test (no external services)
+        env:
+          FLASK_ENV: testing
+          ENABLE_CELERY: "0"
+          ENABLE_QLIB: "0"
+          ENABLE_RD_AGENT: "0"
+          MESH_ENABLED: "0"
+          PERCEPTION_ENABLED: "0"
+          ENABLE_SOCKETIO: "0"
+        run: python -c "from app import create_app; app = create_app(); print(f\"Boot OK: {len(app.url_map._rules)} routes\")"
 
   smoke:
     name: Smoke tests (no external services)

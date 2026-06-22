@@ -80,7 +80,7 @@ class RiskAlertService:
 
     def __init__(
         self,
-        market_provider: MarketDataProvider,
+        market_provider: MarketDataProvider | None = None,
         indicator_provider: IndicatorProvider | None = None,
     ):
         self._market = market_provider

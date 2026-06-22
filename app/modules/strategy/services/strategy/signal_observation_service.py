@@ -54,15 +54,16 @@ class SignalObservationService:
     def __init__(
         self,
         *,
-        market_service: object,
-        store_path: Path,
+        market_service: object | None = None,
+        store_path: Path | None = None,
         observation_repository: SignalObservationRepository | None = None,
     ) -> None:
         self._market_service = market_service
-        self._store_path = Path(store_path)
+        self._store_path = Path(store_path) if store_path else Path("instance/signal_observations.json")
         self._lock = threading.Lock()
         self._repo: SignalObservationRepository | None = observation_repository
-        self._store_path.parent.mkdir(parents=True, exist_ok=True)
+        if not self._use_db():
+            self._store_path.parent.mkdir(parents=True, exist_ok=True)
 
     def _get_repo(self) -> SignalObservationRepository | None:
         return self._repo

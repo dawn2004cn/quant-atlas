@@ -216,10 +216,8 @@ def list_modules() -> list[str]:
 def context_module_manifest(*, config: dict[str, Any] | None = None) -> dict[str, Any]:
     """Manifest of ``@register_module`` context modules (Phase 2 registry)."""
     try:
-        import app.presentation.api.context_modules  # noqa: F401
-        from app.bootstrap_components.module_wiring import _ensure_module_packages_loaded
-
-        _ensure_module_packages_loaded()
+        from app.presentation.api.context_modules import ensure_all_modules_loaded
+        ensure_all_modules_loaded()
     except Exception as exc:
         logger.debug("context_module_manifest preload skipped: %s", exc)
 

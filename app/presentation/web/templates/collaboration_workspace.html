@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}协作投研工作区 - Quant Atlas{% endblock %}
 
@@ -8,7 +8,7 @@
 
 {% block spa_switcher %}
 <a href="/app/collaboration-workspace" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('collaboration-workspace')">
+   data-spa-switcher="collaboration-workspace">
   试试新版 →
 </a>
 {% endblock %}

@@ -121,7 +121,8 @@ def create_auth_blueprint(
                 session["_session_created"] = time.time()
                 remember = request.form.get("remember_me") == "on"
                 login_user(SessionUser.from_entity(user), remember=remember)
-                if request.accept_mimetypes.best == "application/json" or request.is_json:
+                _is_xhr = bool(request.headers.get("X-CSRF-Token") or request.headers.get("X-Requested-With"))
+                if request.accept_mimetypes.best == "application/json" or request.is_json or _is_xhr:
                     from app.infrastructure.auth.jwt_token_service import create_access_token
                     access_token, expires_in = create_access_token(
                         user_id=user.user_id,

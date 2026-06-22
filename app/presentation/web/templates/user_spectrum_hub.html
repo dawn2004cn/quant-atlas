@@ -1,114 +1,122 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
-{% block title %}用户频谱中心 - Quant Atlas{% endblock %}
+{% block title %}鐢ㄦ埛棰戣氨涓績 - Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user.css') }}">
 {% endblock %}
+{% block spa_switcher %}
+<a href="/app/user_spectrum_hub" class="spa-switcher-link"
+   data-spa-switcher="user_spectrum_hub">
+  璇曡瘯鏂扮増 鈫?
+</a>
+{% endblock %%}
+
+
 
 {% block content %}
 <div class="ush-shell">
     <div class="ush-hero">
-        <h1 class="pw-hero-title">🎯 用户频谱中心</h1>
-        <p class="pw-hero-sub">散户 → 精品店 → 投资公司 → 基金 → 机构 — 五层能力一站式入口</p>
+        <h1 class="pw-hero-title">馃幆 鐢ㄦ埛棰戣氨涓績</h1>
+        <p class="pw-hero-sub">鏁ｆ埛 鈫?绮惧搧搴?鈫?鎶曡祫鍏徃 鈫?鍩洪噾 鈫?鏈烘瀯 鈥?浜斿眰鑳藉姏涓€绔欏紡鍏ュ彛</p>
     </div>
 
     <div class="ush-tabs" id="ushTabs">
-        <button class="ush-tab active" data-tier="retail">🧭 散户</button>
-        <button class="ush-tab" data-tier="boutique">🔬 精品店</button>
-        <button class="ush-tab" data-tier="investment">📊 投资公司</button>
-        <button class="ush-tab" data-tier="fund">🛡️ 基金</button>
-        <button class="ush-tab" data-tier="institution">🏛️ 机构</button>
+        <button class="ush-tab active" data-tier="retail">馃Л 鏁ｆ埛</button>
+        <button class="ush-tab" data-tier="boutique">馃敩 绮惧搧搴?/button>
+        <button class="ush-tab" data-tier="investment">馃搳 鎶曡祫鍏徃</button>
+        <button class="ush-tab" data-tier="fund">馃洝锔?鍩洪噾</button>
+        <button class="ush-tab" data-tier="institution">馃彌锔?鏈烘瀯</button>
     </div>
 
     <div id="tier-retail">
         <div class="ush-links">
-            <a href="/retail-assistant">→ 散户 AI 助手</a>
+            <a href="/retail-assistant">鈫?鏁ｆ埛 AI 鍔╂墜</a>
             {% if feature_alpha_marketplace %}
-            <a href="/alpha-marketplace">→ Alpha 贡献市场</a>
+            <a href="/alpha-marketplace">鈫?Alpha 璐＄尞甯傚満</a>
             {% endif %}
         </div>
         <div class="ush-grid">
             <div class="ush-card">
-                <h3>NL → Strategy</h3>
+                <h3>NL 鈫?Strategy</h3>
                 <div class="ush-form">
-                    <label>自然语言描述</label>
-                    <textarea id="nlInput" rows="3">当 MACD 金叉且 RSI 低于 40 时买入</textarea>
-                    <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-nl-strategy">生成策略</button>
+                    <label>鑷劧璇█鎻忚堪</label>
+                    <textarea id="nlInput" rows="3">褰?MACD 閲戝弶涓?RSI 浣庝簬 40 鏃朵拱鍏?/textarea>
+                    <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-nl-strategy">鐢熸垚绛栫暐</button>
                 </div>
-                <div class="ush-out" id="nlOut">—</div>
+                <div class="ush-out" id="nlOut">鈥?/div>
             </div>
             <div class="ush-card">
-                <h3>心理追踪报告</h3>
-                <button class="ush-btn ush-btn-primary" type="button" data-ush-action="load-psychology">加载报告</button>
-                <div class="ush-out" id="psyOut">—</div>
+                <h3>蹇冪悊杩借釜鎶ュ憡</h3>
+                <button class="ush-btn ush-btn-primary" type="button" data-ush-action="load-psychology">鍔犺浇鎶ュ憡</button>
+                <div class="ush-out" id="psyOut">鈥?/div>
             </div>
         </div>
     </div>
 
     <div id="tier-boutique" class="qa-is-hidden">
         <div class="ush-card">
-            <h3>遗传因子挖掘</h3>
+            <h3>閬椾紶鍥犲瓙鎸栨帢</h3>
             <div class="ush-form ush-grid">
-                <div><label>代数</label><input id="fmGen" type="number" value="5" /></div>
-                <div><label>种群</label><input id="fmPop" type="number" value="30" /></div>
+                <div><label>浠ｆ暟</label><input id="fmGen" type="number" value="5" /></div>
+                <div><label>绉嶇兢</label><input id="fmPop" type="number" value="30" /></div>
             </div>
-            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-factor-mining">运行挖掘</button>
-            <div class="ush-out" id="fmOut">—</div>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-factor-mining">杩愯鎸栨帢</button>
+            <div class="ush-out" id="fmOut">鈥?/div>
         </div>
         <div class="ush-card">
-            <h3>另类数据源</h3>
-            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="load-alt-data">列出数据源</button>
-            <div class="ush-out" id="altOut">—</div>
+            <h3>鍙︾被鏁版嵁婧?/h3>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="load-alt-data">鍒楀嚭鏁版嵁婧?/button>
+            <div class="ush-out" id="altOut">鈥?/div>
         </div>
     </div>
 
     <div id="tier-investment" class="qa-is-hidden">
         <div class="ush-card">
-            <h3>宏观周期识别</h3>
+            <h3>瀹忚鍛ㄦ湡璇嗗埆</h3>
             <div class="ush-form ush-grid">
-                <div><label>通胀指标</label><input id="macroInflation" type="number" step="0.01" value="0.025" /></div>
-                <div><label>GDP 增速</label><input id="macroGdp" type="number" step="0.01" value="0.04" /></div>
-                <div><label>利率</label><input id="macroRate" type="number" step="0.01" value="0.03" /></div>
-                <div><label>波动率</label><input id="macroVol" type="number" step="0.01" value="0.18" /></div>
+                <div><label>閫氳儉鎸囨爣</label><input id="macroInflation" type="number" step="0.01" value="0.025" /></div>
+                <div><label>GDP 澧為€?/label><input id="macroGdp" type="number" step="0.01" value="0.04" /></div>
+                <div><label>鍒╃巼</label><input id="macroRate" type="number" step="0.01" value="0.03" /></div>
+                <div><label>娉㈠姩鐜?/label><input id="macroVol" type="number" step="0.01" value="0.18" /></div>
             </div>
-            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-macro">分析宏观政体</button>
-            <div class="ush-out" id="macroOut">—</div>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-macro">鍒嗘瀽瀹忚鏀夸綋</button>
+            <div class="ush-out" id="macroOut">鈥?/div>
         </div>
         <div class="ush-card">
-            <h3>税后收益优化</h3>
-            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-tax">计算税务结转</button>
-            <div class="ush-out" id="taxOut">—</div>
+            <h3>绋庡悗鏀剁泭浼樺寲</h3>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-tax">璁＄畻绋庡姟缁撹浆</button>
+            <div class="ush-out" id="taxOut">鈥?/div>
         </div>
     </div>
 
     <div id="tier-fund" class="qa-is-hidden">
         <div class="ush-links">
-            <a href="/professional-workbench">→ 专业工作台（归因/合规/流水线）</a>
+            <a href="/professional-workbench">鈫?涓撲笟宸ヤ綔鍙帮紙褰掑洜/鍚堣/娴佹按绾匡級</a>
         </div>
         <div class="ush-card">
-            <h3>审计链完整性验证</h3>
+            <h3>瀹¤閾惧畬鏁存€ч獙璇?/h3>
             <div class="ush-form">
-                <label>订单 ID（留空验证全链）</label>
-                <input id="auditOrderId" placeholder="ord.xxxxx 或留空" />
+                <label>璁㈠崟 ID锛堢暀绌洪獙璇佸叏閾撅級</label>
+                <input id="auditOrderId" placeholder="ord.xxxxx 鎴栫暀绌? />
             </div>
-            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="verify-audit">验证哈希链</button>
-            <div class="ush-out" id="auditOut">—</div>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="verify-audit">楠岃瘉鍝堝笇閾?/button>
+            <div class="ush-out" id="auditOut">鈥?/div>
         </div>
     </div>
 
     <div id="tier-institution" class="qa-is-hidden">
         <div class="ush-links">
-            <a href="/professional-workbench">→ 专业工作台（执行算法 / RBAC / 联邦）</a>
+            <a href="/professional-workbench">鈫?涓撲笟宸ヤ綔鍙帮紙鎵ц绠楁硶 / RBAC / 鑱旈偊锛?/a>
         </div>
         <div class="ush-card">
-            <h3>冲击成本预测</h3>
+            <h3>鍐插嚮鎴愭湰棰勬祴</h3>
             <div class="ush-form ush-grid">
-                <div><label>标的</label><input id="impSymbol" value="600519" /></div>
-                <div><label>订单金额 USD</label><input id="impValue" type="number" value="800000" /></div>
+                <div><label>鏍囩殑</label><input id="impSymbol" value="600519" /></div>
+                <div><label>璁㈠崟閲戦 USD</label><input id="impValue" type="number" value="800000" /></div>
             </div>
-            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-impact">预测冲击</button>
-            <div class="ush-out" id="impOut">—</div>
+            <button class="ush-btn ush-btn-primary" type="button" data-ush-action="run-impact">棰勬祴鍐插嚮</button>
+            <div class="ush-out" id="impOut">鈥?/div>
         </div>
     </div>
 </div>
@@ -124,7 +132,7 @@ const ush = {
             ...opts,
         });
         const json = await res.json();
-        if (!json.ok && res.status >= 400) throw new Error(json.error || '请求失败');
+        if (!json.ok && res.status >= 400) throw new Error(json.error || '璇锋眰澶辫触');
         return json;
     },
     _show(id, data) {

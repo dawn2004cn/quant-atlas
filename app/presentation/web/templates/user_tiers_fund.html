@@ -1,22 +1,29 @@
-{% extends "base.html" %}{% block title %}基金管理{% endblock %}{% block content %}
+﻿{% extends "base.html" %}{% block title %}鍩洪噾绠＄悊{% endblock %}{% block spa_switcher %}
+<a href="/app/user-tiers/fund" class="spa-switcher-link"
+   data-spa-switcher="user-tiers/fund">
+  璇曡瘯鏂扮増 鈫?
+</a>
+{% endblock %%}
+
+{% block content %}
 <div class="container mt-4">
-  <h2>📋 基金管理控制台</h2>
+  <h2>馃搵 鍩洪噾绠＄悊鎺у埗鍙?/h2>
   <div class="row mt-3">
     <div class="col-md-6">
-      <div class="card"><div class="card-header">📊 Brinson 归因分析</div>
-        <div class="card-body"><button class="btn btn-primary" type="button" data-ut-action="runBrinson">运行归因</button><div id="brinsonResult" class="mt-3"></div></div></div>
+      <div class="card"><div class="card-header">馃搳 Brinson 褰掑洜鍒嗘瀽</div>
+        <div class="card-body"><button class="btn btn-primary" type="button" data-ut-action="runBrinson">杩愯褰掑洜</button><div id="brinsonResult" class="mt-3"></div></div></div>
     </div>
     <div class="col-md-6">
-      <div class="card"><div class="card-header">🛡️ 合规预检</div>
-        <div class="card-body"><button class="btn btn-danger" type="button" data-ut-action="runCompliance">检查合规</button><div id="complianceResult" class="mt-3"></div></div></div>
+      <div class="card"><div class="card-header">馃洝锔?鍚堣棰勬</div>
+        <div class="card-body"><button class="btn btn-danger" type="button" data-ut-action="runCompliance">妫€鏌ュ悎瑙?/button><div id="complianceResult" class="mt-3"></div></div></div>
     </div>
     <div class="col-md-6 mt-3">
-      <div class="card"><div class="card-header">🔍 审计追踪</div>
-        <div class="card-body"><button class="btn btn-info" type="button" data-ut-action="runAudit">验证审计链</button><div id="auditResult" class="mt-3"></div></div></div>
+      <div class="card"><div class="card-header">馃攳 瀹¤杩借釜</div>
+        <div class="card-body"><button class="btn btn-info" type="button" data-ut-action="runAudit">楠岃瘉瀹¤閾?/button><div id="auditResult" class="mt-3"></div></div></div>
     </div>
     <div class="col-md-6 mt-3">
-      <div class="card"><div class="card-header">👥 主从账户</div>
-        <div class="card-body"><button class="btn btn-secondary" type="button" data-ut-action="runMasterSlave">测试同步下单</button><div id="msResult" class="mt-3"></div></div></div>
+      <div class="card"><div class="card-header">馃懃 涓讳粠璐︽埛</div>
+        <div class="card-body"><button class="btn btn-secondary" type="button" data-ut-action="runMasterSlave">娴嬭瘯鍚屾涓嬪崟</button><div id="msResult" class="mt-3"></div></div></div>
     </div>
   </div>
 </div>
@@ -39,7 +46,7 @@ async function runAudit() {
   document.getElementById('auditResult').innerHTML = '<pre>' + JSON.stringify(d, null, 2) + '</pre>';
 }
 async function runMasterSlave() {
-  const r = await postJSON('/api/v1/user-tiers/fund/master-slave/register', {master_id:'m1',name:'子账户A',capital:1000000,allocation_pct:80.0});
+  const r = await postJSON('/api/v1/user-tiers/fund/master-slave/register', {master_id:'m1',name:'瀛愯处鎴稟',capital:1000000,allocation_pct:80.0});
   document.getElementById('msResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
 }
 document.addEventListener('click', function (e) {

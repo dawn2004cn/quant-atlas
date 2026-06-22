@@ -3,6 +3,10 @@ import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
+function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
+}
+
 const MARKETS = ["CN", "HK", "US"] as const;
 const DEPTH_OPTIONS = [
   { value: "basic", label: "基础" },
@@ -47,31 +51,31 @@ export function AIResearchReportPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-[1400px] space-y-5">
       <div>
         <h1 className="text-2xl font-bold">AI 研究报告</h1>
-        <p className="text-sm text-slate-500">生成专业的个股研究报告</p>
+        <p className="text-sm text-zinc-500">生成专业的个股研究报告</p>
       </div>
 
-      <div className="glass-card flex flex-wrap items-end gap-3 p-4">
+      <Panel className="flex flex-wrap items-end gap-3 p-4">
         <div>
-          <label className="text-xs font-semibold text-slate-500">标的</label>
+          <label className="text-xs font-semibold text-zinc-500">标的</label>
           <input
             type="text"
-            className="input input-bordered input-sm mt-1 w-40"
+            className="rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:border-emerald-500/40 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 mt-1 w-40"
             placeholder="600519"
             value={symbol}
             onChange={(e) => setSymbol(e.target.value)}
           />
         </div>
         <div>
-          <label className="text-xs font-semibold text-slate-500">市场</label>
+          <label className="text-xs font-semibold text-zinc-500">市场</label>
           <div className="mt-1 flex gap-1">
             {MARKETS.map((m) => (
               <button
                 key={m}
                 type="button"
-                className={`btn btn-sm ${market === m ? "btn-primary" : "btn-ghost"}`}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${market === m ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20" : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"}`}
                 onClick={() => setMarket(m)}
               >
                 {m}
@@ -80,13 +84,13 @@ export function AIResearchReportPage() {
           </div>
         </div>
         <div>
-          <label className="text-xs font-semibold text-slate-500">深度</label>
+          <label className="text-xs font-semibold text-zinc-500">深度</label>
           <div className="mt-1 flex gap-1">
             {DEPTH_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 type="button"
-                className={`btn btn-sm ${depth === opt.value ? "btn-primary" : "btn-ghost"}`}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${depth === opt.value ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20" : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"}`}
                 onClick={() => setDepth(opt.value)}
               >
                 {opt.label}
@@ -96,7 +100,7 @@ export function AIResearchReportPage() {
         </div>
         <button
           type="button"
-          className="btn btn-primary btn-sm"
+          className="rounded-lg bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/30 transition-colors hover:bg-emerald-500/20"
           onClick={handleSubmit}
           disabled={!symbol.trim() || isLoading}
         >
@@ -106,28 +110,28 @@ export function AIResearchReportPage() {
             "生成报告"
           )}
         </button>
-      </div>
+      </Panel>
 
-      {error && <div className="alert alert-error">{error.message}</div>}
+      {error && <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">{error.message}</div>}
       {isLoading && <PageSkeleton rows={5} />}
 
       {!submitted && !isLoading && (
-        <div className="glass-card flex flex-col items-center gap-3 p-8 text-center">
+        <Panel className="flex flex-col items-center gap-3 p-8 text-center">
           <div className="text-4xl">📄</div>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-zinc-400">
             输入标的代码并选择分析深度，生成专业研究报告
           </p>
-        </div>
+        </Panel>
       )}
 
       {data && !isLoading && (
-        <div className="glass-card space-y-4 p-4">
-          <div className="border-b pb-3 dark:border-slate-700">
+        <Panel className="space-y-4 p-4">
+          <div className="border-b pb-3 dark:border-zinc-700">
             <h2 className="text-xl font-bold">{data.title}</h2>
-            <div className="mt-1 flex flex-wrap gap-2 text-xs text-slate-400">
+            <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-400">
               <span>{data.symbol}</span>
               <span>{data.market}</span>
-              <span className="badge badge-ghost badge-xs">{data.depth}</span>
+              <span className="rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold bg-zinc-800/60 text-zinc-400">{data.depth}</span>
               <span>{new Date(data.generated_at).toLocaleString("zh-CN")}</span>
             </div>
           </div>
@@ -144,7 +148,7 @@ export function AIResearchReportPage() {
               {data.disclaimer}
             </div>
           )}
-        </div>
+        </Panel>
       )}
     </div>
   );

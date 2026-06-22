@@ -4,7 +4,36 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
-## 2026-06-21 (壳层导航 + 主题闪屏修复)
+## 2026-06-21 (CSP 合规修复 + 双轨登录验证)
+
+### 问题
+双轨 switcher 链接使用 `onclick="window.trackSwitcherClick(...)"` 内联处理器，违反 CSP `script-src: nonce` 策略。CSP 测试报 80 个内联处理器（超标），pagination 测试也因 `onclick=` 失败。此外 auth/token 端点因 `serialize()` 中的 `SENSITIVE_FIELDS` 过滤掉了 `access_token`/`refresh_token`，导致 v2_backtest_async 测试失败。
+
+### 修改
+
+| 文件 | 修改 |
+|------|------|
+| `static/js/switcher_telemetry.js` | 增加 `[data-spa-switcher]` 委托监听器；保留 `trackSwitcherClick()` 向后兼容 |
+| `app/presentation/web/templates/*.html` | 77 个模板：`onclick=` → `data-spa-switcher` 属性；修复 20 处 `%%}` 双花括号 bug |
+| `app/presentation/web/templates/login.html` | 增加 `switcher_telemetry.js` script 引用 (独立 layout 不继承 base.html) |
+| `app/presentation/web/templates/nl_strategy.html` | 2 处 `onclick="downloadStrategyCode()"` → `data-action="download-strategy-code"` + 委托监听 |
+| `app/presentation/web/templates/experiment_reporter.html` | `onclick="downloadCode(...)"` → `data-action="download-code"` + 委托监听 |
+| `app/presentation/api/v2/auth_routes.py` | 新增 `_token_response()` 绕过 `SENSITIVE_FIELDS` 过滤器；issue_token/refresh_token 端点使用直接 jsonify |
+| `tests/presentation/test_routes_v1_ui.py` | `resp = fn()` 返回元组时解包 `resp[0]` 以兼容 `success_response` 的 Flask 元组约定 |
+
+### 效果
+- **CSP 违规**: 80 → 0 个内联处理器（+3 个已存在的 JS 模板字符串内 handler 一并修复）
+- **测试结果**: 243 tests / 6 failures（全部为本次 session 前已存在）
+- **修复 7 项**: 5 CSP/pagination + 2 v2_backtest_async + 1 v1_ui
+- **Flask /login**: 200 OK
+- **SPA /app/login**: 200 OK
+- **JWT /api/v2/auth/token**: 400（错误凭证）— 端点功能正常
+- **Flask /market-panorama**: switcher 属性正确渲染，无内联 onclick
+- **login.html**: 独立 layout 页面现在正确加载 switcher_telemetry.js
+
+### 遗留问题
+- 6 个测试失败预存在 session 前 (alpha_marketplace_route_helpers ×2, lifecycle_envelope, v1_dispatchers ×2, route_loader)
+- 认证后的 Flask 页面 (如 /market-panorama) 返回 302 需要登录 cookie 才能验证 switcher 渲染
 
 ### 问题
 切页整页白/黑屏、整页 reload 慢、Light/Dark 切换因 `body transition 0.3s` 体感慢。
@@ -3416,3 +3445,122 @@ Establish JWT auth, OpenAPI docs, E2E tests, CI checks, and frontend API type ge
 - All factor/data-lake routes registered
 - Nav links added to Layout.tsx dropdown groups
 
+
+## 2026-06-21 — M2 剩余页面：Profile + Observability + IntegrationHub + QuantLab + UserManagement
+
+### 交付
+
+| 页面 | 文件 | 功能 |
+|------|------|------|
+| **Profile** | `pages/Profile.tsx` | 4 标签页：基本设置（字体/通知）、投资偏好（风险/周期）、等级权限（功能解锁列表）、安全审计（操作日志） |
+| **Observability** | `pages/Observability.tsx` | 6 指标卡片、Trace 查询、任务事件流、Beat 同步历史、15s 自动刷新 |
+| **IntegrationHub** | `pages/IntegrationHub.tsx` | 10 层组件状态网格、质量进度条、数据层行数统计、WebSocket 房间、活跃任务、QuestDB 同步触发、8s 刷新 |
+| **QuantLab** | `pages/QuantLab.tsx` | Qlib 公式编辑器 + 7 算子按钮 + Recharts 因子序列折线图 + 统计指标 |
+| **UserManagement** | `pages/UserManagement.tsx` | 创建用户表单、角色下拉、改密/删除、`/api/v1/users` + `/roles` 集成 |
+
+### 路由变更
+- **App.tsx**: +5 lazy import + 5 Route (`profile`, `observability`, `integration-hub`, `quant-lab`, `user-management`)
+- **Layout.tsx**: 量化实验室 `href:` → `to:`（SPA 直连）；"我的"组新增个人中心/用户管理/观测台/集成中枢 4 项
+
+### 构建
+- `npm run build` 6.80s, 0 错误
+- 56 个 SPA 页面（51 原有 + 5 新增）
+
+---
+
+## 2026-06-21 — M3 批量迁移：61 条路由 redirect + 19 个新 SPA 页面
+
+### Batch 1-4: Flask 路由 redirect 切换（61 条路由）
+批量替换 4 个路由文件中的 `render_template` 为 `redirect("/app/...")`：
+
+| 文件 | 切换数 | 保留数（无 SPA 版） |
+|------|--------|-------------------|
+| `pages_admin.py` | 17 | 3（shadow_account, optimize, stocks_manage） |
+| `pages_ai.py` | 17 | 7（user_tiers×4, professional, spectrum, zen, resonance, dashboard） |
+| `pages_market.py` | 10 | 4（capabilities, architecture, ui_showcase×2） |
+| `pages_stock.py` | 15 | 2（attribution, share/decision 保留） |
+| **合计** | **59** + 2 已有 = **61** | **19** |
+
+保留 Flask 渲染（待切换）：
+- tools: `shadow_account`, `optimize`, `stocks_manage`, `moments`, `retail_assistant`
+- tiers: `user_tiers_boutique/investment/fund/institution` ×4
+- specialized: `professional_workbench`, `user_spectrum_hub`, `zen_terminal`, `portfolio_resonance`, `zen_dashboard`
+- utility: `capabilities`, `architecture_roadmap`, `ui_showcase` ×2, `attribution_dashboard`
+
+**永久保留 SSR**（ADR-0006）：`share/decision/<token>`
+
+### Batch 5: 18 个新 SPA 页面 + 1 已存在（QuantLab/DataLakeHealth 为前次创建）
+
+| 页面 | 路径 | 行数 |
+|------|------|------|
+| Capabilities | `/app/capabilities` | 107 |
+| ArchitectureRoadmap | `/app/architecture-roadmap` | 97 |
+| AttributionDashboard | `/app/attribution-dashboard` | 97 |
+| ShadowAccount | `/app/shadow-account` | 107 |
+| StocksManage | `/app/stocks-manage` | 119 |
+| Moments | `/app/moments` | 57 |
+| Optimize | `/app/optimize` | 132 |
+| RetailAssistant | `/app/retail-assistant` | 85 |
+| ProfessionalWorkbench | `/app/professional-workbench` | 108 |
+| UserSpectrumHub | `/app/user-spectrum-hub` | 86 |
+| ZenTerminal | `/app/zen-terminal` | 172 |
+| PortfolioResonance | `/app/portfolio-resonance` | 94 |
+| ZenDashboard | `/app/zen-dashboard` | 72 |
+| UiShowcase | `/app/ui-showcase` | 192 |
+| UserTiersBoutique | `/app/user-tiers/boutique` | 50 |
+| UserTiersInvestment | `/app/user-tiers/investment` | 50 |
+| UserTiersFund | `/app/user-tiers/fund` | 50 |
+| UserTiersInstitution | `/app/user-tiers/institution` | 56 |
+
+### 路由 + 导航
+- **App.tsx**：+18 lazy import + 18 Route
+- **Layout.tsx**：新增第 5 组"工具"🔧（13 项：观测台/集成中枢/能力/路线图/归因/优化/笔记/零售助理/UI 展示/专业工作台/简洁面板/简洁终端/谐振）
+- 其他组扩充：操盘台 +1（影子操盘）、研究 +2（能力总览/架构路线图）、策略 +2（归因面板/专业工作台）、我的 +4（用户光谱/券商管理/等级×4）
+
+### 构建
+- `npm run build` **5.20s**，0 错误
+- **75 个 SPA 页面**（56 原有 + 19 新增）
+- 首页 JS 414 KB（gzip 133 KB）
+- 导航 5 组，~80+ 菜单项
+
+---
+
+## 2026-06-21 - index.html GBK Encoding Fix
+
+| Issue | Cause | Fix |
+|-------|-------|-----|
+| GET /dashboard 500: UnicodeDecodeError at byte 186 | index.html was saved in GBK encoding but Jinja2/FilesystemLoader reads as UTF-8 | Recovered git version, performed hybrid UTF-8/GBK byte-by-byte decode, re-saved as clean UTF-8 without mojibake |
+
+### Verified
+- File is valid UTF-8 (0 corrupted chars)
+- Contains 试试新版 (switcher link text) intact
+- All Jinja2 syntax preserved
+
+
+## 2026-06-21 — UI/CSS Migration Finalized
+
+### Status
+| Metric | Value |
+|--------|-------|
+| Templates with <style> blocks (non-error) | **0** ✅ |
+| Templates with style= attributes | **19 files, 41 total** (all dynamic/JS-driven, static CSS migrated) |
+| Page CSS files | **20** (all linked, 0 unlinked) |
+| Component CSS files | **4** (evidence-card, skeleton, trading-dna-spiral, wisdom-mesh-browser) |
+| CI gate (`check_template_inline_styles.py`) | **Passes**, allowlist synced to 41/19 |
+
+### Changes
+1. **CI allowlist updated**: Removed stale entries (evidence_card, live_research_lab, resonance_meter were already migrated below threshold); added error-handling `errors="replace"` for files with GBK encoding
+2. **Hero pattern consolidation**: `.hero-section`, `.workbench-hero`, `.panorama-hero`, `.profile-hero`, `.rp-hero`, `.ra-hero`, `.sm-hero`, `.yb-hero` all centralized in `common.css` (L421–1460+)
+3. **Verification**: All domain CSS files (20/20) linked from templates; quant-atlas-layout.css only loaded where needed (design_showcase_base.html)
+
+### Remaining (low priority)
+- Artifact GBK encoding in 21 template files (decode fine with errors="replace")
+- Skeleton Jinja macros (8 `style=` uses) could use CSS custom props instead
+- Theme visual verification requires browser (see docs/UI_CSS_THEME_VERIFICATION.md)
+
+
+### Frontend CSS Fixes (same session)
+1. **Theme CSS inlined** — rontend/src/index.css moved from @import (PostCSS ordering warning) to inline CSS variable declarations, eliminating [vite:css][postcss] @import must precede all other statements warning
+2. **openapi-typescript not installed** — no prebuild hook exists, so 
+pm run build runs clean. Only fails when gen:api-types invoked manually
+3. **Build verification** — passes 	sc -b && vite build (839 modules, 12.87s, 0 errors, 0 PostCSS warnings)

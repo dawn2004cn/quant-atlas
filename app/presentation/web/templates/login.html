@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -12,7 +12,7 @@
 <body class="auth-page">
     <!-- spa_switcher -->
     <a href="/app/login" class="spa-switcher-link"
-       onclick="window.trackSwitcherClick && window.trackSwitcherClick('login')">
+       data-spa-switcher="login">
       试试新版 →
     </a>
     <div class="login-shell">
@@ -102,5 +102,6 @@
     })();
     </script>
     {% endif %}
+    <script src="{{ url_for('static', filename='js/switcher_telemetry.js') }}" nonce="{{ csp_nonce() }}"></script>
 </body>
 </html>

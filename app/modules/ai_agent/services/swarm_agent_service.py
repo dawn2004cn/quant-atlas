@@ -20,8 +20,8 @@ class SwarmAgentService:
 
     def __init__(
         self,
-        swarm_port: SwarmOrchestratorPort,
-        skill_port: ExpertSkillPort,
+        swarm_port: SwarmOrchestratorPort | None = None,
+        skill_port: ExpertSkillPort | None = None,
         experiment_repo: Optional[IExperimentRepository] = None,
         telemetry: Optional[AgentTelemetryService] = None,
     ):

@@ -20,6 +20,7 @@ from backtest.engines._market_hooks import (
     check_crypto_liquidation,
     calc_forex_swap,
 )
+from backtest.engines.survivorship import filter_survivorship
 
 
 # ── Market detection (same patterns as runner.py) ──
@@ -104,6 +105,14 @@ class CompositeEngine(BaseEngine):
 
     def __init__(self, config: dict, codes: List[str]):
         super().__init__(config)
+
+        # Survivorship-bias filter: remove delisted / not-yet-listed symbols
+        _start = config.get("start_date")
+        if _start:
+            from datetime import datetime
+            if isinstance(_start, str):
+                _start = datetime.strptime(_start, "%Y-%m-%d").date()
+            codes = filter_survivorship(codes, _start)
 
         # Build symbol -> market mapping
         self._symbol_market: Dict[str, str] = {c: _detect_market(c) for c in codes}

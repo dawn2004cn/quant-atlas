@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-agent
+  namespace: quant-atlas
+spec:
+  selector:
+    app: ai-agent
+  ports:
+    - port: 5301
+      targetPort: 5301
+  type: ClusterIP

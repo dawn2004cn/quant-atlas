@@ -76,7 +76,8 @@ class InvestmentManagerService:
         repo: InvestmentManagerRepository, 
         *, 
         stock_cache: StockCachePort,
-        signal_flag_pool: SignalFlagPoolRepository | None = None
+        signal_flag_pool: SignalFlagPoolRepository | None = None,
+        **kwargs,
     ) -> None:
         self._repo = repo
         self._cache = stock_cache

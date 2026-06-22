@@ -1,225 +1,233 @@
-{% extends "base.html" %}
-
-{% block title %}自然语言策略生成器 - Quant Atlas{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
-{% endblock %}
-
-{% block content %}
-<div class="container py-4">
-  <div class="nl-hero">
-    <h1 class="text-2xl font-bold mb-2">自然语言策略生成器</h1>
-    <p class="text-muted">用中文描述你的交易想法，AI 自动解析并回测</p>
-  </div>
-  <div class="row">
-    <div class="col-lg-8">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">描述你的策略</h5>
-          <div class="nl-input-container">
-            <textarea id="nlInput" class="nl-textarea" placeholder="例如：当MACD金叉且价格在200日线之上时买入，并设置2%止损"></textarea>
-            <span class="nl-hint">支持 MACD、RSI、均线、突破、成交量等条件</span>
-          </div>
-          <div class="preset-chips">
-            <span class="preset-chip" data-nls2-action="fill-preset" data-preset-text="当5日均线上穿20日均线时买入，下穿时卖出，设置3%止损" role="button" tabindex="0">均线金叉</span>
-            <span class="preset-chip" data-nls2-action="fill-preset" data-preset-text="当RSI低于30时买入，高于70时卖出，仓位控制在20%" role="button" tabindex="0">RSI超买超卖</span>
-            <span class="preset-chip" data-nls2-action="fill-preset" data-preset-text="当股价突破布林带上轨且成交量放大50%时买入，跌破中轨卖出" role="button" tabindex="0">布林带突破</span>
-            <span class="preset-chip" data-nls2-action="fill-preset" data-preset-text="MACD金叉且价格创新低时买入，设置5%止损和10%止盈" role="button" tabindex="0">MACD底背离</span>
-            <span class="preset-chip" data-nls2-action="fill-preset" data-preset-text="股价创20日新高且成交量大于5日均量2倍时买入，跌破10日均线卖出" role="button" tabindex="0">动量突破</span>
-          </div>
-          <div class="d-flex gap-3 mt-3">
-            <button class="btn btn-primary generate-btn" type="button" data-nls2-action="parse">解析策略</button>
-            <button class="btn btn-outline-primary generate-btn" type="button" data-nls2-action="preview">解析并回测</button>
-          </div>
-        </div>
-      </div>
-      <div id="resultSection" class="qa-is-hidden mt-4">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">策略逻辑</h5>
-            <div id="readableResult" class="mb-3 p-3 bg-light rounded"></div>
-            <h5 class="card-title mt-3">逻辑流程图</h5>
-            <div id="flowchartContainer" class="mb-3"></div>
-            <h5 class="card-title mt-3">回测指标</h5>
-            <div id="metricsContainer" class="row g-3"></div>
-            <div class="mt-3">
-              <button class="btn btn-success" type="button" data-nls2-action="deploy-wizard">部署到 Wizard</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="loadingSection" class="qa-is-hidden mt-4 text-center">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">加载中...</span>
-        </div>
-        <p class="mt-2 text-muted">AI 正在分析你的策略...</p>
-      </div>
-    </div>
-    <div class="col-lg-4">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">历史策略</h5>
-          <div id="historyList">
-            <p class="text-muted small">加载中...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script nonce="{{ csp_nonce() }}">
-$(document).ready(function() { loadHistory(); });
-
-function fillPreset(el, text) {
-  $(".preset-chip").removeClass("active");
-  $(el).addClass("active");
-  $("#nlInput").val(text);
-}
-
-async function parseStrategy() {
-  const input = $("#nlInput").val().trim();
-  if (!input) { showToast("请输入策略描述", "warning"); return; }
-  $("#loadingSection").show();
-  $("#resultSection").hide();
-  try {
-    const res = await fetch("/api/v1/nl-strategy/parse", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({input: input})
-    });
-    const result = await res.json();
-    $("#loadingSection").hide();
-    if (result.data && result.data.ok) {
-      displayResult(result.data);
-      showToast("策略解析成功", "success");
-    } else {
-      showToast("解析失败: " + (result.data?.error || "未知错误"), "error");
-    }
-  } catch(e) {
-    $("#loadingSection").hide();
-    showToast("请求失败: " + e.message, "error");
-  }
-}
-
-async function previewStrategy() {
-  const input = $("#nlInput").val().trim();
-  if (!input) { showToast("请输入策略描述", "warning"); return; }
-  $("#loadingSection").show();
-  $("#resultSection").hide();
-  try {
-    const res = await fetch("/api/v1/nl-strategy/preview", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({input: input, symbol: "000300", market: "CN"})
-    });
-    const result = await res.json();
-    $("#loadingSection").hide();
-    if (result.data && result.data.ok) {
-      displayResult(result.data);
-      displayMetrics(result.data.backtest || result.data.strategy?.preview_metrics || {});
-      showToast("回测完成", "success");
-    } else {
-      showToast("回测失败: " + (result.data?.error || "未知错误"), "error");
-    }
-  } catch(e) {
-    $("#loadingSection").hide();
-    showToast("请求失败: " + e.message, "error");
-  }
-}
-
-function displayResult(data) {
-  $("#resultSection").show();
-  if (data.readable) {
-    $("#readableResult").html("<pre>" + data.readable + "</pre>");
-  }
-  if (data.flowchart) {
-    renderFlowchart(data.flowchart);
-  }
-  if (data.strategy?.preview_metrics) {
-    displayMetrics(data.strategy.preview_metrics);
-  }
-  loadHistory();
-}
-
-function renderFlowchart(flowchart) {
-  const c = $("#flowchartContainer");
-  c.empty();
-  if (!flowchart.nodes || flowchart.nodes.length === 0) return;
-  let html = "<div class=\"flowchart\">";
-  const icons = {start: "▶", condition: "◆", action: "→", risk: "🛡", end: "■"};
-  const colors = {start: "primary", condition: "warning", action: "success", risk: "danger", end: "secondary"};
-  flowchart.nodes.forEach(function(n) {
-    html += "<span class=\"badge bg-" + (colors[n.type] || "secondary") + " me-2 mb-2 nlsv-badge\">" + (icons[n.type] || "•") + " " + n.label + "</span>";
-  });
-  c.html(html + "</div>");
-}
-
-function displayMetrics(m) {
-  const c = $("#metricsContainer");
-  c.empty();
-  const items = [
-    {label: "预期收益", value: m.expected_return || "-", color: "success"},
-    {label: "最大回撤", value: m.max_drawdown || "-", color: "danger"},
-    {label: "夏普比率", value: m.sharpe_ratio || m.estimated_sharpe || "-", color: "primary"},
-    {label: "胜率", value: m.win_rate || "-", color: "info"}
-  ];
-  items.forEach(function(i) {
-    c.append("<div class=\"col-6 col-md-3\"><div class=\"card text-center p-3\"><div class=\"text-" + i.color + " fs-3 fw-bold\">" + i.value + "</div><div class=\"small text-muted\">" + i.label + "</div></div></div>");
-  });
-}
-
-async function loadHistory() {
-  try {
-    const res = await fetch("/api/v1/nl-strategy/history");
-    const r = await res.json();
-    const list = $("#historyList");
-    list.empty();
-    if (r.data && r.data.strategies && r.data.strategies.length > 0) {
-      r.data.strategies.forEach(function(s) {
-        const d = s.created_at ? s.created_at.substring(0, 10) : "";
-        const p = s.nl_input ? s.nl_input.substring(0, 40) + (s.nl_input.length > 40 ? "..." : "") : "";
-        var div = document.createElement("div");
-        div.className = "mb-2 p-2 border rounded";
-        div.style.cursor = "pointer";
-        div.innerHTML = "<div class=\"small fw-bold\">" + p + "</div><div class=\"text-muted small\">" + d + "</div>";
-        div.addEventListener("click", function() {
-          $("#nlInput").val(s.nl_input);
-        });
-        list[0].appendChild(div);
-      });
-    } else {
-      list.append("<p class=\"text-muted small\">暂无历史策略</p>");
-    }
-  } catch(e) {
-    $("#historyList").html("<p class=\"text-muted small\">加载失败</p>");
-  }
-}
-
-function deployToWizard() {
-  showToast("策略已部署到 Strategy Wizard", "success");
-}
-
-function showToast(msg, type) {
-  if (typeof toastr !== "undefined") {
-    toastr[type || "info"](msg);
-  } else {
-    alert(msg);
-  }
-}
-
-document.addEventListener('click', function (event) {
-  const el = event.target.closest('[data-nls2-action]');
-  if (!el) return;
-  const action = el.dataset.nls2Action;
-  if (action === 'fill-preset') fillPreset(el, el.dataset.presetText || '');
-  else if (action === 'parse') parseStrategy();
-  else if (action === 'preview') previewStrategy();
-  else if (action === 'deploy-wizard') deployToWizard();
-});
-
-</script>
+﻿{% extends "base.html" %}
+
+{% block title %}自然语言策略生成鍣?- Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+{% block spa_switcher %}
+<a href="/app/nl-strategy" class="spa-switcher-link"
+   data-spa-switcher="nl-strategy">
+  试试新版 鈫?
+</a>
+{% endblock %}
+
+
+
+{% block content %}
+<div class="container py-4">
+  <div class="nl-hero">
+    <h1 class="text-2xl font-bold mb-2">自然语言策略生成鍣?/h1>
+    <p class="text-muted">用中文描述你的交易想法，AI 自动解析并回娴?/p>
+  </div>
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">描述你的策略</h5>
+          <div class="nl-input-container">
+            <textarea id="nlInput" class="nl-textarea" placeholder="例如：当MACD金叉且价格在200日线之上时买入，并设缃?%止损"></textarea>
+            <span class="nl-hint">支持 MACD、RSI、均线、突破、成交量等条浠?/span>
+          </div>
+          <div class="preset-chips">
+            <span class="preset-chip" data-nls2-action="fill-preset" data-preset-text="褰?日均线上绌?0日均线时买入，下穿时卖出，设缃?%止损" role="button" tabindex="0">均线金叉</span>
+            <span class="preset-chip" data-nls2-action="fill-preset" data-preset-text="当RSI低于30时买入，高于70时卖出，仓位控制鍦?0%" role="button" tabindex="0">RSI超买超卖</span>
+            <span class="preset-chip" data-nls2-action="fill-preset" data-preset-text="当股价突破布林带上轨且成交量放大50%时买入，跌破中轨卖出" role="button" tabindex="0">布林带突鐮?/span>
+            <span class="preset-chip" data-nls2-action="fill-preset" data-preset-text="MACD金叉且价格创新低时买入，设置5%止损鍜?0%止盈" role="button" tabindex="0">MACD底背绂?/span>
+            <span class="preset-chip" data-nls2-action="fill-preset" data-preset-text="股价鍒?0日新高且成交量大浜?日均閲?倍时买入，跌鐮?0日均线卖鍑? role="button" tabindex="0">动量突破</span>
+          </div>
+          <div class="d-flex gap-3 mt-3">
+            <button class="btn btn-primary generate-btn" type="button" data-nls2-action="parse">解析策略</button>
+            <button class="btn btn-outline-primary generate-btn" type="button" data-nls2-action="preview">解析并回娴?/button>
+          </div>
+        </div>
+      </div>
+      <div id="resultSection" class="qa-is-hidden mt-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">策略逻辑</h5>
+            <div id="readableResult" class="mb-3 p-3 bg-light rounded"></div>
+            <h5 class="card-title mt-3">逻辑流程鍥?/h5>
+            <div id="flowchartContainer" class="mb-3"></div>
+            <h5 class="card-title mt-3">回测指标</h5>
+            <div id="metricsContainer" class="row g-3"></div>
+            <div class="mt-3">
+              <button class="btn btn-success" type="button" data-nls2-action="deploy-wizard">部署鍒?Wizard</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="loadingSection" class="qa-is-hidden mt-4 text-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">加载涓?..</span>
+        </div>
+        <p class="mt-2 text-muted">AI 正在分析你的策略...</p>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">历史策略</h5>
+          <div id="historyList">
+            <p class="text-muted small">加载涓?..</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+$(document).ready(function() { loadHistory(); });
+
+function fillPreset(el, text) {
+  $(".preset-chip").removeClass("active");
+  $(el).addClass("active");
+  $("#nlInput").val(text);
+}
+
+async function parseStrategy() {
+  const input = $("#nlInput").val().trim();
+  if (!input) { showToast("请输入策略描杩?, "warning"); return; }
+  $("#loadingSection").show();
+  $("#resultSection").hide();
+  try {
+    const res = await fetch("/api/v1/nl-strategy/parse", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({input: input})
+    });
+    const result = await res.json();
+    $("#loadingSection").hide();
+    if (result.data && result.data.ok) {
+      displayResult(result.data);
+      showToast("策略解析成功", "success");
+    } else {
+      showToast("解析失败: " + (result.data?.error || "未知错误"), "error");
+    }
+  } catch(e) {
+    $("#loadingSection").hide();
+    showToast("请求失败: " + e.message, "error");
+  }
+}
+
+async function previewStrategy() {
+  const input = $("#nlInput").val().trim();
+  if (!input) { showToast("请输入策略描杩?, "warning"); return; }
+  $("#loadingSection").show();
+  $("#resultSection").hide();
+  try {
+    const res = await fetch("/api/v1/nl-strategy/preview", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({input: input, symbol: "000300", market: "CN"})
+    });
+    const result = await res.json();
+    $("#loadingSection").hide();
+    if (result.data && result.data.ok) {
+      displayResult(result.data);
+      displayMetrics(result.data.backtest || result.data.strategy?.preview_metrics || {});
+      showToast("回测完成", "success");
+    } else {
+      showToast("回测失败: " + (result.data?.error || "未知错误"), "error");
+    }
+  } catch(e) {
+    $("#loadingSection").hide();
+    showToast("请求失败: " + e.message, "error");
+  }
+}
+
+function displayResult(data) {
+  $("#resultSection").show();
+  if (data.readable) {
+    $("#readableResult").html("<pre>" + data.readable + "</pre>");
+  }
+  if (data.flowchart) {
+    renderFlowchart(data.flowchart);
+  }
+  if (data.strategy?.preview_metrics) {
+    displayMetrics(data.strategy.preview_metrics);
+  }
+  loadHistory();
+}
+
+function renderFlowchart(flowchart) {
+  const c = $("#flowchartContainer");
+  c.empty();
+  if (!flowchart.nodes || flowchart.nodes.length === 0) return;
+  let html = "<div class=\"flowchart\">";
+  const icons = {start: "鈻?, condition: "鈼?, action: "鈫?, risk: "🛡", end: "鈻?};
+  const colors = {start: "primary", condition: "warning", action: "success", risk: "danger", end: "secondary"};
+  flowchart.nodes.forEach(function(n) {
+    html += "<span class=\"badge bg-" + (colors[n.type] || "secondary") + " me-2 mb-2 nlsv-badge\">" + (icons[n.type] || "鈥?) + " " + n.label + "</span>";
+  });
+  c.html(html + "</div>");
+}
+
+function displayMetrics(m) {
+  const c = $("#metricsContainer");
+  c.empty();
+  const items = [
+    {label: "预期收益", value: m.expected_return || "-", color: "success"},
+    {label: "最大回鎾?, value: m.max_drawdown || "-", color: "danger"},
+    {label: "夏普比率", value: m.sharpe_ratio || m.estimated_sharpe || "-", color: "primary"},
+    {label: "胜率", value: m.win_rate || "-", color: "info"}
+  ];
+  items.forEach(function(i) {
+    c.append("<div class=\"col-6 col-md-3\"><div class=\"card text-center p-3\"><div class=\"text-" + i.color + " fs-3 fw-bold\">" + i.value + "</div><div class=\"small text-muted\">" + i.label + "</div></div></div>");
+  });
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch("/api/v1/nl-strategy/history");
+    const r = await res.json();
+    const list = $("#historyList");
+    list.empty();
+    if (r.data && r.data.strategies && r.data.strategies.length > 0) {
+      r.data.strategies.forEach(function(s) {
+        const d = s.created_at ? s.created_at.substring(0, 10) : "";
+        const p = s.nl_input ? s.nl_input.substring(0, 40) + (s.nl_input.length > 40 ? "..." : "") : "";
+        var div = document.createElement("div");
+        div.className = "mb-2 p-2 border rounded";
+        div.style.cursor = "pointer";
+        div.innerHTML = "<div class=\"small fw-bold\">" + p + "</div><div class=\"text-muted small\">" + d + "</div>";
+        div.addEventListener("click", function() {
+          $("#nlInput").val(s.nl_input);
+        });
+        list[0].appendChild(div);
+      });
+    } else {
+      list.append("<p class=\"text-muted small\">暂无历史策略</p>");
+    }
+  } catch(e) {
+    $("#historyList").html("<p class=\"text-muted small\">加载失败</p>");
+  }
+}
+
+function deployToWizard() {
+  showToast("策略已部署到 Strategy Wizard", "success");
+}
+
+function showToast(msg, type) {
+  if (typeof toastr !== "undefined") {
+    toastr[type || "info"](msg);
+  } else {
+    alert(msg);
+  }
+}
+
+document.addEventListener('click', function (event) {
+  const el = event.target.closest('[data-nls2-action]');
+  if (!el) return;
+  const action = el.dataset.nls2Action;
+  if (action === 'fill-preset') fillPreset(el, el.dataset.presetText || '');
+  else if (action === 'parse') parseStrategy();
+  else if (action === 'preview') previewStrategy();
+  else if (action === 'deploy-wizard') deployToWizard();
+});
+
+</script>
 {% endblock %}

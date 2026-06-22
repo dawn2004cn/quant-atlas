@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block spa_switcher %}
 <a href="/app/experiment-report" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('experiment-report')">
-  �����°� &#8594;
+   data-spa-switcher="experiment-report">
+  试试新版 &#8594;
 </a>
 {% endblock %}
 
@@ -17,7 +17,7 @@
 <div class="section-shell">
     <div class="hero-caption">Research Output</div>
     <h1 class="page-title">📊 实验报告</h1>
-    <p class="page-subtitle">生成并分享您的投研成果报�?/p>
+    <p class="page-subtitle">生成并分享您的投研成果报鍛?/p>
 
     <div class="filter-bar mb-4">
         <select id="experimentSelect" class="form-input exp-select">
@@ -71,7 +71,7 @@ function buildEquityChartHtml(exp) {
         || (exp.metrics && exp.metrics.equity_curve)
         || [];
     if (!Array.isArray(curve) || curve.length < 2) {
-        return '<div class="chart-placeholder">暂无权益曲线（回测完成后写入 artifacts.equity_curve�?/div>';
+        return '<div class="chart-placeholder">暂无权益曲线（回测完成后写入 artifacts.equity_curve锛?/div>';
     }
     const vals = curve.map((p) => parseFloat(p.value ?? p.equity ?? 0));
     const w = 640;
@@ -99,7 +99,7 @@ function renderReport(exp) {
                 <div class="report-meta">
                     <span>实验ID: ${exp.id?.slice(0,8)}</span> ·
                     <span>创建时间: ${exp.created_at?.slice(0,19) || '-'}</span> ·
-                    <span>状�? <span class="badge-${exp.status}">${exp.status}</span></span>
+                    <span>状鎬? <span class="badge-${exp.status}">${exp.status}</span></span>
                 </div>
             </div>
 
@@ -116,7 +116,7 @@ function renderReport(exp) {
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${exp.metrics?.max_drawdown?.toFixed(1) || 0}%</div>
-                        <div class="metric-label">最大回�?/div>
+                        <div class="metric-label">最大回鎾?/div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${exp.metrics?.win_rate?.toFixed(1) || 0}%</div>
@@ -124,7 +124,7 @@ function renderReport(exp) {
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${exp.metrics?.profit_factor?.toFixed(2) || '-'}</div>
-                        <div class="metric-label">盈亏�?/div>
+                        <div class="metric-label">盈亏姣?/div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${exp.metrics?.total_trades || 0}</div>
@@ -135,14 +135,14 @@ function renderReport(exp) {
 
             <div class="report-section">
                 <h2>🎯 策略描述</h2>
-                <p>${exp.description || '无策略描�?}</p>
+                <p>${exp.description || '无策略描杩?}</p>
             </div>
 
             ${exp.strategy_code ? `
             <div class="report-section">
                 <h2>💻 策略摘要</h2>
-                <p>策略代码已在服务端保存�?/p>
-                <button class="btn btn-sm btn-outline-secondary" onclick="downloadCode('${escapeHtml(exp.experiment_id || exp.id)}')">📥 下载代码</button>
+                <p>策略代码已在服务端保存銆?/p>
+                <button class="btn btn-sm btn-outline-secondary" data-action="download-code" data-exp-id="${escapeHtml(exp.experiment_id || exp.id)}">📥 下载代码</button>
             </div>
             ` : ''}
 
@@ -199,11 +199,11 @@ function exportHTML() {
     a.href = url;
     a.download = 'experiment-report.html';
     a.click();
-    showToast('HTML已导�?, 'success');
+    showToast('HTML已导鍑?, 'success');
 }
 
 function shareReport() {
-    showToast('分享链接已复制到剪贴�?, 'success');
+    showToast('分享链接已复制到剪贴鏉?, 'success');
 }
 
 loadExperiments();
@@ -216,6 +216,11 @@ document.addEventListener('click', function (e) {
     else if (action === 'export-pdf') exportPDF();
     else if (action === 'export-html') exportHTML();
     else if (action === 'share-report') shareReport();
+});
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-action="download-code"]');
+    if (!el) return;
+    downloadCode(el.dataset.expId || '');
 });
 </script>
 {% endblock %}

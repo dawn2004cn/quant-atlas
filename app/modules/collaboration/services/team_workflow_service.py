@@ -25,7 +25,7 @@ class TeamWorkflowService:
     def __init__(
         self,
         *,
-        collaboration_repository: Any,
+        collaboration_repository: Any = None,
         store: TeamWorkflowStore | None = None,
         team_blackboard_service: Any | None = None,
         team_research_channel_service: Any | None = None,

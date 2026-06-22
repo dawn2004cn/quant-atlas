@@ -676,6 +676,10 @@ def get_event_bus() -> EventBus:
         _event_bus = EventBus()
     return _event_bus
 
+def publish_event(event: "Event") -> None:
+    """Publish an event to the global event bus."""
+    get_event_bus().publish(event)
+
 
 def enable_websocket_broadcast(broadcast_func: Callable[[str, Any], int]) -> None:
     """Enable WebSocket broadcasting for events.
@@ -795,5 +799,6 @@ __all__ = [
     "enable_websocket_broadcast",
     "emit_trade_executed",
     "emit_workflow_completed",
+    "publish_event",
     "WatchlistAnomalyDetectedEvent",
 ]

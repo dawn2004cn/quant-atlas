@@ -1,2 +1,8 @@
 from __future__ import annotations
-from app.modules.user.services.user.user_audit_trail_service import *  # noqa: F401, F403
+from app.core.base_service import BaseApplicationService
+
+
+class UserAuditTrailService(BaseApplicationService):
+    """Stub: UserAuditTrailService placeholder."""
+    def __init__(self, *args, **kwargs):
+        super().__init__()

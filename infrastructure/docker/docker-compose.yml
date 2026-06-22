@@ -1,0 +1,218 @@
+# Docker Compose configuration for quant-atlas microservices.
+#
+# Services:
+#   - api-gateway: Kong API Gateway (port 8000)
+#   - market-data: Market Data Service (port 5101)
+#   - strategy: Strategy Service (port 5201)
+#   - ai-agent: AI Agent Service (port 5301)
+#   - portfolio-risk: Portfolio/Risk Service (port 5401)
+#   - execution: Execution Service (port 5501)
+#   - system-user: System/User Service (port 5601)
+#   - data: Data Service (port 5701)
+#   - research: Research Service (port 5801)
+#   - redis: Redis cache (port 6379)
+#   - mysql: MySQL database (port 3306)
+
+version: "3.8"
+
+services:
+  api-gateway:
+    image: kong:3.5
+    container_name: quant-atlas-gateway
+    ports:
+      - "8000:8000"  # Proxy
+      - "8443:8443"  # HTTPS
+      - "8001:8001"  # Admin API
+      - "8444:8444"  # Admin HTTPS
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: "/kong/declarative/kong.yml"
+      KONG_PROXY_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
+      KONG_PROXY_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_ERROR_LOG: "/dev/stderr"
+    volumes:
+      - ./infrastructure/docker/kong.yml:/kong/declarative/kong.yml:ro
+    networks:
+      - quant-atlas
+    depends_on:
+      - market-data
+      - strategy
+      - ai-agent
+      - portfolio-risk
+      - execution
+      - system-user
+      - data
+      - research
+
+  market-data:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.market-data
+    container_name: quant-atlas-market-data
+    ports:
+      - "5101:5101"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MYSQL_URL=mysql://quant_atlas:${DB_PASSWORD}@mysql:3306/quant_atlas
+      - SERVICE_PORT=5101
+    networks:
+      - quant-atlas
+    depends_on:
+      - redis
+      - mysql
+
+  strategy:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.strategy
+    container_name: quant-atlas-strategy
+    ports:
+      - "5201:5201"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MYSQL_URL=mysql://quant_atlas:${DB_PASSWORD}@mysql:3306/quant_atlas
+      - SERVICE_PORT=5201
+    networks:
+      - quant-atlas
+    depends_on:
+      - redis
+      - mysql
+
+  ai-agent:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.ai-agent
+    container_name: quant-atlas-ai-agent
+    ports:
+      - "5301:5301"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MYSQL_URL=mysql://quant_atlas:${DB_PASSWORD}@mysql:3306/quant_atlas
+      - SERVICE_PORT=5301
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    networks:
+      - quant-atlas
+    depends_on:
+      - redis
+      - mysql
+
+  portfolio-risk:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.portfolio-risk
+    container_name: quant-atlas-portfolio-risk
+    ports:
+      - "5401:5401"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MYSQL_URL=mysql://quant_atlas:${DB_PASSWORD}@mysql:3306/quant_atlas
+      - SERVICE_PORT=5401
+    networks:
+      - quant-atlas
+    depends_on:
+      - redis
+      - mysql
+
+  execution:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.execution
+    container_name: quant-atlas-execution
+    ports:
+      - "5501:5501"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MYSQL_URL=mysql://quant_atlas:${DB_PASSWORD}@mysql:3306/quant_atlas
+      - SERVICE_PORT=5501
+    networks:
+      - quant-atlas
+    depends_on:
+      - redis
+      - mysql
+
+  system-user:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.system-user
+    container_name: quant-atlas-system-user
+    ports:
+      - "5601:5601"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MYSQL_URL=mysql://quant_atlas:${DB_PASSWORD}@mysql:3306/quant_atlas
+      - SERVICE_PORT=5601
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+    networks:
+      - quant-atlas
+    depends_on:
+      - redis
+      - mysql
+
+  data:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.data
+    container_name: quant-atlas-data
+    ports:
+      - "5701:5701"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MYSQL_URL=mysql://quant_atlas:${DB_PASSWORD}@mysql:3306/quant_atlas
+      - SERVICE_PORT=5701
+    networks:
+      - quant-atlas
+    depends_on:
+      - redis
+      - mysql
+
+  research:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.research
+    container_name: quant-atlas-research
+    ports:
+      - "5801:5801"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - MYSQL_URL=mysql://quant_atlas:${DB_PASSWORD}@mysql:3306/quant_atlas
+      - SERVICE_PORT=5801
+    networks:
+      - quant-atlas
+    depends_on:
+      - redis
+      - mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: quant-atlas-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - quant-atlas
+
+  mysql:
+    image: mysql:8.0
+    container_name: quant-atlas-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: quant_atlas
+      MYSQL_USER: quant_atlas
+      MYSQL_PASSWORD: ${DB_PASSWORD:-}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./infrastructure/docker/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - quant-atlas
+
+volumes:
+  redis_data:
+  mysql_data:
+
+networks:
+  quant-atlas:
+    driver: bridge

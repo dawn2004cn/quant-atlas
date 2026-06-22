@@ -93,8 +93,9 @@ def register_registry_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     @login_required
     def registry_modules():
         """List all registered context modules."""
-        from . import context_modules as _ctx_mods
         from ...core.registry import list_modules, get_module
+        from .context_modules import ensure_all_modules_loaded
+        ensure_all_modules_loaded()
 
         module_details = []
         for name in list_modules():
@@ -129,7 +130,8 @@ def register_registry_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
             registered_routes_by_context,
             list_modules,
         )
-        from . import context_modules as _ctx_mods
+        from .context_modules import ensure_all_modules_loaded
+        ensure_all_modules_loaded()
 
         routes_by_ctx = registered_routes_by_context()
 

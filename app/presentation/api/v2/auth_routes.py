@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flask import Blueprint, request, current_app
+from flask import Blueprint, request, current_app, jsonify
 
 from app.application.errors import AuthorizationError, ValidationError
 from app.infrastructure.auth.jwt_token_service import (
@@ -16,6 +16,29 @@ from ..auth_guard import api_auth_required, resolve_api_user
 from ..responses import success_response
 
 _COOKIE_NAME = "qa_token"
+
+
+def _token_response(*, access_token: str, refresh_token: str, expires_in: int, meta: dict | None = None):
+    """Build a token response that bypasses the SENSITIVE_FIELDS serializer filter.
+
+    The standard ``success_response`` strips ``access_token``/``refresh_token`` to
+    prevent accidental leakage in normal API responses. Auth endpoints are the
+    explicit exception — issuing tokens IS their purpose.
+    """
+    payload = {
+        "success": True,
+        "ok": True,
+        "status": "success",
+        "data": {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "Bearer",
+            "expires_in": expires_in,
+        },
+        "error": None,
+        "meta": meta,
+    }
+    return jsonify(payload)
 
 
 def create_auth_blueprint(ctx) -> Blueprint:
@@ -61,13 +84,10 @@ def create_auth_blueprint(ctx) -> Blueprint:
             username=user.username,
             role=user.role,
         )
-        resp = success_response(
-            data={
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-                "token_type": "Bearer",
-                "expires_in": expires_in,
-            },
+        resp = _token_response(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_in=expires_in,
             meta={"username": user.username, "role": user.role},
         )
         _set_token_cookie(resp, access_token, expires_in)
@@ -95,13 +115,10 @@ def create_auth_blueprint(ctx) -> Blueprint:
             username=str(claims.get("username") or ""),
             role=str(claims.get("role") or "viewer"),
         )
-        resp = success_response(
-            data={
-                "access_token": new_access,
-                "refresh_token": new_refresh,
-                "token_type": "Bearer",
-                "expires_in": expires_in,
-            },
+        resp = _token_response(
+            access_token=new_access,
+            refresh_token=new_refresh,
+            expires_in=expires_in,
         )
         _set_token_cookie(resp, new_access, expires_in)
         return resp
@@ -109,7 +126,7 @@ def create_auth_blueprint(ctx) -> Blueprint:
     @bp.post("/auth/logoff")
     def logoff():
         """Clear JWT cookie (client-side token invalidation)."""
-        resp = success_response(data={"message": "logged_off"})
+        resp, code = success_response(data={"message": "logged_off"})
         resp.set_cookie(_COOKIE_NAME, "", httponly=True, secure=_cookie_secure(),
                         samesite="Strict", max_age=0, path="/")
         return resp

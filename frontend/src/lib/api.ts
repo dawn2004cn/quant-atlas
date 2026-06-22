@@ -146,6 +146,9 @@ export async function loginWithSession(
     body,
     redirect: "manual",
   });
+  if (response.status === 200) {
+    return true;
+  }
   if (response.status === 302 || response.status === 303) {
     return true;
   }

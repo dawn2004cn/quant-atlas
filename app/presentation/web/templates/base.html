@@ -54,15 +54,11 @@
                     <div class="dropdown-menu dropdown-menu-right nav-search-wrapper" aria-labelledby="navDdWorkbenchHub">
                         <input type="search" class="nav-search-input" placeholder="搜索导航…" aria-label="搜索导航菜单" data-nav-search>
                         <a class="dropdown-item {% if ep == 'pages.daily_workbench' %}active{% endif %}" href="/" data-nav-label="今日操盘台">🏠 今日操盘台</a>
-                        <a class="dropdown-item" href="/app" data-nav-label="SPA 操盘台预览">⚡ SPA 操盘台</a>
-                        <a class="dropdown-item" href="/app/backtest" data-nav-label="SPA 策略回测">📊 SPA 回测</a>
-                        {% if feature_alpha_marketplace %}
-                        <a class="dropdown-item" href="/app/marketplace#governance" data-nav-label="SPA 因子治理">🗳️ SPA 因子治理</a>
-                        {% endif %}
                         <a class="dropdown-item {% if ep == 'pages.self_stocks' %}active{% endif %}" href="/self-stocks" data-nav-label="我的自选股">⭐ 我的自选股</a>
                         <a class="dropdown-item {% if ep == 'pages.market_panorama' %}active{% endif %}" href="/market-panorama" data-nav-label="市场全景">📈 市场全景</a>
                         <a class="dropdown-item {% if ep == 'pages.global_radar' %}active{% endif %}" href="/global-radar" data-nav-label="全球透视塔">🌏 全球透视塔</a>
                         <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/app" data-nav-label="SPA 版">⚡ SPA 版</a>
                         <a class="dropdown-item {% if ep == 'pages.hot_sectors' %}active{% endif %}" href="/hot-sectors" data-nav-label="热点板块">🔥 热点板块</a>
                         <a class="dropdown-item {% if ep == 'pages.longhu_bang' %}active{% endif %}" href="/longhu-bang" data-nav-label="龙虎榜">🐉 龙虎榜</a>
                         <a class="dropdown-item {% if ep == 'pages.yanbao_hub' %}active{% endif %}" href="/yanbao-hub" data-nav-label="研报中心">📑 研报中心</a>
@@ -102,18 +98,15 @@
                     <div class="dropdown-menu dropdown-menu-right nav-search-wrapper" aria-labelledby="navDdStrategyHub">
                         <input type="search" class="nav-search-input" placeholder="搜索导航…" aria-label="搜索导航菜单" data-nav-search>
                         <a class="dropdown-item {% if ep == 'pages.backtest' %}active{% endif %}" href="/backtest" data-nav-label="策略回测">📊 策略回测</a>
-                        <a class="dropdown-item {% if ep == 'pages.signal_flag' %}active{% endif %}" href="/signal-flag" data-nav-label="信号旗手">🚩 信号旗手 (经典)</a>
-                        <a class="dropdown-item" href="/app/signal-flag" data-nav-label="信号旗手">🚩 信号旗手 (新版)</a>
+                        <a class="dropdown-item {% if ep == 'pages.signal_flag' %}active{% endif %}" href="/signal-flag" data-nav-label="信号旗手">🚩 信号旗手</a>
                         <a class="dropdown-item {% if ep == 'pages.stock_selector' %}active{% endif %}" href="/stock-selector" data-nav-label="智能选股">🔍 智能选股</a>
                         <a class="dropdown-item {% if ep == 'pages.signal_observations' %}active{% endif %}" href="/signal-observations" data-nav-label="模拟观察单">🧾 模拟观察单</a>
                         <a class="dropdown-item {% if ep == 'pages.strategy_wizard' %}active{% endif %}" href="/strategy-wizard" data-nav-label="策略向导">🧙 策略向导</a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item {% if ep == 'pages.alpha_factory' %}active{% endif %}" href="/alpha-factory" data-nav-label="Alpha Factory">🧬 Alpha Factory (经典)</a>
-                        <a class="dropdown-item" href="/app/alpha-factory" data-nav-label="Alpha Factory">🧬 Alpha Factory (新版)</a>
+                        <a class="dropdown-item {% if ep == 'pages.alpha_factory' %}active{% endif %}" href="/alpha-factory" data-nav-label="Alpha Factory">🧬 Alpha Factory</a>
                         <a class="dropdown-item {% if ep == 'pages.factor_repository' %}active{% endif %}" href="/factor-repository" data-nav-label="因子仓库">📚 因子仓库</a>
                         {% if feature_alpha_marketplace %}
                         <a class="dropdown-item {% if ep == 'pages.alpha_marketplace' %}active{% endif %}" href="/alpha-marketplace" data-nav-label="Alpha Marketplace">🏪 Alpha 市场</a>
-                        <a class="dropdown-item" href="/app/marketplace" data-nav-label="SPA Alpha 市场">⚡ SPA 因子市场</a>
                         {% endif %}
                         <a class="dropdown-item {% if ep == 'pages.optimize' %}active{% endif %}" href="/optimize" data-nav-label="参数优化">⚙️ 参数优化</a>
                         <a class="dropdown-item {% if ep == 'pages.data_lake_health' %}active{% endif %}" href="/data-lake-health" data-nav-label="数据湖健康">💾 数据湖健康</a>

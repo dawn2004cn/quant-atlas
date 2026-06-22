@@ -1,4 +1,4 @@
-"""Backtest engine registry.
+﻿"""Backtest engine registry.
 
 The codebase historically shipped five different backtest engines with
 inconsistent cost models, slippage handling, and settlement rules. This
@@ -17,7 +17,6 @@ Engine tiers:
 
 from __future__ import annotations
 
-import logging
 import warnings
 from typing import Any, Callable
 
@@ -27,6 +26,16 @@ logger = get_logger(__name__)
 
 
 EngineFactory = Callable[..., Any]
+
+# Default backtest config for registry-driven instantiation.
+# In production, callers should override via ``.get("production", config=...)``.
+_DEFAULT_CONFIG: dict[str, Any] = {
+    "initial_capital": 1000000,
+    "commission_rate": 0.0003,
+    "slippage_rate": 0.001,
+    "stamp_tax": 0.00025,
+    "slippage_model": "tick",
+}
 
 
 class BacktestEngineRegistry:
@@ -46,8 +55,11 @@ class BacktestEngineRegistry:
         self._factories[name] = factory
         self._descriptions[name] = description
 
-    def get(self, name: str = "production") -> Any:
-        """Instantiate and return the engine registered under *name*."""
+    def get(self, name: str = "production", **kwargs: Any) -> Any:
+        """Instantiate and return the engine registered under *name*.
+
+        Extra kwargs are forwarded to the factory (e.g. ``config``, ``codes``).
+        """
         factory = self._factories.get(name)
         if factory is None:
             raise KeyError(
@@ -62,7 +74,7 @@ class BacktestEngineRegistry:
                 stacklevel=2,
             )
             logger.warning("Instantiating deprecated backtest engine '%s'", name)
-        return factory()
+        return factory(**kwargs)
 
     def is_registered(self, name: str) -> bool:
         return name in self._factories
@@ -82,23 +94,26 @@ def get_backtest_engine_registry() -> BacktestEngineRegistry:
 
     _registry = BacktestEngineRegistry()
 
-    # Production: CompositeEngine (and its per-market sub-engines).
-    def _make_production() -> Any:
+    # Production: CompositeEngine family.
+    def _make_production(**kwargs: Any) -> Any:
         from app.infrastructure.agent.backtest.engines.composite import CompositeEngine
 
-        return CompositeEngine()
+        cfg = kwargs.get("config", dict(_DEFAULT_CONFIG))
+        codes = kwargs.get("codes", ["000300.SH"])
+        return CompositeEngine(config=cfg, codes=codes)
 
     _registry.register(
         "production",
         _make_production,
-        description="CompositeEngine with per-market sub-engines (A股 T+1, fees, slippage)",
+        description="CompositeEngine with per-market sub-engines (A-shares T+1, fees, slippage)",
     )
 
     # Legacy: original BacktestEngine (event-driven, single/portfolio).
-    def _make_legacy() -> Any:
+    def _make_legacy(**kwargs: Any) -> Any:
         from app.infrastructure.providers.backtest_engine import BacktestEngine
 
-        return BacktestEngine()
+        cfg = kwargs.get("config", dict(_DEFAULT_CONFIG))
+        return BacktestEngine(config=cfg)
 
     _registry.register(
         "legacy",
@@ -107,7 +122,7 @@ def get_backtest_engine_registry() -> BacktestEngineRegistry:
     )
 
     # Preview: FastBacktestEngine for the strategy wizard.
-    def _make_preview() -> Any:
+    def _make_preview(**kwargs: Any) -> Any:
         from app.modules.strategy.services.strategy.fast_backtest_engine import (
             FastBacktestEngine,
         )

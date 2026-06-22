@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: quant-atlas
+  labels:
+    name: quant-atlas
+    app.kubernetes.io/name: quant-atlas
+    app.kubernetes.io/managed-by: kubectl

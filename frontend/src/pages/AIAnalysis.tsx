@@ -3,6 +3,10 @@ import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
+function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
+}
+
 const MARKETS = ["CN", "HK", "US"] as const;
 
 type AnalysisResult = {
@@ -42,31 +46,31 @@ export function AIAnalysisPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto max-w-[1400px] space-y-5">
       <div>
         <h1 className="text-2xl font-bold">AI 分析</h1>
-        <p className="text-sm text-slate-500">输入标的代码，获取 AI 多维度分析报告</p>
+        <p className="text-sm text-zinc-500">输入标的代码，获取 AI 多维度分析报告</p>
       </div>
 
-      <div className="glass-card flex flex-wrap items-end gap-3 p-4">
+      <Panel className="flex flex-wrap items-end gap-3 p-4">
         <div>
-          <label className="text-xs font-semibold text-slate-500">标的</label>
+          <label className="text-xs font-semibold text-zinc-500">标的</label>
           <input
             type="text"
-            className="input input-bordered input-sm mt-1 w-40"
+            className="rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:border-emerald-500/40 focus:outline-none focus:ring-1 focus:ring-emerald-500/20 mt-1 w-40"
             placeholder="600519"
             value={symbol}
             onChange={(e) => setSymbol(e.target.value)}
           />
         </div>
         <div>
-          <label className="text-xs font-semibold text-slate-500">市场</label>
+          <label className="text-xs font-semibold text-zinc-500">市场</label>
           <div className="mt-1 flex gap-1">
             {MARKETS.map((m) => (
               <button
                 key={m}
                 type="button"
-                className={`btn btn-sm ${market === m ? "btn-primary" : "btn-ghost"}`}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${market === m ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30 hover:bg-emerald-500/20" : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"}`}
                 onClick={() => setMarket(m)}
               >
                 {m}
@@ -76,7 +80,7 @@ export function AIAnalysisPage() {
         </div>
         <button
           type="button"
-          className="btn btn-primary btn-sm"
+          className="rounded-lg bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-400 ring-1 ring-emerald-500/30 transition-colors hover:bg-emerald-500/20"
           onClick={handleSubmit}
           disabled={!symbol.trim() || isLoading}
         >
@@ -86,71 +90,71 @@ export function AIAnalysisPage() {
             "开始分析"
           )}
         </button>
-      </div>
+      </Panel>
 
-      {error && <div className="alert alert-error">{error.message}</div>}
+      {error && <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">{error.message}</div>}
       {isLoading && <PageSkeleton rows={4} />}
 
       {!submitted && !isLoading && (
-        <div className="glass-card flex flex-col items-center gap-3 p-8 text-center">
+        <Panel className="flex flex-col items-center gap-3 p-8 text-center">
           <div className="text-4xl">📊</div>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-zinc-400">
             输入标的代码并选择市场，开始 AI 分析
           </p>
-        </div>
+        </Panel>
       )}
 
       {data && !isLoading && (
-        <div className="glass-card space-y-4 p-4">
+        <Panel className="space-y-4 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-bold">
                 {data.symbol}
-                <span className="ml-2 text-xs font-normal text-slate-500">{data.market}</span>
+                <span className="ml-2 text-xs font-normal text-zinc-500">{data.market}</span>
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400">
                 分析时间：{new Date(data.generated_at).toLocaleString("zh-CN")}
               </p>
             </div>
             {data.recommendation && (
-              <span className="badge badge-lg badge-primary">{data.recommendation}</span>
+              <span className="rounded px-3 py-1.5 font-mono text-xs font-semibold bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30">{data.recommendation}</span>
             )}
           </div>
 
           {data.summary && (
-            <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-              <h3 className="mb-1 text-xs font-bold text-slate-500">摘要</h3>
+            <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+              <h3 className="mb-1 text-xs font-bold text-zinc-500">摘要</h3>
               <p className="text-sm">{data.summary}</p>
             </div>
           )}
 
           <div className="grid gap-3 md:grid-cols-2">
             {data.technical && (
-              <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                <h3 className="mb-1 text-xs font-bold text-slate-500">技术分析</h3>
+              <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                <h3 className="mb-1 text-xs font-bold text-zinc-500">技术分析</h3>
                 <p className="text-sm whitespace-pre-wrap">{data.technical}</p>
               </div>
             )}
             {data.fundamental && (
-              <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                <h3 className="mb-1 text-xs font-bold text-slate-500">基本面</h3>
+              <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                <h3 className="mb-1 text-xs font-bold text-zinc-500">基本面</h3>
                 <p className="text-sm whitespace-pre-wrap">{data.fundamental}</p>
               </div>
             )}
             {data.sentiment && (
-              <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                <h3 className="mb-1 text-xs font-bold text-slate-500">市场情绪</h3>
+              <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                <h3 className="mb-1 text-xs font-bold text-zinc-500">市场情绪</h3>
                 <p className="text-sm whitespace-pre-wrap">{data.sentiment}</p>
               </div>
             )}
             {data.risk && (
-              <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-800">
-                <h3 className="mb-1 text-xs font-bold text-slate-500">风险提示</h3>
+              <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
+                <h3 className="mb-1 text-xs font-bold text-zinc-500">风险提示</h3>
                 <p className="text-sm whitespace-pre-wrap">{data.risk}</p>
               </div>
             )}
           </div>
-        </div>
+        </Panel>
       )}
     </div>
   );

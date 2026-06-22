@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}Research Canvas - Quant Atlas 10.0{% endblock %}
 
@@ -9,7 +9,7 @@
 
 {% block spa_switcher %}
 <a href="/app/research-canvas" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('research-canvas')">
+   data-spa-switcher="research-canvas">
   试试新版 →
 </a>
 {% endblock %}

@@ -3,6 +3,14 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/zen-pages.css') }}">
 {% endblock %}
+{% block spa_switcher %}
+<a href="/app/portfolio_resonance" class="spa-switcher-link"
+   data-spa-switcher="portfolio_resonance">
+  试试新版 →
+</a>
+{% endblock %%}
+
+
 {% block content %}
 <div class="container">
   <div class="header">

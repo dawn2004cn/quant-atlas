@@ -6,8 +6,12 @@ from typing import Any, Dict, List, Optional
 class CollaborationService:
     """Service for team/collaboration operations backed by a repository."""
 
-    def __init__(self, collaboration_repository: Any) -> None:
-        self._repo = collaboration_repository
+    def __init__(
+        self,
+        collaboration_repository: Any = None,
+        repository: Any = None,
+    ) -> None:
+        self._repo = collaboration_repository or repository
 
     def create_team(self, user_id: int, name: str, slug: Optional[str] = None) -> Dict[str, Any]:
         """Create a new team and assign the creator as owner."""

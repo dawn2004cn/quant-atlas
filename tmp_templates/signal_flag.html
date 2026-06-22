@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% block spa_switcher %}
+<a href="/app/signal-flag" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('signal-flag')">
+  试试新版 &#8594;
+</a>
+{% endblock %}
+
+
+{% block title %}信号鏃?· Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="sfGlobalError" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger" role="alert"></div>
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="信号旗后续路寰?>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">先沉淀到观察单</div>
+        <p class="qc-ux-step-desc">命中信号不等于下单；用模拟观察单记录入场、止损与目标，再对照操盘台复盘銆?/p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.signal_observations') }}">模拟观察鍗?/a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">回到盘面语境</div>
+        <p class="qc-ux-step-desc">对照今日操盘台与市场全景，避免「只扫信号不看环境」銆?/p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘鍙?/a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.market_panorama') }}">市场全景</a>
+    </div>
+</section>
+
+<div class="sf-page">
+    <section class="section-shell sf-hero">
+        <div class="hero-caption">Signal Flag</div>
+        <h1 class="page-title">信号鏃?/h1>
+        <p class="page-subtitle">
+            使用平台已注册的 <strong>全部技术策鐣?/strong>（与回测同源）{% if enable_qlib %}鍙?<strong>Qlib 简化均线信鍙?/strong>（MA5/MA20 金叉，需开鍚?ENABLE_QLIB）{% endif %}锛?
+            在本地缓存的全市场标的范围内扫描历史 K 线：<strong>最新一鏍?K 绾?/strong>上出鐜?strong>涔?鍗?/strong>信号的策略均会入库（<code>signal_strategies</code> 为买点元数据锛?code>signal_strategies_sell</code> 为卖点元数据，供基金经理等下游引用）銆?
+            默认扫描成交额前 <strong>800</strong> 只（与基金经鐞?universe 对齐）；请求浣?<code>max_stocks=0</code> 为缓存内全量（受服务器硬上限）。股票池按交易日落库，可切换日期回看銆?
+            {% if enable_celery %}开鍚?Celery锛?code>ENABLE_CELERY=1</code>）且已启鍔?Worker 时，「运行今日扫描」将<strong>异步投閫?/strong>，结果在<strong>消息中心</strong>查看；未开启时在同请求内同步执行（可能超时）。{% else %}当前未开鍚?Celery，扫描为<strong>同步</strong>执行，标的数量过大时可能超时；生产环境建璁?<code>ENABLE_CELERY=1</code> 并启鍔?Worker。{% endif %}
+        </p>
+    </section>
+
+    <section class="section-shell sf-panel">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">股票姹?/h2>
+                <div class="panel-subtitle">列与首页全景卡片对齐，并附多周期策略与安全分</div>
+            </div>
+        </div>
+        <div class="sf-toolbar">
+            <div class="field">
+                <label class="label" for="poolDate">池日鏈?/label>
+                <input class="input-soft" type="date" id="poolDate">
+            </div>
+            <button type="button" class="btn-brand" id="btnLoad">加载该日股票姹?/button>
+            <button type="button" class="btn-soft" id="btnScan">运行该日扫描</button>
+        </div>
+        <p class="empty-hint sf-hint-mt">
+            「运行今日扫描」：{% if enable_celery %}提交后由 Worker 在后台跑（默认按成交额前 800 只、全注册策略；买卖信号均入库），完成后请鍒?<a href="/message-center">消息中心</a> 看「信号旗·全市场池扫描」条目，再回到本页点「加载该日股票池」。{% else %}在当前请求内直接扫描，可能耗时数分钟；完成后本页会自动刷新股票池。{% endif %}
+        </p>
+        <div id="scanBanner" class="qa-is-hidden mt-3"></div>
+        <div class="table-responsive mt-3">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>代码</th>
+                        <th>名称</th>
+                        <th>现价</th>
+                        <th>涨跌%</th>
+                        <th>成交棰?/th>
+                        <th>换手%</th>
+                        <th>来源</th>
+                        <th>行业</th>
+                        <th>买点策略</th>
+                        <th>卖点策略</th>
+                        <th>长线</th>
+                        <th>中线</th>
+                        <th>短线</th>
+                        <th>安全鍒?/th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="poolBody">
+                    <tr><td colspan="15" class="text-center text-muted">选择日期后点击「加载该日股票池銆?/td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+function formatAmount(amount) {
+    const value = Number(amount || 0);
+    if (value >= 100000000) return (value / 100000000).toFixed(2) + ' 浜?;
+    if (value >= 10000) return (value / 10000).toFixed(2) + ' 涓?;
+    return value.toFixed(0);
+}
+function escHtml(t) {
+    return $('<div>').text(String(t)).html();
+}
+function joinHz(h) {
+    h = h || {};
+    const b = (h.buy && h.buy.length) ? h.buy.join('锛?) : '鈥?;
+    const s = (h.sell && h.sell.length) ? h.sell.join('锛?) : '鈥?;
+    return '<div class="hz-cell"><div><span class="tag">涔?/span>' + escHtml(b) + '</div><div><span class="tag">鍗?/span>' + escHtml(s) + '</div></div>';
+}
+function scoreClass(v) {
+    const n = Number(v || 0);
+    if (n >= 68) return 'high';
+    if (n <= 42) return 'low';
+    return '';
+}
+function sfHideError() {
+    $('#sfGlobalError').hide().empty();
+}
+function sfShowError(msg) {
+    const safe = $('<div/>').text(msg || '未知错误').html();
+    $('#sfGlobalError').html(
+        '<div class="qc-ux-banner__title">股票池加载失璐?/div>' +
+        '<div class="qc-ux-banner__body">' + safe + '</div>' +
+        '<button type="button" class="btn-brand btn-sm" data-sf-action="retry-load">重试</button> ' +
+        '<a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>'
+    ).show();
+}
+function renderRows(items) {
+    if (!items || !items.length) {
+        $('#poolBody').html(
+            '<tr><td colspan="15" class="text-center text-muted">该日无股票池数据。可先「运行今日扫描」，异步任务完成后到 ' +
+            '<a href="/message-center">消息中心</a> 查看，再回到本页加载该日池子銆?/td></tr>'
+        );
+        return;
+    }
+    $('#poolBody').html(items.map(function (it) {
+        const chg = Number(it.change_pct || 0);
+        const chgCls = chg >= 0 ? 'positive' : 'negative';
+        const sigs = (it.signal_strategies || []).map(function (x) { return x.name || x.id; }).join('銆?) || '鈥?;
+        const sigsSell = (it.signal_strategies_sell || []).map(function (x) { return x.name || x.id; }).join('銆?) || '鈥?;
+        const sigHtml = '<div class="sig-names">' + escHtml(sigs) + '</div>';
+        const sigSellHtml = '<div class="sig-names">' + escHtml(sigsSell) + '</div>';
+        const sc = Number(it.safety_score || 0);
+        return '<tr class="sf-row-click" data-code="' + escHtml(it.code || '') + '">' +
+            '<td class="mono">' + escHtml(it.code || '') + '</td>' +
+            '<td>' + escHtml(it.name || '') + '</td>' +
+            '<td>¥' + Number(it.price || 0).toFixed(2) + '</td>' +
+            '<td class="' + chgCls + '">' + (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%</td>' +
+            '<td>' + formatAmount(it.amount) + '</td>' +
+            '<td>' + Number(it.turnover || 0).toFixed(2) + '%</td>' +
+            '<td>' + escHtml(it.source || '') + '</td>' +
+            '<td>' + escHtml(it.industry || '') + '</td>' +
+            '<td>' + sigHtml + '</td>' +
+            '<td>' + sigSellHtml + '</td>' +
+            '<td>' + joinHz(it.long_horizon) + '</td>' +
+            '<td>' + joinHz(it.mid_horizon) + '</td>' +
+            '<td>' + joinHz(it.short_horizon) + '</td>' +
+            '<td><span class="badge-score ' + scoreClass(sc) + '">' + sc.toFixed(1) + '</span></td>' +
+            '<td><div class="sf-actions">' +
+            qcWatchlistButton(it.code, it.name || it.code, '加自閫?, 'btn-soft btn-sm') +
+            '<button type="button" class="btn-soft btn-sm" data-sf-action="add-observation" data-obs-payload="' + encodeURIComponent(JSON.stringify(it)) + '">加入观察</button>' +
+            '</div></td>' +
+            '</tr>';
+    }).join(''));
+    $('#poolBody tr[data-code]').on('click', function () {
+        var c = $(this).data('code');
+        if (c) window.location.href = '/stock/' + encodeURIComponent(c);
+    });
+}
+function addObservationFromSignal(raw) {
+    var it = typeof raw === 'string' ? JSON.parse(decodeURIComponent(raw)) : raw;
+    var sigs = (it.signal_strategies || []).map(function(x) { return x.name || x.id; }).join('銆?);
+    $.ajax({
+        url: '/api/v1/signal-observations',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            symbol: it.code,
+            name: it.name,
+            market: 'CN',
+            entry_price: Number(it.price || 0),
+            stop_loss: Number(it.price || 0) * 0.93,
+            target_price: Number(it.price || 0) * 1.12,
+            source: 'signal_flag',
+            reason: sigs || '信号旗候閫?
+        })
+    }).done(function() {
+        $('#scanBanner').show().removeClass('alert-danger alert-info').addClass('alert alert-success')
+            .html('已加入模拟观察单锛?a href="/signal-observations">打开观察鍗?/a>');
+    }).fail(function() {
+        showToast('加入观察单失璐?, 'error');
+    });
+}
+function setDefaultDate() {
+    var d = new Date();
+    $('#poolDate').val(d.toISOString().split('T')[0]);
+}
+function loadPool() {
+    var d = $('#poolDate').val();
+    if (!d) { showToast('请选择日期', 'warning'); return; }
+    sfHideError();
+    $('#poolBody').html('<tr><td colspan="15" class="text-center text-muted">加载中鈥?/td></tr>');
+    $.getJSON('/api/v1/signal-flag/pool', { date: d })
+        .done(function (res) {
+            var body = res.data !== undefined ? res.data : res;
+            renderRows(body.items || []);
+        })
+        .fail(function (xhr) {
+            var detail = (xhr && xhr.responseJSON && xhr.responseJSON.message)
+                ? String(xhr.responseJSON.message)
+                : (xhr.statusText || '网络或服务异甯?);
+            sfShowError(detail);
+            $('#poolBody').html(
+                '<tr><td colspan="15" class="text-center text-danger">加载失败。请检查登录状态或稍后重试銆?/td></tr>' +
+                '<tr><td colspan="15" class="text-center pt-2"><button type="button" class="btn-brand btn-sm" data-sf-action="retry-load">重试</button></td></tr>'
+            );
+        });
+}
+function runScan() {
+    confirmAction('确认运行全市场信号扫描？耗时取决于标的数量与机器性能銆?, function () {
+        var d = $('#poolDate').val();
+        $('#btnScan').prop('disabled', true);
+        $('#scanBanner').show().removeClass('alert-danger').addClass('alert alert-info')
+            .text('扫描进行中，请稍候鈥?);
+        $.ajax({
+            url: '/api/v1/signal-flag/scan',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ pool_date: d || undefined, max_stocks: 800, lookback_days: 160 })
+        }).done(function (res) {
+            var s = res.data !== undefined ? res.data : res;
+            if (s.mode === 'async') {
+                var tid = s.task_id || '';
+                $('#scanBanner').removeClass('alert-info').addClass('alert alert-success').html(
+                    (s.message || '任务已提浜?) +
+                    ' 任务 ID锛?code class="mono">' + $('<div>').text(tid).html() + '</code> ' +
+                    '<a href="/message-center">打开消息中心</a>'
+                );
+                return;
+            }
+            $('#scanBanner').removeClass('alert-info').addClass('alert alert-success')
+                .text((s.message || '完成') + ' 命中 ' + (s.hits || 0) + ' 只，写入 ' + (s.persisted || 0) + ' 条銆?);
+            loadPool();
+        }).fail(function (xhr) {
+            var msg = '扫描失败';
+            try {
+                var j = xhr.responseJSON || JSON.parse(xhr.responseText || '{}');
+                if (j.error && j.error.message) msg = j.error.message;
+            } catch (e) {}
+            $('#scanBanner').removeClass('alert-info').addClass('alert alert-danger').text(msg);
+        }).always(function () {
+            $('#btnScan').prop('disabled', false);
+        });
+    });
+}
+$(function () {
+    setDefaultDate();
+    $('#btnLoad').on('click', loadPool);
+    $('#btnScan').on('click', runScan);
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-sf-action]');
+        if (!el) return;
+        const action = el.dataset.sfAction;
+        if (action === 'retry-load') { sfHideError(); loadPool(); }
+        else if (action === 'add-observation') {
+            e.stopPropagation();
+            addObservationFromSignal(el.dataset.obsPayload || '');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 """SocketIO init and optional quote broadcast loop."""
 
 import threading
@@ -26,7 +26,7 @@ def _broadcast_loop(app: Any, market_service: Any) -> None:
     from app.infrastructure.realtime.websocket_adapter import broadcast_quote_update
 
     gateway = get_smart_degrade_gateway()
-    interval = max(5, get_runtime_int("WS_QUOTE_INTERVAL_SEC", 15))
+    interval = max(1, get_runtime_int("WS_QUOTE_INTERVAL_SEC", 5))
     while True:
         try:
             with app.app_context():
@@ -55,7 +55,9 @@ def _broadcast_loop(app: Any, market_service: Any) -> None:
                 fetch_syms = list(dict.fromkeys(stream_syms + batch_syms))
                 if not fetch_syms:
                     fetch_syms = stream_syms or symbols[:5]
-                quotes = market_service.get_realtime_quotes(fetch_syms, market=MarketCode.CN)
+                quotes = getattr(market_service, "get_realtime_quotes", lambda *a, **kw: None)(fetch_syms, market=MarketCode.CN)
+                if quotes is None:
+                    quotes = []
                 from app.core.event_bus import MarketDataUpdatedEvent, get_event_bus
 
                 bus = get_event_bus()

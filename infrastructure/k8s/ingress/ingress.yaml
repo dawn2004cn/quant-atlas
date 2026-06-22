@@ -1,0 +1,74 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: quant-atlas-ingress
+  namespace: quant-atlas
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.quant-atlas.local
+      http:
+        paths:
+          - path: /api/v1/market(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: market-data
+                port:
+                  number: 5101
+          - path: /strategy(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: strategy
+                port:
+                  number: 5201
+          - path: /ai-agent(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: ai-agent
+                port:
+                  number: 5301
+          - path: /portfolio-risk(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: portfolio-risk
+                port:
+                  number: 5401
+          - path: /execution(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: execution
+                port:
+                  number: 5501
+          - path: /system(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: system-user
+                port:
+                  number: 5601
+          - path: /data(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: data
+                port:
+                  number: 5701
+          - path: /research(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: research
+                port:
+                  number: 5801

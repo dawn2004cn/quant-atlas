@@ -80,6 +80,8 @@ class StockApplicationService(BaseApplicationService):
         news_provider=None,
         global_market_service=None,
         stock_cache=None,
+        strategy_provider=None,
+        **kwargs,
     ):
         super().__init__()
         self._market_provider = market_provider

@@ -1,10 +1,18 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
-{% block title %}个人中心 - Quant Atlas{% endblock %}
+{% block title %}涓汉涓績 - Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
 {% endblock %}
+{% block spa_switcher %}
+<a href="/app/profile" class="spa-switcher-link"
+   data-spa-switcher="profile">
+  璇曡瘯鏂扮増 鈫?
+</a>
+{% endblock %%}
+
+
 
 {% block content %}
 {% for h in ux_env_hints|default([]) %}
@@ -17,20 +25,20 @@
 </div>
 {% endfor %}
 
-<section class="qc-ux-onboarding" aria-label="个人中心提示">
+<section class="qc-ux-onboarding" aria-label="涓汉涓績鎻愮ず">
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">先把偏好配对</div>
-        <p class="qc-ux-step-desc">画像与权限会影响推荐与解释方式；建议结合观察单的复盘结果来迭代个人偏好。</p>
-        <a class="btn-brand btn-sm" href="{{ url_for('pages.signal_observations') }}">观察单复盘</a>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.retail_assistant') }}">散户助手</a>
+        <div class="qc-ux-step-title">鍏堟妸鍋忓ソ閰嶅</div>
+        <p class="qc-ux-step-desc">鐢诲儚涓庢潈闄愪細褰卞搷鎺ㄨ崘涓庤В閲婃柟寮忥紱寤鸿缁撳悎瑙傚療鍗曠殑澶嶇洏缁撴灉鏉ヨ凯浠ｄ釜浜哄亸濂姐€?/p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.signal_observations') }}">瑙傚療鍗曞鐩?/a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.retail_assistant') }}">鏁ｆ埛鍔╂墜</a>
     </div>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">2</span>
-        <div class="qc-ux-step-title">异常先看集成</div>
-        <p class="qc-ux-step-desc">若权益、同步或 AI 能力显示异常，优先去集成中枢确认运行状态。</p>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.message_center') }}">消息中心</a>
+        <div class="qc-ux-step-title">寮傚父鍏堢湅闆嗘垚</div>
+        <p class="qc-ux-step-desc">鑻ユ潈鐩娿€佸悓姝ユ垨 AI 鑳藉姏鏄剧ず寮傚父锛屼紭鍏堝幓闆嗘垚涓灑纭杩愯鐘舵€併€?/p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">闆嗘垚涓灑</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.message_center') }}">娑堟伅涓績</a>
     </div>
 </section>
 
@@ -39,99 +47,99 @@
         <img src="{{ current_user.avatar_display_url }}" width="80" height="80" class="pf-avatar">
         <div>
             <h1 class="page-title pf-hero-title">{{ username }}</h1>
-            <p class="page-subtitle pf-hero-sub">管理您的量化投研偏好、数据权益与系统安全。</p>
+            <p class="page-subtitle pf-hero-sub">绠＄悊鎮ㄧ殑閲忓寲鎶曠爺鍋忓ソ銆佹暟鎹潈鐩婁笌绯荤粺瀹夊叏銆?/p>
         </div>
     </div>
 </div>
 
 <div class="profile-main">
     <div class="profile-nav">
-        <div class="nav-tab active" data-tab="basic">👤 基础设置</div>
-        <div class="nav-tab" data-tab="invest">📈 投研画像</div>
-        <div class="nav-tab" data-tab="tier">💎 权限权益</div>
-        <div class="nav-tab" data-tab="security">🔒 安全审计</div>
+        <div class="nav-tab active" data-tab="basic">馃懁 鍩虹璁剧疆</div>
+        <div class="nav-tab" data-tab="invest">馃搱 鎶曠爺鐢诲儚</div>
+        <div class="nav-tab" data-tab="tier">馃拵 鏉冮檺鏉冪泭</div>
+        <div class="nav-tab" data-tab="security">馃敀 瀹夊叏瀹¤</div>
     </div>
 
     <div class="profile-body">
-        <!-- 基础设置 -->
+        <!-- 鍩虹璁剧疆 -->
         <div class="tab-content active" id="tab-basic">
             <div class="setting-card">
-                <div class="panel-title mb-4">账户偏好</div>
+                <div class="panel-title mb-4">璐︽埛鍋忓ソ</div>
                 <div class="form-group mb-4">
-                    <label class="label">界面字体大小</label>
+                    <label class="label">鐣岄潰瀛椾綋澶у皬</label>
                     <select class="select-soft" id="fontSize">
-                        <option value="small">偏小</option>
-                        <option value="normal" selected>标准 (推荐)</option>
-                        <option value="large">偏大</option>
+                        <option value="small">鍋忓皬</option>
+                        <option value="normal" selected>鏍囧噯 (鎺ㄨ崘)</option>
+                        <option value="large">鍋忓ぇ</option>
                     </select>
                 </div>
-                <button class="btn-brand" type="button" data-pf-action="save-basic">保存偏好</button>
+                <button class="btn-brand" type="button" data-pf-action="save-basic">淇濆瓨鍋忓ソ</button>
             </div>
             
             <div class="setting-card">
-                <div class="panel-title mb-4">通知中心</div>
+                <div class="panel-title mb-4">閫氱煡涓績</div>
                 <div id="notifyGrid" class="pf-notify-grid">
                     <!-- Notify checkboxes here -->
                 </div>
             </div>
         </div>
 
-        <!-- 投研画像 -->
+        <!-- 鎶曠爺鐢诲儚 -->
         <div class="tab-content" id="tab-invest">
             <div class="setting-card">
-                <div class="panel-title mb-4">核心画像</div>
+                <div class="panel-title mb-4">鏍稿績鐢诲儚</div>
                 <form id="investForm">
                     <div class="pf-form-grid-2">
                         <div class="form-group">
-                            <label class="label">风险偏好</label>
+                            <label class="label">椋庨櫓鍋忓ソ</label>
                             <select class="select-soft" id="riskLevel">
-                                <option value="conservative">稳健型</option>
-                                <option value="balanced">均衡型</option>
-                                <option value="aggressive">进取型</option>
+                                <option value="conservative">绋冲仴鍨?/option>
+                                <option value="balanced">鍧囪　鍨?/option>
+                                <option value="aggressive">杩涘彇鍨?/option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="label">操作周期</label>
+                            <label class="label">鎿嶄綔鍛ㄦ湡</label>
                             <select class="select-soft" id="horizon">
-                                <option value="short">短线交易</option>
-                                <option value="swing">波段操作</option>
-                                <option value="mid">中线持有</option>
-                                <option value="long">长线/价值</option>
+                                <option value="short">鐭嚎浜ゆ槗</option>
+                                <option value="swing">娉㈡鎿嶄綔</option>
+                                <option value="mid">涓嚎鎸佹湁</option>
+                                <option value="long">闀跨嚎/浠峰€?/option>
                             </select>
                         </div>
                     </div>
-                    <button class="btn-brand mt-4">同步画像到 AI 专家</button>
+                    <button class="btn-brand mt-4">鍚屾鐢诲儚鍒?AI 涓撳</button>
                 </form>
             </div>
         </div>
 
-        <!-- 权限权益 -->
+        <!-- 鏉冮檺鏉冪泭 -->
         <div class="tab-content" id="tab-tier">
             <div class="tier-card mb-4">
                 <div class="tier-kicker">Current Tier</div>
                 <div class="tier-label" id="tierName">Quant Researcher</div>
                 <div class="pf-tier-note">
-                    已解锁：50+ 策略回测、RD-Agent 因子演化、AI 投委会。
+                    宸茶В閿侊細50+ 绛栫暐鍥炴祴銆丷D-Agent 鍥犲瓙婕斿寲銆丄I 鎶曞浼氥€?
                 </div>
             </div>
             <div id="tierDetails" class="setting-card">
-                <div class="loading-state">同步链上权益中...</div>
+                <div class="loading-state">鍚屾閾句笂鏉冪泭涓?..</div>
             </div>
         </div>
 
-        <!-- 安全审计 -->
+        <!-- 瀹夊叏瀹¤ -->
         <div class="tab-content" id="tab-security">
             <div class="setting-card">
-                <div class="panel-title mb-4">修改密码</div>
-                <input type="password" class="input-soft mb-3" placeholder="当前密码">
-                <input type="password" class="input-soft mb-3" placeholder="新密码">
-                <button class="btn-brand">提交更新</button>
+                <div class="panel-title mb-4">淇敼瀵嗙爜</div>
+                <input type="password" class="input-soft mb-3" placeholder="褰撳墠瀵嗙爜">
+                <input type="password" class="input-soft mb-3" placeholder="鏂板瘑鐮?>
+                <button class="btn-brand">鎻愪氦鏇存柊</button>
             </div>
             
             <div class="setting-card">
-                <div class="panel-title mb-3">审计足迹</div>
+                <div class="panel-title mb-3">瀹¤瓒宠抗</div>
                 <div id="auditList">
-                    <div class="loading-state">加载行为日志...</div>
+                    <div class="loading-state">鍔犺浇琛屼负鏃ュ織...</div>
                 </div>
             </div>
         </div>
@@ -156,7 +164,7 @@ async function loadProfileData() {
         $('#fontSize').val(prefs.font_size || 'normal');
     } catch(e) {}
 
-    // 权限
+    // 鏉冮檺
     try {
         const res = await fetch('/api/v1/user/access-policy');
         const p = (await res.json()).data || {};
@@ -164,34 +172,34 @@ async function loadProfileData() {
         $('#tierDetails').html((p.features || []).map(f => `
             <div class="audit-row">
                 <span class="pf-audit-name">${f.name}</span>
-                <span class="badge-soft">${f.enabled ? '✅ 已解锁' : '🔒 待升级'}</span>
+                <span class="badge-soft">${f.enabled ? '鉁?宸茶В閿? : '馃敀 寰呭崌绾?}</span>
             </div>
         `).join(''));
     } catch(e) {}
 
-    // 足迹
+    // 瓒宠抗
     try {
         const res = await fetch('/api/v1/user/audit-trail?limit=10');
         const items = (await res.json()).data || [];
         $('#auditList').html(items.map(it => `
             <div class="audit-row">
-                <span class="pf-audit-action">${it.action} · ${it.target_id || ''}</span>
+                <span class="pf-audit-action">${it.action} 路 ${it.target_id || ''}</span>
                 <span class="muted pf-audit-time">${it.created_at.split('T')[1].slice(0,5)}</span>
             </div>
-        `).join('') || '<div class="muted">暂无操作记录</div>');
+        `).join('') || '<div class="muted">鏆傛棤鎿嶄綔璁板綍</div>');
     } catch(e) {}
 
     loadNotificationPrefs();
 }
 
 const NOTIFY_PREF_ROWS = [
-    { key: 'site_message', label: '站内消息', hint: '系统与任务类通知' },
-    { key: 'price_alerts', label: '价格提醒', hint: '自选/持仓价格异动' },
-    { key: 'risk_alerts', label: '风险提醒', hint: '组合与风控类告警' },
-    { key: 'psychology_alerts', label: '心理卫士推送', hint: '关闭后仍可在操盘台看到横幅，但不会写入消息中心' },
-    { key: 'weekly_review', label: '周复盘', hint: '周期性复盘提醒' },
-    { key: 'wechat', label: '微信', hint: '需绑定后生效' },
-    { key: 'sms', label: '短信', hint: '需绑定后生效' },
+    { key: 'site_message', label: '绔欏唴娑堟伅', hint: '绯荤粺涓庝换鍔＄被閫氱煡' },
+    { key: 'price_alerts', label: '浠锋牸鎻愰啋', hint: '鑷€?鎸佷粨浠锋牸寮傚姩' },
+    { key: 'risk_alerts', label: '椋庨櫓鎻愰啋', hint: '缁勫悎涓庨鎺х被鍛婅' },
+    { key: 'psychology_alerts', label: '蹇冪悊鍗＋鎺ㄩ€?, hint: '鍏抽棴鍚庝粛鍙湪鎿嶇洏鍙扮湅鍒版í骞咃紝浣嗕笉浼氬啓鍏ユ秷鎭腑蹇? },
+    { key: 'weekly_review', label: '鍛ㄥ鐩?, hint: '鍛ㄦ湡鎬у鐩樻彁閱? },
+    { key: 'wechat', label: '寰俊', hint: '闇€缁戝畾鍚庣敓鏁? },
+    { key: 'sms', label: '鐭俊', hint: '闇€缁戝畾鍚庣敓鏁? },
 ];
 
 let _notifyPrefs = {};
@@ -199,7 +207,7 @@ let _notifyPrefs = {};
 async function loadNotificationPrefs() {
     const grid = document.getElementById('notifyGrid');
     if (!grid) return;
-    grid.innerHTML = '<div class="text-muted text-sm">加载通知偏好…</div>';
+    grid.innerHTML = '<div class="text-muted text-sm">鍔犺浇閫氱煡鍋忓ソ鈥?/div>';
     try {
         const res = await fetch('/api/v1/user/lifecycle', { credentials: 'same-origin' });
         const json = await res.json();
@@ -214,10 +222,10 @@ async function loadNotificationPrefs() {
                 '</label>'
             );
         }).join('') +
-            '<button type="button" class="btn-brand btn-sm mt-2" id="saveNotifyBtn">保存通知偏好</button>';
+            '<button type="button" class="btn-brand btn-sm mt-2" id="saveNotifyBtn">淇濆瓨閫氱煡鍋忓ソ</button>';
         document.getElementById('saveNotifyBtn').addEventListener('click', saveNotificationPrefs);
     } catch (e) {
-        grid.innerHTML = '<div class="muted">通知偏好加载失败</div>';
+        grid.innerHTML = '<div class="muted">閫氱煡鍋忓ソ鍔犺浇澶辫触</div>';
     }
 }
 
@@ -238,9 +246,9 @@ async function saveNotificationPrefs() {
             throw new Error(json.message || 'save_failed');
         }
         _notifyPrefs = (json.data && json.data.notifications) || patch;
-        showToast('通知偏好已保存', 'success');
+        showToast('閫氱煡鍋忓ソ宸蹭繚瀛?, 'success');
     } catch (e) {
-        showToast('保存失败，请稍后重试', 'error');
+        showToast('淇濆瓨澶辫触锛岃绋嶅悗閲嶈瘯', 'error');
     }
 }
 
@@ -253,9 +261,9 @@ async function saveBasic() {
             body: JSON.stringify({ font_size: fontSize })
         });
         if (!res.ok) throw new Error('save_failed');
-        showToast('偏好已保存', 'success');
+        showToast('鍋忓ソ宸蹭繚瀛?, 'success');
     } catch(e) {
-        showToast('偏好保存失败，请稍后重试', 'error');
+        showToast('鍋忓ソ淇濆瓨澶辫触锛岃绋嶅悗閲嶈瘯', 'error');
     }
 }
 

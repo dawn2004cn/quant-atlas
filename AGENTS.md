@@ -639,3 +639,27 @@ Complete a comprehensive code audit (258K lines, 2073 files), then execute a two
 - `@service_fallback` decorator deployed across 28 route files
 - No business logic changed — all refactoring is purely structural
 
+## Session Summary (2026-06-21) — CSP 合规修复 & 双轨登录验证
+
+### Goal
+移除所有模板中 switcher 的内联 `onclick=` 处理器（违反 CSP nonce 策略），修复 auth/token `SENSITIVE_FIELDS` 过滤 bug，验证双轨登录端到端。
+
+### Fixes
+
+| # | Problem | Root Cause | Fix | Files |
+|---|---------|-----------|-----|-------|
+| **1** | 80 inline handlers in CSP test | `onclick="window.trackSwitcherClick(...)"` in 77 templates | Replaced with `data-spa-switcher="slug"` + delegated listener in `switcher_telemetry.js` | 77 templates + `static/js/switcher_telemetry.js` |
+| **2** | 20 templates broken `%%}` | Automa script inserted `{% block spa_switcher %%}` (double `%`) | Regex replace `%%}` → `%}` | 20 templates |
+| **3** | 3 pre-existing inline handlers in JS strings | `onclick="downloadStrategyCode()"` / `downloadCode(...)` in template-literal HTML | Replaced with `data-action` + delegated listeners | `nl_strategy.html`, `experiment_reporter.html` |
+| **4** | login.html no switcher JS | Standalone layout doesn't extend base.html | Added `switcher_telemetry.js` script tag | `login.html` |
+| **5** | v2_backtest_async: KeyError 'access_token' | `serialize()` `SENSITIVE_FIELDS` strips `access_token` from auth responses | New `_token_response()` bypasses serializer | `app/presentation/api/v2/auth_routes.py` |
+| **6** | v1_ui: `tuple.get_json()` | `success_response` returns `(Response, int)` tuple, test called `resp.get_json()` | Unpack tuple: `resp = resp[0]` | `tests/presentation/test_routes_v1_ui.py` |
+
+### Verified
+- **CSP tests**: 0 inline handlers (baseline met)
+- **Presentation suite**: 243 tests / 6 failures (all pre-existing, net −7 from session)
+- **Flask /login**: 200 OK, data-spa-switcher attr present, no inline onclick
+- **SPA /app/login**: 200 OK (serves React SPA shell)
+- **JWT /api/v2/auth/token**: 200 with wrong creds → 400
+- **App boots**: 14 modules, no new warnings
+

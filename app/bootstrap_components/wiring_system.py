@@ -57,13 +57,11 @@ register_factory(
     ),
 )
 
-register_factory(
-    "strategy_copilot_service",
-    zero_arg_service(
-        "app.modules.strategy.services.strategy_copilot_service",
-        "StrategyCopilotService",
-    ),
-)
+def _make_strategy_copilot_service(reg):
+    from app.modules.strategy.services.strategy.strategy_copilot_service import StrategyCoPilotService
+    return StrategyCoPilotService()
+
+register_factory("strategy_copilot_service", _make_strategy_copilot_service)
 
 register_factory(
     "decision_theater_service",
@@ -123,21 +121,19 @@ register_factory(
     ),
 )
 
-register_factory(
-    "swarm_agent_service",
-    zero_arg_service(
-        "app.modules.ai_agent.services.swarm_agent_service",
-        "SwarmAgentService",
-    ),
-)
+def _make_swarm_agent_service(_reg: Any) -> Any:
+    from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
+    return SwarmAgentService(swarm_port=None, skill_port=None)
 
-register_factory(
-    "swarm_arbiter_service",
-    zero_arg_service(
-        "app.modules.system.services.arbiter_service",
-        "SwarmArbiterService",
-    ),
-)
+register_factory("swarm_agent_service", _make_swarm_agent_service)
+
+def _make_swarm_arbiter_service(reg: Any) -> Any:
+    from app.modules.system.services.arbiter_service import SwarmArbiterService
+    return SwarmArbiterService(
+        swarm_service=reg.get_or_none("swarm_agent_service"),
+    )
+
+register_factory("swarm_arbiter_service", _make_swarm_arbiter_service)
 
 register_factory(
     "jarvis_semantic_router_service",
@@ -280,12 +276,14 @@ register_factory(
 
 
 def _make_collaboration_service(reg: Any) -> Any:
+    from app.config import get_settings
     from app.infrastructure.repositories.deps import create_collaboration_repository
 
     from app.modules.user.services.user.collaboration_service import CollaborationService
 
     repo = create_collaboration_repository(
-        session_factory=getattr(reg, "_session_factory", None)
+        settings=get_settings(),
+        session_factory=getattr(reg, "_session_factory", None),
     )
     return CollaborationService(repository=repo)
 

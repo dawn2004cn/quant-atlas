@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}研报中心 - Quant Atlas{% endblock %}
 
@@ -8,7 +8,7 @@
 
 {% block spa_switcher %}
 <a href="/app/yanbao-hub" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('yanbao-hub')">
+   data-spa-switcher="yanbao-hub">
   试试新版 →
 </a>
 {% endblock %}

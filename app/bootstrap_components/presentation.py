@@ -151,7 +151,7 @@ def register_blueprints(app: Flask, settings: Any = None, api_bundle: Any = None
             enable_dto_validation=True,
             signal_flag_service=getattr(_svc, "signal_flag_service", None),
             investment_manager_service=getattr(_svc, "investment_manager_service", None),
-            moments_service=getattr(_svc, "moments_service", None),
+        
             integration_stack_service=getattr(_svc, "integration_stack_service", None),
             fingpt_application_service=getattr(_svc, "fingpt_application_service", None),
             portfolio_service=getattr(_svc, "portfolio_service", None),
@@ -175,6 +175,33 @@ def register_blueprints(app: Flask, settings: Any = None, api_bundle: Any = None
         app.register_blueprint(pages_bp)
     except Exception as e:
         logger.warning("Could not register pages blueprint: %s", e, exc_info=True)
+
+    # Phase 2A: Initialize dual-write proxy for Market Data Service extraction
+    try:
+        from app.infrastructure.gateway.dual_write_middleware import init_dual_write
+        dual_write = init_dual_write()
+        
+        # Register market data service client if available
+        try:
+            from app.modules.market_data.port_adapter import create_market_data_adapter
+            from app.core.registry import get_registry
+            reg = get_registry()
+            adapter = create_market_data_adapter(reg)
+            
+            # Create a simple HTTP client wrapper for the adapter
+            class MarketDataServiceClient:
+                def call(self, method, path, **kwargs):
+                    # In Phase 2A standalone mode, this would make HTTP calls
+                    # For now, delegate to monolith adapter
+                    return adapter.get_quote("000001", "CN")
+            
+            dual_write.register_service("market_data", MarketDataServiceClient(), traffic_split=0.0)
+            app.extensions["dual_write"] = dual_write
+            logger.info("Dual-write proxy initialized for market_data (Phase 2A)")
+        except Exception as exc:
+            logger.warning("Market data dual-write client unavailable: %s", exc)
+    except Exception as exc:
+        logger.warning("Dual-write initialization skipped: %s", exc)
 
     try:
         from app.presentation.web.auth import create_auth_blueprint

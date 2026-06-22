@@ -19,7 +19,7 @@ def _utc_ts() -> str:
 class SQLiteBasicMarketDataRepository:
     """SQLite implementation of BasicMarketDataRepository."""
 
-    def __init__(self, db_path: Path | None = None) -> None:
+    def __init__(self, db_path: Path | None = None, *, mysql: Any = None, session_factory: Any = None, **kwargs) -> None:
         self._path = Path(db_path or (INSTANCE_DIR / "basic_market_data.db"))
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()

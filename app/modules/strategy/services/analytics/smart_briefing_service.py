@@ -78,7 +78,7 @@ class SmartDailyBriefingService:
 
     def __init__(
         self,
-        strategy_service: StrategyApplicationService,
+        strategy_service: StrategyApplicationService | None = None,
         sentiment_provider: Any | None = None,
         *,
         narrative_synthesis_service: Any | None = None,

@@ -2,7 +2,7 @@ from __future__ import annotations
 from app.domain.dto.service_result import GenericResponseDTO
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from ..base import BaseApplicationService
+from app.core.base_service import BaseApplicationService
 from app.domain.sniper_entities import SniperSelection, MarketRegime
 
 class TenKingsSniperService(BaseApplicationService):
@@ -10,15 +10,15 @@ class TenKingsSniperService(BaseApplicationService):
 
     def __init__(
         self,
-        repo: object,
-        market_service: object,
-        strategy_service: object,
-        ai_service: object,
-        regime_manager: object,
+        repository: object | None = None,
+        market_service: object | None = None,
+        strategy_service: object | None = None,
+        ai_service: object | None = None,
+        regime_manager: object | None = None,
         total_capital: float = 500000.0
     ):
         super().__init__()
-        self._repo = repo
+        self._repo = repository
         self._market = market_service
         self._strategy = strategy_service
         self._ai = ai_service

@@ -24,12 +24,11 @@ def test_success_response_canonical_envelope():
     assert payload["error"] is None
 
 
-@patch("app.infrastructure.cache.cache_manager.get_cache_manager")
 @patch("app.modules.market_data.services.market_service.get_quote_cache_port")
-def test_market_panorama_uses_cache_on_second_call(mock_quote_cache, mock_get_cache_manager):
+def test_market_panorama_uses_cache_on_second_call(mock_get_quote_cache_port):
     from app.modules.market_data.services.market_service import MarketApplicationService
 
-    mock_quote_cache.return_value = MagicMock()
+    mock_get_quote_cache_port.return_value = MagicMock()
     provider = MagicMock()
     provider.get_market_overview.return_value = {"market_status": "open", "sentiment_score": 55.0}
     provider.get_market_rankings.return_value = {
@@ -49,12 +48,12 @@ def test_market_panorama_uses_cache_on_second_call(mock_quote_cache, mock_get_ca
         return value
 
     cache.get_or_set.side_effect = _get_or_set
-    mock_get_cache_manager.return_value = cache
 
     svc = MarketApplicationService(
         market_provider=provider,
         industry_provider=MagicMock(),
         stock_cache=None,
+        cache=cache,
     )
     first = svc.get_panorama(MarketCode.CN)
     second = svc.get_panorama(MarketCode.CN)

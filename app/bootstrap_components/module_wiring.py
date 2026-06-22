@@ -18,15 +18,6 @@ def discover_modules() -> list[Any]:
     return list_modules()
 
 
-def _ensure_module_packages_loaded() -> None:
-    """Ensure all module packages are loaded (legacy compatibility)."""
-    for module in discover_modules():
-        try:
-            __import__(module.__module__)
-        except Exception as exc:
-            logger.debug("Module package load skipped: %s", exc)
-
-
 def wire_context_modules(
     services: Any,
     session_factory: Any = None,
@@ -36,7 +27,6 @@ def wire_context_modules(
     """Wire services for all enabled context modules that declare ``wire``."""
     from app.core.registry import discover_modules
 
-    _ensure_module_packages_loaded()
     wired: list[str] = []
     for module in discover_modules(config=config):
         wire_fn = module.wire
@@ -61,11 +51,11 @@ def initialize_all_modules(
 ) -> list[str]:
     """Discover enabled ``@register_module`` contexts and invoke ``wire`` / ``initialize``."""
     try:
-        import app.presentation.api.context_modules  # noqa: F401
+        from app.presentation.api.context_modules import ensure_all_modules_loaded
+        ensure_all_modules_loaded()
     except Exception as exc:  # noqa: BLE001
         logger.warning("Context module preload skipped: %s", exc)
 
-    _ensure_module_packages_loaded()
     from app.core.registry import discover_modules
 
     wired: list[str] = []

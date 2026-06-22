@@ -51,7 +51,10 @@ register_factory("ai_adapter", _make_ai_adapter)
 
 def _make_ai_committee_service(reg):
     from app.modules.ai_agent.services.ai_committee_service import AICommitteeService
-    return AICommitteeService()
+    return AICommitteeService(
+        stock_service=reg.get("stock_service"),
+        ai_adapter=reg.get("ai_adapter"),
+    )
 
 
 register_factory("ai_committee_service", _make_ai_committee_service)

@@ -1,14 +1,16 @@
 /**
  * Switcher telemetry — Jinja page companion script.
  *
- * This lightweight script is included in Jinja templates via the `{% block spa_switcher %}`
- * block. It provides `window.trackSwitcherClick()` for onclick handlers on "试试新版 →" links.
+ * Loaded globally from base.html. Provides:
+ *   1. window.trackSwitcherClick(page) — programmatic API (kept for backward compat)
+ *   2. Delegated click listener on [data-spa-switcher] elements — CSP-safe alternative
+ *      to inline onclick handlers.
+ *
+ * Templates should use:
+ *   <a href="/app/foo" class="spa-switcher-link" data-spa-switcher="foo">试试新版 →</a>
  *
  * The SPA-side equivalent is `frontend/src/lib/switcher-telemetry.ts`, which also
  * provides `trackBackToClassic()` for the "回到经典版 ←" link.
- *
- * This script is intentionally plain JS (no build step) because Jinja pages don't
- * load the SPA bundle.
  */
 
 (function () {
@@ -28,4 +30,14 @@
   window.trackSwitcherClick = function (page) {
     post({ event: "switch_to_spa", page: page });
   };
+
+  // Delegated listener — CSP-safe replacement for inline onclick handlers.
+  document.addEventListener("click", function (event) {
+    var target = event.target;
+    if (!target || typeof target.closest !== "function") return;
+    var link = target.closest("[data-spa-switcher]");
+    if (!link) return;
+    var page = link.getAttribute("data-spa-switcher");
+    if (page) post({ event: "switch_to_spa", page: page });
+  });
 })();

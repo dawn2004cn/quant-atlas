@@ -9,4 +9,10 @@ the route preloader and for import-side-effects only.
 from __future__ import annotations
 
 # Side-effect: importing the sub-package triggers @register_routes decorators
-from .v1 import user_tiers  # noqa: F401
+from app.presentation.api.v1.user_tiers import (  # noqa: F401
+    boutique,
+    fund,
+    institution,
+    investment,
+    retail,
+)

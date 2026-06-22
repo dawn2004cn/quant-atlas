@@ -23,7 +23,7 @@ def test_preload_route_modules_populates_registry():
     assert loaded > 0
     assert after > before
     assert "collaboration" in registered_route_names()
-    assert "health" in registered_route_names()
+    assert "system_health" in registered_route_names()
     assert "quant_ai" in registered_route_names()
     assert "sentiment" in registered_route_names()
     assert "portfolio_user" in registered_route_names()

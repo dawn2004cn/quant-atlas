@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 
 
@@ -14,7 +14,7 @@
 
 {% block spa_switcher %}
 <a href="/app/run-history" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('run-history')">
+   data-spa-switcher="run-history">
   试试新版 →
 </a>
 {% endblock %}

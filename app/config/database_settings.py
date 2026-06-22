@@ -207,11 +207,12 @@ class DatabaseConfig(BaseModel, frozen=True):
 
     @property
     def use_postgres(self) -> bool:
+        # use_timescaledb=1 时强制启用 postgres（即使 backend=mysql）
+        if self.use_timescaledb:
+            return True
         if self.backend == DatabaseBackend.MYSQL:
             return False
         if self.backend in (DatabaseBackend.POSTGRES, DatabaseBackend.TIMESCALEDB):
-            return True
-        if self.use_timescaledb:
             return True
         ts_host = (self.timescaledb_host or self.postgres_host or "").strip()
         return bool(ts_host)

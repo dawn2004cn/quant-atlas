@@ -1,0 +1,45 @@
+version: "3.9"
+services:
+  ws-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+      - "9091:9091"
+    environment:
+      - PYTHON_BACKEND_URL=http://quant-atlas:5000
+      - GATEWAY_LOG_LEVEL=info
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:9090/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  quant-atlas:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - WS_GATEWAY_URL=http://ws-gateway:9091
+    volumes:
+      - ../instance:/app/instance
+    depends_on:
+      ws-gateway:
+        condition: service_healthy
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - quant-atlas
+      - ws-gateway
+    restart: unless-stopped

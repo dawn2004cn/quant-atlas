@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}{{ _('ai_analysis.title') }} - Quant Atlas{% endblock %}
 
@@ -8,7 +8,7 @@
 
 {% block spa_switcher %}
 <a href="/app/ai-analysis" class="spa-switcher-link"
-   onclick="window.trackSwitcherClick && window.trackSwitcherClick('ai-analysis')">
+   data-spa-switcher="ai-analysis">
   试试新版 →
 </a>
 {% endblock %}

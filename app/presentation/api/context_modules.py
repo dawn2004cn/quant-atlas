@@ -1,11 +1,11 @@
 """Context Module definitions for Quant Atlas API.
 
-This module defines the bounded contexts that group related routes and services.
+This module defines the bounded contexts that group related services and routes.
 Each ContextModule is self-describing and can be discovered automatically.
 
 Usage:
     from app.presentation.api.context_modules import discover_context_modules
-    
+
     for module in discover_context_modules():
         logger.debug("%s: %s", module.name, module.description)
 """
@@ -14,22 +14,43 @@ from __future__ import annotations
 
 from app.core.registry import ContextModule
 
+# Lazy module loading map — avoids importing all 14 modules at startup,
+# breaking circular dependencies between context modules.
+_MODULE_IMPORT_MAP = {
+    "AIAgentContextModule": "app.modules.ai_agent.module",
+    "CollaborationContextModule": "app.modules.collaboration.module",
+    "DataContextModule": "app.modules.data.module",
+    "ExecutionContextModule": "app.modules.execution.module",
+    "MarketDataContextModule": "app.modules.market_data.module",
+    "MeshContextModule": "app.modules.mesh.module",
+    "MiscContextModule": "app.modules.misc.module",
+    "PerceptionContextModule": "app.modules.perception.module",
+    "PortfolioContextModule": "app.modules.portfolio.module",
+    "PortfolioRiskContextModule": "app.modules.portfolio_risk.module",
+    "ResearchContextModule": "app.modules.research.module",
+    "StrategyContextModule": "app.modules.strategy.module",
+    "SystemContextModule": "app.modules.system.module",
+    "UserContextModule": "app.modules.user.module",
+}
 
-# Phase 2 — physically packaged context modules (register @register_module on import)
-from app.modules.ai_agent.module import AIAgentContextModule  # noqa: E402, F401
-from app.modules.collaboration.module import CollaborationContextModule  # noqa: E402, F401
-from app.modules.data.module import DataContextModule  # noqa: E402, F401
-from app.modules.execution.module import ExecutionContextModule  # noqa: E402, F401
-from app.modules.market_data.module import MarketDataContextModule  # noqa: E402, F401
-from app.modules.mesh.module import MeshContextModule  # noqa: E402, F401
-from app.modules.misc.module import MiscContextModule  # noqa: E402, F401
-from app.modules.perception.module import PerceptionContextModule  # noqa: E402, F401
-from app.modules.portfolio.module import PortfolioContextModule  # noqa: E402, F401
-from app.modules.portfolio_risk.module import PortfolioRiskContextModule  # noqa: E402, F401
-from app.modules.research.module import ResearchContextModule  # noqa: E402, F401
-from app.modules.strategy.module import StrategyContextModule  # noqa: E402, F401
-from app.modules.system.module import SystemContextModule  # noqa: E402, F401
-from app.modules.user.module import UserContextModule  # noqa: E402, F401
+_loaded_modules: dict[str, type] = {}
+
+
+def _load_module(name: str) -> type:
+    """Lazily import and cache a context module class."""
+    if name not in _loaded_modules:
+        import importlib
+        mod_path = _MODULE_IMPORT_MAP[name]
+        module = importlib.import_module(mod_path)
+        _loaded_modules[name] = getattr(module, name)
+    return _loaded_modules[name]
+
+
+def __getattr__(name: str) -> type:
+    """Lazy import for context module classes."""
+    if name in _MODULE_IMPORT_MAP:
+        return _load_module(name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def get_all_context_modules() -> list[ContextModule]:
@@ -50,6 +71,12 @@ def list_context_names() -> list[str]:
     return list_modules()
 
 
+def ensure_all_modules_loaded() -> None:
+    """Force-load all context modules (e.g., at app startup)."""
+    for name in _MODULE_IMPORT_MAP:
+        _load_module(name)
+
+
 __all__ = [
     "AIAgentContextModule",
     "CollaborationContextModule",
@@ -68,4 +95,5 @@ __all__ = [
     "get_all_context_modules",
     "get_context_module",
     "list_context_names",
+    "ensure_all_modules_loaded",
 ]

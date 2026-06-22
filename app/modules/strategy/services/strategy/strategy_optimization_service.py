@@ -14,7 +14,7 @@ class StrategyOptimizationService(BaseApplicationService):
 
     def __init__(
         self,
-        market_provider: MarketDataProvider,
+        market_provider: MarketDataProvider | None = None,
         optimizer: WalkForwardOptimizerPort | None = None,
     ):
         super().__init__()

@@ -86,11 +86,7 @@ def create_services(
             except Exception as exc:
                 logger.debug("Optimization wiring skipped: %s", exc)
             
-            try:
-                from app.bootstrap_components.wiring_execution import wire_execution_fast_path
-                wire_execution_fast_path()
-            except Exception as exc:
-                logger.warning("Execution FastPath wiring failed: %s", exc)
+            # FastPath wiring handled in wiring_optimization
                 
             # Wire Strategy SOP Service (Cognitive Governance)
             try:

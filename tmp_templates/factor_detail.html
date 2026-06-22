@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}因子详情 - {{ factor_id }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/factor.css') }}">
+{% endblock %}
+{% block spa_switcher %}
+<a href="/app/factor/{id}" class="spa-switcher-link"
+   onclick="window.trackSwitcherClick && window.trackSwitcherClick('factor/{id}')">
+  试试新版 鈫?
+</a>
+{% endblock %}
+
+
+
+{% block content %}
+<div class="factor-shell">
+    <div class="factor-header">
+        <div class="factor-header-title">因子详情</div>
+        <div class="factor-header-subtitle">ID: {{ factor_id }}</div>
+        <div class="factor-formula" id="factorFormula">加载涓?..</div>
+        <div class="factor-stats-row" id="factorStats">
+            <div class="factor-stat-card">
+                <div class="factor-stat-value" id="sharpeRatio">--</div>
+                <div class="factor-stat-label">Sharpe Ratio</div>
+            </div>
+            <div class="factor-stat-card">
+                <div class="factor-stat-value" id="maxDrawdown">--</div>
+                <div class="factor-stat-label">最大回鎾?/div>
+            </div>
+            <div class="factor-stat-card">
+                <div class="factor-stat-value" id="icMean">--</div>
+                <div class="factor-stat-label">IC均鍊?/div>
+            </div>
+            <div class="factor-stat-card">
+                <div class="factor-stat-value" id="regime">--</div>
+                <div class="factor-stat-label">市场状鎬?/div>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button class="btn-brand" type="button" data-fd-action="run-backtest">鈻?重新回测</button>
+            <a class="btn-soft" href="{{ url_for('pages.alpha_factory') }}">鈫?返回Alpha Factory</a>
+            <a class="btn-soft" href="{{ url_for('pages.factor_repository') }}">因子搴?/a>
+            <button class="btn-soft" type="button" data-fd-action="add-portfolio">+ 加入组合</button>
+        </div>
+    </div>
+
+    <div class="factor-section">
+        <div class="factor-section-title">📊 IC曲线走势</div>
+        <div class="ic-chart-container" id="icChart">
+            <div class="empty-state">加载涓?..</div>
+        </div>
+    </div>
+
+    <div class="factor-section">
+        <div class="factor-section-title">📈 回测表现</div>
+        <div class="factor-meta-grid" id="backtestResults">
+            <div class="factor-meta-item">
+                <div class="factor-meta-label">年化收益</div>
+                <div class="factor-meta-value" id="annualReturn">--</div>
+            </div>
+            <div class="factor-meta-item">
+                <div class="factor-meta-label">夏普比率</div>
+                <div class="factor-meta-value" id="annualSharpe">--</div>
+            </div>
+            <div class="factor-meta-item">
+                <div class="factor-meta-label">胜率</div>
+                <div class="factor-meta-value" id="winRate">--</div>
+            </div>
+            <div class="factor-meta-item">
+                <div class="factor-meta-label">盈亏姣?/div>
+                <div class="factor-meta-value" id="profitLoss">--</div>
+            </div>
+            <div class="factor-meta-item">
+                <div class="factor-meta-label">最大回鎾?/div>
+                <div class="factor-meta-value" id="backtestMdd">--</div>
+            </div>
+            <div class="factor-meta-item">
+                <div class="factor-meta-label">交易次数</div>
+                <div class="factor-meta-value" id="tradeCount">--</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="factor-section">
+        <div class="factor-section-title">🔗 相关因子</div>
+        <div class="correlation-grid" id="correlationList">
+            <div class="empty-state">暂无相关因子数据</div>
+        </div>
+    </div>
+
+    <div class="factor-section">
+        <div class="factor-section-title">ℹ️ 因子元数鎹?/div>
+        <div class="factor-meta-grid" id="factorMetadata">
+            <div class="factor-meta-item">
+                <div class="factor-meta-label">创建时间</div>
+                <div class="factor-meta-value" id="createdAt">--</div>
+            </div>
+            <div class="factor-meta-item">
+                <div class="factor-meta-label">数据范围</div>
+                <div class="factor-meta-value" id="dataRange">--</div>
+            </div>
+            <div class="factor-meta-item">
+                <div class="factor-meta-label">来源</div>
+                <div class="factor-meta-value" id="source">RD-Agent</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+const factorId = '{{ factor_id }}';
+
+function loadFactorDetail() {
+    $.get(`/api/v1/alpha-factory/factors?factor_id=${factorId}`, function(res) {
+        const factor = res.factors?.[0] || res;
+        if (!factor) {
+            $('#factorFormula').text('因子未找鍒?);
+            return;
+        }
+        $('#factorFormula').text(factor.formula || 'N/A');
+        $('#sharpeRatio').text((factor.sharpe_ratio ?? '--').toFixed(2));
+        $('#maxDrawdown').text((factor.max_drawdown ?? '--').toFixed(2) + '%');
+        $('#regime').text(factor.regime || 'unknown');
+        $('#icMean').text((factor.ic_mean ?? '--').toFixed(4));
+
+        const backtest = factor.backtest_result || {};
+        $('#annualReturn').text((backtest.annual_return ?? '--').toFixed(2) + '%');
+        $('#annualSharpe').text((backtest.sharpe_ratio ?? '--').toFixed(2));
+        $('#winRate').text((backtest.win_rate ?? '--').toFixed(1) + '%');
+        $('#profitLoss').text((backtest.profit_loss_ratio ?? '--').toFixed(2));
+        $('#backtestMdd').text((backtest.max_drawdown ?? '--').toFixed(2) + '%');
+        $('#tradeCount').text(backtest.trade_count || 0);
+
+        $('#createdAt').text(factor.created_at || '--');
+        $('#dataRange').text(factor.data_range || '2024-01-01 ~ 2025-04-27');
+
+        renderICChart(factor.ic_series || []);
+        renderCorrelation(factor.correlations || []);
+    }).fail(function() {
+        $('#factorFormula').text('加载失败');
+    });
+}
+
+function renderICChart(icData) {
+    if (!icData.length) {
+        $('#icChart').html('<div class="empty-state">暂无IC数据</div>');
+        return;
+    }
+    const dates = icData.map(d => d.date);
+    const values = icData.map(d => d.ic);
+    $('#icChart').html(`
+        <div class="fd-bar-row">
+            ${values.map(v => `
+                <div style="flex:1;background:var(--brand);height:${Math.abs(v) * 100}%;opacity:0.7;"
+                     title="${dates[values.indexOf(v)]}: ${v.toFixed(4)}">
+                </div>
+            `).join('')}
+        </div>
+    `);
+}
+
+function renderCorrelation(correlations) {
+    if (!correlations.length) {
+        $('#correlationList').html('<div class="empty-state">暂无相关因子</div>');
+        return;
+    }
+    $('#correlationList').html(correlations.map(c => `
+        <div class="correlation-item">
+            <a href="${c.factor_id ? '/factor/' + c.factor_id : '#'}" class="fd-link-plain">
+                <span class="fd-name-bold">${c.name || c.factor_id}</span>
+            </a>
+            <span class="${c.value > 0.5 ? 'positive' : c.value < -0.5 ? 'negative' : ''}">
+                ${c.value.toFixed(2)}
+            </span>
+        </div>
+    `).join(''));
+}
+
+function runBacktest() {
+    showToast('回测功能将使用当前因子参数重新运行回娴?, 'info');
+    window.location.href = `/backtest?factor=${factorId}`;
+}
+
+function addToPortfolio() {
+    showToast('选择要加入的投资组合', 'info');
+    window.location.href = `/portfolio/new?factor=${factorId}`;
+}
+
+$(function() {
+    loadFactorDetail();
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-fd-action]');
+        if (!el) return;
+        const action = el.dataset.fdAction;
+        if (action === 'run-backtest') runBacktest();
+        else if (action === 'add-portfolio') addToPortfolio();
+    });
+});
+</script>
+{% endblock %}

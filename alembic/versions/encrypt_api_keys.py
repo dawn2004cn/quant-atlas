@@ -45,16 +45,18 @@ def downgrade() -> None:
     conn = op.get_bind()
     inspector = sa.inspect(conn)
 
-    gw_cols = [c[name] for c in inspector.get_columns(gateway_configs)]
-    if api_key_encrypted in gw_cols and api_key_hash not in gw_cols:
-        op.alter_column(gateway_configs, api_key_encrypted,
-                        new_column_name=api_key_hash,
+    gw_cols = [c.get("name") for c in inspector.get_columns("gateway_configs")] or []
+    if "api_key_encrypted" in gw_cols and "api_key_hash" not in gw_cols:
+        op.alter_column("gateway_configs", "api_key_encrypted",
+                        new_column_name="api_key_hash",
                         type_=sa.String(255),
                         nullable=False)
 
-    ob_cols = [c[name] for c in inspector.get_columns(openbb_provider_configs)]
-    if api_key_encrypted in ob_cols and api_key_hash not in ob_cols:
-        op.alter_column(openbb_provider_configs, api_key_encrypted,
-                        new_column_name=api_key_hash,
+    ob_cols = [c.get("name") for c in inspector.get_columns("openbb_provider_configs")] or []
+    if "api_key_encrypted" in ob_cols and "api_key_hash" not in ob_cols:
+        op.alter_column("openbb_provider_configs", "api_key_encrypted",
+                        new_column_name="api_key_hash",
                         type_=sa.String(255),
                         nullable=True)
+
+

@@ -4,6 +4,12 @@ from __future__ import annotations
 from app.domain.ports.market_ports import MarketDataProvider
 
 _provider: MarketDataProvider | None = None
+class NullMarketDataProvider:
+    """Null-object market data provider for services that need a provider but don't call it."""
+    def __getattr__(self, name):
+        return lambda *a, **kw: None
+
+
 
 
 def bind_market_data_provider(provider: MarketDataProvider) -> None:

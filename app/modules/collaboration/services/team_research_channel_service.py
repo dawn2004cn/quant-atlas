@@ -12,7 +12,7 @@ logger = get_logger(__name__)
 class TeamResearchChannelService:
     """Team-scoped research feed built on Moments."""
 
-    def __init__(self, *, moments_service: Any) -> None:
+    def __init__(self, *, moments_service: Any = None) -> None:
         self._moments = moments_service
 
     def list_feed(self, team_id: int, *, limit: int = 40) -> dict[str, Any]:

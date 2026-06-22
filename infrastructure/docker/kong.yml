@@ -1,0 +1,113 @@
+_format_version: "3.0"
+services:
+  - name: market-data-service
+    url: http://market-data:5101
+    routes:
+      - name: market-data
+        paths:
+          - /api/v1/market
+        strip_path: false
+    plugins:
+      - name: cors
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+
+  - name: strategy-service
+    url: http://strategy:5201
+    routes:
+      - name: strategy
+        paths:
+          - /strategy
+        strip_path: false
+    plugins:
+      - name: cors
+      - name: rate-limiting
+        config:
+          minute: 50
+          policy: local
+
+  - name: ai-agent-service
+    url: http://ai-agent:5301
+    routes:
+      - name: ai-agent
+        paths:
+          - /ai-agent
+        strip_path: false
+    plugins:
+      - name: cors
+      - name: rate-limiting
+        config:
+          minute: 30
+          policy: local
+
+  - name: portfolio-risk-service
+    url: http://portfolio-risk:5401
+    routes:
+      - name: portfolio-risk
+        paths:
+          - /portfolio-risk
+        strip_path: false
+    plugins:
+      - name: cors
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+
+  - name: execution-service
+    url: http://execution:5501
+    routes:
+      - name: execution
+        paths:
+          - /execution
+        strip_path: false
+    plugins:
+      - name: cors
+      - name: rate-limiting
+        config:
+          minute: 200
+          policy: local
+
+  - name: system-user-service
+    url: http://system-user:5601
+    routes:
+      - name: system-user
+        paths:
+          - /system
+        strip_path: false
+    plugins:
+      - name: cors
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+
+  - name: data-service
+    url: http://data:5701
+    routes:
+      - name: data
+        paths:
+          - /data
+        strip_path: false
+    plugins:
+      - name: cors
+      - name: rate-limiting
+        config:
+          minute: 50
+          policy: local
+
+  - name: research-service
+    url: http://research:5801
+    routes:
+      - name: research
+        paths:
+          - /research
+        strip_path: false
+    plugins:
+      - name: cors
+      - name: rate-limiting
+        config:
+          minute: 30
+          policy: local
