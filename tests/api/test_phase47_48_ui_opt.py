@@ -21,17 +21,20 @@ def test_resolve_actionable_hints_market_service() -> None:
 def test_enrich_error_payload_attaches_hints() -> None:
     payload = enrich_error_payload(
         {
-            "status": "error",
-            "error": {"code": "unauthorized", "message": "Authentication required", "details": {}},
+            "meta": {
+                "code": "unauthorized",
+                "message": "Authentication required",
+                "details": {}
+            }
         }
     )
-    assert payload["error"]["hints"][0]["action_label"] == "去登录"
+    assert payload["hints"][0]["action_label"] == "去登录"
 
 
 def test_map_validation_error_includes_hints() -> None:
     payload, status = map_validation_error(ValidationError("symbol_required"))
     assert status == 400
-    assert payload["error"]["hints"]
+    assert payload.get("hints")
 
 
 @pytest.fixture
@@ -81,5 +84,5 @@ def test_base_page_includes_health_indicator(app_client) -> None:
 def test_api_validation_error_returns_hints(app_client) -> None:
     resp = app_client.get("/api/v1/system/alerts?min_level=bad_level")
     assert resp.status_code == 400
-    err = (resp.get_json() or {}).get("error") or {}
-    assert err.get("hints")
+    data = resp.get_json() or {}
+    assert data.get("hints")
