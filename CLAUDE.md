@@ -206,4 +206,57 @@ Skills 位于 `.claude/skills/` 目录，每个 skill 有独立的 `SKILL.md` �
 当任务匹配某个 skill 时，使用 `Skill` 工具加载对应 skill 并严格遵循其流程。绝不要用 Read 工具读取 SKILL.md 文件。
 
 如果你认为哪怕只有 1% 的可能性某个 skill 适用于你正在做的事情，你必须调用该 skill 检查。
-<!-- superpowers-zh:end -->
+
+## Skill routing
+
+When the user's request matches an available skill, invoke it via the Skill tool. When in doubt, invoke the skill.
+
+Key routing rules:
+- Product ideas/brainstorming → invoke /office-hours
+- Strategy/scope → invoke /plan-ceo-review
+- Architecture → invoke /plan-eng-review
+- Design system/plan review → invoke /design-consultation or /plan-design-review
+- Full review pipeline → invoke /autoplan
+- Bugs/errors → invoke /investigate
+- QA/testing site behavior → invoke /qa or /qa-only
+- Code review/diff check → invoke /review
+- Visual polish → invoke /design-review
+- Ship/deploy/PR → invoke /ship or /land-and-deploy
+- Save progress → invoke /context-save
+- Resume context → invoke /context-restore
+- Author a backlog-ready spec/issue → invoke /spec
+
+## gstack — AI Software Factory
+
+This project has **gstack** installed — an open-source software factory by Garry Tan (YC CEO) that turns Claude Code into a virtual engineering team with 55 opinionated slash-command skills.
+
+### Core Workflow
+
+**Think → Plan → Build → Review → Test → Ship → Reflect**
+
+### Key Skills
+
+| Category | Commands | Purpose |
+|----------|----------|---------|
+| **Product** | `/office-hours`, `/spec` | Frame the problem, challenge assumptions, scope |
+| **Planning** | `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/plan-devex-review` | CEO/Eng/Design/DevEx review before writing code |
+| **Design** | `/design-consultation`, `/design-shotgun`, `/design-html`, `/design-review` | Full design system research, mockups, HTML |
+| **Code Review** | `/review`, `/codex`, `/qa` | Bug detection, cross-model review, browser QA |
+| **Shipping** | `/ship`, `/land-and-deploy`, `/canary` | Tests, coverage, PR, deploy, post-deploy monitoring |
+| **Security** | `/cso`, `/careful`, `/freeze`, `/guard` | Threat modeling, destructive command safety |
+| **Debugging** | `/investigate` | Systematic root-cause debugging |
+| **Docs** | `/document-generate`, `/document-release`, `/make-pdf`, `/diagram` | Diataxis framework, release notes, PDFs |
+| **Retro** | `/retro`, `/learn` | Sprint retrospectives, cross-session learning |
+
+### Available gstack Skills (55 total)
+
+`/gstack-upgrade`, `/autoplan`, `/benchmark`, `/benchmark-models`, `/browse`, `/canary`, `/careful`, `/codex`, `/context-restore`, `/context-save`, `/cso`, `/design-consultation`, `/design-html`, `/design-review`, `/design-shotgun`, `/devex-review`, `/diagram`, `/document-generate`, `/document-release`, `/freeze`, `/guard`, `/health`, `/investigate`, `/ios-clean`, `/ios-design-review`, `/ios-fix`, `/ios-qa`, `/ios-sync`, `/land-and-deploy`, `/landing-report`, `/learn`, `/make-pdf`, `/office-hours`, `/open-gstack-browser`, `/pair-agent`, `/plan-ceo-review`, `/plan-design-review`, `/plan-devex-review`, `/plan-eng-review`, `/plan-tune`, `/qa`, `/qa-only`, `/retro`, `/review`, `/scrape`, `/setup-browser-cookies`, `/setup-deploy`, `/setup-gbrain`, `/ship`, `/skillify`, `/spec`, `/sync-gbrain`, `/unfreeze`
+
+### How to Use
+
+- Start a new idea with: `/office-hours` or `/spec`
+- Review existing code with: `/qa` or `/review`
+- Ship a feature with: `/ship`
+- Debug a production issue with: `/investigate`
+- Security audit with: `/cso`
+- For full details: invoke `/gstack` or read `~/.claude/skills/gstack/SKILL.md`
