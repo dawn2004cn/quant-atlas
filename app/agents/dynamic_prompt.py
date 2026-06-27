@@ -13,12 +13,21 @@ Usage:
 """
 
 
+from app.security.prompt_sanitizer import PromptSanitizer
+
+_sanitizer = PromptSanitizer()
+
+
 from dataclasses import dataclass, field
 from typing import Any
 
 from .agent_memory import get_agent_memory
 
 from app.core.logger import get_logger
+
+from app.security.prompt_sanitizer import PromptSanitizer
+
+_sanitizer = PromptSanitizer()
 
 logger = get_logger(__name__)
 
@@ -104,7 +113,15 @@ class DynamicPromptBuilder:
         base_prompt: str,
         context: dict[str, Any],
     ) -> str:
-        """Build prompt with dynamic self-correction reminders."""
+        """Build prompt with dynamic self-correction reminders and injection protection."""
+        # Sanitize any user-provided input in context
+        sanitized_context = {}
+        for key, value in context.items():
+            if isinstance(value, str):
+                sanitized_context[key] = _sanitizer.sanitize(value)
+            else:
+                sanitized_context[key] = value
+
         prompt = base_prompt
 
         performance = self._memory.get_agent_performance(self._agent_name)
@@ -115,7 +132,7 @@ class DynamicPromptBuilder:
         failures = self._memory.get_past_failures(self._agent_name, threshold=0.4)
 
         if failures:
-            correction_reminder = self._build_correction_reminder(failures, context)
+            correction_reminder = self._build_correction_reminder(failures, sanitized_context)
             prompt = f"{prompt}\n\n{correction_reminder}"
 
         weak_areas = self._identify_weak_areas(performance)
@@ -230,7 +247,14 @@ class PromptTemplateManager:
         if dynamic_enhance:
             if "agent_name" in variables:
                 builder = DynamicPromptBuilder(variables["agent_name"])
-                rendered = builder.build_prompt(rendered, variables)
+                # Sanitize all string variables before building prompt
+                sanitized_vars = {}
+                for k, v in variables.items():
+                    if isinstance(v, str):
+                        sanitized_vars[k] = _sanitizer.sanitize(v)
+                    else:
+                        sanitized_vars[k] = v
+                rendered = builder.build_prompt(rendered, sanitized_vars)
 
         return rendered
 
