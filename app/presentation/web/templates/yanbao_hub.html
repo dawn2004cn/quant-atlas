@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}研报中心 - Quant Atlas{% endblock %}
 
@@ -107,7 +107,9 @@ function currentYbCat() {
 function renderList(items) {
     const $l = $('#ybList');
     if (!items || !items.length) {
-        $l.html('<div class="empty-hint">暂无数据。可点击「同步研报」或等待定时任务（约 06:00）；部分分类需东财 API 抓取后才有数据。</div>');
+        $l.empty();
+        if (!items || !items.length) {
+            $l.append('<div class="empty-hint">暂无数据。可点击「同步研报」或等待定时任务（约 06:00）；部分分类需东财 API 抓取后才有数据。</div>');
         return;
     }
     $l.html(items.map(it => {
@@ -171,7 +173,7 @@ $(function() {
     $('#ybSync').on('click', function() {
         const $b = $(this).prop('disabled', true);
         const prog = document.getElementById('ybSyncProgress');
-        if (prog) prog.innerHTML = '<div class="mini-label">正在提交同步任务…</div>';
+        safeSetHtml(prog, '<div class="mini-label">正在提交同步任务…</div>', false);
         const done = function() {
             if (window.updateNavMessageBadge) window.updateNavMessageBadge();
             loadYb();

@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}禅意终端 — Quant Atlas{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/zen-pages.css') }}">
@@ -90,11 +90,18 @@ function performSearch(query) {
     data.results.forEach(r => {
       const div = document.createElement("div");
       div.className = "zen-search-result";
-      div.innerHTML = `
-        <div class="result-label">${r.label}</div>
-        <div class="result-desc">${r.description}</div>
-        <div class="result-source">${r.source} · ${Math.round(r.confidence * 100)}% 匹配</div>
-      `;
+      const labelEl = document.createElement("div");
+      labelEl.className = "result-label";
+      labelEl.textContent = r.label;
+      const descEl = document.createElement("div");
+      descEl.className = "result-desc";
+      descEl.textContent = r.description;
+      const sourceEl = document.createElement("div");
+      sourceEl.className = "result-source";
+      sourceEl.textContent = r.source + ' ' + '·' + ' ' + Math.round(r.confidence * 100) + '% 匹配';
+      div.appendChild(labelEl);
+      div.appendChild(descEl);
+      div.appendChild(sourceEl);
       if (r.action_url) {
         div.style.cursor = "pointer";
         div.onclick = () => { window.location.href = r.action_url; };
