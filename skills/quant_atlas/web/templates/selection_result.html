@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}选股结果 - {{ task_id }}{% endblock %}
+{% block spa_switcher %}
+
+<a href="/app/selection-result" class="spa-switcher-link"
+
+   data-spa-switcher="selection-result">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/portfolio.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="selection-shell">
+    <div class="selection-header">
+        <div class="selection-header-title">🎯 选股结果</div>
+        <div class="sr-task-id">任务ID: {{ task_id }}</div>
+        <div class="selection-stats">
+            <div class="selection-stat">
+                <div class="selection-stat-value" id="stockCount">--</div>
+                <div class="selection-stat-label">入选股票</div>
+            </div>
+            <div class="selection-stat">
+                <div class="selection-stat-value" id="topScore">--</div>
+                <div class="selection-stat-label">最高评分</div>
+            </div>
+            <div class="selection-stat">
+                <div class="selection-stat-value" id="avgScore">--</div>
+                <div class="selection-stat-label">平均评分</div>
+            </div>
+            <div class="selection-stat">
+                <div class="selection-stat-value" id="taskStatus">--</div>
+                <div class="selection-stat-label">任务状态</div>
+            </div>
+        </div>
+        <div class="selection-actions">
+            <button class="btn-brand" type="button" data-sr-action="export">📥 导出结果</button>
+            <button class="btn-soft" type="button" data-sr-action="run-again">🔄 重新选股</button>
+            <a class="btn-soft" href="{{ url_for('pages.stock_selector') }}">← 返回选股器</a>
+            <a class="btn-soft" href="{{ url_for('pages.backtest') }}">📊 一键回测</a>
+        </div>
+    </div>
+
+    <div class="selection-section">
+        <div class="selection-section-title">📋 入选股票列表</div>
+        <div class="sr-table-scroll">
+            <table class="stock-table">
+                <thead>
+                    <tr>
+                        <th>排名</th>
+                        <th>股票代码</th>
+                        <th>股票名称</th>
+                        <th>综合评分</th>
+                        <th>所属行业</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="stockList">
+                    <tr><td colspan="6" class="loading-state">加载中...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="selection-section">
+        <div class="selection-section-title">🔄 任务执行记录</div>
+        <div class="task-timeline" id="taskTimeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">任务已提交</div>
+                    <div class="timeline-time" id="submitTime">--</div>
+                </div>
+            </div>
+            <div class="qa-is-hidden timeline-item" id="progressItem">
+                <div class="timeline-dot pending"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">正在执行选股...</div>
+                    <div class="timeline-desc" id="progressDesc">等待中</div>
+                </div>
+            </div>
+            <div class="qa-is-hidden timeline-item" id="completeItem">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">选股完成</div>
+                    <div class="timeline-time" id="completeTime">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="selection-section">
+        <div class="selection-section-title">📊 评分分布</div>
+        <div id="scoreDistribution" class="sr-score-chart">
+            <div class="empty-state sr-score-loading">加载中...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+const taskId = '{{ task_id }}';
+
+function loadSelectionResult() {
+    $.get(`/api/v1/selection/result/${taskId}`, function(res) {
+        const data = res.data || res;
+        renderStocks(data.stocks || []);
+        updateStats(data);
+        renderTimeline(data);
+        renderDistribution(data);
+    }).fail(function() {
+        $('#stockList').html('<tr><td colspan="6" class="empty-state">加载失败</td></tr>');
+    });
+}
+
+function renderStocks(stocks) {
+    if (!stocks.length) {
+        $('#stockList').html('<tr><td colspan="6" class="empty-state">暂无股票数据</td></tr>');
+        return;
+    }
+    $('#stockList').html(stocks.map((s, i) => `
+        <tr>
+            <td class="stock-rank">${i + 1}</td>
+            <td><a href="/stock/${s.code}?m=CN" class="sr-link-plain">${s.code}</a></td>
+            <td class="stock-name">${s.name || s.code}</td>
+            <td class="stock-score">${(s.score ?? 0).toFixed(2)}</td>
+            <td>${s.industry || '未知'}</td>
+            <td>
+                <a href="/stock/${s.code}?m=CN" class="btn-soft sr-btn-compact">详情</a>
+                <a href="/backtest?symbol=${s.code}" class="btn-soft sr-btn-compact">回测</a>
+            </td>
+        </tr>
+    `).join(''));
+}
+
+function updateStats(data) {
+    $('#stockCount').text(data.stocks?.length || 0);
+    const scores = (data.stocks || []).map(s => s.score || 0);
+    const maxScore = scores.length ? Math.max(...scores) : 0;
+    const avgScore = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+    $('#topScore').text(maxScore.toFixed(2));
+    $('#avgScore').text(avgScore.toFixed(2));
+    $('#taskStatus').text(data.status || 'completed');
+    $('#submitTime').text(data.created_at || new Date().toLocaleString());
+}
+
+function renderTimeline(data) {
+    if (data.status === 'completed') {
+        $('#progressItem').hide();
+        $('#completeItem').show();
+        $('#completeTime').text(data.completed_at || new Date().toLocaleString());
+    } else {
+        $('#progressItem').show();
+        $('#progressDesc').text(data.progress || '正在处理...');
+    }
+}
+
+function renderDistribution(data) {
+    const stocks = data.stocks || [];
+    if (!stocks.length) {
+        $('#scoreDistribution').html('<div class="empty-state">暂无数据</div>');
+        return;
+    }
+    const ranges = [0, 60, 70, 80, 90, 100];
+    const counts = ranges.slice(0, -1).map((r, i) => stocks.filter(s => (s.score || 0) >= r && (s.score || 0) < ranges[i + 1]).length);
+    const maxCount = Math.max(...counts, 1);
+    const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#0ea5e9'];
+    $('#scoreDistribution').html(counts.map((c, i) => `
+        <div class="sr-bar-col">
+            <div style="height:${c / maxCount * 150}px;background:${colors[i]};border-radius:4px 4px 0 0;margin:auto;"></div>
+            <div class="sr-bar-range">${ranges[i]}-${ranges[i+1]}</div>
+            <div class="sr-bar-count">${c}</div>
+        </div>
+    `).join(''));
+}
+
+function exportResults() {
+    showToast('导出功能将生成Excel文件', 'info');
+}
+
+function runAgain() {
+    window.location.href = '/stock-selector?task=' + taskId;
+}
+
+$(function() {
+    loadSelectionResult();
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-sr-action]');
+        if (!el) return;
+        const action = el.dataset.srAction;
+        if (action === 'export') exportResults();
+        else if (action === 'run-again') runAgain();
+    });
+});
+</script>
+{% endblock %}

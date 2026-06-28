@@ -1,0 +1,762 @@
+{% extends "base.html" %}
+
+{% block title %}模拟观察单 · Quant Atlas{% endblock %}
+{% block spa_switcher %}
+
+<a href="/app/signal-observations" class="spa-switcher-link"
+
+   data-spa-switcher="signal-observations">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="obsGlobalError" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger" role="alert"></div>
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="观察单与主流程联动">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">盘中看操盘台</div>
+        <p class="qc-ux-step-desc">首页操盘台会汇总开放观察单卡片，便于与自选健康度、涨停结构对照。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">个股写买卖计划</div>
+        <p class="qc-ux-step-desc">在个股详情页使用「买卖计划」锚点（#section-trade-plan）与诊股、证据链形成同一复盘链路。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">去自选里打开标的</a>
+    </div>
+</section>
+
+<div class="obs-page">
+    <section class="section-shell">
+        <div class="hero-caption">Signal Observation Loop</div>
+        <h1 class="page-title">模拟观察单</h1>
+        <p class="page-subtitle">把信号先放进观察单，自动记录入场价、触发原因、最大收益、最大回撤、止损/止盈状态，再决定是否真正交易。</p>
+        <div class="obs-toolbar">
+            <button class="btn-brand" type="button" data-obs-action="show-add-modal">+ 添加观察股</button>
+            <button class="btn-soft" type="button" data-obs-action="show-import-modal">批量导入</button>
+            <button class="btn-soft" type="button" data-obs-action="export-observations">导出数据</button>
+            <button class="btn-soft" type="button" data-obs-action="load-observations">刷新观察单</button>
+            <button class="btn-soft" type="button" data-obs-action="load-stats">刷新统计</button>
+            <select id="obsSourceFilter" class="form-input obs-filter-select" aria-label="按来源筛选">
+                <option value="">全部来源</option>
+                <option value="strategy_copilot">策略 Copilot</option>
+                <option value="trade_plan_adopt">买卖计划采纳</option>
+                <option value="decision_brief">决策简报</option>
+                <option value="daily_workbench">操盘台</option>
+                <option value="manual">手动</option>
+            </select>
+            <a class="btn-soft" href="/signal-flag">去信号旗找候选</a>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">按来源统计</h2>
+                <div class="panel-subtitle">看哪些信号来源更适合自己</div>
+            </div>
+        </div>
+        <div class="obs-grid" id="obsStats"></div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">收益走势</h2>
+                <div class="panel-subtitle">观察单收益率随时间变化</div>
+            </div>
+        </div>
+        <div id="returnChart" class="chart-container obs-chart-h250">
+            <div class="loading-state">正在加载收益数据...</div>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">持仓分析</h2>
+                <div class="panel-subtitle">转为持仓后的收益跟踪</div>
+            </div>
+        </div>
+        <div id="positionAnalysis" class="obs-grid"></div>
+    </section>
+
+<section class="section-shell obs-coach-shell">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">🤖 AI 交易教练</h2>
+                <div class="panel-subtitle">分析您的交易模式，指出逻辑缺陷与改进建议</div>
+            </div>
+            <div class="obs-toolbar">
+                <button class="btn-brand btn-sm" type="button" data-obs-action="analyze-pattern">开始分析</button>
+            </div>
+        </div>
+        <div id="aiCoachResult">
+            <div class="text-sm text-muted p-4 text-center">点击上方按钮分析您的交易行为模式</div>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">每日/每周复盘</h2>
+                <div class="panel-subtitle">基于模拟观察单自动计算胜率、盈亏比、止盈止损触发和行动建议</div>
+            </div>
+            <div class="obs-toolbar">
+                <button class="btn-soft" type="button" data-obs-action="load-reviews">刷新复盘</button>
+                <a class="btn-soft" href="/retail-assistant">散户助手</a>
+            </div>
+        </div>
+        <div class="review-grid" id="reviewGrid"></div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">开放观察单</h2>
+                <div class="panel-subtitle" id="obsCount">--</div>
+            </div>
+        </div>
+        <div class="obs-grid" id="obsList"></div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h2 class="panel-title">📊 我的持仓</h2>
+                <div class="panel-subtitle">由观察单转成的模拟持仓，实时追踪盈亏</div>
+            </div>
+        </div>
+        <div id="positionSummary" class="obs-summary-pad"></div>
+        <div class="obs-grid" id="positionList"></div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+function escHtml(s) {
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function pct(v) {
+    const n = Number(v || 0);
+    return `<span class="${n >= 0 ? 'positive' : 'negative'}">${n >= 0 ? '+' : ''}${n.toFixed(2)}%</span>`;
+}
+function obsHideError() {
+    $('#obsGlobalError').hide().empty();
+}
+function obsShowError(msg) {
+    const safe = $('<div/>').text(msg || '未知错误').html();
+    $('#obsGlobalError').html(
+        '<div class="qc-ux-banner__title">观察单数据加载失败</div>' +
+        '<div class="qc-ux-banner__body">' + safe + '</div>' +
+        '<button type="button" class="btn-brand btn-sm" data-obs-action="obs-retry">重试</button>'
+    ).show();
+}
+function triggerLabel(s) {
+    if (s === 'target_hit') return '到达目标';
+    if (s === 'stop_hit') return '触发止损';
+    if (s === 'watching') return '跟踪中';
+    if (!s) return '观察中';
+    return '状态: ' + String(s);
+}
+let obsItemsCache = [];
+function obsApplySourceFilter() {
+    const src = ($('#obsSourceFilter').val() || '').trim();
+    const items = src
+        ? obsItemsCache.filter(function (it) { return String(it.source || '') === src; })
+        : obsItemsCache.slice();
+    $('#obsCount').text('共 ' + items.length + ' 张开放观察单' + (src ? '（来源: ' + src + '）' : ''));
+    renderObservations(items);
+}
+function loadObservations() {
+    obsHideError();
+    $('#obsList').html('<div class="loading-state">正在刷新观察单...</div>');
+    $.getJSON('/api/v1/signal-observations', { status: 'open' })
+        .done(function(res) {
+            const body = res.data || {};
+            obsItemsCache = body.items || [];
+            obsApplySourceFilter();
+        })
+        .fail(function(xhr) {
+            const j = xhr && xhr.responseJSON;
+            const em = j && j.error && j.error.message ? String(j.error.message) : (j && j.message ? String(j.message) : '');
+            const detail = em || (xhr.statusText || '网络或服务异常');
+            obsShowError(detail);
+            $('#obsList').html(
+                '<div class="empty-state">加载失败。请检查登录状态或稍后再试。</div>' +
+                '<div class="empty-state obs-empty-mt8"><button type="button" class="btn-brand btn-sm" data-obs-action="load-observations">重试</button> ' +
+                '<a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a></div>'
+            );
+        });
+}
+function renderObservations(items) {
+    if (!items.length) {
+        $('#obsList').html(
+            '<div class="empty-state">暂无开放观察单。可从信号旗、今日操盘台或自选股智能体加入。</div>' +
+            '<div class="empty-state obs-empty-mt10">' +
+            '<a class="btn-brand btn-sm" href="/signal-flag">去信号旗</a> ' +
+            '<a class="btn-soft btn-sm" href="/">今日操盘台</a> ' +
+            '<a class="btn-soft btn-sm" href="/self-stocks">自选股</a>' +
+            '</div>'
+        );
+        return;
+    }
+    $('#obsList').html(items.map(it => `
+        <div class="obs-card">
+            <div class="obs-row-main">
+                <div>
+                    <div class="stock-name">${escHtml(it.name || it.symbol)}</div>
+                    <div class="stock-code">${escHtml(it.symbol)} · ${escHtml(it.source || 'manual')}</div>
+                </div>
+                <span class="obs-badge">${triggerLabel(it.trigger_status)}</span>
+            </div>
+            <div class="obs-price mt-2">¥${Number(it.current_price || 0).toFixed(2)}</div>
+            <div class="obs-tags">
+                <span class="obs-tag">入场 ${Number(it.entry_price || 0).toFixed(2)}</span>
+                <span class="obs-tag">止损 ${Number(it.stop_loss || 0).toFixed(2)}</span>
+                <span class="obs-tag">目标 ${Number(it.target_price || 0).toFixed(2)}</span>
+                <span class="obs-tag">当前 ${pct(it.return_pct)}</span>
+                <span class="obs-tag">最大收益 ${pct(it.max_gain_pct)}</span>
+                <span class="obs-tag">最大回撤 ${pct(it.max_drawdown_pct)}</span>
+            </div>
+            <p class="text-muted mt-3 mb-0">${escHtml(it.reason || '无记录原因')}</p>
+            ${it.notes ? `<p class="text-sm mt-2 p-2 bg-slate-50 rounded"><strong>备注:</strong> ${escHtml(it.notes)}</p>` : ''}
+            <div class="action-buttons mt-3">
+                <a class="btn-soft btn-sm" href="/stock/${encodeURIComponent(it.symbol)}">详情</a>
+                ${qcWatchlistButton(it.symbol, it.name || it.symbol, '加自选', 'btn-soft btn-sm')}
+                <a class="btn-soft btn-sm" href="/stock/${encodeURIComponent(it.symbol)}#section-trade-plan">买卖计划</a>
+                <a class="btn-soft btn-sm" href="/ai-analysis?symbol=${encodeURIComponent(it.symbol)}">AI诊股</a>
+                <button class="btn-soft btn-sm" type="button" data-obs-action="show-notes" data-obs-id="${it.id}" data-obs-notes="${escHtml(it.notes || '')}">备注</button>
+                <button class="btn-brand btn-sm" type="button" data-obs-action="convert-position" data-obs-id="${it.id}">转为持仓</button>
+                <button class="btn-soft btn-sm" type="button" data-obs-action="close-observation" data-obs-id="${it.id}">关闭</button>
+            </div>
+        </div>
+    `).join(''));
+}
+function convertToPosition(id) {
+    const shares = prompt('请输入持股数量（默认100股）:', '100');
+    if (shares === null) return;
+    $.ajax({
+        url: '/api/v1/signal-observations/' + id + '/convert',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ shares: parseInt(shares) || 100 }),
+        success: function() {
+            showToast('已转为持仓', 'success');
+            loadPositions();
+        },
+        error: function() { showToast('转换失败', 'error'); }
+    });
+}
+function loadStats() {
+    $('#obsStats').html('<div class="loading-state">正在加载统计...</div>');
+    $.getJSON('/api/v1/signal-observations/stats')
+        .done(function(res) {
+            const items = (res.data || {}).items || [];
+            if (!items.length) {
+                $('#obsStats').html('<div class="empty-state">暂无统计数据</div>');
+                return;
+            }
+            $('#obsStats').html(items.map(it => `
+                <div class="obs-stat">
+                    <div class="obs-row-main"><strong>${escHtml(it.source)}</strong><span class="obs-badge">${it.count} 条</span></div>
+                    <div class="obs-tags">
+                        <span class="obs-tag">开放 ${it.open_count}</span>
+                        <span class="obs-tag">目标命中 ${Number(it.target_hit_rate || 0).toFixed(1)}%</span>
+                        <span class="obs-tag">止损触发 ${Number(it.stop_hit_rate || 0).toFixed(1)}%</span>
+                        <span class="obs-tag">平均收益 ${pct(it.avg_return_pct)}</span>
+                        <span class="obs-tag">平均最大收益 ${pct(it.avg_max_gain_pct)}</span>
+                        <span class="obs-tag">平均最大回撤 ${pct(it.avg_max_drawdown_pct)}</span>
+                    </div>
+                </div>
+            `).join(''));
+        })
+        .fail(function() {
+            $('#obsStats').html('<div class="empty-state">统计加载失败</div>');
+        });
+    loadReturnChart();
+    loadPositionAnalysis();
+}
+function loadReturnChart() {
+    $.getJSON('/api/v1/signal-observations', { status: 'all' })
+        .done(function(res) {
+            const items = (res.data?.items || []).filter(it => it.status === 'closed');
+            if (!items.length) {
+                $('#returnChart').html('<div class="empty-state">暂无已关闭的观察单</div>');
+                return;
+            }
+            const byDate = {};
+            items.forEach(function(it) {
+                const date = (it.closed_at || it.updated_at || '').slice(0, 10);
+                if (!byDate[date]) byDate[date] = { count: 0, totalReturn: 0 };
+                byDate[date].count++;
+                byDate[date].totalReturn += Number(it.return_pct || 0);
+            });
+            const sorted = Object.keys(byDate).sort().slice(-14);
+            const html = sorted.map(function(date) {
+                const d = byDate[date];
+                const avg = d.totalReturn / d.count;
+                const isPos = avg >= 0;
+                const width = Math.min(Math.abs(avg) * 10, 100);
+                return '<div class="flex items-center gap-2 mb-2"><span class="text-xs text-muted obs-chart-label">' + date.slice(5) + '</span><div class="chart-bar ' + (isPos ? 'positive' : 'negative') + '" style="width:' + width + '%;"></div><span class="text-xs ' + (isPos ? 'positive' : 'negative') + '">' + pct(avg) + '</span></div>';
+            }).join('');
+            $('#returnChart').html(html || '<div class="empty-state">暂无数据</div>');
+        })
+        .fail(function() {
+            $('#returnChart').html('<div class="empty-state">加载失败</div>');
+        });
+}
+function loadPositionAnalysis() {
+    $.getJSON('/api/v1/signal-observations/positions')
+        .done(function(res) {
+            const positions = (res.data?.positions || []);
+            if (!positions.length) {
+                $('#positionAnalysis').html('<div class="empty-state">暂无持仓数据</div>');
+                return;
+            }
+            const totalCost = positions.reduce(function(s, p) { return s + (p.total_cost || 0); }, 0);
+            const totalValue = positions.reduce(function(s, p) { return s + (p.total_value || 0); }, 0);
+            const totalPnl = totalValue - totalCost;
+            const avgReturn = totalCost > 0 ? (totalPnl / totalCost * 100) : 0;
+            const winners = positions.filter(function(p) { return (p.return_pct || 0) > 0; }).length;
+            const winRate = positions.length ? (winners / positions.length * 100) : 0;
+            $('#positionAnalysis').html('<div class="obs-stat"><div class="obs-row-main"><strong>总体概况</strong></div><div class="obs-tags"><span class="obs-tag">持仓数 ' + positions.length + '</span><span class="obs-tag">总成本 ¥' + Number(totalCost).toFixed(0) + '</span><span class="obs-tag">总市值 ¥' + Number(totalValue).toFixed(0) + '</span></div></div><div class="obs-stat"><div class="obs-row-main"><strong>收益统计</strong></div><div class="obs-tags"><span class="obs-tag">总盈亏 ¥' + Number(totalPnl).toFixed(0) + '</span><span class="obs-tag">平均收益 ' + pct(avgReturn) + '</span><span class="obs-tag">胜率 ' + winRate.toFixed(1) + '%</span></div></div>');
+        })
+        .fail(function() {
+            $('#positionAnalysis').html('<div class="empty-state">加载失败</div>');
+        });
+}
+function loadPositions() {
+    $('#positionSummary').html('<span class="text-muted">正在加载持仓...</span>');
+    $('#positionList').html('');
+    $.getJSON('/api/v1/signal-observations/positions')
+        .done(function(res) {
+            const body = res.data || {};
+            const items = body.positions || [];
+            $('#positionSummary').html(
+                `持仓 ${body.count || 0} 只 · 市值 ${Number(body.total_value || 0).toFixed(2)} · 盈亏 ${pct(body.total_pnl_pct)}`
+            );
+            if (!items.length) {
+                $('#positionList').html('<div class="empty-state">暂无由观察单转入的持仓</div>');
+                return;
+            }
+            $('#positionList').html(items.map(it => `
+                <div class="obs-card">
+                    <div class="obs-row-main">
+                        <div>
+                            <div class="stock-name">${escHtml(it.name || it.symbol)}</div>
+                            <div class="stock-code">${escHtml(it.symbol)} · ${escHtml(it.source || 'manual')}</div>
+                        </div>
+                        <span class="obs-badge">${pct(it.return_pct)}</span>
+                    </div>
+                    <div class="obs-tags">
+                        <span class="obs-tag">数量 ${Number(it.shares || 0)}</span>
+                        <span class="obs-tag">成本 ${Number(it.cost_basis || 0).toFixed(2)}</span>
+                        <span class="obs-tag">现价 ${Number(it.current_price || 0).toFixed(2)}</span>
+                        <span class="obs-tag">最大收益 ${pct(it.max_gain_pct)}</span>
+                        <span class="obs-tag">最大回撤 ${pct(it.max_drawdown_pct)}</span>
+                    </div>
+                    <div class="action-buttons mt-3">
+                        <a class="btn-soft btn-sm" href="/stock/${encodeURIComponent(it.symbol)}">详情</a>
+                    </div>
+                </div>
+            `).join(''));
+        })
+        .fail(function() {
+            $('#positionSummary').html('<span class="text-danger">持仓加载失败</span>');
+        });
+}
+function analyzeTradingPattern() {
+    $('#aiCoachResult').html('<div class="loading-state p-4">AI 正在分析您的交易模式...</div>');
+    $.when(
+        $.getJSON('/api/v1/signal-observations/stats'),
+        $.getJSON('/api/v1/signal-observations', { status: 'all' })
+    ).done(function(statsRes, obsRes) {
+        const statsItems = (statsRes[0].data || {}).items || [];
+        const observations = (obsRes[0].data || {}).items || [];
+        const closed = observations.filter(it => it.status === 'closed');
+        const total = closed.length;
+        const wins = closed.filter(it => Number(it.return_pct || 0) > 0).length;
+        const winRate = total > 0 ? wins / total : 0;
+
+        let holdingSum = 0;
+        let holdingCount = 0;
+        closed.forEach(function(it) {
+            const start = Date.parse(it.created_at || '');
+            const end = Date.parse(it.closed_at || it.updated_at || '');
+            if (!Number.isNaN(start) && !Number.isNaN(end) && end > start) {
+                holdingSum += (end - start) / 86400000;
+                holdingCount += 1;
+            }
+        });
+        const avgHoldingDays = holdingCount > 0 ? Math.round(holdingSum / holdingCount) : null;
+
+        let stopHits = 0;
+        let statCount = 0;
+        let returnSum = 0;
+        let drawdownMax = 0;
+        statsItems.forEach(function(it) {
+            statCount += Number(it.count || 0);
+            stopHits += Number(it.stop_hits || 0);
+            returnSum += Number(it.avg_return_pct || 0) * Number(it.count || 0);
+            drawdownMax = Math.max(drawdownMax, Math.abs(Number(it.avg_max_drawdown_pct || 0)));
+        });
+        const stopLossRate = statCount > 0 ? stopHits / statCount : 0;
+        const avgReturn = statCount > 0 ? returnSum / statCount : 0;
+
+        const patterns = [];
+        if (total === 0) {
+            $('#aiCoachResult').html('<div class="empty-state p-4">暂无已关闭观察单，完成几笔模拟后再分析</div>');
+            return;
+        }
+        if (winRate < 0.4) {
+            patterns.push({
+                type: 'danger',
+                title: '❌ 胜率偏低',
+                desc: `您的胜率为 ${(winRate * 100).toFixed(0)}%（${wins}/${total}），建议优化入场条件，减少追高。`,
+                action: '查看观察单统计'
+            });
+        }
+        if (avgHoldingDays != null && avgHoldingDays < 5) {
+            patterns.push({
+                type: 'warning',
+                title: '⏰ 持仓时间过短',
+                desc: `平均持仓约 ${avgHoldingDays} 天，可能过度交易。尝试给信号更多验证时间。`,
+                action: '制定持有计划'
+            });
+        }
+        if (stopLossRate < 0.15 && statCount > 0) {
+            patterns.push({
+                type: 'warning',
+                title: '🛡️ 止损执行不严',
+                desc: `止损触发率 ${(stopLossRate * 100).toFixed(0)}%，建议严格执行预设止损。`,
+                action: '检查止损线'
+            });
+        }
+        if (patterns.length === 0) {
+            patterns.push({
+                type: 'success',
+                title: '✅ 交易行为健康',
+                desc: '基于观察单数据，暂无明显纪律性问题。继续坚持理性复盘。',
+                action: null
+            });
+        }
+
+        patterns.push({
+            type: 'success',
+            title: '📊 交易统计',
+            desc: '',
+            action: null,
+            stats: true,
+            statsData: {
+                total: total,
+                wins: wins,
+                avgReturn: avgReturn.toFixed(1),
+                maxDrawdown: drawdownMax.toFixed(1)
+            }
+        });
+
+        $('#aiCoachResult').html(`
+            ${patterns.map(p => p.stats ? `
+                <div class="coach-insight ${p.type}">
+                    <div class="coach-stat">
+                        <div class="coach-stat-item">
+                            <div class="coach-stat-value">${p.statsData.total}</div>
+                            <div class="coach-stat-label">已关闭观察</div>
+                        </div>
+                        <div class="coach-stat-item">
+                            <div class="coach-stat-value">${p.statsData.wins}</div>
+                            <div class="coach-stat-label">盈利次数</div>
+                        </div>
+                        <div class="coach-stat-item">
+                            <div class="coach-stat-value ${parseFloat(p.statsData.avgReturn) >= 0 ? 'positive' : 'negative'}">${p.statsData.avgReturn}%</div>
+                            <div class="coach-stat-label">平均收益</div>
+                        </div>
+                        <div class="coach-stat-item">
+                            <div class="coach-stat-value negative">-${p.statsData.maxDrawdown}%</div>
+                            <div class="coach-stat-label">平均最大回撤</div>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div class="coach-insight ${p.type}">
+                    <div class="coach-title">${p.title}</div>
+                    <div class="coach-desc">${p.desc}</div>
+                    ${p.action ? `<div class="coach-action">→ ${p.action}</div>` : ''}
+                </div>
+            `).join('')}
+        `);
+    }).fail(function() {
+        $('#aiCoachResult').html('<div class="empty-state p-4">交易模式分析加载失败</div>');
+    });
+}
+function loadReviews() {
+    $('#reviewGrid').html('<div class="loading-state">正在生成复盘...</div>');
+    $.when(
+        $.getJSON('/api/v1/reviews/daily'),
+        $.getJSON('/api/v1/reviews/weekly')
+    ).done(function(dayRes, weekRes) {
+        renderReviews((dayRes[0] || {}).data || {}, (weekRes[0] || {}).data || {});
+    }).fail(function() {
+        $('#reviewGrid').html('<div class="empty-state">复盘加载失败</div>');
+    });
+}
+function renderReviewCard(title, data) {
+    const actions = data.action_items || [];
+    return `
+        <div class="review-card">
+            <div class="obs-row-main">
+                <div>
+                    <div class="hero-caption">${escHtml(data.start || '')} - ${escHtml(data.end || '')}</div>
+                    <h3 class="mb-1">${escHtml(title)}</h3>
+                </div>
+                <span class="obs-badge">${Number(data.count || 0)} 条</span>
+            </div>
+            <div class="obs-tags">
+                <span class="obs-tag">胜率 ${Number(data.win_rate || 0).toFixed(1)}%</span>
+                <span class="obs-tag">止盈 ${Number(data.target_hit_rate || 0).toFixed(1)}%</span>
+                <span class="obs-tag">止损 ${Number(data.stop_hit_rate || 0).toFixed(1)}%</span>
+                <span class="obs-tag">平均收益 ${pct(data.avg_return_pct)}</span>
+                <span class="obs-tag">盈亏比 ${Number(data.payoff_ratio || 0).toFixed(2)}</span>
+            </div>
+            <div class="mt-3">${actions.map(x => `<div class="text-muted">· ${escHtml(x)}</div>`).join('') || '<div class="text-muted">暂无行动建议</div>'}</div>
+        </div>
+    `;
+}
+function renderReviews(day, week) {
+    $('#reviewGrid').html(renderReviewCard('今日复盘', day) + renderReviewCard('本周复盘', week));
+}
+function closeObservation(id) {
+    confirmAction('确定要关闭该观察单吗？', function() {
+        $.ajax({
+            url: '/api/v1/signal-observations/' + id + '/close',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ reason: 'manual_close' })
+        }).done(function() {
+            showToast('观察单已关闭', 'success');
+            loadObservations();
+            loadStats();
+        }).fail(function() {
+            showToast('关闭失败', 'error');
+        });
+    });
+}
+function showAddObservationModal() {
+    const html = `
+    <div class="modal-overlay" data-obs-action="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>{{ _('signal_observations.add_title') }}</h3>
+                <button type="button" class="btn-close" data-obs-action="close-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>{{ _('signal_observations.field_symbol') }}</label>
+                    <input type="text" id="addObsSymbol" class="form-input" placeholder="{{ _('signal_observations.field_symbol_placeholder') }}">
+                </div>
+                <div class="form-group">
+                    <label>{{ _('signal_observations.field_entry_price') }}</label>
+                    <input type="number" step="0.01" id="addObsPrice" class="form-input" placeholder="{{ _('signal_observations.field_price_placeholder') }}">
+                </div>
+                <div class="form-group">
+                    <label>{{ _('signal_observations.field_stop_loss') }}</label>
+                    <input type="number" step="0.01" id="addObsStop" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>{{ _('signal_observations.field_target') }}</label>
+                    <input type="number" step="0.01" id="addObsTarget" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>{{ _('signal_observations.field_reason') }}</label>
+                    <input type="text" id="addObsReason" class="form-input">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-soft" type="button" data-obs-action="close-modal">{{ _('common.btn_cancel') }}</button>
+                <button class="btn-brand" type="button" data-obs-action="add-observation">{{ _('common.btn_confirm') }}</button>
+            </div>
+        </div>
+    </div>`;
+    $('body').append(html);
+}
+function addObservation() {
+    const symbol = $('#addObsSymbol').val().trim().toUpperCase();
+    if (!symbol) { showToast('{{ _("signal_observations.symbol_required") }}', 'error'); return; }
+    $.ajax({
+        url: '/api/v1/signal-observations',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            symbol: symbol,
+            entry_price: parseFloat($('#addObsPrice').val()) || null,
+            stop_loss: parseFloat($('#addObsStop').val()) || null,
+            target_price: parseFloat($('#addObsTarget').val()) || null,
+            reason: $('#addObsReason').val() || '',
+            source: 'manual'
+        })
+    }).done(function() {
+        $('.modal-overlay').remove();
+        showToast('观察单添加成功', 'success');
+        loadObservations();
+        loadStats();
+    }).fail(function(xhr) {
+        const msg = xhr.responseJSON?.message || '添加失败';
+        showToast(msg, 'error');
+    });
+}
+function exportObservations() {
+    $.getJSON('/api/v1/signal-observations', { status: 'all' })
+        .done(function(res) {
+            const items = (res.data?.items || []).map(it => ({
+                symbol: it.symbol,
+                name: it.name,
+                entry_price: it.entry_price,
+                current_price: it.current_price,
+                stop_loss: it.stop_loss,
+                target_price: it.target_price,
+                source: it.source,
+                status: it.status,
+                reason: it.reason,
+                created_at: it.created_at
+            }));
+            const csv = '股票代码,股票名称,入场价,当前价,止损价,目标价,来源,状态,理由,创建时间\n' +
+                items.map(it => `${it.symbol},${it.name},${it.entry_price},${it.current_price},${it.stop_loss},${it.target_price},${it.source},${it.status},${it.reason},${it.created_at}`).join('\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '观察单_' + new Date().toISOString().slice(0,10) + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('导出成功', 'success');
+        })
+        .fail(function() { showToast('导出失败', 'error'); });
+}
+function showImportModal() {
+    const html = `
+    <div class="modal-overlay" data-obs-action="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>批量导入观察股</h3>
+                <button type="button" class="btn-close" data-obs-action="close-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-sm text-muted mb-3">请输入股票代码，每行一个，支持批量添加。</p>
+                <textarea id="importSymbols" class="form-input" rows="8" placeholder="600519&#10;000858&#10;NVDA"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-soft" type="button" data-obs-action="close-modal">{{ _('common.btn_cancel') }}</button>
+                <button class="btn-brand" type="button" data-obs-action="import-observations">导入</button>
+            </div>
+        </div>
+    </div>`;
+    $('body').append(html);
+}
+function importObservations() {
+    const text = $('#importSymbols').val();
+    const symbols = text.split(/[\n,]+/).map(s => s.trim().toUpperCase()).filter(s => s);
+    if (!symbols.length) { showToast('请输入股票代码', 'error'); return; }
+    let done = 0, failed = 0;
+    symbols.forEach(function(symbol) {
+        $.ajax({
+            url: '/api/v1/signal-observations',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ symbol: symbol, source: 'batch_import' })
+        }).always(function() {
+            done++;
+            if (done === symbols.length) {
+                $('.modal-overlay').remove();
+                showToast(`导入完成: ${symbols.length - failed} 成功, ${failed} 失败`, 'success');
+                loadObservations();
+                loadStats();
+            }
+        }).fail(function() { failed++; });
+    });
+}
+function showNotesModal(id, currentNotes) {
+    const html = `
+    <div class="modal-overlay" data-obs-action="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>编辑备注</h3>
+                <button type="button" class="btn-close" data-obs-action="close-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="obsNotes" class="form-input" rows="5" placeholder="添加备注...">${escHtml(currentNotes || '')}</textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-soft" type="button" data-obs-action="close-modal">{{ _('common.btn_cancel') }}</button>
+                <button class="btn-brand" type="button" data-obs-action="save-notes" data-obs-id="${id}">保存</button>
+            </div>
+        </div>
+    </div>`;
+    $('body').append(html);
+}
+function saveNotes(id) {
+    const notes = $('#obsNotes').val();
+    $.ajax({
+        url: '/api/v1/signal-observations/' + id + '/notes',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ notes: notes })
+    }).done(function() {
+        $('.modal-overlay').remove();
+        showToast('备注已保存', 'success');
+        loadObservations();
+    }).fail(function() { showToast('保存失败', 'error'); });
+}
+function handleObsAction(event) {
+    const el = event.target.closest('[data-obs-action]');
+    if (!el) return;
+    const action = el.dataset.obsAction;
+    if (action === 'modal-backdrop') {
+        if (event.target === el) $('.modal-overlay').remove();
+        return;
+    }
+    if (action === 'show-add-modal') showAddObservationModal();
+    else if (action === 'show-import-modal') showImportModal();
+    else if (action === 'export-observations') exportObservations();
+    else if (action === 'load-observations') loadObservations();
+    else if (action === 'load-stats') loadStats();
+    else if (action === 'analyze-pattern') analyzeTradingPattern();
+    else if (action === 'load-reviews') loadReviews();
+    else if (action === 'obs-retry') { obsHideError(); loadObservations(); }
+    else if (action === 'show-notes') showNotesModal(el.dataset.obsId || '', el.dataset.obsNotes || '');
+    else if (action === 'convert-position') convertToPosition(el.dataset.obsId || '');
+    else if (action === 'close-observation') closeObservation(el.dataset.obsId || '');
+    else if (action === 'close-modal') $('.modal-overlay').remove();
+    else if (action === 'add-observation') addObservation();
+    else if (action === 'import-observations') importObservations();
+    else if (action === 'save-notes') saveNotes(el.dataset.obsId || '');
+}
+$(function() {
+    document.addEventListener('click', handleObsAction);
+    $('#obsSourceFilter').on('change', obsApplySourceFilter);
+    loadObservations();
+    loadStats();
+    loadPositions();
+    loadReviews();
+});
+</script>
+{% endblock %}

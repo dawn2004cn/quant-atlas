@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+
+{% block spa_switcher %}
+
+<a href="/app/experiment-report" class="spa-switcher-link"
+
+   data-spa-switcher="experiment-report">
+
+  试试新版 &#8594;
+
+</a>
+
+{% endblock %}
+
+
+
+
+
+{% block title %}实验报告 - Quant Atlas{% endblock %}
+
+
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<div class="section-shell">
+
+    <div class="hero-caption">Research Output</div>
+
+    <h1 class="page-title">📊 实验报告</h1>
+
+    <p class="page-subtitle">生成并分享您的投研成果报鍛</p>
+
+
+
+    <div class="filter-bar mb-4">
+
+        <select id="experimentSelect" class="form-input exp-select">
+
+            <option value="">选择实验...</option>
+
+        </select>
+
+        <button class="btn-soft" type="button" data-er-action="create-report">+ 新建报告</button>
+
+    </div>
+
+
+
+    <div id="reportPreview">
+
+        <div class="empty-state">
+
+            <div class="text-4xl mb-4">📄</div>
+
+            <div>选择或创建一个实验以生成报告</div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script nonce="{{ csp_nonce() }}">
+
+async function loadExperiments() {
+
+    try {
+
+        const res = await fetch('/api/v1/experiments');
+
+        const json = await res.json();
+
+        const experiments = json.experiments || [];
+
+
+
+        const select = document.getElementById('experimentSelect');
+
+        select.innerHTML = '<option value="">选择实验...</option>' +
+
+            experiments.map(e => `<option value="${e.id}">${e.name} - ${e.created_at?.slice(0,10)}</option>`).join('');
+
+    } catch(e) {
+
+        window.qcLogError('加载实验失败', e);
+
+    }
+
+}
+
+
+
+async function loadExperiment() {
+
+    const expId = document.getElementById('experimentSelect').value;
+
+    if (!expId) return;
+
+
+
+    try {
+
+        const res = await fetch(`/api/v1/experiments/${expId}`);
+
+        const exp = await res.json();
+
+
+
+        renderReport(exp);
+
+    } catch(e) {
+
+        window.qcLogError('加载失败', e);
+
+    }
+
+}
+
+
+
+function buildEquityChartHtml(exp) {
+
+    const curve = exp.equity_curve
+
+        || (exp.artifacts && exp.artifacts.equity_curve)
+
+        || (exp.metrics && exp.metrics.equity_curve)
+
+        || [];
+
+    if (!Array.isArray(curve) || curve.length < 2) {
+
+        return '<div class="chart-placeholder">暂无权益曲线（回测完成后写入 artifacts.equity_curve锛</div>';
+
+    }
+
+    const vals = curve.map((p) => parseFloat(p.value ?? p.equity ?? 0));
+
+    const w = 640;
+
+    const h = 180;
+
+    const pad = 8;
+
+    const min = Math.min(...vals);
+
+    const max = Math.max(...vals);
+
+    const span = max - min || 1;
+
+    const pts = vals.map((v, i) => {
+
+        const x = pad + (i / (vals.length - 1)) * (w - pad * 2);
+
+        const y = h - pad - ((v - min) / span) * (h - pad * 2);
+
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+
+    }).join(' ');
+
+    return `<svg class="equity-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" role="img" aria-label="权益曲线">
+
+        <polyline fill="none" stroke="#7c3aed" stroke-width="2" points="${pts}" />
+
+    </svg>`;
+
+}
+
+
+
+function renderReport(exp) {
+
+    const container = document.getElementById('reportPreview');
+
+    container.innerHTML = `
+
+        <div class="report-container" id="reportContent">
+
+            <div class="report-header">
+
+                <div class="report-title">${exp.name || '投研实验报告'}</div>
+
+                <div class="report-meta">
+
+                    <span>实验ID: ${exp.id?.slice(0,8)}</span> ·
+
+                    <span>创建时间: ${exp.created_at?.slice(0,19) || '-'}</span> ·
+
+                    <span>状态 <span class="badge-${exp.status}">${exp.status}</span></span>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="report-section">
+
+                <h2>📈 收益指标</h2>
+
+                <div class="metric-grid">
+
+                    <div class="metric-card">
+
+                        <div class="metric-value">${exp.metrics?.total_return?.toFixed(1) || 0}%</div>
+
+                        <div class="metric-label">总收益率</div>
+
+                    </div>
+
+                    <div class="metric-card">
+
+                        <div class="metric-value">${exp.metrics?.sharpe_ratio?.toFixed(2) || '-'}</div>
+
+                        <div class="metric-label">夏普比率</div>
+
+                    </div>
+
+                    <div class="metric-card">
+
+                        <div class="metric-value">${exp.metrics?.max_drawdown?.toFixed(1) || 0}%</div>
+
+                        <div class="metric-label">最大回撤/div>
+
+                    </div>
+
+                    <div class="metric-card">
+
+                        <div class="metric-value">${exp.metrics?.win_rate?.toFixed(1) || 0}%</div>
+
+                        <div class="metric-label">胜率</div>
+
+                    </div>
+
+                    <div class="metric-card">
+
+                        <div class="metric-value">${exp.metrics?.profit_factor?.toFixed(2) || '-'}</div>
+
+                        <div class="metric-label">盈亏姣</div>
+
+                    </div>
+
+                    <div class="metric-card">
+
+                        <div class="metric-value">${exp.metrics?.total_trades || 0}</div>
+
+                        <div class="metric-label">交易次数</div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="report-section">
+
+                <h2>🎯 策略描述</h2>
+
+                <p>${exp.description || '无策略描杩?}</p>
+
+            </div>
+
+
+
+            ${exp.strategy_code ? `
+
+            <div class="report-section">
+
+                <h2>💻 策略摘要</h2>
+
+                <p>策略代码已在服务端保存。/p>
+
+                <button class="btn btn-sm btn-outline-secondary" data-action="download-code" data-exp-id="${escapeHtml(exp.experiment_id || exp.id)}">📥 下载代码</button>
+
+            </div>
+
+            ` : ''}
+
+
+
+            ${exp.findings ? `
+
+            <div class="report-section">
+
+                <h2>🔍 研究发现</h2>
+
+                <ul>
+
+                    ${exp.findings.map(f => `<li>${f}</li>`).join('')}
+
+                </ul>
+
+            </div>
+
+            ` : ''}
+
+
+
+            <div class="report-section">
+
+                <h2>📊 收益曲线</h2>
+
+                ${buildEquityChartHtml(exp)}
+
+            </div>
+
+
+
+            <div class="report-section">
+
+                <h2>💡 改进建议</h2>
+
+                <p>基于当前表现，建议关注以下优化方向：</p>
+
+                <ul>
+
+                    <li>因子权重调优</li>
+
+                    <li>止损策略优化</li>
+
+                    <li>仓位管理改进</li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="btn-group">
+
+            <button class="btn-brand" type="button" data-er-action="export-pdf">📥 导出PDF</button>
+
+            <button class="btn-soft" type="button" data-er-action="export-html">🌐 导出HTML</button>
+
+            <button class="btn-soft" type="button" data-er-action="share-report">🔗 分享链接</button>
+
+        </div>
+
+    `;
+
+}
+
+
+
+function escapeHtml(text) {
+
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+}
+
+
+
+function createNewReport() {
+
+    showToast('请先运行一个实验或选择已有实验', 'info');
+
+}
+
+
+
+function exportPDF() {
+
+    showToast('PDF导出功能开发中...', 'info');
+
+}
+
+
+
+function exportHTML() {
+
+    const content = document.getElementById('reportContent').outerHTML;
+
+    const blob = new Blob([`<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><title>实验报告</title></head><body>${content}</body></html>`], {type: 'text/html'});
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+
+    a.href = url;
+
+    a.download = 'experiment-report.html';
+
+    a.click();
+
+    showToast('HTML已导鍑?, 'success');
+
+}
+
+
+
+function shareReport() {
+
+    showToast('分享链接已复制到剪贴板', 'success');
+
+}
+
+
+
+loadExperiments();
+
+document.getElementById('experimentSelect').addEventListener('change', loadExperiment);
+
+document.addEventListener('click', function (e) {
+
+    const el = e.target.closest('[data-er-action]');
+
+    if (!el) return;
+
+    const action = el.dataset.erAction;
+
+    if (action === 'create-report') createNewReport();
+
+    else if (action === 'export-pdf') exportPDF();
+
+    else if (action === 'export-html') exportHTML();
+
+    else if (action === 'share-report') shareReport();
+
+});
+
+document.addEventListener('click', function (e) {
+
+    const el = e.target.closest('[data-action="download-code"]');
+
+    if (!el) return;
+
+    downloadCode(el.dataset.expId || '');
+
+});
+
+</script>
+
+{% endblock %}

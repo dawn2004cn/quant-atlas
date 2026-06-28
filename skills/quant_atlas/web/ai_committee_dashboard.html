@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}AI 投资委员会 - 全市场分析{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/ai-committee-dashboard" class="spa-switcher-link"
+   data-spa-switcher="ai-committee-dashboard">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="committee-dashboard">
+    <!-- 顶部英雄区 -->
+    <div class="hero-section">
+        <div class="acd-hero-row">
+            <div>
+                <div class="acd-hero-caption">INVESTMENT COMMITTEE SYSTEM</div>
+                <h1 class="acd-hero-title">AI 投资委员会</h1>
+                <p class="acd-hero-sub">全市场分析 · 智能选股 · 资金管理</p>
+            </div>
+            <div class="acd-hero-meta">
+                <div class="regime-badge" id="regimeBadge">
+                    <span id="regimeIcon">🏛️</span>
+                    <span id="regimeText">分析中...</span>
+                </div>
+                <div class="acd-risk-meta">
+                    风险等级: <strong id="riskLevel">--</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 五大市场状态 -->
+    <h3 class="acd-section-title">📊 五大市场状态</h3>
+    <div class="market-grid" id="marketGrid">
+        <div class="market-card">
+            <div class="acd-market-name">上证指数</div>
+            <div class="regime-badge regime-sideways regime-badge-sm">分析中</div>
+        </div>
+        <div class="market-card">
+            <div class="acd-market-name">深证成指</div>
+            <div class="regime-badge regime-sideways regime-badge-sm">分析中</div>
+        </div>
+        <div class="market-card">
+            <div class="acd-market-name">创业板指</div>
+            <div class="regime-badge regime-sideways regime-badge-sm">分析中</div>
+        </div>
+        <div class="market-card">
+            <div class="acd-market-name">科创50</div>
+            <div class="regime-badge regime-sideways regime-badge-sm">分析中</div>
+        </div>
+        <div class="market-card">
+            <div class="acd-market-name">北证50</div>
+            <div class="regime-badge regime-sideways regime-badge-sm">分析中</div>
+        </div>
+    </div>
+
+    <!-- 十大天王策略 -->
+    <h3 class="acd-section-title">🎯 十大天王策略</h3>
+    <div class="strategy-section">
+        <div class="strategy-card strategy-bull">
+            <div class="strategy-title">🐂 牛市主攻 (3)</div>
+            <ul class="strategy-list">
+                <li>米勒维尼 VCP</li>
+                <li>缺口动量</li>
+                <li>一目均衡表</li>
+            </ul>
+        </div>
+        <div class="strategy-card strategy-bear">
+            <div class="strategy-title">🐻 熊市防守 (3)</div>
+            <ul class="strategy-list">
+                <li>康纳斯 RSI(2)</li>
+                <li>VSA 恐慌停止量</li>
+                <li>维克多 2B</li>
+            </ul>
+        </div>
+        <div class="strategy-card strategy-sideways">
+            <div class="strategy-title">⚖️ 震荡/万能 (4)</div>
+            <ul class="strategy-list">
+                <li>TTM 挤压</li>
+                <li>机构 VWAP 回踩</li>
+                <li>超级趋势</li>
+                <li>布林+RSI 极限反转</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 七大 Agent -->
+    <h3 class="acd-section-title">🧠 七大投资顾问</h3>
+    <div class="agents-section" id="agentsSection">
+        <div class="agent-card">
+            <div class="agent-avatar">🎯</div>
+            <div class="agent-name">总指挥</div>
+            <div class="agent-opinion">统筹全局</div>
+        </div>
+        <div class="agent-card">
+            <div class="agent-avatar">📈</div>
+            <div class="agent-name">宏观分析师</div>
+            <div class="agent-opinion">经济周期与政策</div>
+        </div>
+        <div class="agent-card">
+            <div class="agent-avatar">🏭</div>
+            <div class="agent-name">行业分析师</div>
+            <div class="agent-opinion">赛道景气度</div>
+        </div>
+        <div class="agent-card">
+            <div class="agent-avatar">📋</div>
+            <div class="agent-name">财务分析师</div>
+            <div class="agent-opinion">基本面估值</div>
+        </div>
+        <div class="agent-card">
+            <div class="agent-avatar">📊</div>
+            <div class="agent-name">技术分析师</div>
+            <div class="agent-opinion">形态与趋势</div>
+        </div>
+        <div class="agent-card">
+            <div class="agent-avatar">💭</div>
+            <div class="agent-name">情绪分析师</div>
+            <div class="agent-opinion">资金流向</div>
+        </div>
+        <div class="agent-card">
+            <div class="agent-avatar">🛡️</div>
+            <div class="agent-name">风险管理</div>
+            <div class="agent-opinion">仓位与止损</div>
+        </div>
+    </div>
+
+    <!-- 组合与资金 -->
+    <div class="portfolio-section">
+        <div class="portfolio-card">
+            <div class="portfolio-header">
+                <div class="portfolio-title">💰 模拟资金 (50万)</div>
+            </div>
+            <div class="acd-capital-grid">
+                <div>
+                    <div class="acd-cap-label">总资金</div>
+                    <div class="money-display" id="totalCapital">500,000</div>
+                </div>
+                <div>
+                    <div class="acd-cap-label">可用现金</div>
+                    <div class="money-display" id="availableCash">500,000</div>
+                </div>
+                <div>
+                    <div class="acd-cap-label">持仓数</div>
+                    <div class="money-display" id="positionCount">0</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="portfolio-card">
+            <div class="portfolio-header">
+                <div class="portfolio-title">📋 推荐策略</div>
+            </div>
+            <div id="recommendedStrategies">
+                <div class="acd-placeholder">点击"开始分析"获取推荐策略</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 运行按钮 -->
+    <div class="acd-cta-center">
+        <button class="run-btn" id="runBtn" type="button" data-acd-action="run-committee">
+            🚀 开始全市场分析
+        </button>
+    </div>
+
+    <!-- 选股结果 -->
+    <div id="resultsSection" class="qa-is-hidden">
+        <h3 class="acd-section-title">🎯 精选短线标的 (3-5支)</h3>
+        <div id="selectedStocks" class="acd-stock-grid"></div>
+    </div>
+
+    <!-- 交易记录 -->
+    <div class="acd-trade-wrap">
+        <h3 class="acd-section-title">📜 交易记录</h3>
+        <div id="tradeHistory" class="acd-trade-box">
+            <div class="acd-trade-empty">暂无交易记录</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+let isRunning = false;
+
+async function loadStatus() {
+    try {
+        const res = await fetch('/api/v1/ai/committee/status');
+        const json = await res.json();
+        const data = json.data;
+        
+        if (data) {
+            // 更新市场状态
+            const marketGrid = document.getElementById('marketGrid');
+            const marketNames = ['上证指数', '深证成指', '创业板指', '科创50', '北证50'];
+            const regimes = data.markets || {};
+            
+            let bullCount = 0;
+            marketNames.forEach((name, i) => {
+                const state = regimes[name] || {};
+                const regime = state.regime || '未知';
+                if (regime === '牛市') bullCount++;
+            });
+            
+            // 更新总体状态
+            const overallRegime = data.overall_regime || '震荡市';
+            const riskLevel = data.risk_level || 'medium';
+            
+            const badge = document.getElementById('regimeBadge');
+            const icon = document.getElementById('regimeIcon');
+            const text = document.getElementById('regimeText');
+            
+            badge.className = 'regime-badge';
+            if (overallRegime === '牛市') {
+                badge.classList.add('regime-bull');
+                icon.textContent = '🐂';
+            } else if (overallRegime === '熊市') {
+                badge.classList.add('regime-bear');
+                icon.textContent = '🐻';
+            } else {
+                badge.classList.add('regime-sideways');
+                icon.textContent = '⚖️';
+            }
+            text.textContent = overallRegime;
+            
+            document.getElementById('riskLevel').textContent = riskLevel === 'high' ? '高 ⚠️' : (riskLevel === 'low' ? '低 ✅' : '中');
+            
+            // 更新策略推荐
+            const strategies = data.recommended_strategies || [];
+            const stratDiv = document.getElementById('recommendedStrategies');
+            if (strategies.length > 0) {
+                stratDiv.innerHTML = strategies.map(s => 
+                    `<div class="acd-suggestion-pill">${s}</div>`
+                ).join('');
+            }
+            
+            // 更新组合状态
+            const portfolio = data.portfolio || {};
+            document.getElementById('totalCapital').textContent = parseInt(portfolio.total_capital || 500000).toLocaleString();
+            document.getElementById('availableCash').textContent = parseInt(portfolio.available_cash || 500000).toLocaleString();
+            document.getElementById('positionCount').textContent = portfolio.positions_count || 0;
+        }
+    } catch (e) {
+        // silent: status fetch is best-effort
+    }
+}
+
+async function loadAgents() {
+    try {
+        const res = await fetch('/api/v1/ai/committee/agents');
+        const json = await res.json();
+        const agents = json.data?.agents || [];
+        
+        const section = document.getElementById('agentsSection');
+        section.innerHTML = agents.map(a => `
+            <div class="agent-card">
+                <div class="agent-avatar">${getAgentEmoji(a.name)}</div>
+                <div class="agent-name">${a.name}</div>
+                <div class="agent-opinion">${a.opinion?.substring(0, 30) || '等待分析...'}...</div>
+            </div>
+        `).join('');
+    } catch (e) {
+        // silent: agent fetch is best-effort
+    }
+}
+
+function getAgentEmoji(name) {
+    const map = {
+        '宏观分析师': '📈',
+        '行业分析师': '🏭',
+        '财务分析师': '📋',
+        '技术分析师': '📊',
+        '情绪分析师': '💭',
+        '风险管理': '🛡️',
+        '陈小群短线选手': '⚡',
+    };
+    return map[name] || '🎯';
+}
+
+async function runCommittee() {
+    if (isRunning) return;
+    
+    const btn = document.getElementById('runBtn');
+    btn.disabled = true;
+    btn.textContent = '🔄 分析中...';
+    isRunning = true;
+    
+    try {
+        const res = await fetch('/api/v1/ai/committee/run', { method: 'POST' });
+        const json = await res.json();
+        const data = json.data;
+        
+        if (data) {
+            // 显示选股结果
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.style.display = 'block';
+            
+            const stocksDiv = document.getElementById('selectedStocks');
+            const stocks = data.selected_stocks || [];
+            
+            if (stocks.length > 0) {
+                stocksDiv.innerHTML = stocks.map(s => `
+                    <div class="acd-stock-row">
+                        <div>
+                            <div class="acd-stock-name">${s.symbol} ${s.name}</div>
+                            <div class="acd-stock-strategy">策略: ${s.strategy}</div>
+                        </div>
+                        <div class="acd-stock-price">
+                            <div class="acd-stock-price-val">¥${s.entry_price}</div>
+                            <div class="acd-stock-levels">止损: ¥${s.stop_loss?.toFixed(2)} | 止盈: ¥${s.take_profit?.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                stocksDiv.innerHTML = '<div class="acd-empty-center">当前市场不适合操作</div>';
+            }
+            
+            // 刷新状态
+            await loadStatus();
+            await loadAgents();
+            
+            // 显示决策
+            showResultModal(data, stocks.length);
+        }
+    } catch (e) {
+        window.showToast(e.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 开始全市场分析';
+        isRunning = false;
+    }
+}
+
+function showResultModal(data, stockCount) {
+    var overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    var regimeIcon = {bull:'🐂', bear:'🐻', sideways:'⚖️'}[String(data.overall_regime).toLowerCase()] || '📊';
+    var riskText = {high:'高 ⚠️', medium:'中', low:'低 ✅'}[String(data.risk_level).toLowerCase()] || data.risk_level;
+    overlay.innerHTML =
+        '<div class="result-modal">' +
+            '<div class="result-modal-header">' +
+                '<span class="acd-regime-icon">' + regimeIcon + '</span>' +
+                '<div class="result-modal-title">分析完成</div>' +
+                '<button class="result-modal-close" type="button" data-acd-action="close-modal">×</button>' +
+            '</div>' +
+            '<div class="result-modal-body">' +
+                '<div class="result-stat"><span class="result-stat-label">市场状态</span><span class="result-stat-value">' + data.overall_regime + '</span></div>' +
+                '<div class="result-stat"><span class="result-stat-label">风险等级</span><span class="result-stat-value">' + riskText + '</span></div>' +
+                '<div class="result-stat"><span class="result-stat-label">选出标的</span><span class="result-stat-value">' + stockCount + ' 支</span></div>' +
+                '<div class="result-reasoning">' + (data.reasoning || '无详细分析说明') + '</div>' +
+            '</div>' +
+        '</div>';
+    document.body.appendChild(overlay);
+}
+
+// 页面加载时获取状态
+document.addEventListener('DOMContentLoaded', () => {
+    loadStatus();
+    loadAgents();
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-acd-action]');
+        if (!el) return;
+        const action = el.dataset.acdAction;
+        if (action === 'run-committee') runCommittee();
+        else if (action === 'close-modal') el.closest('.modal-overlay')?.remove();
+    });
+});
+</script>
+{% endblock %}

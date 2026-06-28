@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ t('register.title') }} · Quant Atlas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/auth.css') }}">
+</head>
+<body class="auth-register-page">
+    <div class="register-card">
+        <h1>{{ t('register.title') }}</h1>
+        <p class="sub">{{ t('register.subtitle', role='访客') }}</p>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="register-flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="post">
+            {{ csrf_html() }}
+            <div class="register-field">
+                <label for="username">{{ t('register.username') }}</label>
+                <input class="register-input" type="text" id="username" name="username" placeholder="{{ t('register.usernamePlaceholder') }}" required minlength="3" maxlength="32" autocomplete="username">
+            </div>
+            <div class="register-field">
+                <label for="password">{{ t('register.password') }}</label>
+                <input class="register-input" type="password" id="password" name="password" placeholder="{{ t('register.passwordPlaceholder') }}" required minlength="6" autocomplete="new-password">
+            </div>
+            <div class="register-field">
+                <label for="confirm_password">{{ t('register.confirm_password') }}</label>
+                <input class="register-input" type="password" id="confirm_password" name="confirm_password" placeholder="{{ t('register.confirmPlaceholder') }}" required minlength="6" autocomplete="new-password">
+            </div>
+            <button class="register-submit" type="submit">{{ t('register.submit') }}</button>
+        </form>
+        <p class="register-foot">{{ t('register.has_account') }}<a href="{{ url_for('auth.login') }}">{{ t('register.login_link') }}</a></p>
+    </div>
+</body>
+</html>

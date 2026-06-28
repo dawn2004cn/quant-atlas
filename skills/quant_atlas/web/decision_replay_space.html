@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}决策回溯空间 - Quant Atlas 8.0{% endblock %}
+
+
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+
+{% endblock %}
+
+
+
+{% block spa_switcher %}
+
+<a href="/app/decision-replay" class="spa-switcher-link"
+
+   data-spa-switcher="decision-replay">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<div class="container-fluid py-3" x-data="decisionReplaySpace()" x-init="init()">
+
+    <div class="mb-3">
+
+        <h1 class="page-title">🧠 决策回溯空间</h1>
+
+        <p class="page-subtitle text-muted">行为拓扑 + 证据时间轴 — Three.js 沉浸式 2.5D 决策漫步</p>
+
+    </div>
+
+
+
+    <div class="row g-3">
+
+        <div class="col-lg-9">
+
+            <div class="section-shell p-0">
+
+                <div id="replayCanvasWrap">
+
+                    <canvas id="replayCanvas"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3">
+
+            <div class="section-shell">
+
+                <label class="text-xs text-muted">聚焦标的（可选）</label>
+
+                <input class="form-control form-control-sm mb-2" x-model="symbol" placeholder="sz000001">
+
+                <button type="button" class="btn-brand btn-sm w-100 mb-3" @click="load()" :disabled="loading">加载场景</button>
+
+                <div class="replay-legend text-xs text-muted mb-2">
+
+                    <div><span class="drs-legend-investor"></span>投资者</div>
+
+                    <div><span class="drs-legend-symbol"></span>标的</div>
+
+                    <div><span class="drs-legend-success"></span>成功决策</div>
+
+                    <div><span class="drs-legend-timeline"></span>时间轴证据</div>
+
+                </div>
+
+                <template x-if="meta">
+
+                    <div class="text-sm">
+
+                        <div class="text-xs font-bold text-muted mb-1">行为洞察</div>
+
+                        <div x-text="'疲劳: ' + (meta.fatigue_level || '-')"></div>
+
+                        <template x-for="(a, i) in (meta.alerts || [])" :key="i">
+
+                            <div class="text-xs text-muted mt-1" x-text="a.message"></div>
+
+                        </template>
+
+                    </div>
+
+                </template>
+
+                <div class="text-xs text-muted mt-3" x-show="nodeCount" x-text="'节点 ' + nodeCount + ' · 边 ' + edgeCount"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script defer src="{{ url_for('static', filename='js/vendor/alpine.cdn.min.js') }}"></script>
+
+<script type="importmap" nonce="{{ csp_nonce() }}">
+
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+
+</script>
+
+<script type="module" nonce="{{ csp_nonce() }}">
+
+import * as THREE from 'three';
+
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+
+
+window.__DecisionReplayThree = { THREE, OrbitControls };
+
+window.dispatchEvent(new Event('decision-replay-three-ready'));
+
+</script>
+
+<script nonce="{{ csp_nonce() }}">
+
+function decisionReplaySpace() {
+
+    return {
+
+        symbol: '',
+
+        loading: false,
+
+        meta: null,
+
+        nodeCount: 0,
+
+        edgeCount: 0,
+
+        renderer: null,
+
+        scene: null,
+
+        camera: null,
+
+        controls: null,
+
+        animId: null,
+
+        init() {
+
+            const boot = () => {
+
+                this.setupThree();
+
+                this.load();
+
+            };
+
+            if (window.__DecisionReplayThree) boot();
+
+            else window.addEventListener('decision-replay-three-ready', boot, { once: true });
+
+        },
+
+        setupThree() {
+
+            const { THREE, OrbitControls } = window.__DecisionReplayThree;
+
+            const canvas = document.getElementById('replayCanvas');
+
+            const wrap = document.getElementById('replayCanvasWrap');
+
+            if (!canvas || !wrap) return;
+
+            this.scene = new THREE.Scene();
+
+            this.scene.fog = new THREE.Fog(0x0f172a, 12, 80);
+
+            const w = wrap.clientWidth;
+
+            const h = wrap.clientHeight;
+
+            this.camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 200);
+
+            this.camera.position.set(0, 10, 22);
+
+            this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+
+            this.renderer.setSize(w, h);
+
+            this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            this.controls = new OrbitControls(this.camera, canvas);
+
+            this.controls.enableDamping = true;
+
+            const light = new THREE.DirectionalLight(0xffffff, 1.1);
+
+            light.position.set(5, 12, 8);
+
+            this.scene.add(light);
+
+            this.scene.add(new THREE.AmbientLight(0x64748b, 0.6));
+
+            const grid = new THREE.GridHelper(40, 20, 0x334155, 0x1e293b);
+
+            grid.position.y = -1.5;
+
+            this.scene.add(grid);
+
+            const animate = () => {
+
+                this.animId = requestAnimationFrame(animate);
+
+                this.controls.update();
+
+                this.renderer.render(this.scene, this.camera);
+
+            };
+
+            animate();
+
+            window.addEventListener('resize', () => {
+
+                const nw = wrap.clientWidth;
+
+                const nh = wrap.clientHeight;
+
+                this.camera.aspect = nw / nh;
+
+                this.camera.updateProjectionMatrix();
+
+                this.renderer.setSize(nw, nh);
+
+            });
+
+        },
+
+        clearScene() {
+
+            if (!this.scene) return;
+
+            const remove = [];
+
+            this.scene.traverse((obj) => {
+
+                if (obj.isMesh && obj.userData.replayNode) remove.push(obj);
+
+            });
+
+            remove.forEach((m) => this.scene.remove(m));
+
+        },
+
+        renderScene(data) {
+
+            const { THREE } = window.__DecisionReplayThree;
+
+            if (!this.scene || !data) return;
+
+            this.clearScene();
+
+            const scene = data.scene || data;
+
+            const nodes = scene.nodes || [];
+
+            const edges = scene.edges || [];
+
+            const map = {};
+
+            nodes.forEach((n) => {
+
+                const geo = new THREE.SphereGeometry(n.size || 0.4, 20, 20);
+
+                const mat = new THREE.MeshStandardMaterial({
+
+                    color: new THREE.Color(n.color || '#6366f1'),
+
+                    emissive: new THREE.Color(n.color || '#6366f1'),
+
+                    emissiveIntensity: 0.15,
+
+                });
+
+                const mesh = new THREE.Mesh(geo, mat);
+
+                mesh.position.set(n.x || 0, n.y || 0, n.z || 0);
+
+                mesh.userData.replayNode = true;
+
+                mesh.userData.label = n.label;
+
+                this.scene.add(mesh);
+
+                map[n.id] = mesh.position.clone();
+
+            });
+
+            edges.forEach((e) => {
+
+                const a = map[e.from_id];
+
+                const b = map[e.to_id];
+
+                if (!a || !b) return;
+
+                const points = [a, b];
+
+                const geo = new THREE.BufferGeometry().setFromPoints(points);
+
+                const line = new THREE.Line(
+
+                    geo,
+
+                    new THREE.LineBasicMaterial({ color: new THREE.Color(e.color || '#64748b'), opacity: 0.45, transparent: true })
+
+                );
+
+                line.userData.replayNode = true;
+
+                this.scene.add(line);
+
+            });
+
+            if (scene.camera) {
+
+                this.camera.position.set(scene.camera.x || 0, scene.camera.y || 10, scene.camera.z || 22);
+
+            }
+
+            this.nodeCount = nodes.length;
+
+            this.edgeCount = edges.length;
+
+        },
+
+        async load() {
+
+            this.loading = true;
+
+            try {
+
+                const q = this.symbol ? `?symbol=${encodeURIComponent(this.symbol)}` : '';
+
+                const res = await fetch('/api/v1/decision-replay/space' + q);
+
+                const json = await res.json();
+
+                if (!res.ok) {
+
+                    alert(json.message || json.error || '加载失败');
+
+                    return;
+
+                }
+
+                const d = json.data || json;
+
+                this.meta = d.behavior_topology || null;
+
+                this.renderScene(d);
+
+            } catch (e) {
+
+                window.qcLogError('decision_replay render failed', e);
+
+                this.meta = null;
+
+                alert('加载失败: ' + (e.message || '未知错误'));
+
+            } finally {
+
+                this.loading = false;
+
+            }
+
+        },
+
+    };
+
+}
+
+</script>
+
+{% endblock %}
+

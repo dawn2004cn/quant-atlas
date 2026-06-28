@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}Agent 中心 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/agent-center" class="spa-switcher-link"
+   data-spa-switcher="agent-center">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="agent-center-page">
+<div class="agent-hero">
+    <div class="hero-caption">AI Agent System</div>
+    <h1 class="page-title">🤖 Agent 中心</h1>
+    <p class="page-subtitle">系统全部 Agent 组件一览 - Swarm团队、技能、投委会服务</p>
+    
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-num">130+</div>
+            <div class="stat-label">总 Agent 数</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">29</div>
+            <div class="stat-label">Swarm 团队</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">74</div>
+            <div class="stat-label">Expert Skills</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">6</div>
+            <div class="stat-label">投委会 Agent</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num">5+</div>
+            <div class="stat-label">独立服务</div>
+        </div>
+    </div>
+</div>
+
+<div class="workflow-strip">
+    <div class="workflow-card">
+        <div class="workflow-title">研究任务怎么选 Agent</div>
+        <div class="workflow-copy">先按问题类型过滤，再看输入/输出。单标的诊断用投委会，复杂主题研究用 Swarm，数据补全用 Skill。</div>
+        <a class="btn-soft" href="/ai-committee">去 AI 投委会</a>
+    </div>
+    <div class="workflow-card">
+        <div class="workflow-title">从结论回到证据</div>
+        <div class="workflow-copy">Agent 输出应包含证据来源、适用场景和风险边界，避免用户只看到一句结论。</div>
+        <a class="btn-soft" href="/observability">去观测台</a>
+    </div>
+    <div class="workflow-card">
+        <div class="workflow-title">沉淀为可复用流程</div>
+        <div class="workflow-copy">稳定的 Agent 组合应进入研究闭环，形成可追踪、可复盘、可重跑的任务模板。</div>
+        <a class="btn-soft" href="/research-pipeline">去研究闭环</a>
+    </div>
+</div>
+
+<div class="search-box">
+    <input type="text" class="search-input" id="agentSearch" placeholder="🔍 搜索 Agent...">
+    <select class="form-input ac-type-filter" id="typeFilter">
+        <option value="">全部类型</option>
+        <option value="swarm">Swarm 团队</option>
+        <option value="skill">Expert Skills</option>
+        <option value="committee">投委会</option>
+        <option value="service">独立服务</option>
+    </select>
+</div>
+
+<div class="tab-nav">
+    <button class="tab-btn active" data-ac-action="switch-tab" data-tab="all" type="button">全部</button>
+    <button class="tab-btn" data-ac-action="switch-tab" data-tab="swarm" type="button">Swarm 团队 (29)</button>
+    <button class="tab-btn" data-ac-action="switch-tab" data-tab="skill" type="button">Expert Skills (74)</button>
+    <button class="tab-btn" data-ac-action="switch-tab" data-tab="committee" type="button">投委会 (24)</button>
+    <button class="tab-btn" data-ac-action="switch-tab" data-tab="openclaw" type="button">Openclaw (9)</button>
+    <button class="tab-btn" data-ac-action="switch-tab" data-tab="service" type="button">独立服务 (5)</button>
+</div>
+
+<div class="agent-detail-panel" id="agentDetailPanel">
+    <div class="agent-detail-head">
+        <div>
+            <div class="hero-caption">Agent Detail</div>
+            <div class="agent-detail-title" id="detailTitle">选择一个 Agent</div>
+            <div class="agent-detail-subtitle" id="detailDesc">点击下方卡片查看输入、输出、适用场景和下一步动作。</div>
+        </div>
+        <button class="btn-soft" type="button" data-ac-action="close-detail" type="button">关闭</button>
+    </div>
+    <div class="agent-detail-grid">
+        <div class="agent-detail-card">
+            <h3>需要的输入</h3>
+            <p id="detailInput">市场、标的、时间范围、用户偏好。</p>
+        </div>
+        <div class="agent-detail-card">
+            <h3>输出结果</h3>
+            <p id="detailOutput">结构化观点、证据、置信度、风险提示。</p>
+        </div>
+        <div class="agent-detail-card">
+            <h3>最适合的用户任务</h3>
+            <p id="detailUseCase">用于投研分析、策略验证或数据补全。</p>
+        </div>
+        <div class="agent-detail-card">
+            <h3>页面落点</h3>
+            <p id="detailLanding">根据类型跳转至投委会、研究闭环或量化实验室。</p>
+        </div>
+    </div>
+    <div class="agent-detail-actions" id="detailActions"></div>
+</div>
+
+<div class="agent-grid" id="agentGrid">
+    <!-- Agents will be rendered here -->
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+const agents = [
+    // === Swarm Teams (29) - 来自 config/agents/swarms/*.yaml ===
+    // 股票研究 (4)
+    { id: 'equity_research_team', name: '股票研究团队', desc: '深入分析个股基本面、行业趋势和财务数据', type: 'swarm', category: '股票研究', tags: ['多Agent', '5-10min'] },
+    { id: 'fundamental_research_team', name: '基本面研究团队', desc: '专注价值分析，评估公司内在价值和成长潜力', type: 'swarm', category: '股票研究', tags: ['多Agent', '8-15min'] },
+    { id: 'earnings_research_desk', name: '财报研究台', desc: '深度解读财报，识别盈利质量和潜在风险', type: 'swarm', category: '股票研究', tags: ['多Agent', '3-5min'] },
+    { id: 'sentiment_intelligence_team', name: '情绪intelligence团队', desc: '监控舆情，提取市场情绪信号和热点话题', type: 'swarm', category: '股票研究', tags: ['多Agent', '5-8min'] },
+    // 量化策略 (4)
+    { id: 'quant_strategy_desk', name: '量化策略台', desc: '设计、回测和优化量化交易策略', type: 'swarm', category: '量化', tags: ['多Agent', '10-20min'] },
+    { id: 'ml_quant_lab', name: 'ML量化实验室', desc: '机器学习驱动的因子挖掘和策略开发', type: 'swarm', category: '量化', tags: ['多Agent', '15-30min'] },
+    { id: 'statistical_arbitrage_desk', name: '统计套利台', desc: '配对交易、均值回归等统计套利策略', type: 'swarm', category: '量化', tags: ['多Agent', '8-12min'] },
+    { id: 'factor_research_committee', name: '因子研究委员会', desc: '因子有效性评估和组合优化', type: 'swarm', category: '量化', tags: ['多Agent', '10-15min'] },
+    // 风险管理 (2)
+    { id: 'risk_committee', name: '风险委员会', desc: '全面评估组合风险，识别潜在威胁', type: 'swarm', category: '风险管理', tags: ['多Agent', '5-10min'] },
+    { id: 'portfolio_review_board', name: '组合审查委员会', desc: '定期审查持仓，评估风险敞口', type: 'swarm', category: '风险管理', tags: ['多Agent', '3-5min'] },
+    // 宏观策略 (3)
+    { id: 'macro_strategy_forum', name: '宏观策略论坛', desc: '分析宏观经济趋势和地缘政治影响', type: 'swarm', category: '宏观', tags: ['多Agent', '10-15min'] },
+    { id: 'global_allocation_committee', name: '全球配置委员会', desc: '跨资产类别最优配置方案', type: 'swarm', category: '宏观', tags: ['多Agent', '15-20min'] },
+    { id: 'macro_rates_fx_desk', name: '宏观利率外汇台', desc: '利率汇率分析，跨境资本流动', type: 'swarm', category: '宏观', tags: ['多Agent', '8-12min'] },
+    // 加密货币 (2)
+    { id: 'crypto_trading_desk', name: '加密货币交易台', desc: '数字资产量化交易和套利', type: 'swarm', category: '加密货币', tags: ['多Agent', '5-10min'] },
+    { id: 'crypto_research_lab', name: '加密货币研究实验室', desc: '链上数据和DeFi协议分析', type: 'swarm', category: '加密货币', tags: ['多Agent', '8-12min'] },
+    // 其他类别 (14)
+    { id: 'derivatives_strategy_desk', name: '衍生品策略台', desc: '期权、期货结构化策略设计', type: 'swarm', category: '衍生品', tags: ['多Agent', '10-15min'] },
+    { id: 'credit_research_team', name: '信用研究团队', desc: '债券信用分析，违约概率评估', type: 'swarm', category: '信用研究', tags: ['多Agent', '8-12min'] },
+    { id: 'sector_rotation_team', name: '行业轮动团队', desc: '行业景气度监控，轮动信号识别', type: 'swarm', category: '行业轮动', tags: ['多Agent', '5-10min'] },
+    { id: 'social_alpha_team', name: '社交Alpha团队', desc: '社交媒体情绪挖掘，跟风资金追踪', type: 'swarm', category: '社交Alpha', tags: ['多Agent', '5-8min'] },
+    { id: 'fund_selection_panel', name: '基金筛选面板', desc: '公募私募基金量化筛选，业绩归因', type: 'swarm', category: '基金筛选', tags: ['多Agent', '8-12min'] },
+    { id: 'event_driven_task_force', name: '事件驱动特战队', desc: '财报季、并购重组事件投资策略', type: 'swarm', category: '事件驱动', tags: ['多Agent', '5-10min'] },
+    { id: 'commodity_research_team', name: '商品研究团队', desc: '大宗商品供需分析，价格预测', type: 'swarm', category: '商品研究', tags: ['多Agent', '8-12min'] },
+    { id: 'convertible_bond_team', name: '可转债团队', desc: '可转债定价、套利和条款博弈', type: 'swarm', category: '可转债', tags: ['多Agent', '10-15min'] },
+    { id: 'technical_analysis_panel', name: '技术分析面板', desc: '图表形态识别，自动画线提示', type: 'swarm', category: '技术分析', tags: ['多Agent', '3-5min'] },
+    { id: 'pairs_research_lab', name: '配对交易实验室', desc: '跨品种、跨期统计套利研究', type: 'swarm', category: '配对交易', tags: ['多Agent', '8-12min'] },
+    { id: 'etf_allocation_desk', name: 'ETF配置台', desc: 'ETF轮动、套利和组合配置', type: 'swarm', category: 'ETF配置', tags: ['多Agent', '5-10min'] },
+    { id: 'global_equities_desk', name: '全球股票台', desc: '美股、港股全球化股票研究', type: 'swarm', category: '全球', tags: ['多Agent', '10-15min'] },
+    { id: 'geopolitical_war_room', name: '地缘政治作战室', desc: '地缘政治风险监控和情景分析', type: 'swarm', category: '宏观', tags: ['多Agent', '10-15min'] },
+    { id: 'investment_committee', name: '投资委员会', desc: '综合决策，整合所有分析结论', type: 'swarm', category: '决策', tags: ['多Agent', '15-20min'] },
+    
+    // === Expert Skills (74) - 来自 app/resources/agent_skills/* ===
+    // 数据与API
+    { id: 'tushare', name: 'Tushare数据', desc: 'A股数据接口，历史行情查询', type: 'skill', category: '数据', tags: ['API', 'A股'] },
+    { id: 'akshare', name: 'AkShare数据', desc: '财经数据接口，宏观经济数据', type: 'skill', category: '数据', tags: ['API', '宏观'] },
+    { id: 'yfinance', name: 'Yahoo Finance', desc: '美股港股历史数据下载', type: 'skill', category: '数据', tags: ['API', '美股'] },
+    { id: 'ccxt', name: 'CCXT交易所', desc: '加密货币交易所统一接口', type: 'skill', category: '数据', tags: ['API', '交易所'] },
+    { id: 'okx-market', name: 'OKX市场数据', desc: 'OKX合约、现货市场数据', type: 'skill', category: '数据', tags: ['API', '合约'] },
+    { id: 'doc-reader', name: '文档读取', desc: 'PDF、Word、Excel文档解析', type: 'skill', category: '数据', tags: ['解析', '文档'] },
+    { id: 'web-reader', name: '网页读取', desc: '网页爬取和内容提取', type: 'skill', category: '数据', tags: ['爬虫', '解析'] },
+    { id: 'data-routing', name: '数据路由', desc: '多数据源智能路由和合并', type: 'skill', category: '数据', tags: ['合并', '路由'] },
+    // 基本面分析
+    { id: 'financial-statement', name: '财务报表分析', desc: '深度解读三大报表，识别财务风险', type: 'skill', category: '基本面', tags: ['财报', 'AI分析'] },
+    { id: 'earnings-forecast', name: '盈利预测', desc: '基于财务模型的盈利预测', type: 'skill', category: '基本面', tags: ['预测', '模型'] },
+    { id: 'dividend-analysis', name: '分红分析', desc: '股息率、派息稳定性分析', type: 'skill', category: '基本面', tags: ['分红', '股息'] },
+    { id: 'valuation-model', name: '估值模型', desc: 'DCF、相对估值法计算', type: 'skill', category: '基本面', tags: ['估值', 'DCF'] },
+    { id: 'earnings-revision', name: '盈利调整', desc: '分析师盈利预测调整追踪', type: 'skill', category: '基本面', tags: ['预测', '调整'] },
+    { id: 'fundamental-filter', name: '基本面筛选', desc: '多因子基本面条件选股', type: 'skill', category: '基本面', tags: ['筛选', '因子'] },
+    { id: 'credit-analysis', name: '信用分析', desc: '债券信用评级和违约概率', type: 'skill', category: '基本面', tags: ['信用', '违约'] },
+    // 技术分析
+    { id: 'technical-basic', name: '技术分析基础', desc: 'K线、均线、趋势线分析', type: 'skill', category: '技术', tags: ['K线', '均线'] },
+    { id: 'candlestick', name: '蜡烛图形态', desc: 'K线形态识别和信号提示', type: 'skill', category: '技术', tags: ['形态', '信号'] },
+    { id: 'ichimoku', name: '一目均衡表', desc: 'Ichimoku云图交易系统', type: 'skill', category: '技术', tags: ['云图', '趋势'] },
+    { id: 'chanlun', name: '缠论', desc: '缠中说禅中枢与背驰分析', type: 'skill', category: '技术', tags: ['中枢', '背驰'] },
+    { id: 'elliott-wave', name: '波浪理论', desc: '艾略特波浪计数和预测', type: 'skill', category: '技术', tags: ['波浪', '周期'] },
+    { id: 'harmonic', name: '谐波形态', desc: 'Gartley、Butterfly等谐波形态', type: 'skill', category: '技术', tags: ['形态', '斐波那契'] },
+    { id: 'smc', name: 'Smart Money', desc: '聪明钱追踪和机构订单流', type: 'skill', category: '技术', tags: ['订单流', '机构'] },
+    // 量化策略
+    { id: 'strategy-generate', name: '策略生成', desc: '根据描述自动生成完整交易策略', type: 'skill', category: '量化', tags: ['生成', '代码'] },
+    { id: 'backtest-diagnose', name: '回测诊断', desc: '诊断回测结果，识别过拟合', type: 'skill', category: '量化', tags: ['诊断', '优化'] },
+    { id: 'factor-research', name: '因子研究', desc: '因子IC/IR分析，多因子回测', type: 'skill', category: '量化', tags: ['IC', 'IR'] },
+    { id: 'multi-factor', name: '多因子模型', desc: 'Alpha因子组合和权重优化', type: 'skill', category: '量化', tags: ['因子', '组合'] },
+    { id: 'ml-strategy', name: 'ML策略', desc: '机器学习预测模型和策略', type: 'skill', category: '量化', tags: ['ML', '预测'] },
+    { id: 'quant-statistics', name: '量化统计', desc: '序列分析、协整检验等', type: 'skill', category: '量化', tags: ['统计', '检验'] },
+    { id: 'execution-model', name: '执行模型', desc: '算法交易、滑点估算', type: 'skill', category: '量化', tags: ['执行', '算法'] },
+    { id: 'performance-attribution', name: '业绩归因', desc: 'Brinson归因和收益分解', type: 'skill', category: '量化', tags: ['归因', '分解'] },
+    // 期权与衍生品
+    { id: 'options-strategy', name: '期权策略', desc: '期权定价、波动率交易策略', type: 'skill', category: '期权', tags: ['希腊字母', '策略'] },
+    { id: 'options-advanced', name: '高级期权', desc: '组合策略、价差策略设计', type: 'skill', category: '期权', tags: ['价差', '组合'] },
+    { id: 'options-payoff', name: '期权收益', desc: '期权到期收益计算和可视化', type: 'skill', category: '期权', tags: ['收益', '可视化'] },
+    { id: 'volatility', name: '波动率', desc: '波动率曲面和预测', type: 'skill', category: '期权', tags: ['波动率', 'IV'] },
+    { id: 'hedging-strategy', name: '对冲策略', desc: 'Delta、Gamma对冲方案', type: 'skill', category: '期权', tags: ['对冲', '希腊'] },
+    // 套利
+    { id: 'pair-trading', name: '配对交易', desc: '统计套利、配对因子挖掘', type: 'skill', category: '套利', tags: ['配对', '统计'] },
+    { id: 'correlation-analysis', name: '相关性分析', desc: '资产相关性计算和套利', type: 'skill', category: '套利', tags: ['相关', '统计'] },
+    { id: 'cross-market-strategy', name: '跨市场策略', desc: '期现、跨期、跨市套利', type: 'skill', category: '套利', tags: ['跨市', '期现'] },
+    // 风控
+    { id: 'risk-analysis', name: '风险分析', desc: '组合风险评估、VaR计算', type: 'skill', category: '风控', tags: ['VaR', '风控'] },
+    { id: 'liquidation-heatmap', name: '爆仓热力图', desc: '杠杆仓位清算风险监控', type: 'skill', category: '风控', tags: ['清算', '风险'] },
+    { id: 'behavioral-finance', name: '行为金融', desc: '行为偏差分析和应对', type: 'skill', category: '风控', tags: ['行为', '心理'] },
+    // 宏观
+    { id: 'macro-analysis', name: '宏观分析', desc: '经济周期、利率趋势分析', type: 'skill', category: '宏观', tags: ['周期', '利率'] },
+    { id: 'global-macro', name: '全球宏观', desc: '全球宏观经济趋势分析', type: 'skill', category: '宏观', tags: ['宏观', '全球'] },
+    { id: 'geopolitical-risk', name: '地缘风险', desc: '地缘政治风险评估', type: 'skill', category: '宏观', tags: ['地缘', '风险'] },
+    { id: 'seasonal', name: '季节性', desc: '季节性交易模式分析', type: 'skill', category: '宏观', tags: ['季节', '周期'] },
+    // 行业与ETF
+    { id: 'sector-rotation', name: '行业轮动', desc: '行业景气度和轮动信号', type: 'skill', category: '行业', tags: ['轮动', '景气'] },
+    { id: 'etf-analysis', name: 'ETF分析', desc: 'ETF筛选、轮动、套利', type: 'skill', category: 'ETF', tags: ['轮动', '折溢价'] },
+    { id: 'us-etf-flow', name: '美股ETF流向', desc: '美股ETF资金流入流出追踪', type: 'skill', category: 'ETF', tags: ['资金', '流向'] },
+    { id: 'hk-connect-flow', name: '港股通流向', desc: '北向、南向资金监控', type: 'skill', category: 'ETF', tags: ['港股通', '资金'] },
+    // 商品与加密
+    { id: 'commodity-analysis', name: '商品分析', desc: '大宗商品供需平衡表分析', type: 'skill', category: '商品', tags: ['供需', '库存'] },
+    { id: 'crypto-derivatives', name: '加密衍生品', desc: '合约、期权和DeFi策略', type: 'skill', category: '加密', tags: ['合约', 'DeFi'] },
+    { id: 'onchain-analysis', name: '链上分析', desc: '链上数据、钱包持仓分析', type: 'skill', category: '加密', tags: ['链上', '钱包'] },
+    { id: 'defi-yield', name: 'DeFi收益', desc: 'DeFi协议收益分析', type: 'skill', category: '加密', tags: ['DeFi', '收益'] },
+    { id: 'perp-funding-basis', name: '合约资金费率', desc: '永续合约资金费率分析', type: 'skill', category: '加密', tags: ['资金费', '合约'] },
+    { id: 'stablecoin-flow', name: '稳定币流向', desc: '稳定币链上流动监控', type: 'skill', category: '加密', tags: ['稳定币', '链上'] },
+    { id: 'token-unlock-treasury', name: '代币解锁', desc: '代币解锁和国库分析', type: 'skill', category: '加密', tags: ['解锁', '国库'] },
+    // 可转债
+    { id: 'convertible-bond', name: '可转债分析', desc: '转股溢价率、纯债价值', type: 'skill', category: '可转债', tags: ['溢价', 'YTM'] },
+    // 基金
+    { id: 'fund-analysis', name: '基金分析', desc: '公募私募基金业绩分析', type: 'skill', category: '基金', tags: ['业绩', '归因'] },
+    // 情绪与消息
+    { id: 'sentiment-analysis', name: '情绪分析', desc: '新闻、社交媒体舆情挖掘', type: 'skill', category: '情绪', tags: ['NLP', '舆情'] },
+    { id: 'social-media-intelligence', name: '社交媒体 intelligence', desc: 'Twitter/微博舆情监控', type: 'skill', category: '情绪', tags: ['社交', '监控'] },
+    { id: 'corporate-events', name: '公司事件', desc: '财报、并购、解禁事件', type: 'skill', category: '情绪', tags: ['事件', '日历'] },
+    { id: 'event-driven', name: '事件驱动', desc: '事件驱动策略分析', type: 'skill', category: '情绪', tags: ['事件', '策略'] },
+    // 其他
+    { id: 'pine-script', name: '多平台导出', desc: 'TradingView/TDX/MT5代码', type: 'skill', category: '导出', tags: ['Pine', 'TDX'] },
+    { id: 'vnpy-export', name: 'VNPy导出', desc: 'VN.py策略导出', type: 'skill', category: '导出', tags: ['VNpy', '导出'] },
+    { id: 'market-microstructure', name: '市场微结构', desc: '订单簿、流动性分析', type: 'skill', category: '微观', tags: ['订单簿', '流动性'] },
+    { id: 'minute-analysis', name: '分钟级分析', desc: '高频数据处理和分析', type: 'skill', category: '微观', tags: ['高频', '分钟'] },
+    { id: 'report-generate', name: '研报生成', desc: '自动生成投资研究报告', type: 'skill', category: '报告', tags: ['AI', '生成'] },
+    { id: 'regulatory-knowledge', name: '监管知识', desc: '金融监管政策知识库', type: 'skill', category: '知识', tags: ['监管', '政策'] },
+    { id: 'asset-allocation', name: '资产配置', desc: '均值方差、风险平价配置', type: 'skill', category: '配置', tags: ['优化', '组合'] },
+    { id: 'trade-journal', name: '交易日记', desc: '交易记录和复盘分析', type: 'skill', category: '工具', tags: ['日志', '复盘'] },
+    { id: 'ashare-pre-st-filter', name: 'ST股票过滤', desc: 'ST、退市股票过滤', type: 'skill', category: '筛选', tags: ['ST', '过滤'] },
+    { id: 'adr-hshare', name: 'ADR/港股对照', desc: 'ADR与港股对应关系', type: 'skill', category: '数据', tags: ['ADR', '港股'] },
+    { id: 'edgar-sec-filings', name: 'SEC文件', desc: '美国SEC文件查询', type: 'skill', category: '数据', tags: ['SEC', '文件'] },
+    
+    // === AI Committee (6) - 来自 ai_committee_service.py ===
+    { id: 'committee_sentiment', name: '情绪Agent', desc: '舆情热度、资金流向、社交媒体情绪', type: 'committee', category: '投委会', tags: ['情绪', '舆情'] },
+    { id: 'committee_news', name: '新闻Agent', desc: '最新消息、公告要点、政策变化', type: 'committee', category: '投委会', tags: ['新闻', '事件'] },
+    { id: 'committee_buffett', name: '巴菲特Agent', desc: '财务稳健性、ROE、护城河和估值', type: 'committee', category: '投委会', tags: ['基本面', '价值'] },
+    { id: 'committee_lynch', name: '彼得·林奇Agent', desc: 'RSI、MA、成交量和短期爆发力', type: 'committee', category: '投委会', tags: ['技术面', '成长'] },
+    { id: 'committee_wood', name: '卡尔·伍德Agent', desc: '行业赛道、政策导向、未来潜力', type: 'committee', category: '投委会', tags: ['宏观', '主题'] },
+    { id: 'committee_risk', name: '风控Agent', desc: '波动率、下行风险、Beta敞口预警', type: 'committee', category: '投委会', tags: ['风控', '量化'] },
+    
+    // === AI Hedge Fund (18) - 来自 integration/hedge_fund/agents (已增强Openclaw人格) ===
+    { id: 'hedge_warren_buffett', name: 'Warren Buffett', desc: 'Oracle of Omaha，价值投资，寻找护城河', type: 'committee', category: '传奇投资人', tags: ['价值', '护城河'], emoji: '🦞' },
+    { id: 'hedge_charlie_munger', name: 'Charlie Munger', desc: '巴菲特搭档，逆向思维和商业质量', type: 'committee', category: '传奇投资人', tags: ['质量', '逆向'] },
+    { id: 'hedge_ben_graham', name: 'Ben Graham', desc: '价值投资之父，深度价值和安全边际', type: 'committee', category: '传奇投资人', tags: ['深度价值', '安全边际'] },
+    { id: 'hedge_bill_ackman', name: 'Bill Ackman', desc: '激进投资人，品牌护城河和FCF', type: 'committee', category: '传奇投资人', tags: ['Activist', '激进'] },
+    { id: 'hedge_cathie_wood', name: 'Cathie Wood', desc: 'ARK女王，创新和颠覆式增长', type: 'committee', category: '传奇投资人', tags: ['创新', '成长'] },
+    { id: 'hedge_michael_burry', name: 'Michael Burry', desc: '《大空头》原型，逆向深度价值', type: 'committee', category: '传奇投资人', tags: ['Contrarian', '深度'] },
+    { id: 'hedge_peter_lynch', name: 'Peter Lynch', desc: '平民投资大师，生活中发现10倍股', type: 'committee', category: '传奇投资人', tags: ['成长', '生活'] },
+    { id: 'hedge_phil_fisher', name: 'Phil Fisher', desc: '成长股先驱，Scuttlebutt调研法', type: 'committee', category: '传奇投资人', tags: ['成长', '调研'] },
+    { id: 'hedge_stanley_druckenmiller', name: 'Stanley Druckenmiller', desc: '宏观传奇，不对称风险收益', type: 'committee', category: '传奇投资人', tags: ['宏观', '动量'] },
+    { id: 'hedge_mohnish_pabrai', name: 'Mohnish Pabrai', desc: 'Dhandho投资人，低风险高回报', type: 'committee', category: '传奇投资人', tags: ['GARP', '克隆'] },
+    { id: 'hedge_nassim_taleb', name: 'Nassim Taleb', desc: '《黑天鹅》作者，反脆弱和尾部风险', type: 'committee', category: '传奇投资人', tags: ['风险', '反脆弱'] },
+    { id: 'hedge_aswath_damodaran', name: 'Aswath Damodaran', desc: '估值大师，DCF和财务建模', type: 'committee', category: '传奇投资人', tags: ['估值', '建模'] },
+    { id: 'hedge_valuation', name: 'Valuation Agent', desc: '计算内在价值，生成估值信号', type: 'committee', category: '专业分析', tags: ['估值', '量化'] },
+    { id: 'hedge_fundamentals', name: 'Fundamentals Agent', desc: '财务指标分析，ROE和盈利质量', type: 'committee', category: '专业分析', tags: ['基本面', '财务'] },
+    { id: 'hedge_technicals', name: 'Technicals Agent', desc: '技术指标和趋势分析', type: 'committee', category: '专业分析', tags: ['技术', '趋势'] },
+    { id: 'hedge_sentiment', name: 'Sentiment Agent', desc: '市场情绪和舆情分析', type: 'committee', category: '专业分析', tags: ['情绪', '舆情'] },
+    { id: 'hedge_risk_manager', name: 'Risk Manager', desc: '风险敞口和仓位管理', type: 'committee', category: '专业分析', tags: ['风控', '仓位'] },
+    { id: 'hedge_portfolio_manager', name: 'Portfolio Manager', desc: '信号汇总和最终决策', type: 'committee', category: '专业分析', tags: ['组合', '决策'] },
+    
+    // === Openclaw Personalities (9) - 来自 agent/workspaces-*
+    { id: 'openclaw_buffett', name: '巴菲特龙虾', desc: '奥马哈的橙爪贤者，慢吞吞的价值投资大师', type: 'openclaw', category: 'Openclaw', tags: ['价值', '护城河'], emoji: '🦞🍒' },
+    { id: 'openclaw_munger', name: '芒格龙虾', desc: '巴菲特搭档，逆向思维大师', type: 'openclaw', category: 'Openclaw', tags: ['质量', '逆向'], emoji: '🧐' },
+    { id: 'openclaw_lynch', name: '林奇龙虾', desc: '平民投资大师，生活中发现10倍股', type: 'openclaw', category: 'Openclaw', tags: ['成长', '生活'], emoji: '📈' },
+    { id: 'openclaw_simons', name: '西蒙斯龙虾', desc: '文艺复兴量化帝国的冷血数学家', type: 'openclaw', category: 'Openclaw', tags: ['量化', '统计'], emoji: '🧮📊' },
+    { id: 'openclaw_soros', name: '索罗斯龙虾', desc: '市场反身性理论，盛衰周期狙击手', type: 'openclaw', category: 'Openclaw', tags: ['宏观', '反身性'], emoji: '🌍💥' },
+    { id: 'openclaw_xukaidong', name: '徐开东龙虾', desc: '激进投资派，高置信押注', type: 'openclaw', category: 'Openclaw', tags: ['Activist', '激进'], emoji: '⚔️' },
+    { id: 'openclaw_geweidong', name: '葛卫东龙虾', desc: '深度价值，安全边际优先', type: 'openclaw', category: 'Openclaw', tags: ['深度价值', '安全边际'], emoji: '🛡️' },
+    { id: 'openclaw_xiaoqun', name: '陈小群龙虾', desc: 'ARK女王，创新颠覆者', type: 'openclaw', category: 'Openclaw', tags: ['创新', '成长'], emoji: '🚀' },
+    { id: 'openclaw_mengzhu', name: '章建平龙虾', desc: '《大空头》原型，逆向猎手', type: 'openclaw', category: 'Openclaw', tags: ['Contrarian', '深度'], emoji: '🔍' },
+    
+    // === Services (5) ===
+    { id: 'trading_agents', name: 'TradingAgents', desc: '6分析师+辩论模式，多轮研讨', type: 'service', category: '核心服务', tags: ['辩论', '多轮'] },
+    { id: 'swarm_orchestrator', name: 'Swarm编排器', desc: '多智能体任务协调和结果汇总', type: 'service', category: '核心服务', tags: ['编排', '协调'] },
+    { id: 'rdagent', name: 'RDAgent研究', desc: '完整研究闭环，从想法到报告', type: 'service', category: '研究', tags: ['闭环', '自动化'] },
+    { id: 'watchlist_agent', name: '自选股Agent', desc: '自选股监控和智能提醒', type: 'service', category: '监控', tags: ['监控', '提醒'] },
+    { id: 'shadow_account', name: '影子账户', desc: '从交易记录提取策略特征', type: 'service', category: '分析', tags: ['提取', '画像'] },
+];
+
+let currentTab = 'all';
+
+function renderAgents(filterType = 'all') {
+    let html = '';
+    const search = $('#agentSearch').val().toLowerCase();
+    const typeFilterFilter = $('#typeFilter').val();
+    
+    const filtered = agents.filter(a => {
+        const matchSearch = a.name.toLowerCase().includes(search) || a.desc.toLowerCase().includes(search);
+        const matchType = !typeFilterFilter || a.type === typeFilterFilter;
+        const matchTab = filterType === 'all' || a.type === filterType;
+        return matchSearch && matchType && matchTab;
+    });
+    
+    filtered.forEach(a => {
+        const iconMap = {
+            'swarm': '🐝', 'skill': '🎯', 'committee': '🏛️', 'service': '⚡', 'openclaw': '🦞'
+        };
+        const typeLabel = { 'swarm': 'Swarm', 'skill': 'Skill', 'committee': '投委会', 'service': 'Service', 'openclaw': 'Openclaw' };
+        const agentEmoji = a.emoji || iconMap[a.type] || '🤖';
+        
+        html += `<div class="agent-card" data-ac-action="show-agent" data-agent-id="${a.id}" role="button" tabindex="0">
+            <div class="agent-header">
+                <div class="agent-icon" style="background: linear-gradient(135deg, var(--brand), #8b5cf6); color: #fff;">${agentEmoji}</div>
+                <div>
+                    <div class="agent-name">${a.name}</div>
+                    <div class="agent-type">${a.category}</div>
+                </div>
+            </div>
+            <div class="agent-desc">${a.desc}</div>
+            <div class="agent-tags">
+                <span class="tag ${a.type}">${typeLabel[a.type]}</span>
+                ${a.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+            </div>
+        </div>`;
+    });
+    
+    $('#agentGrid').html(html || '<div class="text-center text-muted p-8">未找到匹配的 Agent</div>');
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    $('.tab-btn').removeClass('active');
+    $(`.tab-btn:contains(${tab === 'all' ? '全部' : tab === 'swarm' ? 'Swarm' : tab === 'skill' ? 'Expert' : tab === 'committee' ? '投委会' : tab === 'openclaw' ? 'Openclaw' : '独立'})`).addClass('active');
+    renderAgents(tab);
+}
+
+function filterAgents() {
+    renderAgents(currentTab);
+}
+
+function showAgentDetail(id) {
+    const agent = agents.find(a => a.id === id);
+    if (!agent) return;
+    const typeMeta = {
+        swarm: {
+            input: '研究主题、标的池、时间范围、输出格式和是否需要人工复核。',
+            output: '多角色研究摘要、关键证据、分歧点、最终建议和下一步任务。',
+            use: '适合行业研究、组合复盘、跨市场主题和复杂问题拆解。',
+            landing: '建议进入研究闭环或实验报告页沉淀为任务模板。',
+            actions: [['研究闭环', '/research-pipeline'], ['实验报告', '/experiment-reporter']]
+        },
+        skill: {
+            input: '明确的数据源、文档、标的代码或指标字段。',
+            output: '结构化数据、解释片段、指标计算结果或可复用工具输出。',
+            use: '适合补数据、读文档、生成特定指标和辅助单个 Agent。',
+            landing: '建议作为投委会或研究闭环的证据输入。',
+            actions: [['能力总览', '/capabilities'], ['研报中心', '/yanbao-hub']]
+        },
+        committee: {
+            input: '单个标的、市场、风险偏好和共享 AgentContext。',
+            output: '多 Agent 投票、证据栈、冲突雷达、最终裁决和复核建议。',
+            use: '适合个股诊断、买卖前复核和观点交叉验证。',
+            landing: '建议进入 AI 投委会查看完整辩论流。',
+            actions: [['AI 投委会', '/ai-committee'], ['观测台', '/observability']]
+        },
+        service: {
+            input: '后台任务参数、数据连接、调度频率或组合账户。',
+            output: '任务状态、结果摘要、通知、持久化记录。',
+            use: '适合长任务、自动监控、异步分析和组合跟踪。',
+            landing: '建议进入任务详情、消息中心或集成中枢排障。',
+            actions: [['集成中枢', '/integration-hub'], ['消息中心', '/message-center']]
+        },
+        openclaw: {
+            input: '投资风格、标的、历史偏好和目标约束。',
+            output: '人格化观点、风格偏好、风险提示和可解释理由。',
+            use: '适合用固定风格辅助观点生成和对照分析。',
+            landing: '建议进入 AI 投委会或 Agent 工作流做交叉验证。',
+            actions: [['AI 投委会', '/ai-committee'], ['Agent 中心', '/agent-center']]
+        }
+    };
+    const meta = typeMeta[agent.type] || typeMeta.service;
+    $('#detailTitle').text(agent.name);
+    $('#detailDesc').text(`${agent.category} · ${agent.desc}`);
+    $('#detailInput').text(meta.input);
+    $('#detailOutput').text(meta.output);
+    $('#detailUseCase').text(meta.use);
+    $('#detailLanding').text(meta.landing);
+    $('#detailActions').html(meta.actions.map(([label, href]) => `<a class="btn-soft" href="${href}">${label}</a>`).join(''));
+    $('#agentDetailPanel').addClass('show');
+    document.getElementById('agentDetailPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closeAgentDetail() {
+    $('#agentDetailPanel').removeClass('show');
+}
+
+$(document).ready(function() {
+    renderAgents();
+    document.addEventListener('click', handleAcAction);
+    $('#agentSearch').on('keyup', filterAgents);
+    $('#typeFilter').on('change', filterAgents);
+});
+
+function handleAcAction(event) {
+    const el = event.target.closest('[data-ac-action]');
+    if (!el) return;
+    const action = el.dataset.acAction;
+    if (action === 'switch-tab') switchTab(el.dataset.tab || 'all');
+    else if (action === 'close-detail') closeAgentDetail();
+    else if (action === 'show-agent') showAgentDetail(el.dataset.agentId || '');
+}
+</script>
+{% endblock %}

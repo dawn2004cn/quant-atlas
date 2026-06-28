@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}War Room - Quant Atlas 7.0{% endblock %}
+
+
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+
+{% endblock %}
+
+
+
+{% block spa_switcher %}
+
+<a href="/app/war-room" class="spa-switcher-link"
+
+   data-spa-switcher="war-room">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<div class="container-fluid py-3" x-data="warRoom()" x-init="init()">
+
+    <div class="mb-3">
+
+        <h1 class="page-title">⚔️ War Room 反事实模拟</h1>
+
+        <p class="page-subtitle text-muted">注入虚拟宏观事件，对持仓全量压力测试并触发 Agent Swarm 重估</p>
+
+    </div>
+
+
+
+    <div class="row g-3">
+
+        <div class="col-lg-4">
+
+            <div class="section-shell">
+
+                <div class="text-xs font-bold text-muted mb-2">情景预设</div>
+
+                <select class="form-select form-select-sm mb-2" x-model="presetId" @change="applyPreset()">
+
+                    <template x-for="p in presets" :key="p.id">
+
+                        <option :value="p.id" x-text="p.label"></option>
+
+                    </template>
+
+                </select>
+
+                <p class="text-sm text-muted mb-3" x-text="presetDesc"></p>
+
+
+
+                <div class="text-xs font-bold text-muted mb-2">持仓（JSON，可留空用自选股）</div>
+
+                <textarea class="form-control form-control-sm mb-2" rows="5"
+
+                    x-model="positionsJson"
+
+                    placeholder='[{"symbol":"sz000001","shares":1000,"sector":"银行","beta":0.8}]'></textarea>
+
+                <div class="row g-2 mb-2">
+
+                    <div class="col-6">
+
+                        <label class="text-xs text-muted">现金</label>
+
+                        <input type="number" class="form-control form-control-sm" x-model.number="cash" min="0">
+
+                    </div>
+
+                    <div class="col-6 d-flex align-items-end">
+
+                        <div class="form-check">
+
+                            <input class="form-check-input" type="checkbox" x-model="useWatchlist" id="wlFb">
+
+                            <label class="form-check-label text-sm" for="wlFb">自选股兜底</label>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="form-check mb-2">
+
+                    <input class="form-check-input" type="checkbox" x-model="runArbiter" id="arbChk">
+
+                    <label class="form-check-label text-sm" for="arbChk">触发 Arbiter 共识重估</label>
+
+                </div>
+
+                <button type="button" class="btn-brand btn-sm w-100" @click="run()" :disabled="loading">
+
+                    <span x-show="!loading">启动压力测试</span>
+
+                    <span x-show="loading">模拟中…</span>
+
+                </button>
+
+            </div>
+
+            <div class="section-shell mt-3" x-show="recent.length">
+
+                <div class="text-xs font-bold text-muted mb-2">最近运行</div>
+
+                <template x-for="r in recent" :key="r.run_id">
+
+                    <div class="text-sm border-bottom py-1">
+
+                        <span x-text="r.scenario_label"></span>
+
+                        <span class="text-muted" x-text="' · ' + (r.delta_pct || 0) + '%'"></span>
+
+                    </div>
+
+                </template>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="col-lg-8">
+
+            <template x-if="result">
+
+                <div>
+
+                    <div class="section-shell mb-3">
+
+                        <div class="d-flex flex-wrap gap-3 align-items-center">
+
+                            <div>
+
+                                <div class="text-xs text-muted">情景</div>
+
+                                <div class="font-bold" x-text="result.scenario_label"></div>
+
+                            </div>
+
+                            <div>
+
+                                <div class="text-xs text-muted">组合冲击</div>
+
+                                <div class="font-bold" :class="deltaClass(result.portfolio.delta_pct)"
+
+                                    x-text="(result.portfolio.delta_pct >= 0 ? '+' : '') + result.portfolio.delta_pct + '%'"></div>
+
+                            </div>
+
+                            <div>
+
+                                <div class="text-xs text-muted">风险等级</div>
+
+                                <div :class="'war-risk-' + result.risk_grade" x-text="result.risk_grade"></div>
+
+                            </div>
+
+                            <div>
+
+                                <div class="text-xs text-muted">虚拟事件</div>
+
+                                <div x-text="result.virtual_events_injected + ' 条'"></div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="section-shell mb-3">
+
+                        <div class="text-xs font-bold text-muted mb-2">持仓冲击明细</div>
+
+                        <div class="table-responsive">
+
+                            <table class="table table-sm text-sm mb-0">
+
+                                <thead>
+
+                                    <tr><th>标的</th><th>基准</th><th>压力后</th><th>冲击%</th><th>原因</th></tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    <template x-for="p in result.positions" :key="p.symbol">
+
+                                        <tr>
+
+                                            <td x-text="p.symbol"></td>
+
+                                            <td x-text="p.base_value"></td>
+
+                                            <td x-text="p.stressed_value"></td>
+
+                                            <td :class="deltaClass(p.shock_pct)" x-text="(p.shock_pct >= 0 ? '+' : '') + p.shock_pct + '%'"></td>
+
+                                            <td class="text-muted text-xs" x-text="p.shock_reason"></td>
+
+                                        </tr>
+
+                                    </template>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="section-shell mb-3" x-show="result.recommendations && result.recommendations.length">
+
+                        <div class="text-xs font-bold text-muted mb-2">行动建议</div>
+
+                        <ul class="text-sm mb-0">
+
+                            <template x-for="(rec, i) in result.recommendations" :key="i">
+
+                                <li x-text="rec"></li>
+
+                            </template>
+
+                        </ul>
+
+                    </div>
+
+
+
+                    <div class="section-shell" x-show="result.arbiter_views && result.arbiter_views.length">
+
+                        <div class="text-xs font-bold text-muted mb-2">Arbiter 共识（压力后）</div>
+
+                        <template x-for="v in result.arbiter_views" :key="v.symbol">
+
+                            <div class="text-sm border-bottom py-2">
+
+                                <span class="font-bold" x-text="v.symbol"></span>
+
+                                <span class="text-muted" x-text="' · 冲击 ' + v.shock_pct + '%'"></span>
+
+                                <div class="text-xs text-muted mt-1"
+
+                                    x-text="v.consensus && v.consensus.verdict ? ('verdict: ' + v.consensus.verdict) : '暂无辩论缓冲'"></div>
+
+                            </div>
+
+                        </template>
+
+                    </div>
+
+                </div>
+
+            </template>
+
+            <div class="section-shell text-muted text-sm" x-show="!result && !loading">
+
+                选择情景并启动测试，查看组合在反事实冲击下的估值变化与 Agent 重估结果。
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script nonce="{{ csp_nonce() }}">
+
+function warRoom() {
+
+    return {
+
+        presets: [],
+
+        presetId: 'rate_hike_50bp',
+
+        presetDesc: '',
+
+        positionsJson: '',
+
+        cash: 100000,
+
+        useWatchlist: true,
+
+        runArbiter: true,
+
+        loading: false,
+
+        result: null,
+
+        recent: [],
+
+        async init() {
+
+            const sc = await fetch('/api/v1/simulation/war-room/scenarios').then(r => r.json());
+
+            const data = sc.data || sc;
+
+            this.presets = data.presets || [];
+
+            if (this.presets.length) {
+
+                this.presetId = this.presets[0].id;
+
+                this.applyPreset();
+
+            }
+
+            await this.loadRecent();
+
+        },
+
+        applyPreset() {
+
+            const p = this.presets.find(x => x.id === this.presetId);
+
+            this.presetDesc = p ? (p.description || '') : '';
+
+        },
+
+        buildScenario() {
+
+            const p = this.presets.find(x => x.id === this.presetId) || {};
+
+            const { id, label, description, ...scenario } = p;
+
+            return scenario;
+
+        },
+
+        parsePositions() {
+
+            const raw = (this.positionsJson || '').trim();
+
+            if (!raw) return [];
+
+            try { return JSON.parse(raw); } catch (e) { alert('持仓 JSON 格式错误'); throw e; }
+
+        },
+
+        deltaClass(v) {
+
+            const n = parseFloat(v) || 0;
+
+            return n < 0 ? 'war-delta-negative' : (n > 0 ? 'war-delta-positive' : '');
+
+        },
+
+        async loadRecent() {
+
+            const res = await fetch('/api/v1/simulation/war-room/recent?limit=8').then(r => r.json());
+
+            const data = res.data || res;
+
+            this.recent = data.runs || [];
+
+        },
+
+        async run() {
+
+            this.loading = true;
+
+            this.result = null;
+
+            try {
+
+                const body = {
+
+                    scenario: this.buildScenario(),
+
+                    positions: this.parsePositions(),
+
+                    cash: this.cash,
+
+                    use_watchlist_fallback: this.useWatchlist,
+
+                    run_arbiter: this.runArbiter,
+
+                    inject_virtual_events: true,
+
+                };
+
+                const res = await fetch('/api/v1/simulation/war-room/run', {
+
+                    method: 'POST',
+
+                    headers: { 'Content-Type': 'application/json' },
+
+                    body: JSON.stringify(body),
+
+                });
+
+                const json = await res.json();
+
+                if (!res.ok) {
+
+                    alert(json.message || json.error || '运行失败');
+
+                    return;
+
+                }
+
+                this.result = json.data || json;
+
+                await this.loadRecent();
+
+            } catch (e) {
+
+                window.qcLogError('war_room operation failed', e);
+
+            } finally {
+
+                this.loading = false;
+
+            }
+
+        },
+
+    };
+
+}
+
+</script>
+
+{% endblock %}
+

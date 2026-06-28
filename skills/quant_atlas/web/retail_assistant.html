@@ -1,0 +1,623 @@
+{% extends "base.html" %}
+
+{% block title %}散户 AI 助手 · Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="raGlobalError" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger" role="alert"></div>
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="散户助手入口提示">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">从信号到记录</div>
+        <p class="qc-ux-step-desc">信号旗命中后建议先入模拟观察单，再对照诊股与买卖计划。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.signal_flag') }}">信号旗</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">观察单</a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">权限与集成</div>
+        <p class="qc-ux-step-desc">下方模块依赖登录态与部分后端开关；异常时先到集成中枢自检。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
+    </div>
+</section>
+
+<div class="ra-page">
+    <section class="section-shell" id="raQuickActions" class="ra-quick-shell">
+        <div class="d-flex flex-wrap gap-2" id="raQuickActionsBar">
+            <span class="text-muted text-sm">加载快捷入口…</span>
+        </div>
+    </section>
+
+    <section class="ra-hero">
+        <div class="hero-caption">Retail AI Stock Assistant</div>
+        <h1 class="page-title">散户 AI 助手</h1>
+        <p class="page-subtitle">把每日推荐、诊股报告、产业链、买卖计划、观察复盘、投资画像、知识库、朋友圈和组合风险整合成一个日常入口。</p>
+        <div class="quick-links">
+            <a class="btn-brand" href="/">今日操盘台</a>
+            <a class="btn-soft" href="/signal-observations">观察与复盘</a>
+            <a class="btn-soft" href="/profile">投资画像</a>
+            <a class="btn-soft" href="/moments">朋友圈</a>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h2 class="panel-title">我的权限摘要</h2>
+                <div class="panel-subtitle">上线后按 Free / Pro / VIP 渐进式解锁能力</div>
+            </div>
+            <a class="btn-soft" href="/profile">管理个人中心</a>
+        </div>
+        <div class="ra-grid" id="accessPolicyGrid"></div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">💎 订阅会员</h2>
+                <div class="panel-subtitle">升级解锁高级能力</div>
+            </div>
+        </div>
+        <div class="ra-grid">
+            <div class="ra-card ra-card-free">
+                <h3>Free</h3>
+                <div class="ra-price">免费</div>
+                <div class="ra-tags">
+                    <span class="ra-pill">自选股 ≤20</span>
+                    <span class="ra-pill">AI诊股 3次/天</span>
+                    <span class="ra-pill">基础分析</span>
+                </div>
+                <div class="ra-current-label">当前级别</div>
+            </div>
+            <div class="ra-card ra-card-pro">
+                <h3>Pro <span class="ra-pill ra-pill-rec">推荐</span></h3>
+                <div class="ra-price">¥99<span class="ra-price-unit">/月</span></div>
+                <div class="ra-tags">
+                    <span class="ra-pill">自选股 ≤100</span>
+                    <span class="ra-pill">AI诊股 不限</span>
+                    <span class="ra-pill">自选分组</span>
+                    <span class="ra-pill">40+量化策略</span>
+                    <span class="ra-pill">历史回测</span>
+                </div>
+                <button class="btn-brand ra-btn-full" type="button" data-ra-action="toast" data-toast-msg="Pro 订阅开发中，请添加微信: quant_atlas 详谈" data-toast-type="info">立即升级</button>
+            </div>
+            <div class="ra-card ra-card-vip">
+                <h3>VIP</h3>
+                <div class="ra-price">¥299<span class="ra-price-unit">/月</span></div>
+                <div class="ra-tags">
+                    <span class="ra-pill">自选股 不限</span>
+                    <span class="ra-pill">AI深度报告</span>
+                    <span class="ra-pill">因子实验室</span>
+                    <span class="ra-pill">Qlib 高级回测</span>
+                    <span class="ra-pill">组合压力测试</span>
+                    <span class="ra-pill">API 访问</span>
+                </div>
+                <button class="btn-soft" type="button" data-ra-action="toast" data-toast-msg="VIP 订阅开发中，请添加微信: quant_atlas 详谈" data-toast-type="info" class="btn-soft ra-btn-vip">立即升级</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h2 class="panel-title">今日 AI Top 3</h2>
+                <div class="panel-subtitle">产业链 · 买卖区间 · 估算胜率 · 一键进简报</div>
+            </div>
+            <a class="btn-soft btn-sm" href="/daily-workbench">操盘台</a>
+        </div>
+        <div id="dailyTopPicksBox" class="ra-flow"><div class="loading-state">正在加载今日推荐…</div></div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h2 class="panel-title">refacter 落地对照</h2>
+                <div class="panel-subtitle">四维能力已实现 / 部分 / 规划中</div>
+            </div>
+            <button type="button" class="btn-soft btn-sm" data-ra-action="load-refactor" type="button">刷新</button>
+        </div>
+        <div id="refactorStatusBox"></div>
+        <div id="metaLearningBox" class="mt-3"></div>
+    </section>
+
+    <section class="section-shell">
+        <div class="ra-two">
+            <div class="ra-card">
+                <h3>心理卫士</h3>
+                <p class="text-muted text-sm">检测追涨杀跌与频繁交易（演示模式无历史时为正常）</p>
+                <button type="button" class="btn-soft btn-sm mt-2" data-ra-action="load-psychology" data-push="false" type="button">检测</button>
+                <button type="button" class="btn-brand btn-sm mt-2" data-ra-action="psychology-scan" type="button">立即巡检</button>
+                <button type="button" class="btn-brand btn-sm mt-2" data-ra-action="load-psychology" data-push="true" type="button">检测并推送</button>
+                <a class="btn-soft btn-sm mt-2" href="/message-center">消息中心</a>
+                <div id="psychologyBox" class="ra-flow mt-2"></div>
+            </div>
+            <div class="ra-card">
+                <h3>影子操盘</h3>
+                <p class="text-muted text-sm">输入代码（逗号分隔）获取大师风格对照</p>
+                <div class="d-flex gap-2 mb-2 mt-2">
+                    <input class="ra-input" id="shadowSymbols" placeholder="600519,000858">
+                    <button type="button" class="btn-soft btn-sm" data-ra-action="load-shadow" type="button">模拟</button>
+                </div>
+                <div id="shadowMirrorBox" class="ra-flow"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h2 class="panel-title">六阶段能力地图</h2>
+                <div class="panel-subtitle">该整合的放在这里，该跳转的直达已有页面</div>
+            </div>
+            <button class="btn-soft" data-ra-action="load-overview" type="button">刷新状态</button>
+        </div>
+        <div class="ra-grid" id="overviewGrid"></div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">今日使用路径</h2>
+                <div class="panel-subtitle">面向散户每天打开后的最短操作链路</div>
+            </div>
+        </div>
+        <div class="ra-flow">
+            <div class="ra-step"><strong>1. 看推荐</strong><div class="text-muted">从今日操盘台查看 AI 推荐 Top3，先看推荐理由和买卖区间。</div></div>
+            <div class="ra-step"><strong>2. 做诊股</strong><div class="text-muted">进入个股详情查看诊股报告、产业链、买卖计划和证据链。</div></div>
+            <div class="ra-step"><strong>3. 加观察</strong><div class="text-muted">信号先进入模拟观察单，复盘命中率和盈亏比后再考虑真实交易。</div></div>
+            <div class="ra-step"><strong>4. 复盘画像</strong><div class="text-muted">每周根据观察单表现调整投资画像，让推荐更贴合自己的风格。</div></div>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="ra-two">
+            <div class="ra-card">
+                <h3>财经知识库问答建议</h3>
+                <div class="d-flex gap-2 mb-3">
+                    <input class="ra-input" id="knowledgeSymbol" placeholder="输入标的，例如 600519">
+                    <button class="btn-soft" data-ra-action="load-knowledge" type="button">生成问题</button>
+                    <button class="btn-soft" data-ra-action="add-watchlist" type="button">加自选</button>
+                </div>
+                <div id="knowledgeBox" class="ra-flow"></div>
+            </div>
+            <div class="ra-card">
+                <h3>组合风险仪表盘</h3>
+                <div id="portfolioRiskBox" class="ra-flow"><div class="loading-state">正在加载组合风险入口...</div></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <div>
+                <h2 class="panel-title">上线合规与同步状态</h2>
+                <div class="panel-subtitle">推送偏好、多设备同步、隐私同意、数据导出和订阅入口</div>
+            </div>
+            <a class="btn-soft" href="/profile">去个人中心设置</a>
+        </div>
+        <div class="ra-grid" id="lifecycleGrid">
+            <div class="ra-card">
+                <h3>团队/机构</h3>
+                <p class="text-muted">企业账号、白名单、API对接</p>
+                <button class="btn-soft btn-sm" type="button" data-ra-action="toast" data-toast-msg="请添加微信: quant_atlas 详谈" data-toast-type="info">联系我们</button>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+function escHtml(s) {
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function raHideError() {
+    $('#raGlobalError').hide().empty();
+}
+function raShowError(title, msg, retryFn) {
+    const safe = $('<div/>').text(msg || '未知错误').html();
+    const retryBtn = retryFn
+        ? '<button type="button" class="btn-brand btn-sm" id="raErrRetry">重试</button> '
+        : '';
+    $('#raGlobalError').html(
+        '<div class="qc-ux-banner__title">' + $('<div/>').text(title || '加载失败').html() + '</div>' +
+        '<div class="qc-ux-banner__body">' + safe + '</div>' +
+        retryBtn +
+        '<a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>'
+    ).show();
+    if (retryFn) $('#raErrRetry').on('click', function () { raHideError(); retryFn(); });
+}
+function moduleEntry(m) {
+    if (m.id === 'knowledge_qa') return '/yanbao-hub';
+    if (m.id === 'social_share') return '/moments';
+    if (m.id === 'portfolio_risk') return '/retail-assistant#portfolio-risk';
+    if (m.id === 'daily_top_picks') return '/daily-workbench';
+    if (m.id === 'psychology_guardian') return '#psychologyBox';
+    if (m.id === 'shadow_mirror') return '#shadowMirrorBox';
+    return m.entry || '#';
+}
+function loadDailyTopPicks() {
+    $('#dailyTopPicksBox').html('<div class="loading-state">正在加载今日推荐…</div>');
+    $.getJSON('/api/v1/retail-assistant/daily-top-picks', { market: 'CN', top_n: 3 }).done(function(res) {
+        const d = res.data || res;
+        const items = d.items || [];
+        if (!items.length) {
+            $('#dailyTopPicksBox').html('<div class="empty-state">' + escHtml(d.message || '暂无推荐') + '</div>');
+            return;
+        }
+        $('#dailyTopPicksBox').html(items.map(function(it) {
+            const pos = it.industry_position || {};
+            const buy = it.buy_zone || {};
+            const win = it.estimated_win_rate || {};
+            const cal = it.agent_calibration || {};
+            const calHtml = (cal.samples >= 2)
+                ? '<span class="ra-pill" title="AutoValidator">校准+' + escHtml(cal.boost) + '</span>'
+                : '';
+            const brief = (it.links && it.links.decision_brief) || ('/stock/' + encodeURIComponent(it.code) + '?m=CN#decision-brief-strip');
+            return '<div class="ra-step">' +
+                '<div class="d-flex justify-content-between gap-2"><strong>#' + escHtml(it.rank) + ' ' + escHtml(it.name || it.code) + '</strong>' +
+                '<span>' + calHtml + '<span class="ra-pill">' + escHtml(it.code) + '</span></span></div>' +
+                '<div class="text-muted text-sm mt-1">' + escHtml(it.one_line_verdict || '') + '</div>' +
+                '<div class="text-xs mt-1">产业链 ' + escHtml(pos.position || pos.opportunity || '—') + '</div>' +
+                '<div class="text-xs mt-1">买入 ' + escHtml(buy.low) + '–' + escHtml(buy.high) + ' · 胜率 ' + escHtml(win.rate) + '%</div>' +
+                '<div class="mt-2 d-flex flex-wrap gap-2">' +
+                '<a class="btn-brand btn-sm" href="' + escHtml(brief) + '">简报</a>' +
+                '<a class="btn-soft btn-sm" href="' + escHtml((it.links && it.links.diagnosis) || brief) + '">诊股</a>' +
+                '</div></div>';
+        }).join('') + '<div class="text-xs text-muted mt-2">' + escHtml(d.disclaimer || '') + '</div>');
+    }).fail(function(xhr) {
+        const detail = (xhr.responseJSON && xhr.responseJSON.message) || xhr.statusText || '加载失败';
+        $('#dailyTopPicksBox').html('<div class="empty-state">' + escHtml(detail) + '</div>');
+    });
+}
+function loadMetaLearningStatus() {
+    const box = document.getElementById('metaLearningBox');
+    if (!box) return;
+    box.innerHTML = '<div class="loading-state">加载元学习状态…</div>';
+    $.getJSON('/api/v1/retail-assistant/meta-learning-status').done(function(res) {
+        const d = res.data || res;
+        const ranks = (d.agent_rankings || []).slice(0, 5).map(function(r) {
+            return '<div class="text-xs mt-1">' + escHtml(r.agent_name || '') +
+                ' · 准确率 ' + escHtml(Math.round((r.accuracy || 0) * 100)) + '%' +
+                ' · ' + escHtml(r.trend || '') + '</div>';
+        }).join('') || '<div class="text-muted text-xs">暂无 Agent 记忆样本</div>';
+        const loop = d.meta_learning_loop || {};
+        const lastEv = loop.last_evolution_at ? ('上次演化 ' + escHtml(loop.last_evolution_at)) : '尚未运行演化';
+        const patN = loop.pattern_count != null ? loop.pattern_count : 0;
+        const tune = d.top3_tuning || {};
+        box.innerHTML = '<div class="ra-card"><h3>元学习 / Top3 调权</h3>' +
+            '<div class="text-muted text-xs">' + escHtml(tune.score_boost || '') + '</div>' +
+            '<div class="text-muted text-xs mt-1">' + escHtml(tune.win_rate_blend || '') + '</div>' +
+            '<div class="text-muted text-xs mt-1">' + lastEv + ' · 规避模式 ' + escHtml(patN) + ' 条</div>' +
+            '<div class="mt-2"><strong class="text-sm">Agent 排名</strong>' + ranks + '</div></div>';
+    }).fail(function() {
+        box.innerHTML = '<div class="empty-state">元学习状态加载失败</div>';
+    });
+}
+function loadRefactorStatus() {
+    const box = document.getElementById('refactorStatusBox');
+    if (window.QAUserCenter && box) {
+        QAUserCenter.mountRefactorStatusPanel('refactorStatusBox');
+        loadMetaLearningStatus();
+        return;
+    }
+    $('#refactorStatusBox').html('<div class="loading-state">加载中…</div>');
+    $.getJSON('/api/v1/retail-assistant/refactor-status').done(function(res) {
+        const d = res.data || res;
+        const pillars = d.pillars || [];
+        $('#refactorStatusBox').html(pillars.map(function(p) {
+            return '<div class="ra-card ra-card-spaced"><h3>' + escHtml(p.title) + '</h3>' +
+                (p.items || []).map(function(it) {
+                    return '<div class="text-sm mt-1"><span class="ra-pill">' + escHtml(it.status) + '</span> ' + escHtml(it.name) + '</div>';
+                }).join('') + '</div>';
+        }).join(''));
+        loadMetaLearningStatus();
+    });
+}
+function renderPsychologyResult(d) {
+        const alerts = d.alerts || [];
+        const samples = d.history_samples != null ? d.history_samples : '—';
+        const sources = (d.data_sources || []).join(' · ') || d.data_source || '—';
+        let head = '<div class="text-xs text-muted mb-2">样本 ' + escHtml(samples) + ' 条 · 来源 ' + escHtml(sources);
+        if (d.messages_pushed) head += ' · 已推送 ' + escHtml(d.messages_pushed) + ' 条至消息中心';
+        head += '</div>';
+        if (!alerts.length) {
+            $('#psychologyBox').html(head + '<div class="ra-step">状态：' + escHtml(d.status || 'normal') + ' — 未检测到明显情绪化模式（可先加减自选以积累行为样本）</div>');
+            return;
+        }
+        $('#psychologyBox').html(head + alerts.map(function(a) {
+            return '<div class="ra-step"><strong>' + escHtml(a.type || a.pattern || '提醒') + '</strong><div class="text-muted text-sm">' + escHtml(a.message || a.detail || '') + '</div>' +
+                (a.suggestion ? '<div class="text-xs mt-1 ra-suggestion">' + escHtml(a.suggestion) + '</div>' : '') +
+                '</div>';
+        }).join(''));
+}
+function loadPsychology(pushNotify) {
+    $('#psychologyBox').html('<div class="loading-state">检测中…</div>');
+    const params = pushNotify ? { notify: 1 } : {};
+    $.getJSON('/api/v1/retail-assistant/psychology-guardian', params).done(function(res) {
+        renderPsychologyResult(res.data || res);
+    }).fail(function() {
+        $('#psychologyBox').html('<div class="empty-state">心理卫士加载失败</div>');
+    });
+}
+function runPsychologyScan(pushNotify) {
+    $('#psychologyBox').html('<div class="loading-state">巡检中…</div>');
+    const fn = window.QAUserCenter && QAUserCenter.runPsychologyScan
+        ? QAUserCenter.runPsychologyScan({ notify: !!pushNotify })
+        : fetch('/api/v1/retail-assistant/psychology-scan?notify=' + (pushNotify ? '1' : '0'), {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notify: !!pushNotify }),
+        }).then(function(r) { return r.json(); }).then(function(j) { return j.data || j; });
+    Promise.resolve(fn).then(function(d) {
+        renderPsychologyResult(d);
+    }).catch(function() {
+        $('#psychologyBox').html('<div class="empty-state">心理卫士巡检失败</div>');
+    });
+}
+function loadShadowMirror() {
+    const raw = ($('#shadowSymbols').val() || '').trim();
+    const symbols = raw ? raw.split(/[,，\s]+/).filter(Boolean) : [];
+    const qs = symbols.length ? '?' + symbols.map(function(s) { return 'symbol=' + encodeURIComponent(s); }).join('&') : '';
+    $('#shadowMirrorBox').html('<div class="loading-state">模拟中…</div>');
+    $.getJSON('/api/v1/retail-assistant/shadow-mirror' + qs).done(function(res) {
+        const data = res.data || res;
+        const mirrors = data.mirrors || [];
+        const prof = data.investor_profile || {};
+        const profHint = prof.risk_level
+            ? '<div class="text-xs text-muted mb-2">已按投研画像：' + escHtml(prof.risk_level) +
+              (prof.max_single_position_pct != null ? ' · 单票上限 ' + escHtml(prof.max_single_position_pct) + '%' : '') +
+              '</div>'
+            : '';
+        $('#shadowMirrorBox').html(profHint + mirrors.map(function(m) {
+            const picks = (m.picks || []).slice(0, 6).map(function(p) {
+                const wt = p.weight_pct != null ? ' · ' + escHtml(p.weight_pct) + '%' : '';
+                const pnl = p.pnl_pct != null ? ' · 浮盈' + escHtml(p.pnl_pct) + '%' : '';
+                const cost = p.avg_cost != null ? ' · 成本' + escHtml(p.avg_cost) : '';
+                return '<div class="text-xs mt-1"><span class="ra-pill">' + escHtml(p.recommendation) + '</span> ' +
+                    escHtml(p.symbol) + wt + pnl + cost + ' — ' + escHtml(p.logic || '') + '</div>';
+            }).join('');
+            return '<div class="ra-step"><div class="d-flex justify-content-between"><strong>' + escHtml(m.master) + '</strong>' +
+                '<span class="ra-pill">' + escHtml(m.style) + '</span></div>' +
+                '<div class="text-sm mt-1"><strong>' + escHtml(m.recommendation || '') + '</strong> — ' + escHtml(m.logic || '') + '</div>' +
+                picks + '</div>';
+        }).join('') || '<div class="empty-state">暂无建议</div>');
+    }).fail(function() {
+        $('#shadowMirrorBox').html('<div class="empty-state">影子操盘加载失败</div>');
+    });
+}
+function loadQuickActions() {
+    $.getJSON('/api/v1/retail-assistant/quick-actions').done(function(res) {
+        const actions = (res.data || {}).actions || [];
+        $('#raQuickActionsBar').html(actions.map(function(a) {
+            return '<a class="btn-soft btn-sm" href="' + escHtml(a.href) + '" title="' + escHtml(a.description || a.label) + '">' +
+                escHtml(a.label) + '</a>';
+        }).join(''));
+    }).fail(function() {
+        $('#raQuickActionsBar').html(
+            '<a class="btn-soft btn-sm" href="/daily-workbench">操盘台</a>' +
+            '<a class="btn-soft btn-sm" href="/message-center?filter=psychology">心理提醒</a>'
+        );
+    });
+}
+
+function loadOverview() {
+    raHideError();
+    $('#overviewGrid').html('<div class="loading-state">正在加载助手模块...</div>');
+    $.getJSON('/api/v1/retail-assistant/overview').done(function(res) {
+        const modules = (res.data || {}).modules || [];
+        $('#overviewGrid').html(modules.map(m => `
+            <div class="ra-card">
+                <div class="d-flex justify-content-between gap-2">
+                    <h3>${escHtml(m.title)}</h3>
+                    <span class="ra-pill">${escHtml(m.status)}</span>
+                </div>
+                <p class="text-muted">${escHtml(m.value)}</p>
+                <div class="ra-tags">${(m.next_steps || []).map(x => `<span class="ra-pill">${escHtml(x)}</span>`).join('')}</div>
+                <div class="mt-3"><a class="btn-soft btn-sm" href="${escHtml(moduleEntry(m))}">进入</a></div>
+            </div>
+        `).join(''));
+    }).fail(function(xhr) {
+        const detail = (xhr && xhr.responseJSON && xhr.responseJSON.message)
+            ? String(xhr.responseJSON.message)
+            : (xhr.statusText || '网络或服务异常');
+        raShowError('助手模块加载失败', detail, loadOverview);
+        $('#overviewGrid').html(
+            '<div class="empty-state">助手模块加载失败</div>' +
+            '<div class="mt-2"><button type="button" class="btn-brand btn-sm" data-ra-action="retry-overview" type="button">重试</button></div>'
+        );
+    });
+}
+function loadAccessPolicy() {
+    raHideError();
+    $('#accessPolicyGrid').html('<div class="loading-state">正在加载权限摘要...</div>');
+    $.getJSON('/api/v1/user/access-policy').done(function(res) {
+        const p = res.data || {};
+        const enabled = (p.features || []).filter(x => x.enabled).slice(0, 5);
+        $('#accessPolicyGrid').html(`
+            <div class="ra-card">
+                <div class="hero-caption">Access Tier</div>
+                <h3>${escHtml(p.tier_label || p.tier || '--')}</h3>
+                <div class="ra-tags">
+                    <span class="ra-pill">角色 ${escHtml(p.role || '--')}</span>
+                    <span class="ra-pill">AI ${escHtml((p.limits || {}).ai_diagnosis_daily)}</span>
+                    <span class="ra-pill">自选分组 ${escHtml((p.limits || {}).watchlist_groups)}</span>
+                </div>
+            </div>
+            <div class="ra-card">
+                <h3>可用能力</h3>
+                <div class="ra-tags">${enabled.map(x => `<span class="ra-pill">${escHtml(x.name)}</span>`).join('')}</div>
+            </div>
+            <div class="ra-card">
+                <h3>升级建议</h3>
+                <p class="text-muted">${(p.upgrade_hints || []).map(escHtml).join('；')}</p>
+            </div>
+        `);
+    }).fail(function(xhr) {
+        const detail = (xhr && xhr.responseJSON && xhr.responseJSON.message)
+            ? String(xhr.responseJSON.message)
+            : (xhr.statusText || '网络或服务异常');
+        raShowError('权限摘要加载失败', detail, loadAccessPolicy);
+        $('#accessPolicyGrid').html(
+            '<div class="empty-state">权限摘要加载失败</div>' +
+            '<div class="mt-2"><button type="button" class="btn-brand btn-sm" data-ra-action="retry-access" type="button">重试</button></div>'
+        );
+    });
+}
+function loadKnowledge() {
+    const symbol = ($('#knowledgeSymbol').val() || '').trim();
+    $('#knowledgeBox').html('<div class="loading-state">正在生成可追问问题...</div>');
+    $.getJSON('/api/v1/retail-assistant/knowledge/suggestions', { symbol }).done(function(res) {
+        const d = res.data || {};
+        $('#knowledgeBox').html((d.questions || []).map(q => `
+            <div class="ra-step">
+                ${escHtml(q)}
+                <div class="mt-2"><a class="btn-soft btn-sm" href="/yanbao-hub">去研报中心查证</a></div>
+            </div>
+        `).join('') || '<div class="empty-state">暂无建议</div>');
+    });
+}
+function addKnowledgeSymbolToWatchlist() {
+    const symbol = ($('#knowledgeSymbol').val() || '').trim();
+    if (!symbol) {
+        showToast('请先输入标的代码', 'warning');
+        return;
+    }
+    qcAddToWatchlist(symbol, symbol);
+}
+function loadPortfolioRisk() {
+    $.getJSON('/api/v1/retail-assistant/portfolio-risk').done(function(res) {
+        const d = res.data || {};
+        const cards = d.cards || [];
+        if (cards.length === 0) {
+            $('#portfolioRiskBox').html(`
+                <div class="text-muted">暂无持仓数据，请在自选股或组合中添加股票后查看风险。</div>
+                <div><a class="btn-soft btn-sm" href="/self-stocks">去添加自选</a></div>
+            `);
+            return;
+        }
+        $('#portfolioRiskBox').html(`
+            <div class="text-muted mb-3">${escHtml(d.summary || '')}</div>
+            ${cards.map(card => `
+                <div class="ra-step">
+                    <div class="d-flex justify-content-between gap-2"><strong>${escHtml(card.title)}</strong><span class="ra-pill">${escHtml(card.level)}</span></div>
+                    <div class="text-muted mt-2">${escHtml(card.content)}</div>
+                    ${card.items && card.items.length ? `
+                        <div class="mt-2 ra-mini-list">
+                            ${card.items.map(item => `
+                                <div class="ra-mini-row">
+                                    ${item.symbol || item.industry || '-'}: ${item.exposure_pct ? item.exposure_pct + '%' : item.change_pct + '% ' + item.risk_level}
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('')}
+            <div><a class="btn-soft btn-sm" href="/portfolio/default">查看组合页</a></div>
+        `);
+    }).fail(function() {
+        $('#portfolioRiskBox').html('<div class="empty-state">组合风险加载失败</div>');
+    });
+}
+function loadLifecycle() {
+    $('#lifecycleGrid').html('<div class="loading-state">正在加载上线设置...</div>');
+    $.getJSON('/api/v1/user/lifecycle').done(function(res) {
+        const d = res.data || {};
+        const n = d.notifications || {};
+        const sync = d.sync_status || {};
+        const consent = d.privacy_consent || {};
+        const psychOn = n.psychology_alerts !== false;
+        $('#lifecycleGrid').html(`
+            <div class="ra-card">
+                <h3>推送偏好</h3>
+                <div class="ra-tags">
+                    <span class="ra-pill">站内 ${n.site_message !== false ? '开' : '关'}</span>
+                    <span class="ra-pill">微信 ${n.wechat ? '开' : '关'}</span>
+                    <span class="ra-pill">短信 ${n.sms ? '开' : '关'}</span>
+                    <span class="ra-pill">风险 ${n.risk_alerts !== false ? '开' : '关'}</span>
+                </div>
+                <div class="mt-2 ra-lifecycle-row">
+                    <span>心理卫士消息中心推送</span>
+                    <button type="button" class="btn-soft btn-sm" id="togglePsychologyAlerts">${psychOn ? '已开启 · 点击关闭' : '已关闭 · 点击开启'}</button>
+                    <span class="text-muted ra-dismiss-hint">关闭后页面横幅仍可见</span>
+                </div>
+            </div>
+            <div class="ra-card">
+                <h3>同步状态</h3>
+                <p class="text-muted">${escHtml(sync.mode || '--')}：${escHtml(sync.next_step || '')}</p>
+            </div>
+            <div class="ra-card">
+                <h3>隐私与数据</h3>
+                <p class="text-muted">${consent.accepted ? '已同意 ' + escHtml(consent.version || '') : '尚未记录隐私同意'}</p>
+                <a class="btn-soft btn-sm" href="/profile">导出/删除设置</a>
+            </div>
+        `);
+        $('#togglePsychologyAlerts').on('click', function() {
+            const next = !psychOn;
+            const btn = $(this);
+            btn.prop('disabled', true).text('保存中…');
+            $.ajax({
+                url: '/api/v1/user/notification-preferences',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ psychology_alerts: next }),
+            }).done(function() {
+                loadLifecycle();
+            }).fail(function() {
+                btn.prop('disabled', false).text(psychOn ? '已开启 · 点击关闭' : '已关闭 · 点击开启');
+                alert('保存失败，请稍后重试');
+            });
+        });
+    }).fail(function() {
+        $('#lifecycleGrid').html('<div class="empty-state">上线设置加载失败</div>');
+    });
+}
+
+function handleRaAction(event) {
+    const el = event.target.closest('[data-ra-action]');
+    if (!el) return;
+    const action = el.dataset.raAction;
+    if (action === 'toast') showToast(el.dataset.toastMsg || '', el.dataset.toastType || 'info');
+    else if (action === 'load-refactor') loadRefactorStatus();
+    else if (action === 'load-psychology') loadPsychology(el.dataset.push === 'true');
+    else if (action === 'psychology-scan') runPsychologyScan(false);
+    else if (action === 'load-shadow') loadShadowMirror();
+    else if (action === 'load-overview') loadOverview();
+    else if (action === 'load-knowledge') loadKnowledge();
+    else if (action === 'add-watchlist') addKnowledgeSymbolToWatchlist();
+    else if (action === 'retry-overview') { raHideError(); loadOverview(); }
+    else if (action === 'retry-access') { raHideError(); loadAccessPolicy(); }
+}
+
+$(function() {
+    document.addEventListener('click', handleRaAction);
+    const qp = new URLSearchParams(window.location.search);
+    if (qp.get('symbol')) {
+        $('#knowledgeSymbol').val(qp.get('symbol'));
+        $('#shadowSymbols').val(qp.get('symbol'));
+    }
+    loadQuickActions();
+    loadAccessPolicy();
+    loadDailyTopPicks();
+    loadRefactorStatus();
+    loadOverview();
+    loadKnowledge();
+    loadPortfolioRisk();
+    loadLifecycle();
+});
+</script>
+{% endblock %}

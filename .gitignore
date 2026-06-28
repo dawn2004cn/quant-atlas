@@ -158,3 +158,6 @@ deploy/
 .cursorrules
 .env
 
+
+# gstack local config.gstack/
+

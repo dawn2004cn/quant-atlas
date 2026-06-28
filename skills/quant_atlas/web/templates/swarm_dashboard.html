@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Swarm 任务看板 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/swarm.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/swarm-dashboard" class="spa-switcher-link"
+   data-spa-switcher="swarm-dashboard">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="section-shell">
+    <div class="hero-caption">Multi-Agent Orchestration</div>
+    <h1 class="page-title">🕸️ Swarm 任务看板</h1>
+    <p class="page-subtitle">实时查看 Agent 任务执行状态、决策路径与调用链</p>
+    <div id="swarmFreshnessStrip" class="qa-is-hidden qc-freshness-strip swd-freshness" aria-live="polite"></div>
+    <div id="swarmActiveJobs" class="swd-active-jobs"></div>
+    <div class="swd-toolbar">
+        <a class="btn-soft btn-sm" href="/observability">观测台</a>
+        <a class="btn-soft btn-sm" href="/message-center">消息中心</a>
+        <button class="btn-brand btn-sm" type="button" data-sd-action="start-demo">启动演示 Swarm</button>
+    </div>
+
+    <div class="stats-panel">
+        <div class="stat-card">
+            <div class="stat-num" id="totalRuns">-</div>
+            <div class="stat-label">总运行数</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="runningCount">-</div>
+            <div class="stat-label">进行中</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="completedCount">-</div>
+            <div class="stat-label">已完成</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-num" id="failedCount">-</div>
+            <div class="stat-label">失败</div>
+        </div>
+    </div>
+
+    <div class="run-list" id="runList">
+        <div class="text-muted p-4">加载中...</div>
+    </div>
+
+    <div class="dag-container">
+        <button class="btn-soft btn-sm refresh-btn" type="button" data-sd-action="load-runs">🔄 刷新</button>
+        <label class="auto-refresh">
+            <input type="checkbox" id="autoRefresh" checked> 自动刷新
+        </label>
+
+        <div class="dag-canvas" id="dagCanvas">
+            <div class="text-muted text-center p-8">选择或运行一个任务查看 DAG</div>
+        </div>
+    </div>
+
+    <div class="qa-is-hidden task-detail" id="taskDetail">
+        <div class="task-detail-header">
+            <h3 id="taskDetailTitle">任务详情</h3>
+            <button class="btn-soft" type="button" data-sd-action="close-detail">✕ 关闭</button>
+        </div>
+        <div id="taskDetailContent"></div>
+    </div>
+
+    <div id="swarmRunProgress" class="swd-progress-mt" class="qa-is-hidden"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/task_feedback.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+let currentRunId = null;
+let autoRefreshTimer = null;
+let allRuns = [];
+
+const statusColors = {
+    'pending': '#9ca3af',
+    'running': '#3b82f6',
+    'completed': '#10b981',
+    'failed': '#ef4444',
+    'blocked': '#f59e0b'
+};
+
+async function loadRuns() {
+    try {
+        const res = await fetch('/api/v1/agent-swarm/runs');
+        const json = await res.json();
+        const payload = json.data ?? json;
+        allRuns = payload.runs ?? (Array.isArray(payload) ? payload : []);
+
+        updateStats();
+        renderRunList();
+    } catch(e) {
+        window.qcLogError('swarm_dashboard load failed', e);
+    }
+}
+
+function updateStats() {
+    const total = allRuns.length;
+    const running = allRuns.filter(r => r.status === 'running').length;
+    const completed = allRuns.filter(r => r.status === 'completed').length;
+    const failed = allRuns.filter(r => r.status === 'failed').length;
+
+    document.getElementById('totalRuns').textContent = total;
+    document.getElementById('runningCount').textContent = running;
+    document.getElementById('completedCount').textContent = completed;
+    document.getElementById('failedCount').textContent = failed;
+}
+
+function renderRunList() {
+    const list = document.getElementById('runList');
+    if (!allRuns.length) {
+        list.innerHTML = '<div class="text-muted p-4">暂无运行记录</div>';
+        return;
+    }
+
+    list.innerHTML = allRuns.map(run => `
+        <div class="run-item ${run.status} ${run.id === currentRunId ? 'active' : ''}"
+             data-sd-action="select-run" data-run-id="${run.id}">
+            <strong>${run.preset_name}</strong>
+            <span class="text-xs">${run.created_at?.slice(0,16) || ''}</span>
+            <span class="badge">${run.status}</span>
+        </div>
+    `).join('');
+}
+
+function selectRun(runId) {
+    currentRunId = runId;
+    const run = allRuns.find(r => r.id === runId);
+    if (!run) return;
+
+    renderRunList();
+    renderDAG(run);
+    document.getElementById('taskDetail').style.display = 'none';
+}
+
+function renderDAG(run) {
+    const canvas = document.getElementById('dagCanvas');
+    const tasks = run.tasks || [];
+
+    if (!tasks.length) {
+        canvas.innerHTML = '<div class="text-muted p-8">无任务数据</div>';
+        return;
+    }
+
+    // 计算层级
+    const layers = {};
+    tasks.forEach((task, idx) => {
+        const depends = task.depends_on || [];
+        const layer = depends.length === 0 ? 0 : Math.max(...depends.map(d => {
+            const depIdx = tasks.findIndex(t => t.id === d);
+            return depIdx >= 0 ? (layers[task.id] || 0) : 0;
+        })) + 1;
+        layers[task.id] = layer;
+    });
+
+    // 节点定位
+    const layerTasks = {};
+    tasks.forEach(task => {
+        const layer = layers[task.id] || 0;
+        if (!layerTasks[layer]) layerTasks[layer] = [];
+        layerTasks[layer].push(task);
+    });
+
+    const layerWidth = 180;
+    const nodeHeight = 70;
+    const startX = 50;
+    const startY = 50;
+
+    // 生成节点
+    let html = '';
+    const nodePositions = {};
+
+    Object.keys(layerTasks).sort((a,b) => a-b).forEach(layer => {
+        const tasksInLayer = layerTasks[layer];
+        const totalHeight = tasksInLayer.length * nodeHeight;
+        const startYLayer = startY + (350 - totalHeight) / 2;
+
+        tasksInLayer.forEach((task, idx) => {
+            const x = startX + layer * layerWidth;
+            const y = startYLayer + idx * nodeHeight;
+            nodePositions[task.id] = {x, y};
+
+            const status = task.status || 'pending';
+            const statusText = {
+                'pending': '等待中',
+                'running': '执行中',
+                'completed': '已完成',
+                'failed': '失败',
+                'blocked': '阻塞'
+            }[status] || status;
+
+            html += `
+                <div class="dag-node ${status}" style="left:${x}px;top:${y}px;"
+                     data-sd-action="show-task" data-task-id="${task.id}">
+                    <div class="dag-node-title">${task.agent_id}</div>
+                    <div class="dag-node-status">${statusText}</div>
+                </div>
+            `;
+        });
+    });
+
+    // 生成边
+    tasks.forEach(task => {
+        const depends = task.depends_on || [];
+        depends.forEach(depId => {
+            if (nodePositions[depId] && nodePositions[task.id]) {
+                const from = nodePositions[depId];
+                const to = nodePositions[task.id];
+                const status = task.status === 'completed' ? 'animated' : '';
+
+                const midX = (from.x + 140 + to.x) / 2;
+                const midY = from.y + 35;
+
+                html += `
+                    <svg class="swd-dag-svg">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#6b7280" />
+                            </marker>
+                        </defs>
+                        <line x1="${from.x + 140}" y1="${from.y + 35}"
+                              x2="${to.x}" y2="${to.y + 35}"
+                              stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"
+                              class="${status}" />
+                    </svg>
+                `;
+            }
+        });
+    });
+
+    canvas.innerHTML = html;
+}
+
+function showTaskDetail(taskId) {
+    const run = allRuns.find(r => r.id === currentRunId);
+    if (!run) return;
+
+    const task = (run.tasks || []).find(t => t.id === taskId);
+    if (!task) return;
+
+    document.getElementById('taskDetail').style.display = 'block';
+    document.getElementById('taskDetailTitle').textContent = `任务: ${task.id}`;
+    document.getElementById('taskDetailContent').innerHTML = `
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div><strong>Agent:</strong> ${task.agent_id}</div>
+            <div><strong>状态:</strong> <span class="badge-${task.status}">${task.status}</span></div>
+            <div><strong>耗时:</strong> ${task.duration_ms ? (task.duration_ms / 1000).toFixed(2) + 's' : '-'}</div>
+            <div><strong>迭代:</strong> ${task.iterations || '-'}</div>
+        </div>
+        ${task.error ? `<div class="negative p-3 rounded mb-4">错误: ${task.error}</div>` : ''}
+        <div class="swd-log-row">
+            <a class="btn-soft btn-sm" href="/observability?trace=${encodeURIComponent(currentRunId || taskId)}">在观测台查 Trace</a>
+            <a class="btn-soft btn-sm" href="/ai-research-report">AI 研究报告</a>
+        </div>
+        <div><strong>输出:</strong></div>
+        <div class="task-messages">${task.output || '暂无输出'}</div>
+    `;
+}
+
+function closeTaskDetail() {
+    document.getElementById('taskDetail').style.display = 'none';
+}
+
+function toggleAutoRefresh() {
+    const checked = document.getElementById('autoRefresh').checked;
+    if (checked) {
+        autoRefreshTimer = setInterval(loadRuns, 5000);
+    } else {
+        clearInterval(autoRefreshTimer);
+    }
+}
+
+function startDemoRun() {
+    const prog = document.getElementById('swarmRunProgress');
+    if (prog) {
+        prog.style.display = 'block';
+        prog.innerHTML = '<div class="mini-label">正在提交 Swarm 运行…</div>';
+    }
+    fetch('/api/v1/agent-swarm/swarm/run', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        credentials: 'include',
+        body: JSON.stringify({
+            preset: 'equity_research_team',
+            symbol: '600519',
+            topic: '测试Swarm运行'
+        })
+    })
+        .then(function (res) { return res.json(); })
+        .then(function (json) {
+            const data = json.data || json;
+            const runId = data.run_id || data.id;
+            const celeryId = data.task_id || data.celery_task_id;
+            if (prog && runId) {
+                prog.innerHTML =
+                    '<div class="mini-label">Swarm 已启动 · Run ' + runId +
+                    (celeryId ? ' · 后台任务 ' + celeryId : '') + '</div>';
+            }
+            if (celeryId && window.QCTaskFeedback && prog) {
+                prog.innerHTML += '<div id="swarmCeleryProgress"></div>';
+                QCTaskFeedback.watch(celeryId, {
+                    element: document.getElementById('swarmCeleryProgress'),
+                    onComplete: function () {
+                        loadRuns();
+                        if (window.QAUserCenter) {
+                            QAUserCenter.mountActiveJobsPanel('swarmActiveJobs', 6);
+                        }
+                    }
+                });
+            }
+            setTimeout(loadRuns, 2000);
+        })
+        .catch(function (e) {
+            if (prog) prog.innerHTML = '<div class="mini-label swd-err">启动失败：' + (e.message || e) + '</div>';
+        });
+}
+
+function mountSwarmUserCenter() {
+    if (!window.QAUserCenter) return;
+    QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('swarmFreshnessStrip'));
+    QAUserCenter.mountActiveJobsPanel('swarmActiveJobs', 6);
+    setInterval(function () {
+        QAUserCenter.mountActiveJobsPanel('swarmActiveJobs', 6);
+    }, 12000);
+}
+
+// 初始化
+loadRuns();
+document.getElementById('autoRefresh').addEventListener('change', toggleAutoRefresh);
+toggleAutoRefresh();
+mountSwarmUserCenter();
+
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-sd-action]');
+    if (!el) return;
+    const action = el.dataset.sdAction;
+    if (action === 'start-demo') startDemoRun();
+    else if (action === 'load-runs') loadRuns();
+    else if (action === 'close-detail') closeTaskDetail();
+    else if (action === 'select-run') selectRun(el.dataset.runId);
+    else if (action === 'show-task') showTaskDetail(el.dataset.taskId);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "layouts/design_showcase_base.html" %}
+{% from 'components/ui_macros.html' import qa_task %}
+{% set is_light = (ui_theme or 'dark') == 'light' %}
+{% block title %}Quant Atlas {{ '日间' if is_light else '夜间' }}模式 UI 模板系统{% endblock %}
+
+{% block body %}
+<div class="qa-app" id="qaApp">
+    <aside class="qa-rail" aria-label="主导航">
+        <div class="qa-brand">
+            <div class="qa-mark" aria-hidden="true">QA</div>
+            <div>
+                <h1>Quant Atlas</h1>
+                <p>{{ '日间量化研究台' if is_light else '夜间量化金融工作台' }}</p>
+            </div>
+        </div>
+        <div class="qa-nav-title">工作台</div>
+        <button type="button" class="qa-nav-btn active" data-filter="全部" aria-pressed="true">
+            <span>全部模板</span><span>50</span>
+        </button>
+        <button type="button" class="qa-nav-btn" data-filter="行情" aria-pressed="false">
+            <span>行情监控</span><span>10</span>
+        </button>
+        <button type="button" class="qa-nav-btn" data-filter="因子" aria-pressed="false">
+            <span>因子研究</span><span>10</span>
+        </button>
+        <button type="button" class="qa-nav-btn" data-filter="风控" aria-pressed="false">
+            <span>风险控制</span><span>10</span>
+        </button>
+        <button type="button" class="qa-nav-btn" data-filter="组合" aria-pressed="false">
+            <span>组合管理</span><span>10</span>
+        </button>
+        <button type="button" class="qa-nav-btn" data-filter="AI" aria-pressed="false">
+            <span>AI 投研</span><span>10</span>
+        </button>
+        <div class="qa-card qa-card--pad">
+            <strong>设计系统覆盖率</strong>
+            <p class="muted qa-note">
+                {{ '白底机构报表、绿色交易信号、蓝色研究辅助，覆盖 50 个量化业务模块。' if is_light else '深色金融终端、荧光绿强调、可审计状态、移动端卡片化，覆盖 50 个真实量化业务模块。' }}
+            </p>
+            <p class="qa-theme-switch">
+                <a class="qa-theme-link" href="{{ alternate_theme_url }}">
+                    切换到{{ '夜间模式' if is_light else '日间模式' }}
+                </a>
+            </p>
+        </div>
+    </aside>
+
+    <main class="qa-main">
+        <div class="qa-topbar">
+            <div class="qa-search">
+                <input id="qaSearch" type="search" aria-label="搜索模板" placeholder="搜索模板、场景或状态">
+            </div>
+            <select id="qaDensity" class="qa-select" aria-label="密度">
+                <option value="normal">标准密度</option>
+                <option value="compact">紧凑密度</option>
+            </select>
+            <button type="button" class="qa-btn-secondary qa-side-toggle" id="qaSideToggle" aria-label="打开风险面板">风险</button>
+            <button type="button" class="qa-btn-primary" id="qaExportBtn">复制组件清单</button>
+        </div>
+
+        <section class="qa-hero">
+            <div class="qa-card qa-hero-main">
+                <div class="qa-eyebrow"><i class="qa-pulse" aria-hidden="true"></i> 实时投研系统模板</div>
+                <h2>从行情、因子到 AI 投委会的一体化界面基座</h2>
+                <p class="qa-lead">
+                    为 Quant Atlas 提供面向量化团队、散户、投资者和机构的响应式 UI 模板：信息密度高、状态明确、可直接映射到行情服务、Qlib、RD-Agent、风控和投资经理模块。
+                </p>
+                <div class="qa-actions">
+                    <button type="button" class="qa-btn-primary" data-open-spec>查看模板规范</button>
+                    <button type="button" class="qa-btn-secondary" data-filter-action="风控">聚焦风险场景</button>
+                </div>
+                <div class="qa-metrics">
+                    <div class="qa-metric"><span>模板模块</span><strong>50</strong></div>
+                    <div class="qa-metric"><span>核心域</span><strong>5</strong></div>
+                    <div class="qa-metric"><span>响应断点</span><strong>3</strong></div>
+                    <div class="qa-metric"><span>状态组件</span><strong>18</strong></div>
+                </div>
+            </div>
+            <div class="qa-card qa-market">
+                <div class="qa-head">
+                    <h3>全球资产透视</h3>
+                    <span class="qa-tag" id="qaLiveClock">LIVE</span>
+                </div>
+                <div id="qaAssets"></div>
+            </div>
+        </section>
+
+        <div class="qa-section-head">
+            <div>
+                <h2>50 个 UI 模板模块</h2>
+                <p class="muted">模块以产品能力组织，可筛选、搜索、打开详情，并包含构成元素、状态与实现提示。</p>
+            </div>
+            <span class="qa-tag" id="qaResultCount">50 / 50</span>
+        </div>
+        <section class="qa-grid" id="qaGrid" aria-label="UI 模板模块"></section>
+    </main>
+
+    <aside class="qa-side" id="qaSidePanel" aria-label="风险与任务">
+        <div class="qa-card">
+            <h3>风险快照</h3>
+            <div class="qa-row"><span>组合回撤</span><b class="qa-warn qa-mono">-3.42%</b></div>
+            <div class="qa-row"><span>净敞口</span><b class="qa-mono">62.8%</b></div>
+            <div class="qa-row"><span>流动性缓冲</span><b class="qa-up qa-mono">充足</b></div>
+            <div class="qa-row"><span>异常数据源</span><b class="qa-down qa-mono">2</b></div>
+        </div>
+        <div class="qa-card">
+            <h3>任务流</h3>
+            {{ qa_task('Qlib 增量数据转换完成，等待因子回测队列。') }}
+            {{ qa_task('AI 投委会已聚合三名分析师观点，风控建议降低仓位。', 'warn') }}
+            {{ qa_task('信号旗扫描发现 14 个观察标的，需人工复核。', 'down') }}
+        </div>
+    </aside>
+</div>
+
+<div class="qa-drawer" id="qaDrawer" role="dialog" aria-modal="true" aria-labelledby="qaDrawerTitle">
+    <button type="button" class="qa-drawer-close" id="qaDrawerClose" aria-label="关闭详情">×</button>
+    <h2 id="qaDrawerTitle">模板详情</h2>
+    <p id="qaDrawerText" class="muted"></p>
+    <div class="qa-spec" id="qaDrawerSpec"></div>
+    <button type="button" class="qa-btn-primary" id="qaCopyOne">复制该模块描述</button>
+</div>
+
+<div class="qa-toast-inline" id="qaToast" role="status" aria-live="polite">已复制</div>
+
+<nav class="qa-mobile-tabs" aria-label="移动筛选">
+    <button type="button" class="active" data-filter="全部">全部</button>
+    <button type="button" data-filter="行情">行情</button>
+    <button type="button" data-filter="风控">风控</button>
+    <button type="button" data-filter="AI">AI</button>
+</nav>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/ui-showcase.js') }}" defer></script>
+{% endblock %}

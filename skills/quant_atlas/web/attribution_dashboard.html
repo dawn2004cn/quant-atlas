@@ -1,0 +1,484 @@
+{% extends "base.html" %}
+
+{% block title %}策略归因分析 | Quant Atlas{% endblock %}
+{% block spa_switcher %}
+
+<a href="/app/attribution_dashboard" class="spa-switcher-link"
+
+   data-spa-switcher="attribution_dashboard">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between pt-3 pb-2 mb-3 border-bottom flex-wrap">
+        <div>
+            <h1 class="h2 mb-1">📊 策略归因分析</h1>
+            <small class="text-muted" id="scopeLabel">组合级归因</small>
+        </div>
+        <div class="d-flex align-items-center flex-wrap ad-toolbar">
+            <input type="text" class="form-control form-control-sm ad-input-sm" id="strategyNameInput" value="我的策略" placeholder="策略名">
+            <select class="form-select form-select-sm" id="periodSelect" class="ad-select-auto">
+                <option value="7d">近7天</option>
+                <option value="30d" selected>近30天</option>
+                <option value="90d">近90天</option>
+                <option value="1y">近1年</option>
+            </select>
+            <div class="form-check form-check-inline mb-0">
+                <input class="form-check-input" type="checkbox" id="includeSlippage" checked>
+                <label class="form-check-label" for="includeSlippage">含执行滑点</label>
+            </div>
+            <button class="btn btn-sm btn-primary" id="refreshBtn" type="button">刷新</button>
+        </div>
+    </div>
+
+    <div class="alert alert-secondary d-none" id="loadError" role="alert"></div>
+
+    <!-- 收益概览 -->
+    <div class="row mb-3">
+        <div class="col-md-3 col-6 mb-2">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="text-value" id="totalReturn">--</div>
+                    <div class="text-label">总收益</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="text-value" id="alpha">--</div>
+                    <div class="text-label">超额收益 (Alpha)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="text-value" id="marketEffect">--</div>
+                    <div class="text-label">市场效应</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="text-value" id="beta">--</div>
+                    <div class="text-label">Beta</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统一归因摘要 -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">📝 归因摘要</h5>
+                    <small class="text-muted" id="generatedAt"></small>
+                </div>
+                <div class="card-body">
+                    <div class="attribution-summary text-muted" id="summaryText">加载中…</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <!-- 风格分解 -->
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">🎨 市场风格贡献</h5>
+                </div>
+                <div class="card-body">
+                    <div id="styleChart" class="ad-chart-h240"></div>
+                    <table class="table table-sm mt-2 mb-0" id="styleTable">
+                        <thead><tr><th>成分</th><th>贡献%</th><th>说明</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 执行滑点 -->
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">⚙️ 执行损耗 (Slippage)</h5>
+                    <span class="slippage-badge" id="slippageQuality">--</span>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="text-value" id="slippageAvg" class="ad-metric-lg">--</div>
+                            <div class="text-muted small">平均滑点%</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-value" id="slippageDrag" class="ad-metric-lg">--</div>
+                            <div class="text-muted small">收益拖累%</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-value" id="slippageOrders" class="ad-metric-lg">--</div>
+                            <div class="text-muted small">样本订单</div>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-1">延迟：<span id="slippageLatency">--</span></p>
+                    <p class="text-muted small mb-0" id="slippageNotes">暂无实盘成交样本时将显示占位说明。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 因子贡献 -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5>🎯 因子贡献分析</h5>
+                </div>
+                <div class="card-body">
+                    <div id="factorChart" class="ad-chart-h280"></div>
+                    <table class="table table-sm mt-2" id="factorTable">
+                        <thead><tr><th>因子</th><th>贡献%</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 行业贡献 -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5>🏭 行业贡献分布</h5>
+                </div>
+                <div class="card-body">
+                    <div id="sectorChart" class="ad-chart-h280"></div>
+                    <table class="table table-sm mt-2" id="sectorTable">
+                        <thead><tr><th>行业</th><th>权重</th><th>收益</th><th>贡献</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <!-- Top/Bottom Contributors -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5>🏆 Top 贡献</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm" id="topTable">
+                        <thead><tr><th>股票</th><th>权重%</th><th>收益%</th><th>贡献%</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5>⚠️ 拖累贡献</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm" id="bottomTable">
+                        <thead><tr><th>股票</th><th>权重%</th><th>收益%</th><th>贡献%</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- What-if Analyzer -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-purple text-white">
+                    <h5>🔮 "如果" 分析器 - 因子权重调整模拟</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">调整因子权重，预测可能的收益变化：</p>
+                    <div class="row">
+                        <div class="col-md-10">
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <label>ROE 权重调整: <span id="roeValue">0</span>%</label>
+                                    <input type="range" class="form-range" id="roeSlider" min="-30" max="30" value="0" data-ad-slider="roe">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label>PE 权重调整: <span id="peValue">0</span>%</label>
+                                    <input type="range" class="form-range" id="peSlider" min="-30" max="30" value="0" data-ad-slider="pe">
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <label>营收增长调整: <span id="revenueValue">0</span>%</label>
+                                    <input type="range" class="form-range" id="revenueSlider" min="-30" max="30" value="0" data-ad-slider="revenue">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <button class="btn btn-primary" type="button" data-ad-action="run-simulation">模拟</button>
+                        </div>
+                    </div>
+                    <div class="qa-is-hidden mt-3" id="simulationResult">
+                        <div class="alert alert-info">
+                            <h6>模拟结果：</h6>
+                            <p id="simulationText"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/vendor/echarts.min.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+let styleChartInstance = null;
+let factorChartInstance = null;
+let sectorChartInstance = null;
+
+function pct(value, digits = 2) {
+    const num = Number(value || 0);
+    return num.toFixed(digits) + '%';
+}
+
+function updateSlider(factor) {
+    const value = document.getElementById(factor + 'Slider').value;
+    document.getElementById(factor + 'Value').textContent = (value > 0 ? '+' : '') + value;
+}
+
+function buildAttributionQuery() {
+    const period = document.getElementById('periodSelect').value;
+    const strategyName = document.getElementById('strategyNameInput').value.trim() || '我的策略';
+    const includeSlippage = document.getElementById('includeSlippage').checked ? '1' : '0';
+    const params = new URLSearchParams({
+        period,
+        strategy_name: strategyName,
+        include_slippage: includeSlippage,
+        benchmark_return: '3.5',
+        alpha: '0.8',
+        exposure_momentum: '0.15',
+        exposure_value: '-0.05',
+        exposure_size: '0.08',
+        factor_momentum: '0.04',
+        factor_value: '-0.02',
+        factor_size: '0.01',
+    });
+    return '/api/v1/attribution/report?' + params.toString();
+}
+
+async function loadAttribution() {
+    const errorEl = document.getElementById('loadError');
+    errorEl.classList.add('d-none');
+    document.getElementById('summaryText').textContent = '加载中…';
+
+    try {
+        const response = await fetch(buildAttributionQuery(), { credentials: 'same-origin' });
+        if (!response.ok) {
+            throw new Error('HTTP ' + response.status);
+        }
+        const payload = await response.json();
+        const report = (payload.status === 'success' || payload.ok) ? (payload.data ?? payload) : null;
+        if (!report) {
+            throw new Error(payload.message || 'empty_report');
+        }
+        const summary = (payload.meta && payload.meta.summary) || report.summary || '';
+        updateUI(report, summary);
+    } catch (e) {
+        window.qcLogError('Load attribution error', e);
+        errorEl.textContent = '归因数据加载失败，请确认已登录且后端服务可用。';
+        errorEl.classList.remove('d-none');
+        document.getElementById('summaryText').textContent = '暂无数据';
+    }
+}
+
+function renderBarChart(elId, labels, values, existingInstance) {
+    const dom = document.getElementById(elId);
+    if (!dom || !window.echarts) return existingInstance;
+    const chart = existingInstance || echarts.init(dom);
+    chart.setOption({
+        tooltip: { trigger: 'axis' },
+        grid: { left: 40, right: 16, top: 24, bottom: 40 },
+        xAxis: { type: 'category', data: labels, axisLabel: { interval: 0, rotate: 20 } },
+        yAxis: { type: 'value', axisLabel: { formatter: '{value}%' } },
+        series: [{
+            type: 'bar',
+            data: values,
+            itemStyle: {
+                color: function(params) {
+                    return params.value >= 0 ? '#10b981' : '#ef4444';
+                }
+            }
+        }]
+    });
+    return chart;
+}
+
+function updateUI(report, summary) {
+    document.getElementById('totalReturn').textContent = pct(report.total_return || 0);
+    document.getElementById('alpha').textContent = pct(report.market_effect?.alpha || 0);
+    document.getElementById('marketEffect').textContent = pct(report.market_effect?.market_return || 0);
+    document.getElementById('beta').textContent = Number(report.market_effect?.beta || 1).toFixed(2);
+
+    const scopeText = report.scope === 'position' && report.symbol
+        ? ('单票归因 · ' + report.symbol)
+        : ('组合级归因 · ' + (report.strategy_name || ''));
+    document.getElementById('scopeLabel').textContent = scopeText;
+    document.getElementById('summaryText').textContent = summary || '暂无摘要';
+    document.getElementById('generatedAt').textContent = report.generated_at
+        ? ('生成于 ' + report.generated_at)
+        : '';
+
+    const styleRows = (report.style_contributions || []).filter(function(row) {
+        return row.component !== 'interpretation';
+    });
+    let styleHtml = '';
+    styleRows.forEach(function(row) {
+        const label = row.description || row.component;
+        const cls = row.contribution_pct >= 0 ? 'text-success' : 'text-danger';
+        styleHtml += '<tr><td>' + label + '</td><td class="' + cls + '">' + pct(row.contribution_pct) + '</td><td class="text-muted small">' + (row.description || '') + '</td></tr>';
+    });
+    document.querySelector('#styleTable tbody').innerHTML = styleHtml || '<tr><td colspan="3" class="text-muted">暂无风格分解</td></tr>';
+    styleChartInstance = renderBarChart(
+        'styleChart',
+        styleRows.map(function(r) { return r.description || r.component; }),
+        styleRows.map(function(r) { return Number(r.contribution_pct || 0); }),
+        styleChartInstance
+    );
+
+    const slippage = report.slippage;
+    if (slippage) {
+        document.getElementById('slippageQuality').textContent = slippage.quality || 'unknown';
+        document.getElementById('slippageAvg').textContent = slippage.avg_slippage_pct != null ? pct(slippage.avg_slippage_pct) : '--';
+        document.getElementById('slippageDrag').textContent = slippage.contribution_pct != null ? pct(slippage.contribution_pct) : '--';
+        document.getElementById('slippageOrders').textContent = slippage.order_count != null ? String(slippage.order_count) : '--';
+        document.getElementById('slippageLatency').textContent = slippage.latency_ms != null
+            ? (Number(slippage.latency_ms).toFixed(0) + ' ms')
+            : '--';
+        document.getElementById('slippageNotes').textContent = slippage.notes || '暂无执行分析备注';
+    } else {
+        document.getElementById('slippageQuality').textContent = 'no_data';
+        document.getElementById('slippageAvg').textContent = '--';
+        document.getElementById('slippageDrag').textContent = '--';
+        document.getElementById('slippageOrders').textContent = '--';
+        document.getElementById('slippageLatency').textContent = '--';
+        document.getElementById('slippageNotes').textContent = '未启用滑点分析或无 MySQL 成交样本。';
+    }
+
+    if (report.factors && report.factors.length) {
+        let factorHtml = '';
+        report.factors.forEach(function(f) {
+            factorHtml += '<tr><td>' + f.factor_name + '</td><td>' + pct(f.contribution_pct, 1) + '</td></tr>';
+        });
+        document.querySelector('#factorTable tbody').innerHTML = factorHtml;
+        factorChartInstance = renderBarChart(
+            'factorChart',
+            report.factors.map(function(f) { return f.factor_name; }),
+            report.factors.map(function(f) { return Number(f.contribution_pct || 0); }),
+            factorChartInstance
+        );
+    } else {
+        document.querySelector('#factorTable tbody').innerHTML = '<tr><td colspan="2" class="text-muted">暂无因子贡献</td></tr>';
+    }
+
+    if (report.sectors && report.sectors.length) {
+        let sectorHtml = '';
+        report.sectors.slice(0, 5).forEach(function(s) {
+            sectorHtml += '<tr><td>' + s.sector + '</td><td>' + pct(s.weight, 1) + '</td><td>' + pct(s.return_pct, 1) + '</td><td>' + pct(s.contribution_pct, 1) + '</td></tr>';
+        });
+        document.querySelector('#sectorTable tbody').innerHTML = sectorHtml;
+        sectorChartInstance = renderBarChart(
+            'sectorChart',
+            report.sectors.slice(0, 5).map(function(s) { return s.sector; }),
+            report.sectors.slice(0, 5).map(function(s) { return Number(s.contribution_pct || 0); }),
+            sectorChartInstance
+        );
+    } else {
+        document.querySelector('#sectorTable tbody').innerHTML = '<tr><td colspan="4" class="text-muted">暂无行业贡献</td></tr>';
+    }
+
+    if (report.top_contributors && report.top_contributors.length) {
+        let topHtml = '';
+        report.top_contributors.forEach(function(s) {
+            topHtml += '<tr><td>' + s.symbol + '</td><td>' + pct(s.weight, 1) + '</td><td>' + pct(s.return_pct, 1) + '</td><td class="text-success">+' + pct(s.contribution_pct, 1) + '</td></tr>';
+        });
+        document.querySelector('#topTable tbody').innerHTML = topHtml;
+    } else {
+        document.querySelector('#topTable tbody').innerHTML = '<tr><td colspan="4" class="text-muted">暂无</td></tr>';
+    }
+
+    if (report.bottom_contributors && report.bottom_contributors.length) {
+        let bottomHtml = '';
+        report.bottom_contributors.forEach(function(s) {
+            bottomHtml += '<tr><td>' + s.symbol + '</td><td>' + pct(s.weight, 1) + '</td><td>' + pct(s.return_pct, 1) + '</td><td class="text-danger">' + pct(s.contribution_pct, 1) + '</td></tr>';
+        });
+        document.querySelector('#bottomTable tbody').innerHTML = bottomHtml;
+    } else {
+        document.querySelector('#bottomTable tbody').innerHTML = '<tr><td colspan="4" class="text-muted">暂无</td></tr>';
+    }
+}
+
+async function runSimulation() {
+    const adjustments = {
+        roe: parseInt(document.getElementById('roeSlider').value, 10),
+        pe: parseInt(document.getElementById('peSlider').value, 10),
+        revenue_growth: parseInt(document.getElementById('revenueSlider').value, 10)
+    };
+
+    try {
+        const response = await fetch('/api/v1/attribution/whatif', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            credentials: 'same-origin',
+            body: JSON.stringify({adjustments})
+        });
+        const payload = await response.json();
+        const result = (payload.status === 'success' || payload.ok) ? (payload.data ?? payload) : null;
+        if (result) {
+            document.getElementById('simulationResult').style.display = 'block';
+            document.getElementById('simulationText').innerHTML =
+                '调整前期望收益: ' + pct(result.base_return) + '<br>' +
+                '调整后期望收益: ' + pct(result.adjusted_return) + '<br>' +
+                '预期变化: <strong class="' + (result.expected_change >= 0 ? 'text-success' : 'text-danger') + '">' +
+                (result.expected_change >= 0 ? '+' : '') + pct(result.expected_change) + '</strong>';
+        }
+    } catch (e) {
+        window.qcLogError('Simulation error', e);
+    }
+}
+
+document.getElementById('periodSelect').addEventListener('change', loadAttribution);
+document.getElementById('refreshBtn').addEventListener('click', loadAttribution);
+document.getElementById('includeSlippage').addEventListener('change', loadAttribution);
+['roe', 'pe', 'revenue'].forEach(function (factor) {
+    const slider = document.getElementById(factor + 'Slider');
+    if (slider) slider.addEventListener('input', function () { updateSlider(factor); });
+});
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-ad-action]');
+    if (el && el.dataset.adAction === 'run-simulation') runSimulation();
+});
+window.addEventListener('resize', function() {
+    [styleChartInstance, factorChartInstance, sectorChartInstance].forEach(function(chart) {
+        if (chart) chart.resize();
+    });
+});
+loadAttribution();
+</script>
+{% endblock %}

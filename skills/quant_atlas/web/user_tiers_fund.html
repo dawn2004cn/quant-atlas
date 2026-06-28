@@ -1,0 +1,66 @@
+{% extends "base.html" %}{% block spa_switcher %}
+{% block spa_switcher %}
+
+<a href="/app/user-tiers/fund" class="spa-switcher-link"
+
+   data-spa-switcher="user-tiers/fund">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+{% endblock %}
+
+{% block title %}基金管理{% endblock %}{% block content %}
+<div class="container mt-4">
+  <h2>📋 基金管理控制台</h2>
+  <div class="row mt-3">
+    <div class="col-md-6">
+      <div class="card"><div class="card-header">📊 Brinson 归因分析</div>
+        <div class="card-body"><button class="btn btn-primary" type="button" data-ut-action="runBrinson">运行归因</button><div id="brinsonResult" class="mt-3"></div></div></div>
+    </div>
+    <div class="col-md-6">
+      <div class="card"><div class="card-header">🛡️ 合规预检</div>
+        <div class="card-body"><button class="btn btn-danger" type="button" data-ut-action="runCompliance">检查合规</button><div id="complianceResult" class="mt-3"></div></div></div>
+    </div>
+    <div class="col-md-6 mt-3">
+      <div class="card"><div class="card-header">🔍 审计追踪</div>
+        <div class="card-body"><button class="btn btn-info" type="button" data-ut-action="runAudit">验证审计链</button><div id="auditResult" class="mt-3"></div></div></div>
+    </div>
+    <div class="col-md-6 mt-3">
+      <div class="card"><div class="card-header">👥 主从账户</div>
+        <div class="card-body"><button class="btn btn-secondary" type="button" data-ut-action="runMasterSlave">测试同步下单</button><div id="msResult" class="mt-3"></div></div></div>
+    </div>
+  </div>
+</div>
+<script nonce="{{ csp_nonce() }}">
+async function postJSON(url, data) {
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken':'{{csrf_token()}}'}, body: JSON.stringify(data||{})});
+  return r.json();
+}
+async function runBrinson() {
+  const r = await postJSON('/api/v1/user-tiers/fund/attribution/brinson', {portfolio_id:'p1',portfolio_weights:{A:0.6,B:0.4},portfolio_returns:{A:0.08,B:0.04},benchmark_weights:{A:0.5,B:0.5},benchmark_returns:{A:0.06,B:0.03}});
+  document.getElementById('brinsonResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+}
+async function runCompliance() {
+  const r = await postJSON('/api/v1/user-tiers/fund/compliance/check', {symbol:'AAPL',sector:'Tech',order_value:50000,portfolio_value:1000000,current_position_pct:0.05,current_sector_pct:0.15});
+  document.getElementById('complianceResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+}
+async function runAudit() {
+  const r = await fetch('/api/v1/user-tiers/fund/audit/chain/verify');
+  const d = await r.json();
+  document.getElementById('auditResult').innerHTML = '<pre>' + JSON.stringify(d, null, 2) + '</pre>';
+}
+async function runMasterSlave() {
+  const r = await postJSON('/api/v1/user-tiers/fund/master-slave/register', {master_id:'m1',name:'子账户A',capital:1000000,allocation_pct:80.0});
+  document.getElementById('msResult').innerHTML = '<pre>' + JSON.stringify(r, null, 2) + '</pre>';
+}
+document.addEventListener('click', function (e) {
+  const el = e.target.closest('[data-ut-action]');
+  if (!el) return;
+  const fn = window[el.dataset.utAction];
+  if (typeof fn === 'function') fn();
+});
+</script>
+{% endblock %}

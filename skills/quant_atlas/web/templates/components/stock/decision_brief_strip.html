@@ -1,0 +1,92 @@
+{# Capability Component: decision-brief-strip (Quant Atlas 4.0 micro-frontend shell) #}
+<div
+    class="section-shell"
+    id="decision-brief-strip"
+    x-data="decisionBriefCapability()"
+    x-init="init()"
+>
+    <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="panel-title mb-0">决策简报</h2>
+            <div class="panel-subtitle">单接口聚合行情置信度、产业链穿透与归因时间轴（无需多请求对齐）</div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span
+                x-show="truthAlert"
+                x-cloak
+                class="badge bg-warning text-dark"
+                x-text="truthAlert"
+            ></span>
+            <button class="btn-soft btn-sm" type="button" data-dbs-action="refresh">刷新简报</button>
+            <button class="btn-soft btn-sm" type="button" data-dbs-action="snapshot">生成快照</button>
+        </div>
+    </div>
+    <div id="decisionBriefWarnings"></div>
+    <template x-if="truthEvents.length">
+        <div class="mt-2">
+            <template x-for="evt in truthEvents" :key="evt.timestamp + evt.field">
+                <div class="qc-decision-warn" x-text="evt.message"></div>
+            </template>
+        </div>
+    </template>
+    <div id="decisionBriefSummary" class="mt-2">
+        <div class="loading-state">正在加载决策简报…</div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function decisionBriefCapability() {
+    return {
+        truthAlert: '',
+        truthEvents: [],
+        _pollTimer: null,
+        init() {
+            this.pollTruthEvents();
+            this._pollTimer = setInterval(() => this.pollTruthEvents(), 30000);
+        },
+        pollTruthEvents() {
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '').toUpperCase();
+            if (!sym) return;
+            fetch('/api/v1/system/events/recent?limit=30', { credentials: 'same-origin' })
+                .then((r) => r.json())
+                .then((res) => {
+                    const items = (res.data && res.data.items) || res.items || [];
+                    const hits = items.filter((it) => {
+                        const name = it.event || '';
+                        const data = (it.data || {});
+                        const esym = (data.symbol || '').toUpperCase();
+                        return (
+                            (name === 'TruthDeviationEvent' || name === 'AnalysisStaleEvent')
+                            && esym === sym
+                        );
+                    });
+                    this.truthEvents = hits.slice(0, 3).map((it) => {
+                        const d = it.data || {};
+                        if (it.event === 'TruthDeviationEvent') {
+                            return {
+                                timestamp: it.timestamp,
+                                field: d.field || 'close',
+                                message: '数据偏差: ' + (d.source_a || '') + ' vs ' + (d.source_b || '')
+                                    + ' 差异 ' + (d.diff_pct != null ? d.diff_pct.toFixed(2) + '%' : '—'),
+                            };
+                        }
+                        return {
+                            timestamp: it.timestamp,
+                            field: 'analysis',
+                            message: '分析待验证: ' + (d.reason || '多源数据不一致'),
+                        };
+                    });
+                    this.truthAlert = this.truthEvents.length ? '待验证' : '';
+                })
+                .catch(() => {});
+        },
+    };
+}
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-dbs-action]');
+    if (!el) return;
+    const action = el.dataset.dbsAction;
+    if (action === 'refresh' && typeof loadDecisionBrief === 'function') loadDecisionBrief();
+    else if (action === 'snapshot' && typeof createDecisionSnapshot === 'function') createDecisionSnapshot();
+});
+</script>

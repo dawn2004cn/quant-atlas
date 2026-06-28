@@ -1,0 +1,228 @@
+<!-- Evidence Card Component (Phase 14) -->
+<!-- Shows plain-language "Why buy this?" explanations for strategies -->
+
+<div class="qa-is-hidden qc-panel" x-data="evidenceCardCapability()" x-show="evidence" id="evidence-card-panel">
+    <div class="panel-head">
+        <div class="panel-info">
+            <h3 class="panel-title">
+                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                为什么要买入这只？
+            </h3>
+            <p class="panel-subtitle" x-text="strategyName || '策略分析'"></p>
+        </div>
+        <div class="panel-actions">
+            <span class="confidence-badge" x-show="confidence" x-text="confidence"></span>
+            <button @click="evidence = false" class="qc-btn-icon" title="关闭">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading state -->
+    <div x-show="loading" class="p-4 text-center">
+        <div class="animate-spin inline-block w-6 h-6 border-2 border-current border-t-transparent rounded-full text-amber-500" role="status">
+            <span class="sr-only">加载中</span>
+        </div>
+        <p class="mt-2 text-sm text-gray-500">正在分析策略逻辑...</p>
+    </div>
+
+    <!-- Factors -->
+    <div x-show="!loading && factors.length" class="p-4 space-y-3">
+        <template x-for="(factor, idx) in factors" :key="idx">
+            <div class="evidence-factor-row flex items-start gap-3 p-3 rounded-lg bg-gradient-to-r from-amber-50 to-transparent dark:from-amber-900/20 dark:to-transparent" :style="'animation-delay:' + (idx * 0.05) + 's'">
+                <div class="flex-shrink-0 w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-800/40 flex items-center justify-center text-amber-700 dark:text-amber-300 text-sm font-bold" x-text="idx + 1"></div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <strong class="text-sm" x-text="factor.name"></strong>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-0.5" x-text="factor.interpretation"></p>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- Exit rules -->
+    <div x-show="!loading && exitRules.length" class="px-4 pb-4">
+        <h4 class="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2 tracking-wide">退出规则</h4>
+        <div class="space-y-2">
+            <template x-for="(rule, idx) in exitRules" :key="idx">
+                <div class="evidence-card-exit-rule flex items-center gap-2 text-sm p-2 rounded bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300" :style="'animation-delay:' + (idx * 0.04) + 's'">
+                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <span x-text="rule"></span>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- Why this works -->
+    <div x-show="!loading && whyExplanation" class="p-4 mt-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+        <h4 class="text-xs font-semibold uppercase text-blue-600 dark:text-blue-400 mb-1 tracking-wide">策略逻辑</h4>
+        <p class="text-sm text-gray-700 dark:text-gray-300" x-text="whyExplanation"></p>
+    </div>
+
+    <!-- Truth Badge — 拜占庭共识证据链 -->
+    <div x-show="!loading && truthBadge" class="mx-4 mb-4 p-3 rounded-lg border truth-badge-section" :class="truthBadgeBorder">
+        <div class="flex items-center gap-2 mb-2">
+            <template x-if="truthBadge.trust_level === 'verified'">
+                <span class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">✓</span>
+            </template>
+            <template x-if="truthBadge.trust_level === 'partial'">
+                <span class="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs">!</span>
+            </template>
+            <template x-if="truthBadge.trust_level === 'disputed' || truthBadge.trust_level === 'unverified'">
+                <span class="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">⚠</span>
+            </template>
+            <strong class="text-xs uppercase tracking-wide" :class="truthBadgeTextColor" x-text="truthBadgeLabel"></strong>
+            <span class="ml-auto text-xs text-gray-400">置信度 <span x-text="(truthBadge.confidence * 100).toFixed(0)"></span>%</span>
+        </div>
+        <div class="text-xs text-gray-500 space-y-1">
+            <p x-show="truthBadge.consensus_value">共识价格: <span class="font-mono" x-text="truthBadge.consensus_value.toFixed(2)"></span></p>
+            <p x-show="truthBadge.sources.length">
+                数据源: <template x-for="(s, i) in truthBadge.sources" :key="i"><span class="inline-block mr-2"> <span :class="s.diff_pct < 1 ? 'text-green-600' : 'text-red-600'" x-text="s.source"></span>(<span x-text="s.diff_pct"></span>%)</span></template>
+            </p>
+            <p x-show="truthBadge.evidence" class="italic" x-text="truthBadge.evidence"></p>
+        </div>
+    </div>
+
+    <!-- No data -->
+    <div x-show="!loading && !factors.length && !exitRules.length" class="p-4 text-center text-sm text-gray-400">
+        暂无策略证据数据
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function evidenceCardCapability() {
+    return {
+        evidence: false,
+        loading: false,
+        strategyName: '',
+        confidence: '',
+        factors: [],
+        exitRules: [],
+        whyExplanation: '',
+        symbol: window.MS_SYMBOL || '',
+        truthBadge: null,
+
+        get truthBadgeBorder() {
+            if (!this.truthBadge) return '';
+            const t = this.truthBadge.trust_level;
+            return t === 'verified' ? 'border-green-300 bg-green-50 dark:border-green-700 dark:bg-green-900/20' :
+                   t === 'partial' ? 'border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20' :
+                   'border-red-300 bg-red-50 dark:border-red-700 dark:bg-red-900/20';
+        },
+        get truthBadgeTextColor() {
+            if (!this.truthBadge) return '';
+            const t = this.truthBadge.trust_level;
+            return t === 'verified' ? 'text-green-700 dark:text-green-300' :
+                   t === 'partial' ? 'text-amber-700 dark:text-amber-300' :
+                   'text-red-700 dark:text-red-300';
+        },
+        get truthBadgeLabel() {
+            if (!this.truthBadge) return '';
+            return {verified: '数据已验证', partial: '部分验证', disputed: '数据争议', unverified: '未验证'}[this.truthBadge.trust_level] || '未知';
+        },
+
+        async loadEvidenceCard(spec, symbol) {
+            this.loading = true;
+            this.evidence = true;
+            this.reset();
+
+            try {
+                const params = new URLSearchParams({
+                    spec: JSON.stringify(spec),
+                    symbol: symbol || this.symbol,
+                });
+                const res = await fetch(`/api/v1/strategy-synthesis/evidence-card?${params}`);
+                const json = await res.json();
+
+                if (json.ok && json.data) {
+                    this.strategyName = json.data.strategy_name || '';
+                    this.confidence = json.data.confidence || '';
+                    this.factors = json.data.factors || [];
+                    this.exitRules = json.data.exit_rules || [];
+                    this.whyExplanation = json.data.why_this_works || '';
+                    this.loadTruthBadge(symbol);
+                }
+            } catch (err) {
+                window.qcLogError('evidence_card.load failed', err);
+                this._buildFromSpec(spec);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        _buildFromSpec(spec) {
+            this.evidence = true;
+            this.loading = false;
+            this.strategyName = spec.name || '';
+            this.factors = [];
+            this.exitRules = [];
+            this.whyExplanation = '';
+            this.loadTruthBadge(this.symbol);
+
+            const entry = spec.entry_conditions || {};
+            const children = entry.children || [];
+            const factorNames = {
+                price: '股价', volume: '成交量', rsi: 'RSI 指标',
+                macd_histogram: 'MACD 柱状图', open: '开盘价',
+                high: '最高价', low: '最低价', close: '收盘价',
+                change_pct: '涨跌幅',
+            };
+            const opLabels = {
+                greater: '高于', less: '低于', equals: '等于',
+                cross_above: '金叉', cross_below: '死叉',
+                breakout: '突破', breakdown: '跌破',
+                volume_spike: '放量', rsi_oversold: '超卖',
+            };
+
+            children.forEach((child, i) => {
+                const leftName = factorNames[child.left_factor] || child.left_factor;
+                const opLabel = opLabels[child.operator] || child.operator;
+                const rightDesc = child.right_factor.replace(/_/g, ' ');
+                this.factors.push({
+                    name: leftName,
+                    interpretation: `${leftName}${opLabel}${rightDesc}`,
+                });
+            });
+
+            (spec.exit_rules || []).forEach(rule => {
+                const pct = Math.round(Math.abs(rule.threshold) * 100);
+                const type = rule.exit_mode === 'percent_stop'
+                    ? (rule.threshold < 0.08 ? '止损' : '止盈')
+                    : rule.exit_mode;
+                this.exitRules.push(`${type} ${pct}%`);
+            });
+        },
+
+        async loadTruthBadge(symbol) {
+            if (!symbol) return;
+            const market = (window.MS_MARKET || 'CN').toUpperCase();
+            if (window.QCTruthBadge) {
+                this.truthBadge = await window.QCTruthBadge.load(symbol, market);
+                return;
+            }
+            try {
+                const res = await fetch(`/api/v1/truth/badge/${market}/${encodeURIComponent(symbol)}`);
+                if (!res.ok) return;
+                const json = await res.json();
+                if (json && json.data) this.truthBadge = json.data;
+            } catch (e) {
+                // silent: truth badge fetch is best-effort
+            }
+        },
+
+        reset() {
+            this.factors = [];
+            this.exitRules = [];
+            this.whyExplanation = '';
+        },
+    };
+}
+</script>
+

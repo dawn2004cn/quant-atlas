@@ -1,0 +1,581 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}回测历史 - Quant Atlas{% endblock %}
+
+
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/portfolio.css') }}">
+
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/run-history" class="spa-switcher-link"
+   data-spa-switcher="run-history">
+  试试新版 →
+</a>
+{% endblock %}
+
+
+
+{% block content %}
+
+<div class="section-shell">
+
+    <div class="hero-caption">Backtest History</div>
+
+    <h1 class="page-title">📊 回测历史</h1>
+
+    <p class="page-subtitle">来自 MLflow 实验追踪的回测运行记录（需配置 <code>MLFLOW_TRACKING_URI</code>）</p>
+
+    
+
+    <div class="history-filters">
+
+        <select class="form-input rh-filter-strategy" id="filterStrategy">
+
+            <option value="">全部策略</option>
+
+        </select>
+
+        <select class="form-input rh-filter-market" id="filterMarket">
+
+            <option value="">全部市场</option>
+
+            <option value="CN">A股</option>
+
+            <option value="US">美股</option>
+
+            <option value="HK">港股</option>
+
+            <option value="CRYPTO">加密货币</option>
+
+        </select>
+
+        <select class="form-input rh-filter-sort" id="filterSort">
+
+            <option value="date_desc">最新优先</option>
+
+            <option value="return_desc">收益优先</option>
+
+            <option value="sharpe_desc">夏普优先</option>
+
+        </select>
+
+    </div>
+
+    
+
+    <div class="grid gap-4 rh-run-grid" id="runList">
+
+        <div class="empty-state-box">正在加载回测历史…</div>
+
+    </div>
+
+    
+
+    <div class="qa-is-hidden text-center mt-8" id="loadMoreWrap">
+
+        <button class="btn-soft" type="button" data-rh-action="load-more">加载更多...</button>
+
+    </div>
+
+</div>
+
+
+
+<div class="selection-bar" id="selectionBar">
+
+    <div>
+
+        <span class="selected-count" id="selectedCount">0</span> 个回测已选择
+
+    </div>
+
+    <div class="rh-modal-actions">
+
+        <button class="btn-soft" type="button" data-rh-action="clear-selection">清除</button>
+
+        <button class="compare-btn" type="button" data-rh-action="compare-selected">📊 对比选中</button>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script nonce="{{ csp_nonce() }}">
+
+let runs = [];
+
+let allRuns = [];
+
+let selectedRuns = new Set();
+
+let fetchLimit = 20;
+
+let mlflowAvailable = false;
+
+
+
+function inferMarket(symbol, params) {
+
+    const p = (params && params.market) ? String(params.market).toUpperCase() : '';
+
+    if (p) return p;
+
+    const sym = String(symbol || '').toUpperCase();
+
+    if (!sym) return 'CN';
+
+    if (sym.includes('USDT') || sym.includes('BTC') || sym.includes('ETH')) return 'CRYPTO';
+
+    if (sym.endsWith('.HK')) return 'HK';
+
+    if (/^\d{6}$/.test(sym.replace(/\.(SH|SZ)$/i, ''))) return 'CN';
+
+    if (/^[A-Z]{1,5}$/.test(sym)) return 'US';
+
+    return 'CN';
+
+}
+
+
+
+function formatRunDate(startTime) {
+
+    if (!startTime) return '—';
+
+    const ms = Number(startTime);
+
+    if (!Number.isFinite(ms)) return '—';
+
+    const d = new Date(ms);
+
+    if (Number.isNaN(d.getTime())) return '—';
+
+    const pad = n => String(n).padStart(2, '0');
+
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+
+}
+
+
+
+function mapMlflowRun(row) {
+
+    const params = row.params || {};
+
+    const metrics = row.metrics || {};
+
+    const symbol = params.symbol || '—';
+
+    const strategy = params.strategy_name || row.run_name || 'unknown';
+
+    const totalReturn = Number(metrics.total_return ?? 0);
+
+    const sharpe = Number(metrics.sharpe ?? metrics.sharpe_ratio ?? 0);
+
+    let maxdd = Number(metrics.max_drawdown_pct ?? metrics.max_drawdown ?? 0);
+
+    if (Math.abs(maxdd) <= 1) maxdd = maxdd * 100;
+
+    maxdd = -Math.abs(maxdd);
+
+    const winrate = Number(metrics.win_rate ?? 0);
+
+    const market = inferMarket(symbol, params);
+
+    const name = row.run_name || `${strategy} - ${symbol}`;
+
+    let returnsPct = totalReturn;
+
+    if (Math.abs(returnsPct) <= 1) returnsPct = returnsPct * 100;
+
+    return {
+
+        id: row.run_id,
+
+        name,
+
+        strategy,
+
+        market,
+
+        symbol,
+
+        date: formatRunDate(row.start_time),
+
+        startTime: Number(row.start_time || 0),
+
+        returns: Math.round(returnsPct * 100) / 100,
+
+        sharpe: Math.round(sharpe * 100) / 100,
+
+        maxdd: Math.round(maxdd * 10000) / 100,
+
+        winrate: winrate <= 1 ? Math.round(winrate * 10000) / 100 : Math.round(winrate * 100) / 100,
+
+        trades: Number(metrics.trades ?? metrics.trade_count ?? 0),
+
+        uiUrl: row.ui_url || null,
+
+        params,
+
+    };
+
+}
+
+
+
+function populateStrategyFilter() {
+
+    const sel = document.getElementById('filterStrategy');
+
+    const strategies = [...new Set(allRuns.map(r => r.strategy).filter(Boolean))].sort();
+
+    const current = sel.value;
+
+    sel.innerHTML = '<option value="">全部策略</option>' +
+
+        strategies.map(s => `<option value="${s}">${s}</option>`).join('');
+
+    if (strategies.includes(current)) sel.value = current;
+
+}
+
+
+
+async function loadRuns(append) {
+
+    if (!append) {
+
+        $('#runList').html('<div class="empty-state-box">正在加载回测历史…</div>');
+
+    }
+
+    try {
+
+        const res = await fetch(`/api/v1/mlflow/runs?limit=${fetchLimit}`);
+
+        const json = await res.json();
+
+        const data = json.data || json;
+
+        mlflowAvailable = !!data.available;
+
+        const raw = data.runs || [];
+
+        allRuns = raw.map(mapMlflowRun);
+
+        populateStrategyFilter();
+
+        filterRuns();
+
+        $('#loadMoreWrap').toggle(raw.length >= fetchLimit && fetchLimit < 100);
+
+    } catch (e) {
+
+        window.qcLogError('run_history load failed', e);
+
+        $('#runList').html('<div class="empty-state-box">加载失败，请稍后重试</div>');
+
+    }
+
+}
+
+
+
+$(document).ready(function() {
+
+    loadRuns(false);
+
+    ['filterStrategy', 'filterMarket', 'filterSort'].forEach(function (id) {
+
+        document.getElementById(id).addEventListener('change', filterRuns);
+
+    });
+
+    document.addEventListener('click', function (e) {
+
+        const el = e.target.closest('[data-rh-action]');
+
+        if (!el) return;
+
+        const action = el.dataset.rhAction;
+
+        if (action === 'load-more') loadMoreRuns();
+
+        else if (action === 'clear-selection') clearSelection();
+
+        else if (action === 'compare-selected') compareSelected();
+
+        else if (action === 'mlflow-link') e.stopPropagation();
+
+        else if (action === 'toggle-run') {
+
+            const runId = el.dataset.runId;
+
+            if (runId) toggleRun(runId);
+
+        }
+
+    });
+
+});
+
+
+
+function renderRuns() {
+
+    if (!runs.length) {
+
+        const hint = mlflowAvailable
+
+            ? '暂无回测记录。完成一次策略回测后会自动写入 MLflow。'
+
+            : 'MLflow 未配置或未安装。请设置 MLFLOW_TRACKING_URI 并安装 mlflow 后重试。';
+
+        $('#runList').html(`<div class="empty-state-box">${hint}</div>`);
+
+        updateSelectionBar();
+
+        return;
+
+    }
+
+    let html = '';
+
+    runs.forEach(run => {
+
+        const isSelected = selectedRuns.has(run.id);
+
+        const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+        html += `<div class="history-card ${isSelected ? 'selected' : ''}" data-rh-action="toggle-run" data-run-id="${esc(run.id)}">
+
+            <div class="run-header">
+
+                <div>
+
+                    <div class="run-name">${esc(run.name)}</div>
+
+                    <div class="run-time">${esc(run.date)}</div>
+
+                </div>
+
+                <input type="checkbox" ${isSelected ? 'checked' : ''} data-rh-action="toggle-run" data-run-id="${esc(run.id)}">
+
+            </div>
+
+            <div class="run-metrics">
+
+                <div class="metric-item">
+
+                    <div class="metric-value ${run.returns >= 0 ? 'positive' : 'negative'}">${run.returns > 0 ? '+' : ''}${run.returns}%</div>
+
+                    <div class="metric-label">总收益</div>
+
+                </div>
+
+                <div class="metric-item">
+
+                    <div class="metric-value">${run.sharpe}</div>
+
+                    <div class="metric-label">夏普</div>
+
+                </div>
+
+                <div class="metric-item">
+
+                    <div class="metric-value negative">${run.maxdd}%</div>
+
+                    <div class="metric-label">最大回撤</div>
+
+                </div>
+
+                <div class="metric-item">
+
+                    <div class="metric-value">${run.winrate}%</div>
+
+                    <div class="metric-label">胜率</div>
+
+                </div>
+
+            </div>
+
+            <div class="run-tags">
+
+                <span class="tag strategy">${esc(run.strategy)}</span>
+
+                <span class="tag market">${esc(run.market)}</span>
+
+                ${run.uiUrl ? `<a class="tag" href="${esc(run.uiUrl)}" target="_blank" rel="noopener" data-rh-action="mlflow-link">MLflow</a>` : ''}
+
+            </div>
+
+        </div>`;
+
+    });
+
+    $('#runList').html(html);
+
+    updateSelectionBar();
+
+}
+
+
+
+function toggleRun(id) {
+
+    if (selectedRuns.has(id)) {
+
+        selectedRuns.delete(id);
+
+    } else {
+
+        if (selectedRuns.size >= 4) {
+
+            showToast('最多对比 4 个回测', 'warning');
+
+            return;
+
+        }
+
+        selectedRuns.add(id);
+
+    }
+
+    renderRuns();
+
+}
+
+
+
+function updateSelectionBar() {
+
+    const count = selectedRuns.size;
+
+    $('#selectedCount').text(count);
+
+    $('#selectionBar').toggleClass('show', count >= 2);
+
+}
+
+
+
+function clearSelection() {
+
+    selectedRuns.clear();
+
+    renderRuns();
+
+}
+
+
+
+function filterRuns() {
+
+    const strategy = $('#filterStrategy').val();
+
+    const market = $('#filterMarket').val();
+
+    const sort = $('#filterSort').val();
+
+    
+
+    let filtered = [...allRuns];
+
+    
+
+    if (strategy) filtered = filtered.filter(r => r.strategy === strategy);
+
+    if (market) filtered = filtered.filter(r => r.market === market);
+
+    
+
+    if (sort === 'return_desc') filtered.sort((a, b) => b.returns - a.returns);
+
+    else if (sort === 'sharpe_desc') filtered.sort((a, b) => b.sharpe - a.sharpe);
+
+    else filtered.sort((a, b) => b.startTime - a.startTime);
+
+    
+
+    runs = filtered;
+
+    renderRuns();
+
+}
+
+
+
+function compareSelected() {
+
+    const ids = Array.from(selectedRuns);
+
+    const picked = allRuns.filter(r => ids.includes(r.id));
+
+    if (picked.length < 2) return;
+
+
+
+    const symbols = [...new Set(picked.map(r => r.symbol).filter(s => s && s !== '—'))];
+
+    if (symbols.length !== 1) {
+
+        showToast('对比需选择同一标的的回测记录', 'warning');
+
+        return;
+
+    }
+
+    const symbol = symbols[0];
+
+    const strategies = [...new Set(picked.map(r => r.strategy))].join(',');
+
+    const starts = picked.map(r => r.params && r.params.start).filter(Boolean);
+
+    const ends = picked.map(r => r.params && r.params.end).filter(Boolean);
+
+    let url = `/strategy-compare?symbol=${encodeURIComponent(symbol)}&strategies=${encodeURIComponent(strategies)}`;
+
+    if (starts.length) url += `&start=${encodeURIComponent(starts[0])}`;
+
+    if (ends.length) url += `&end=${encodeURIComponent(ends[0])}`;
+
+    location.href = url;
+
+}
+
+
+
+function loadMoreRuns() {
+
+    if (fetchLimit >= 100) {
+
+        showToast('已加载全部历史记录', 'info');
+
+        $('#loadMoreWrap').hide();
+
+        return;
+
+    }
+
+    fetchLimit = Math.min(100, fetchLimit + 20);
+
+    loadRuns(true);
+
+}
+
+</script>
+
+{% endblock %}
+

@@ -1,0 +1,708 @@
+{% extends "base.html" %}
+
+{% block title %}分析师天团 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/ai-hedge-fund" class="spa-switcher-link"
+   data-spa-switcher="ai-hedge-fund">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="ai-hf-shell">
+    <section class="ai-hero">
+        <div class="ai-hero-content">
+            <div>
+                <div class="hero-caption">分析师天团</div>
+                <h1 class="ai-hero-title">智能投资研究团队</h1>
+                <p class="ai-hero-subtitle">
+                    整合 20+ 专业投资分析师 AI Agent，包括巴菲特、彼得·林奇、卡尔·伍德等投资大师风格。
+                    多维度分析 → 信号聚合 → RD-Agent 验证 → Qlib 回测 → 决策建议
+                </p>
+                <div class="ai-stats-row">
+                    <div class="ai-stat-card">
+                        <div class="ai-stat-num">20+</div>
+                        <div class="ai-stat-label">专业分析师</div>
+                    </div>
+                    <div class="ai-stat-card">
+                        <div class="ai-stat-num">6</div>
+                        <div class="ai-stat-label">分析维度</div>
+                    </div>
+                    <div class="ai-stat-card">
+                        <div class="ai-stat-num">2</div>
+                        <div class="ai-stat-label">验证引擎</div>
+                    </div>
+                    <div class="ai-stat-card">
+                        <div class="ai-stat-num">99%</div>
+                        <div class="ai-stat-label">推理置信度</div>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-arch-diagram">
+                <div class="ai-arch-title">🔄 分析流程架构</div>
+                <div class="ai-arch-flow">
+                    <div class="ai-arch-node agents">🤖 20+ Agents</div>
+                    <span class="ai-arch-arrow">→</span>
+                    <div class="ai-arch-node aggregate">📊 信号聚合</div>
+                    <span class="ai-arch-arrow">→</span>
+                    <div class="ai-arch-node validate">✓ 双验证</div>
+                    <span class="ai-arch-arrow">→</span>
+                    <div class="ai-arch-node ui">📱 UI展示</div>
+                </div>
+                <div class="ai-arch-labels">
+                    <div class="ai-arch-label">
+                        <span class="ai-arch-dot bullish"></span> 看涨
+                    </div>
+                    <div class="ai-arch-label">
+                        <span class="ai-arch-dot bearish"></span> 看跌
+                    </div>
+                    <div class="ai-arch-label">
+                        <span class="ai-arch-dot neutral"></span> 中性
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <h2 class="ai-section-title">投资风格分析师团队</h2>
+    
+    <div class="ai-agent-groups">
+        <!-- 价值投资组 -->
+        <div class="ai-agent-group">
+            <div class="ai-group-header" data-ahf-action="toggle-group">
+                <span class="ai-group-icon">💰</span>
+                <span class="ai-group-title">价值投资</span>
+                <span class="ai-group-count">(已选 <span class="group-selected-count" data-group="value">0</span>/<span class="group-total-count" data-group="value">5</span>)</span>
+                <button class="ai-group-btn select-all" data-ahf-action="select-group" data-group="value" data-select="true" type="button">全选</button>
+                <button class="ai-group-btn deselect-all" data-ahf-action="select-group" data-group="value" data-select="false" type="button">清空</button>
+            </div>
+            <div class="ai-agents-grid">
+                <article class="ai-agent-card selected" data-group="value" data-agent="warren_buffett" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon value">📈</div>
+                    <div class="ai-agent-name">Warren Buffett</div>
+                    <div class="ai-agent-style">价值投资 · 长期持有</div>
+                    <div class="ai-agent-desc">注重基本面、护城河分析、内在价值计算、安全边际评估</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag">价值</span>
+                        <span class="ai-agent-tag">护城河</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="value" data-agent="ben_graham" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon deep">🔍</div>
+                    <div class="ai-agent-name">Ben Graham</div>
+                    <div class="ai-agent-style">深度价值 · 烟蒂股</div>
+                    <div class="ai-agent-desc">强调分散投资、严格的安全边际、财报深度分析</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag">深度价值</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="value" data-agent="charlie_munger" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon quality">🏆</div>
+                    <div class="ai-agent-name">Charlie Munger</div>
+                    <div class="ai-agent-style">商业质量 · 多学科思维</div>
+                    <div class="ai-agent-desc">强调公司质量、竞争优势、商业模式分析</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag">质量</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="value" data-agent="aswath_damodaran" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon valuation">📐</div>
+                    <div class="ai-agent-name">Aswath Damodaran</div>
+                    <div class="ai-agent-style">估值专家 · 绝对估值</div>
+                    <div class="ai-agent-desc">DCF 估值专家，教父级估值方法论</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag">估值</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="value" data-agent="michael_burry" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon risk">⚠️</div>
+                    <div class="ai-agent-name">Michael Burry</div>
+                    <div class="ai-agent-style">价值风险 · 逆向投资</div>
+                    <div class="ai-agent-desc">寻找被市场错杀的机会，重注低估板块</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag risk">逆向</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <!-- 成长投资组 -->
+        <div class="ai-agent-group">
+            <div class="ai-group-header" data-ahf-action="toggle-group">
+                <span class="ai-group-icon growth">🚀</span>
+                <span class="ai-group-title">成长投资</span>
+                <span class="ai-group-count">(已选 <span class="group-selected-count" data-group="growth">0</span>/<span class="group-total-count" data-group="growth">5</span>)</span>
+                <button class="ai-group-btn select-all" data-ahf-action="select-group" data-group="growth" data-select="true" type="button">全选</button>
+                <button class="ai-group-btn deselect-all" data-ahf-action="select-group" data-group="growth" data-select="false" type="button">清空</button>
+            </div>
+            <div class="ai-agents-grid">
+                <article class="ai-agent-card selected" data-group="growth" data-agent="peter_lynch" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon growth">🚀</div>
+                    <div class="ai-agent-name">Peter Lynch</div>
+                    <div class="ai-agent-style">成长投资 · 成长股</div>
+                    <div class="ai-agent-desc">关注公司成长潜力、PEG 估值、寻找十倍股</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag growth">成长</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="growth" data-agent="cathie_wood" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon innovation">💡</div>
+                    <div class="ai-agent-name">Cathie Wood</div>
+                    <div class="ai-agent-style">创新投资 · 颠覆性创新</div>
+                    <div class="ai-agent-desc">专注颠覆性创新赛道，寻找未被市场充分定价的创新公司</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag growth">创新</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="growth" data-agent="phil_fisher" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon growth">📊</div>
+                    <div class="ai-agent-name">Phil Fisher</div>
+                    <div class="ai-agent-style">成长股投资 · 激进成长</div>
+                    <div class="ai-agent-desc">15 点原则选股、重视研发投入、管理层评估</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag growth">成长</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="growth" data-agent="mohnish_pabrai" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon garp">💰</div>
+                    <div class="ai-agent-name">Mohnish Pabrai</div>
+                    <div class="ai-agent-style">GARP · 合理价格成长</div>
+                    <div class="ai-agent-desc">寻找被低估的成长股，低价购买伟大公司</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag">GARP</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="growth" data-agent="rakesh_jhunjhunwala" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon growth">🌏</div>
+                    <div class="ai-agent-name">Rakesh Jhunjhunwala</div>
+                    <div class="ai-agent-style">新兴市场 · 长期投资</div>
+                    <div class="ai-agent-desc">新兴市场专家，长线价值与成长结合</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag growth">新兴</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+<!-- 宏观/量化组 -->
+        <div class="ai-agent-group">
+            <div class="ai-group-header" data-ahf-action="toggle-group">
+                <span class="ai-group-icon macro">🎯</span>
+                <span class="ai-group-title">宏观/量化</span>
+                <span class="ai-group-count">(已选 <span class="group-selected-count" data-group="macro">0</span>/<span class="group-total-count" data-group="macro">4</span>)</span>
+                <button class="ai-group-btn select-all" data-ahf-action="select-group" data-group="macro" data-select="true" type="button">全选</button>
+                <button class="ai-group-btn deselect-all" data-ahf-action="select-group" data-group="macro" data-select="false" type="button">清空</button>
+            </div>
+            <div class="ai-agents-grid">
+                <article class="ai-agent-card selected" data-group="macro" data-agent="stanley_druckenmiller" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon value">🎯</div>
+                    <div class="ai-agent-name">Stanley Druckenmiller</div>
+                    <div class="ai-agent-style">宏观对冲 · 趋势交易</div>
+                    <div class="ai-agent-desc">宏观视角、流动性分析、趋势把握</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag">宏观</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="macro" data-agent="bill_ackman" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon value">🎪</div>
+                    <div class="ai-agent-name">Bill Ackman</div>
+                    <div class="ai-agent-style">积极 activism · 催化驱动</div>
+                    <div class="ai-agent-desc">寻找催化事件推动估值的公司</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag">催化</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="macro" data-agent="nassim_taleb" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon risk">🛡️</div>
+                    <div class="ai-agent-name">Nassim Taleb</div>
+                    <div class="ai-agent-style">尾部风险 · 反脆弱</div>
+                    <div class="ai-agent-desc">强调风险管理、黑天鹅防御、反脆弱策略</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag risk">风控</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="macro" data-agent="quantitative" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon tech">⚙️</div>
+                    <div class="ai-agent-name">Quantitative Agent</div>
+                    <div class="ai-agent-style">量化投资 · 数据驱动</div>
+                    <div class="ai-agent-desc">因子模型、统计套利、机器学习策略</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag tech">量化</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+            <div class="ai-agents-grid">
+                <article class="ai-agent-card selected" data-group="macro" data-agent="stanley_druckenmiller" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon value">🎯</div>
+                    <div class="ai-agent-name">Stanley Druckenmiller</div>
+                    <div class="ai-agent-style">宏观对冲 · 趋势交易</div>
+                    <div class="ai-agent-desc">宏观视角、流动性分析、趋势把握</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag">宏观</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="macro" data-agent="bill_ackman" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon value">🎪</div>
+                    <div class="ai-agent-name">Bill Ackman</div>
+                    <div class="ai-agent-style">积极 activism · 催化驱动</div>
+                    <div class="ai-agent-desc">寻找催化事件推动估值的公司</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag">催化</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="macro" data-agent="nassim_taleb" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon risk">🛡️</div>
+                    <div class="ai-agent-name">Nassim Taleb</div>
+                    <div class="ai-agent-style">尾部风险 · 反脆弱</div>
+                    <div class="ai-agent-desc">强调风险管理、黑天鹅防御、反脆弱策略</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag risk">风控</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="macro" data-agent="bill_ackman" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon tech">⚙️</div>
+                    <div class="ai-agent-name">Quantitative Agent</div>
+                    <div class="ai-agent-style">量化投资 · 数据驱动</div>
+                    <div class="ai-agent-desc">因子模型、统计套利、机器学习策略</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag tech">量化</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <!-- 技术分析组 -->
+        <div class="ai-agent-group">
+            <div class="ai-group-header" data-ahf-action="toggle-group">
+                <span class="ai-group-icon technical">📊</span>
+                <span class="ai-group-title">技术分析</span>
+                <span class="ai-group-count">(已选 <span class="group-selected-count" data-group="technical">0</span>/<span class="group-total-count" data-group="technical">1</span>)</span>
+                <button class="ai-group-btn select-all" data-ahf-action="select-group" data-group="technical" data-select="true" type="button">全选</button>
+                <button class="ai-group-btn deselect-all" data-ahf-action="select-group" data-group="technical" data-select="false" type="button">清空</button>
+            </div>
+            <div class="ai-agents-grid">
+                <article class="ai-agent-card selected" data-group="technical" data-agent="technicals" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon tech">📈</div>
+                    <div class="ai-agent-name">Technical Analyst</div>
+                    <div class="ai-agent-style">技术分析 · 趋势跟踪</div>
+                    <div class="ai-agent-desc">K线形态、均线系统、量价分析、趋势指标</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag tech">技术</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+        <!-- 情绪分析组 -->
+        <div class="ai-agent-group">
+            <div class="ai-group-header" data-ahf-action="toggle-group">
+                <span class="ai-group-icon sentiment">💭</span>
+                <span class="ai-group-title">情绪分析</span>
+                <span class="ai-group-count">(已选 <span class="group-selected-count" data-group="sentiment">0</span>/<span class="group-total-count" data-group="sentiment">2</span>)</span>
+                <button class="ai-group-btn select-all" data-ahf-action="select-group" data-group="sentiment" data-select="true" type="button">全选</button>
+                <button class="ai-group-btn deselect-all" data-ahf-action="select-group" data-group="sentiment" data-select="false" type="button">清空</button>
+            </div>
+            <div class="ai-agents-grid">
+                <article class="ai-agent-card selected" data-group="sentiment" data-agent="sentiment" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon sentiment">💭</div>
+                    <div class="ai-agent-name">Sentiment Analyst</div>
+                    <div class="ai-agent-style">情绪分析 · 市场情绪</div>
+                    <div class="ai-agent-desc">舆情监控、资金流向、情绪指标、市场情绪周期</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag tech">情绪</span>
+                    </div>
+                </article>
+
+                <article class="ai-agent-card selected" data-group="sentiment" data-agent="news_sentiment" data-ahf-action="toggle-agent">
+                    <div class="ai-agent-checkbox">✓</div>
+                    <div class="ai-agent-icon sentiment">📰</div>
+                    <div class="ai-agent-name">News Sentiment</div>
+                    <div class="ai-agent-style">新闻情绪 · NLP分析</div>
+                    <div class="ai-agent-desc">NLP新闻情感分析、突发事件解读、媒体情绪跟踪</div>
+                    <div class="ai-agent-tags">
+                        <span class="ai-agent-tag tech">NLP</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+
+    <!-- 全局操作按钮 -->
+    <div class="ai-global-actions">
+        <button class="ai-global-btn select-all" data-ahf-action="select-all-agents" type="button">✓ 全选全部 (<span id="total-selection">17</span>)</button>
+        <button class="ai-global-btn deselect-all" data-ahf-action="deselect-all-agents" type="button">✕ 清空全部</button>
+    </div>
+
+    <h2 class="ai-section-title">启动分析</h2>
+    <div class="ai-analysis-panel">
+        <div class="ai-analysis-form">
+            <div class="ai-form-group">
+                <label class="ai-form-label">股票代码 (可多选，用逗号分隔)</label>
+                <input type="text" class="ai-form-input" id="hf-symbols" placeholder="例如: 600519, 000858, AAPL">
+            </div>
+            <div class="ai-form-group">
+                <label class="ai-form-label">分析时间段</label>
+                <input type="text" class="ai-form-input" id="hf-period" placeholder="默认: 近6个月" value="近6个月">
+            </div>
+            <div class="ai-form-group ai-agent-selector">
+                <label class="ai-form-label">选择分析师 (默认全选)</label>
+                <div class="ai-agent-checkboxes" id="agent-selector">
+                    <label class="ai-agent-checkbox active">
+                        <input type="checkbox" value="warren_buffett" checked> Buffett
+                    </label>
+                    <label class="ai-agent-checkbox active">
+                        <input type="checkbox" value="peter_lynch" checked> Lynch
+                    </label>
+                    <label class="ai-agent-checkbox active">
+                        <input type="checkbox" value="cathie_wood" checked> Wood
+                    </label>
+                    <label class="ai-agent-checkbox active">
+                        <input type="checkbox" value="ben_graham" checked> Graham
+                    </label>
+                    <label class="ai-agent-checkbox active">
+                        <input type="checkbox" value="charlie_munger" checked> Munger
+                    </label>
+                    <label class="ai-agent-checkbox active">
+                        <input type="checkbox" value="phil_fisher" checked> Fisher
+                    </label>
+                    <label class="ai-agent-checkbox active">
+                        <input type="checkbox" value="mohnish_pabrai" checked> Pabrai
+                    </label>
+                    <label class="ai-agent-checkbox active">
+                        <input type="checkbox" value="aswath_damodaran" checked> Damodaran
+                    </label>
+                    <label class="ai-agent-checkbox active">
+                        <input type="checkbox" value="technicals" checked> 技术分析
+                    </label>
+                    <label class="ai-agent-checkbox active">
+                        <input type="checkbox" value="sentiment" checked> 情绪分析
+                    </label>
+                </div>
+            </div>
+        </div>
+        <button class="btn-brand ahf-run-btn" data-ahf-action="run-analysis" type="button">
+            🚀 启动 AI 分析团队
+        </button>
+
+        <div class="ai-results-panel" id="results-panel">
+            <div class="ai-results-header">
+                <div>
+                    <h3 class="ahf-result-title">分析结果</h3>
+                    <p class="ahf-result-sub">共 <span id="signal-count">0</span> 位分析师参与</p>
+                </div>
+                <div class="ai-consensus-badge bullish" id="consensus-badge">
+                    综合信号: 等待分析
+                </div>
+            </div>
+            <div class="ai-signal-cards" id="signal-cards"></div>
+            <div class="ai-validation-status" id="validation-status"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+const agentNames = {
+    'warren_buffett': 'Warren Buffett',
+    'peter_lynch': 'Peter Lynch',
+    'cathie_wood': 'Cathie Wood',
+    'ben_graham': 'Ben Graham',
+    'charlie_munger': 'Charlie Munger',
+    'phil_fisher': 'Phil Fisher',
+    'mohnish_pabrai': 'Mohnish Pabrai',
+    'aswath_damodaran': 'Aswath Damodaran',
+    'stanley_druckenmiller': 'Stanley Druckenmiller',
+    'michael_burry': 'Michael Burry',
+    'rakesh_jhunjhunwala': 'Rakesh Jhunjhunwala',
+    'bill_ackman': 'Bill Ackman',
+    'nassim_taleb': 'Nassim Taleb',
+    'technicals': 'Technical Analyst',
+    'sentiment': 'Sentiment Analyst',
+    'news_sentiment': 'News Sentiment',
+    'growth_agent': 'Growth Agent',
+    'fundamentals': 'Fundamentals Agent'
+};
+
+
+function handleAhfAction(event) {
+    const el = event.target.closest('[data-ahf-action]');
+    if (!el) return;
+    const action = el.dataset.ahfAction;
+    if (action === 'toggle-group') {
+        const group = el.parentElement;
+        if (group) toggleGroup(group);
+        return;
+    }
+    if (action === 'select-group') {
+        event.stopPropagation();
+        selectGroup(el.dataset.group || '', el.dataset.select === 'true');
+        return;
+    }
+    if (action === 'toggle-agent') {
+        const card = el.classList.contains('ai-agent-card') ? el : el.closest('.ai-agent-card');
+        if (card) toggleAgent(card, el.dataset.agent || '');
+        return;
+    }
+    if (action === 'select-all-agents') selectAllAgents();
+    else if (action === 'deselect-all-agents') deselectAllAgents();
+    else if (action === 'run-analysis') runAnalysis();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', handleAhfAction);
+    updateAllGroupCounts();
+});
+
+function toggleAgent(card, agentKey) {
+    card.classList.toggle('selected');
+    updateAllGroupCounts();
+}
+
+function selectGroup(group, selectAll) {
+    const cards = document.querySelectorAll(`.ai-agent-card[data-group="${group}"]`);
+    cards.forEach(card => {
+        if (selectAll) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+    updateGroupCount(group);
+}
+
+function selectAllAgents() {
+    document.querySelectorAll('.ai-agent-card').forEach(card => {
+        card.classList.add('selected');
+    });
+    updateAllGroupCounts();
+    updateAgentSelector();
+}
+
+function deselectAllAgents() {
+    document.querySelectorAll('.ai-agent-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    updateAllGroupCounts();
+    updateAgentSelector();
+}
+
+function toggleGroup(groupElement) {
+    groupElement.classList.toggle('ai-group-collapsed');
+}
+
+function updateGroupCount(group) {
+    const total = document.querySelectorAll(`.ai-agent-card[data-group="${group}"]`).length;
+    const selected = document.querySelectorAll(`.ai-agent-card[data-group="${group}"].selected`).length;
+    const countEl = document.querySelector(`.group-selected-count[data-group="${group}"]`);
+    if (countEl) {
+        countEl.textContent = selected;
+    }
+    const totalEl = document.querySelector(`.group-total-count[data-group="${group}"]`);
+    if (totalEl) {
+        totalEl.textContent = total;
+    }
+}
+
+function updateAllGroupCounts() {
+    const groups = ['value', 'growth', 'macro', 'technical', 'sentiment'];
+    groups.forEach(group => {
+        updateGroupCount(group);
+    });
+    updateAgentSelector();
+}
+
+function updateAgentSelector() {
+    const selectedAgents = Array.from(document.querySelectorAll('.ai-agent-card.selected'))
+        .map(card => card.dataset.agent)
+        .filter(a => a);
+
+    const checkboxes = document.querySelectorAll('#agent-selector input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        const isSelected = selectedAgents.includes(cb.value);
+        cb.checked = isSelected;
+        cb.parentElement.classList.toggle('active', isSelected);
+    });
+
+    document.getElementById('total-selection').textContent = selectedAgents.length;
+}
+
+function selectAgent(agent) {
+    const checkbox = document.querySelector(`input[value="${agent}"]`);
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        checkbox.parentElement.classList.toggle('active', checkbox.checked);
+    }
+}
+
+async function runAnalysis() {
+    const symbols = document.getElementById('hf-symbols').value.trim();
+    if (!symbols) {
+        showToast('请输入股票代码', 'warning');
+        return;
+    }
+
+    const symbolList = symbols.split(',').map(s => s.trim()).filter(s => s);
+    if (symbolList.length === 0) {
+        showToast('请输入有效的股票代码', 'warning');
+        return;
+    }
+
+    const selectedAgents = Array.from(document.querySelectorAll('#agent-selector input:checked'))
+        .map(cb => cb.value);
+
+    if (selectedAgents.length === 0) {
+        showToast('请至少选择一位分析师', 'warning');
+        return;
+    }
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '🔄 分析中...';
+
+    try {
+        const response = await fetch('/api/v1/ai-hedge-fund/analyze', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                symbols: symbolList,
+                start_date: '20240101',
+                end_date: '20250427',
+                selected_agents: selectedAgents,
+                run_validation: true
+            })
+        });
+
+        if (!response.ok) throw new Error('分析请求失败');
+
+        const result = await response.json();
+        displayResults(result);
+    } catch (error) {
+        window.qcLogError('Analysis error', error);
+        showToast('分析失败: ' + error.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '🚀 启动 AI 分析团队';
+    }
+}
+
+function displayResults(result) {
+    const panel = document.getElementById('results-panel');
+    panel.classList.add('show');
+
+    document.getElementById('signal-count').textContent = result.agent_signals.length;
+
+    const badge = document.getElementById('consensus-badge');
+    badge.textContent = `综合信号: ${getSignalLabel(result.aggregated_signal)}`;
+    badge.className = `ai-consensus-badge ${result.aggregated_signal.split('_')[0]}`;
+
+    const cardsContainer = document.getElementById('signal-cards');
+    cardsContainer.innerHTML = result.agent_signals.map(signal => `
+        <div class="ai-signal-card ${signal.signal}">
+            <div class="ai-signal-icon ${signal.signal}">
+                ${getSignalIcon(signal.signal)}
+            </div>
+            <div class="ai-signal-content">
+                <div class="ai-signal-agent">${signal.agent_name}</div>
+                <div class="ai-signal-type">${signal.agent_style}</div>
+                <div class="ai-signal-reason">${signal.reasoning}</div>
+                <div class="ai-signal-confidence">
+                    <div class="ai-confidence-bar">
+                        <div class="ai-confidence-fill" style="width: ${signal.confidence}%"></div>
+                    </div>
+                    <span class="ai-confidence-value">${signal.confidence}%</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    const validationContainer = document.getElementById('validation-status');
+    validationContainer.innerHTML = result.validation_results.map(v => `
+        <div class="ai-validation-item">
+            <div class="ai-validation-icon ${v.passed ? 'success' : (v.metrics.status ? 'pending' : 'failed')}">
+                ${v.passed ? '✓' : (v.metrics.status ? '⏳' : '✗')}
+            </div>
+            <span>${v.validation_type === 'rd_agent' ? 'RD-Agent 验证' : 'Qlib 回测验证'}</span>
+            <span class="ahf-signal-meta">
+                ${v.passed ? '通过' : (v.metrics.status ? '进行中' : '待验证')}
+            </span>
+        </div>
+    `).join('');
+
+    if (result.is_ready_for_trading) {
+        const readyBadge = document.createElement('div');
+        readyBadge.className = 'ai-validation-item';
+        readyBadge.innerHTML = `
+            <div class="ai-validation-icon success">🎯</div>
+            <span class="ahf-ready-msg">策略已就绪，可进入交易决策</span>
+        `;
+        validationContainer.appendChild(readyBadge);
+    }
+}
+
+function getSignalLabel(signal) {
+    const labels = {
+        'bullish': '看涨',
+        'bearish': '看跌',
+        'neutral': '中性',
+        'slightly_bullish': '略看涨',
+        'slightly_bearish': '略看跌'
+    };
+    return labels[signal] || signal;
+}
+
+function getSignalIcon(signal) {
+    if (signal.includes('bullish')) return '📈';
+    if (signal.includes('bearish')) return '📉';
+    return '➡️';
+}
+
+document.querySelectorAll('.ai-agent-checkbox').forEach(label => {
+    label.addEventListener('click', () => {
+        const checkbox = label.querySelector('input');
+        checkbox.checked = !checkbox.checked;
+        label.classList.toggle('active', checkbox.checked);
+    });
+});
+</script>
+{% endblock %}

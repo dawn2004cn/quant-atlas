@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block title %}3D 组合共鸣场 — Quant Atlas{% endblock %}
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/zen-pages.css') }}">
+
+{% endblock %}
+
+{% block spa_switcher %}
+
+<a href="/app/portfolio_resonance" class="spa-switcher-link"
+
+   data-spa-switcher="portfolio_resonance">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+
+
+
+
+{% block content %}
+
+<div class="container">
+
+  <div class="header">
+
+    <div class="logo">✦ 3D 组合共鸣场</div>
+
+    <div class="controls">
+
+      <button class="btn" type="button" data-pr-action="reset-camera">重置视角</button>
+
+      <button class="btn" type="button" data-pr-action="toggle-rotate">自动旋转</button>
+
+    </div>
+
+  </div>
+
+  <div class="layout">
+
+    <div id="three-container"></div>
+
+    <div class="sidebar">
+
+      <div class="card">
+
+        <div class="card-title">组合多样性</div>
+
+        <div class="value" id="diversityScore">--</div>
+
+        <div class="label">分数越高越分散</div>
+
+      </div>
+
+      <div class="card">
+
+        <div class="card-title">持仓数量</div>
+
+        <div class="value pr-holding-val" id="holdingCount">--</div>
+
+        <div class="label">粒子数</div>
+
+      </div>
+
+      <div class="qa-is-hidden card" id="crowdingCard">
+
+        <div class="card-title pr-warn-title">⚠ 拥挤预警</div>
+
+        <div id="crowdingList"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<script src="{{ url_for('static', filename='js/vendor/three.min.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/vendor/OrbitControls.min.js') }}"></script>
+
+<script nonce="{{ csp_nonce() }}">
+
+let scene, camera, renderer, controls, particles = [], autoRotate = true;
+
+let particleMeshes = [];
+
+
+
+function initThree() {
+
+  const container = document.getElementById("three-container");
+
+  const w = container.clientWidth, h = container.clientHeight;
+
+
+
+  scene = new THREE.Scene();
+
+  scene.background = new THREE.Color(0x0a0a0f);
+
+
+
+  camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 1000);
+
+  camera.position.set(3, 2, 5);
+
+
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+
+  renderer.setSize(w, h);
+
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  container.appendChild(renderer.domElement);
+
+
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+  controls.enableDamping = true;
+
+  controls.autoRotate = true;
+
+  controls.autoRotateSpeed = 1.5;
+
+
+
+  // Ambient + point lights
+
+  scene.add(new THREE.AmbientLight(0x404060));
+
+  const light = new THREE.PointLight(0x00ff88, 1, 10);
+
+  light.position.set(2, 3, 4);
+
+  scene.add(light);
+
+
+
+  animate();
+
+  window.addEventListener("resize", () => {
+
+    const w2 = container.clientWidth, h2 = container.clientHeight;
+
+    camera.aspect = w2 / h2;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(w2, h2);
+
+  });
+
+}
+
+
+
+function animate() {
+
+  requestAnimationFrame(animate);
+
+  controls.update();
+
+
+
+  // Animate particles
+
+  const t = Date.now() * 0.001;
+
+  particleMeshes.forEach((mesh, i) => {
+
+    if (mesh.userData.energy) {
+
+      const pulse = 0.8 + 0.2 * Math.sin(t * 2 + i);
+
+      mesh.scale.setScalar(pulse);
+
+    }
+
+  });
+
+
+
+  renderer.render(scene, camera);
+
+}
+
+
+
+function buildField(data) {
+
+  // Clear old particles
+
+  particleMeshes.forEach(m => scene.remove(m));
+
+  particleMeshes = [];
+
+
+
+  if (!data || !data.particles) return;
+
+
+
+  document.getElementById("diversityScore").textContent = (data.diversity_score * 100).toFixed(1) + "%";
+
+  document.getElementById("holdingCount").textContent = data.particles.length;
+
+
+
+  // Crowding warnings
+
+  const crowdingCard = document.getElementById("crowdingCard");
+
+  const crowdingList = document.getElementById("crowdingList");
+
+  crowdingList.innerHTML = "";
+
+  if (data.crowding_warnings && data.crowding_warnings.length) {
+
+    crowdingCard.style.display = "block";
+
+    data.crowding_warnings.forEach(w => {
+
+      const div = document.createElement("div");
+
+      div.className = "warning";
+
+      div.textContent = w.message;
+
+      crowdingList.appendChild(div);
+
+    });
+
+  } else {
+
+    crowdingCard.style.display = "none";
+
+  }
+
+
+
+  // Create particles
+
+  const colors = { red: 0xff4444, orange: 0xff8800, green: 0x00ff88, blue: 0x4488ff };
+
+  data.particles.forEach(p => {
+
+    const color = colors[p.color.replace("#", "")] || 0x00ff88;
+
+    const size = 0.15 + p.weight * 0.3;
+
+    const geo = new THREE.SphereGeometry(size, 16, 16);
+
+    const mat = new THREE.MeshStandardMaterial({
+
+      color,
+
+      emissive: color,
+
+      emissiveIntensity: 0.3 + p.energy * 0.5,
+
+      roughness: 0.3,
+
+      metalness: 0.1,
+
+    });
+
+    const mesh = new THREE.Mesh(geo, mat);
+
+    mesh.position.set(p.x, p.y, p.z);
+
+    mesh.userData = { energy: p.energy, symbol: p.symbol };
+
+    scene.add(mesh);
+
+    particleMeshes.push(mesh);
+
+
+
+    // Connection lines for correlated pairs
+
+    if (p.correlation_pairs) {
+
+      p.correlation_pairs.forEach(pair => {
+
+        if (Math.abs(pair.correlation) > 0.7) {
+
+          const target = data.particles.find(p2 => p2.symbol === pair.symbol);
+
+          if (target) {
+
+            const points = [
+
+              new THREE.Vector3(p.x, p.y, p.z),
+
+              new THREE.Vector3(target.x, target.y, target.z)
+
+            ];
+
+            const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+
+            const lineMat = new THREE.LineBasicMaterial({
+
+              color: pair.ripple === "red" ? 0xff4444 : 0x4488ff,
+
+              transparent: true,
+
+              opacity: 0.3,
+
+            });
+
+            const line = new THREE.Line(lineGeo, lineMat);
+
+            scene.add(line);
+
+          }
+
+        }
+
+      });
+
+    }
+
+  });
+
+}
+
+
+
+function resetCamera() {
+
+  camera.position.set(3, 2, 5);
+
+  controls.target.set(0, 0, 0);
+
+  controls.update();
+
+}
+
+
+
+function toggleAutoRotate() {
+
+  controls.autoRotate = !controls.autoRotate;
+
+}
+
+
+
+// Load demo data
+
+fetch("/api/v1/phase18/resonance/field", {
+
+  method: "POST",
+
+  headers: {"Content-Type": "application/json"},
+
+  body: JSON.stringify({
+
+    holdings: [
+
+      {symbol: "600519", name: "贵州茅台", weight: 0.25},
+
+      {symbol: "000858", name: "五粮液", weight: 0.20},
+
+      {symbol: "300750", name: "宁德时代", weight: 0.15},
+
+      {symbol: "601318", name: "中国平安", weight: 0.12},
+
+      {symbol: "000333", name: "美的集团", weight: 0.10},
+
+      {symbol: "002415", name: "海康威视", weight: 0.08},
+
+      {symbol: "600036", name: "招商银行", weight: 0.06},
+
+      {symbol: "601012", name: "隆基绿能", weight: 0.04},
+
+    ]
+
+  })
+
+})
+
+.then(r => r.json())
+
+.then(data => {
+
+  if (data.ok) {
+
+    initThree();
+
+    buildField(data.data);
+
+  }
+
+})
+
+.catch(() => {
+
+  initThree();
+
+});
+
+document.addEventListener('click', function (e) {
+
+  const el = e.target.closest('[data-pr-action]');
+
+  if (!el) return;
+
+  const action = el.dataset.prAction;
+
+  if (action === 'reset-camera') resetCamera();
+
+  else if (action === 'toggle-rotate') toggleAutoRotate();
+
+});
+
+</script>
+
+{% endblock %}
+

@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('ai_analysis.title') }} - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/ai-analysis" class="spa-switcher-link"
+   data-spa-switcher="ai-analysis">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div id="aiGlobalError" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger" role="alert"></div>
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="AI 诊股使用提示">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">先填代码与市场</div>
+        <p class="qc-ux-step-desc">生成结论后可在本页查看多空证据与新闻摘要；深度叙事请进个股详情。</p>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">与买卖计划联动</div>
+        <p class="qc-ux-step-desc">诊股不等于交易指令；建议结合买卖计划锚点与模拟观察单复盘。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.self_stocks') }}">自选股</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">观察单</a>
+    </div>
+</section>
+
+<div class="ai-page">
+    <section class="ai-hero">
+        <div class="hero-caption">Cognitive Intelligence</div>
+        <h1 class="page-title">{{ _('ai_analysis.title') }}</h1>
+        <p class="page-subtitle">{{ _('ai_analysis.hero_page_subtitle') }}</p>
+    </section>
+
+    <section class="section-shell p-4">
+        <div class="panel-head flex justify-between items-center mb-4">
+            <h2 class="panel-title">{{ _('ai_analysis.form_title') }}</h2>
+            <span id="reqStatus" class="status-pill idle">{{ _('ai_analysis.status_ready') }}</span>
+        </div>
+
+        <form id="ai-form">
+            <div class="aa-form-grid-3">
+                <div>
+                    <label class="font-bold block mb-2">{{ _('ai_analysis.label_symbol') }}</label>
+                    <input class="input-soft w-full" id="symbol" placeholder="{{ _('ai_analysis.placeholder_symbol') }}">
+                </div>
+                <div>
+                    <label class="font-bold block mb-2">{{ _('ai_analysis.label_market') }}</label>
+                    <select class="select-soft w-full" id="market">
+                        <option value="CN">{{ _('ai_analysis.market_cn') }}</option>
+                        <option value="US">{{ _('ai_analysis.market_us') }}</option>
+                        <option value="HK">{{ _('ai_analysis.market_hk') }}</option>
+                        <option value="CRYPTO">{{ _('ai_analysis.market_crypto') }}</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" class="btn-brand px-5" id="btnRun">🚀 {{ _('ai_analysis.btn_start_analysis') }}</button>
+                    <button type="button" class="btn-soft" id="btnClear">{{ _('ai_analysis.btn_clear') }}</button>
+                </div>
+            </div>
+            <div class="aa-form-grid-2">
+                <div>
+                    <label class="font-bold block mb-2">交易假设（可选）</label>
+                    <select class="select-soft w-full" id="hypothesisId">
+                        <option value="">— 不验证假设 —</option>
+                        <option value="rebound_weak_volume">反弹但量能不足</option>
+                        <option value="uptrend_intact">上升趋势延续</option>
+                        <option value="oversold_bounce">超卖后反弹</option>
+                        <option value="trend_breakdown">趋势走弱</option>
+                        <option value="custom">自定义假设</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="font-bold block mb-2">自定义假设文案</label>
+                    <input class="input-soft w-full" id="userHypothesis" placeholder="如：我认为该股在反弹，但量能不足">
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <div id="resultShell" class="qa-is-hidden">
+        <div id="coverageBanner" class="qa-is-hidden qc-coverage-banner" role="status"></div>
+        <div class="qa-is-hidden hypothesis-panel" id="hypothesisPanel">
+            <div class="flex justify-between items-center flex-wrap gap-2 mb-2">
+                <h3 class="panel-title mb-0">🎯 假设验证</h3>
+                <span class="hypothesis-verdict" id="hypothesisVerdict">--</span>
+            </div>
+            <p class="text-sm mb-2" id="hypothesisSummary"></p>
+            <div class="grid md:grid-cols-2 gap-3 text-sm">
+                <div>
+                    <div class="font-bold mb-1 text-positive">佐证</div>
+                    <ul class="mb-0 pl-3" id="hypothesisSupport"></ul>
+                </div>
+                <div>
+                    <div class="font-bold mb-1 text-negative">反驳</div>
+                    <ul class="mb-0 pl-3" id="hypothesisContradict"></ul>
+                </div>
+            </div>
+        </div>
+        <div class="section-shell p-4 mb-4">
+            <h3 class="panel-title mb-4">📝 {{ _('ai_analysis.model_conclusion') }}</h3>
+            <div id="summaryText" class="markdown-body text-lg line-height-relaxed aa-summary-min"></div>
+        </div>
+
+        <div class="evidence-layout" id="evidenceArea">
+            <aside class="trust-card">
+                <div class="text-xs font-black uppercase opacity-70 mb-2">{{ _('ai_analysis.trust_score') }}</div>
+                <div class="trust-value" id="trustScore">--</div>
+                <div class="mt-3 font-black" id="trustLevel">--</div>
+                <div class="flex justify-center gap-2 mt-4">
+                    <button class="btn-soft btn-sm" type="button" data-aa-action="vote" data-vote="useful">👍 {{ _('ai_analysis.btn_useful') }}</button>
+                    <button class="btn-soft btn-sm" type="button" data-aa-action="vote" data-vote="not_useful">👎 {{ _('ai_analysis.btn_not_useful') }}</button>
+                </div>
+            </aside>
+
+            <div class="evidence-grid">
+                <div class="evidence-tile">
+                    <h4>🟢 {{ _('ai_analysis.bull_evidence') }}</h4>
+                    <ul class="text-sm space-y-2 mb-0 pl-3" id="bullList"></ul>
+                </div>
+                <div class="evidence-tile">
+                    <h4>🔴 {{ _('ai_analysis.bear_evidence') }}</h4>
+                    <ul class="text-sm space-y-2 mb-0 pl-3" id="bearList"></ul>
+                </div>
+                <div class="evidence-tile aa-evidence-wide">
+                    <h4>📰 {{ _('ai_analysis.news_evidence') }}</h4>
+                    <div id="newsList" class="grid gap-2 mt-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <section class="compare-panel mt-4" id="comparePanel" aria-label="因子对标比较">
+            <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
+                <h3 class="panel-title mb-0">📊 因子暴露对标</h3>
+                <div class="flex gap-2 items-end flex-wrap">
+                    <div>
+                        <label class="text-xs font-bold text-muted">对标 peer</label>
+                        <input class="input-soft" id="peerSymbol" placeholder="如 000858" class="input-soft aa-peer-input">
+                    </div>
+                    <button type="button" class="btn-soft btn-sm" id="btnCompare">运行对标</button>
+                </div>
+            </div>
+            <div id="compareSummary" class="text-sm text-muted mb-2"></div>
+            <div id="compareTableWrap" class="text-muted text-sm">填写主标的与 peer 后点击「运行对标」。</div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/trace_link.js') }}"></script>
+<script src="{{ url_for('static', filename='js/vendor/marked.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='js/qa_markdown_safe.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+function aiHideError() {
+    $('#aiGlobalError').hide().empty();
+}
+function aiShowError(msg) {
+    const safe = $('<div/>').text(msg || '未知错误').html();
+    $('#aiGlobalError').html(
+        '<div class="qc-ux-banner__title">{{ _("ai_analysis.status_failed") }}</div>' +
+        '<div class="qc-ux-banner__body">' + safe + '</div>' +
+        '<button type="button" class="btn-brand btn-sm" data-aa-action="retry">重试</button> ' +
+        '<a class="btn-soft btn-sm" href="{{ url_for("pages.integration_hub") }}">集成中枢</a>'
+    ).show();
+}
+function renderCoverageBanner(cov) {
+    const el = $('#coverageBanner');
+    if (!cov || !cov.level || cov.level === 'good') {
+        el.hide().empty();
+        return;
+    }
+    const cls = cov.level === 'poor' ? 'qc-coverage-banner--poor' : 'qc-coverage-banner--partial';
+    const pct = cov.coverage_pct != null ? cov.coverage_pct + '%' : '--';
+    el.attr('class', 'qc-coverage-banner ' + cls)
+        .html('<strong>数据覆盖度 ' + pct + '</strong> · ' + escHtml(cov.warning || 'K 线数据可能不完整'))
+        .show();
+}
+
+function hypothesisPayload() {
+    const hypothesisId = ($('#hypothesisId').val() || '').trim();
+    const userHypothesis = ($('#userHypothesis').val() || '').trim();
+    const body = {};
+    if (hypothesisId) body.hypothesis_id = hypothesisId;
+    if (userHypothesis) body.user_hypothesis = userHypothesis;
+    return body;
+}
+
+function hypothesisQuery() {
+    const hypothesisId = ($('#hypothesisId').val() || '').trim();
+    const userHypothesis = ($('#userHypothesis').val() || '').trim();
+    const parts = [];
+    if (hypothesisId) parts.push('hypothesis_id=' + encodeURIComponent(hypothesisId));
+    if (userHypothesis) parts.push('user_hypothesis=' + encodeURIComponent(userHypothesis));
+    return parts.length ? '&' + parts.join('&') : '';
+}
+
+function renderHypothesisEvaluation(evalObj) {
+    const panel = $('#hypothesisPanel');
+    if (!evalObj || !evalObj.user_hypothesis) {
+        panel.hide();
+        return;
+    }
+    panel.show();
+    const verdictMap = {
+        supports: '佐证',
+        contradicts: '反驳',
+        mixed: '混合',
+        inconclusive: '不确定'
+    };
+    const verdict = evalObj.verdict || 'inconclusive';
+    $('#hypothesisVerdict')
+        .text((verdictMap[verdict] || verdict) + ' · 置信 ' + Math.round((evalObj.confidence || 0) * 100) + '%')
+        .attr('class', 'hypothesis-verdict ' + verdict);
+    $('#hypothesisSummary').text(evalObj.summary || evalObj.user_hypothesis || '');
+    const renderList = (window.QCTraceLink && QCTraceLink.renderEvidenceList)
+        ? function (items, emptyText) { return QCTraceLink.renderEvidenceList(items, emptyText); }
+        : function (items, emptyText) {
+            if (!items || !items.length) return '<li class="text-muted">' + (emptyText || '暂无') + '</li>';
+            return items.map(function (x) { return '<li>' + escHtml(x.text || '') + '</li>'; }).join('');
+        };
+    $('#hypothesisSupport').html(renderList(evalObj.supporting_evidence, '暂无'));
+    $('#hypothesisContradict').html(renderList(evalObj.contradicting_evidence, '暂无'));
+}
+
+// COMPLETE BUSINESS LOGIC REINSTATED
+async function runAnalysis() {
+    const symbol = $('#symbol').val().trim();
+    const market = $('#market').val();
+    if (!symbol) { showToast('{{ _("ai_analysis.placeholder_symbol") }}', 'warning'); return; }
+
+    aiHideError();
+    $('#reqStatus').text('{{ _("ai_analysis.status_running") }}').addClass('run');
+    $('#resultShell').show();
+    $('#summaryText').html('<div class="loading-tile">Thinking...</div>');
+    $('#hypothesisPanel').hide();
+
+    try {
+        const body = Object.assign({ symbol: symbol, market: market }, hypothesisPayload());
+        const res = await fetch('/api/v1/ai/analyze', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        let json = {};
+        try {
+            json = await res.json();
+        } catch (parseErr) {
+            aiShowError('响应不是有效 JSON（HTTP ' + res.status + '）');
+            $('#reqStatus').text('{{ _("ai_analysis.status_failed") }}').removeClass('run').addClass('err');
+            $('#summaryText').html('<div class="text-muted">解析失败</div>');
+            return;
+        }
+        if (!res.ok) {
+            const errObj = json.error || {};
+            const msg = errObj.message || json.message || ('HTTP ' + res.status);
+            aiShowError(String(msg));
+            $('#reqStatus').text('{{ _("ai_analysis.status_failed") }}').removeClass('run').addClass('err');
+            $('#summaryText').html('<div class="text-muted">' + $('<div/>').text(String(msg)).html() + '</div>');
+            return;
+        }
+        const analysis = json.data?.ai?.analysis || json.analysis || '';
+        $('#summaryText').html(renderMarkdownSafe(analysis, '<p class="text-muted">（空结论）</p>'));
+        $('#reqStatus').text('{{ _("ai_analysis.status_success") }}').removeClass('run').addClass('ok');
+        renderHypothesisEvaluation(json.data?.hypothesis_evaluation);
+        renderCoverageBanner(json.data?.data_coverage);
+
+        loadEvidence(symbol, market);
+        loadCompare(symbol, market);
+    } catch (e) {
+        aiShowError(e && e.message ? String(e.message) : String(e));
+        $('#reqStatus').text('{{ _("ai_analysis.status_failed") }}').removeClass('run').addClass('err');
+    }
+}
+
+async function loadEvidence(symbol, market) {
+    try {
+        const res = await fetch(`/api/v1/ai/evidence?symbol=${symbol}&market=${market}${hypothesisQuery()}`);
+        const json = await res.json();
+        const d = json.data || {};
+        
+        $('#trustScore').text(Math.round(d.trust?.score || 0));
+        $('#trustLevel').text(d.trust?.level || '--');
+        if (d.hypothesis_evaluation) {
+            renderHypothesisEvaluation(d.hypothesis_evaluation);
+        }
+        if (d.data_coverage) {
+            renderCoverageBanner(d.data_coverage);
+        }
+        
+        $('#bullList').html((d.bull_bear?.bull || []).map(x => `<li>${x}</li>`).join('') || '<li>No significant bullish evidence</li>');
+        $('#bearList').html((d.bull_bear?.bear || []).map(x => `<li>${x}</li>`).join('') || '<li>No significant bearish evidence</li>');
+        
+        $('#newsList').html((d.news || []).slice(0, 4).map(n => `
+            <div class="p-3 rounded-lg border bg-slate-50 text-xs">
+                <div class="font-bold mb-1">${n.title}</div>
+                <div class="text-muted">${n.summary?.slice(0, 100)}...</div>
+            </div>
+        `).join(''));
+    } catch(e) { window.qcLogError('ai_analysis load failed', e); }
+}
+
+function escHtml(s) {
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function loadCompare(symbol, market) {
+    const peer = ($('#peerSymbol').val() || '').trim().toUpperCase();
+    const wrap = $('#compareTableWrap');
+    const summary = $('#compareSummary');
+    if (!symbol || !peer) {
+        wrap.html('<div class="text-muted text-sm">填写 peer 代码后可对比因子贡献结构。</div>');
+        summary.text('');
+        return;
+    }
+    wrap.html('<div class="loading-tile">对标计算中…</div>');
+    try {
+        const url = '/api/v1/attribution/compare?symbol=' + encodeURIComponent(symbol) +
+            '&peer=' + encodeURIComponent(peer) + '&market=' + encodeURIComponent(market || 'CN');
+        const res = await fetch(url);
+        const json = await res.json();
+        if (!res.ok) {
+            if (window.QCApiError) {
+                wrap.html('');
+                QCApiError.renderBanner('#aiGlobalError', json, { retryCallback: function () { loadCompare(symbol, market); } });
+            } else {
+                wrap.html('<div class="text-negative">' + escHtml((json.error || {}).message || '对标失败') + '</div>');
+            }
+            return;
+        }
+        aiHideError();
+        const d = json.data || {};
+        summary.text(d.summary || '');
+        const rows = d.factor_rows || [];
+        if (!rows.length) {
+            wrap.html('<div class="text-muted">暂无因子对比数据</div>');
+            return;
+        }
+        const head = '<tr><th>因子</th><th>' + escHtml(d.base_symbol) + '</th><th>' + escHtml(d.peer_symbol) + '</th><th>差值</th></tr>';
+        const body = rows.map(function (r) {
+            const delta = parseFloat(r.delta_pct || 0);
+            const cls = delta >= 0 ? 'delta-pos' : 'delta-neg';
+            return '<tr><td>' + escHtml(r.factor_name) + '</td><td>' + r.base_pct + '%</td><td>' +
+                r.peer_pct + '%</td><td class="' + cls + '">' + (delta > 0 ? '+' : '') + r.delta_pct + '%</td></tr>';
+        }).join('');
+        wrap.html(
+            '<div class="text-xs text-muted mb-2">总收益 ' + d.base_total_return + '% vs ' + d.peer_total_return +
+            '% · Alpha ' + d.base_alpha + '% vs ' + d.peer_alpha + '%</div>' +
+            '<table class="compare-table"><thead>' + head + '</thead><tbody>' + body + '</tbody></table>'
+        );
+    } catch (e) {
+        wrap.html('<div class="text-negative">' + escHtml(e.message || String(e)) + '</div>');
+    }
+}
+
+$(document).ready(() => {
+    $('#ai-form').on('submit', function (e) { e.preventDefault(); });
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-aa-action]');
+        if (!el) return;
+        const action = el.dataset.aaAction;
+        if (action === 'retry') { aiHideError(); runAnalysis(); }
+        else if (action === 'vote' && typeof sendVote === 'function') sendVote(el.dataset.vote || '');
+    });
+    $('#btnRun').click(runAnalysis);
+    $('#btnClear').click(() => {
+        $('#symbol').val('');
+        $('#hypothesisId').val('');
+        $('#userHypothesis').val('');
+        $('#resultShell').hide();
+        $('#hypothesisPanel').hide();
+    });
+    $('#hypothesisId').on('change', function () {
+        const id = $(this).val();
+        if (id && id !== 'custom') {
+            const label = $(this).find('option:selected').text();
+            $('#userHypothesis').val(label);
+        }
+    });
+    $('#btnCompare').click(function () {
+        const symbol = $('#symbol').val().trim();
+        loadCompare(symbol, $('#market').val());
+    });
+    document.addEventListener('qa:focus-change', function (ev) {
+        const d = ev.detail || {};
+        if (d.symbol) {
+            $('#symbol').val(d.symbol);
+            if (d.market) $('#market').val(d.market);
+        }
+    });
+    if (window.QAFocusContext) {
+        const f = QAFocusContext.getFocus();
+        if (f.symbol && !$('#symbol').val().trim()) {
+            $('#symbol').val(f.symbol);
+            if (f.market) $('#market').val(f.market);
+        }
+    }
+    const params = new URLSearchParams(window.location.search);
+    const sym = params.get('symbol');
+    const mkt = params.get('market');
+    if (sym) $('#symbol').val(sym);
+    if (mkt) $('#market').val(mkt.toUpperCase());
+});
+</script>
+{% endblock %}

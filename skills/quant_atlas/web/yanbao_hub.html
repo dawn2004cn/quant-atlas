@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}研报中心 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/yanbao-hub" class="spa-switcher-link"
+   data-spa-switcher="yanbao-hub">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div id="ybGlobalError" class="qc-ux-banner qc-ux-banner--danger qa-is-hidden" role="alert"></div>
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="研报中心使用提示">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">先看市场，再看研报</div>
+        <p class="qc-ux-step-desc">研报适合做“证据补全”；盘中更建议先看操盘台与市场全景，确认环境后再阅读。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.market_panorama') }}">市场全景</a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">同步走消息中心</div>
+        <p class="qc-ux-step-desc">点击“同步研报”后可能触发异步任务；可到消息中心查看执行状态。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.message_center') }}">消息中心</a>
+    </div>
+</section>
+
+<section class="section-shell yb-hero">
+    <div class="hero-caption">Research Desk</div>
+    <h1 class="page-title">研报中心</h1>
+    <p class="page-subtitle">东方财富研报按类入库（与定时任务、<code>get_yanbao_market_digest</code> 的分类名一致）；单股深度研报可走 <code>/api/v1/stocks/CN/代码/research-reports</code></p>
+    <div id="ybFreshnessStrip" class="qc-freshness-strip market-freshness-strip--hero qa-is-hidden" aria-live="polite"></div>
+    <div id="ybActiveJobs" class="market-jobs-hint market-jobs-hint--hero"></div>
+</section>
+
+<section class="section-shell">
+    <div class="yb-toolbar">
+        <div class="text-muted yb-tab-hint" id="ybTabHint">切换分类加载列表</div>
+        <button type="button" class="btn-soft" id="ybSync">同步研报</button>
+    </div>
+    <div id="ybSyncProgress" class="market-sync-progress"></div>
+    <div class="yb-tabs-wrap">
+        <ul class="nav nav-tabs yb-tabs" id="ybTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link active" data-yb-cat="" role="tab">全部</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" data-yb-cat="个股研报" role="tab">个股研报</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" data-yb-cat="行业研报" role="tab">行业研报</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" data-yb-cat="宏观研报" role="tab">宏观研报</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" data-yb-cat="策略研报" role="tab">策略研报</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" data-yb-cat="晨报" role="tab">晨报</button>
+            </li>
+        </ul>
+    </div>
+    <div class="yb-list" id="ybList"><div class="empty-hint">加载中…</div></div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/task_feedback.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+function pickData(res) { return res.data !== undefined ? res.data : res; }
+
+function ybHideError() {
+    $('#ybGlobalError').hide().empty();
+}
+function ybShowError(msg) {
+    const safe = $('<div/>').text(msg || '未知错误').html();
+    $('#ybGlobalError').html(
+        '<div class="qc-ux-banner__title">研报列表加载失败</div>' +
+        '<div class="qc-ux-banner__body">' + safe + '</div>' +
+        '<button type="button" class="btn-brand btn-sm" data-yb-action="retry">重试</button> ' +
+        '<a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>'
+    ).show();
+}
+
+function currentYbCat() {
+    const $a = $('#ybTabs .nav-link.active');
+    return $a.length ? String($a.attr('data-yb-cat') || '') : '';
+}
+
+function renderList(items) {
+    const $l = $('#ybList');
+    if (!items || !items.length) {
+        $l.html('<div class="empty-hint">暂无数据。可点击「同步研报」或等待定时任务（约 06:00）；部分分类需东财 API 抓取后才有数据。</div>');
+        return;
+    }
+    $l.html(items.map(it => {
+        const url = it.report_url || '#';
+        const sc = it.stock_code ? `代码 ${it.stock_code}` : '';
+        return `
+        <div class="yb-row">
+            <div>
+                <div class="yb-cat">${it.category || ''}</div>
+                <div class="yb-title mt-2"><a href="${url}" target="_blank" rel="noopener">${it.title || '—'}</a></div>
+                <div class="yb-sub">
+                    <span>${it.org_name || '—'}</span>
+                    <span>${it.pub_date || ''}</span>
+                    <span>${sc}</span>
+                </div>
+            </div>
+        </div>`;
+    }).join(''));
+}
+
+function loadYb() {
+    ybHideError();
+    const cat = currentYbCat();
+    let url = '/api/v1/market/yanbao?limit=120';
+    if (cat) url += '&category=' + encodeURIComponent(cat);
+    const label = cat || '全部';
+    $('#ybTabHint').text('加载「' + label + '」…');
+    $.getJSON(url).done(function(res) {
+        const d = pickData(res);
+        const n = (d.items || []).length;
+        $('#ybTabHint').text(label + ' · 共 ' + n + ' 条');
+        renderList(d.items || []);
+        if (window.QAUserCenter) {
+            QAUserCenter.renderEvidenceFeedFreshness(
+                document.getElementById('ybFreshnessStrip'),
+                d,
+                '研报库'
+            );
+        }
+    }).fail(function(xhr) {
+        const detail = (xhr && xhr.responseJSON && (xhr.responseJSON.error && xhr.responseJSON.error.message || xhr.responseJSON.message))
+            ? String((xhr.responseJSON.error && xhr.responseJSON.error.message) || xhr.responseJSON.message)
+            : (xhr && xhr.statusText ? xhr.statusText : '网络或服务异常');
+        ybShowError(detail);
+        $('#ybTabHint').text('加载失败');
+        $('#ybList').html('<div class="empty-hint">加载失败 <button type="button" class="btn-brand btn-sm yb-retry-btn" data-yb-action="retry">重试</button></div>');
+    });
+}
+
+$(function() {
+    $('#ybTabs').on('click', '.nav-link', function() {
+        $('#ybTabs .nav-link').removeClass('active');
+        $(this).addClass('active');
+        loadYb();
+    });
+    loadYb();
+    if (window.QAUserCenter) {
+        QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('ybFreshnessStrip'));
+        QAUserCenter.mountActiveJobsPanel('ybActiveJobs', 5);
+    }
+    $('#ybSync').on('click', function() {
+        const $b = $(this).prop('disabled', true);
+        const prog = document.getElementById('ybSyncProgress');
+        if (prog) prog.innerHTML = '<div class="mini-label">正在提交同步任务…</div>';
+        const done = function() {
+            if (window.updateNavMessageBadge) window.updateNavMessageBadge();
+            loadYb();
+            $b.prop('disabled', false);
+        };
+        if (window.QAUserCenter && window.QAUserCenter.runBasicDataRefresh) {
+            QAUserCenter.runBasicDataRefresh('yanbao', { element: prog, onComplete: done })
+                .catch(function() { done(); });
+            return;
+        }
+        $.ajax({
+            url: '/api/v1/market/basic-data/refresh',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ kind: 'yanbao' }),
+            success: done,
+            complete: function() { $b.prop('disabled', false); }
+        });
+    });
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-yb-action]');
+        if (!el || el.dataset.ybAction !== 'retry') return;
+        ybHideError();
+        loadYb();
+    });
+});
+</script>
+{% endblock %}

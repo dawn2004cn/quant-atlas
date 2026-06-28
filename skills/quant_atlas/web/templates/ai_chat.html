@@ -1,0 +1,620 @@
+{% extends "base.html" %}
+
+{% block title %}AI 聊天 - Quant Atlas{% endblock %}
+
+
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+
+{% endblock %}
+
+
+
+{% block spa_switcher %}
+
+<a href="/app/ai-chat" class="spa-switcher-link"
+
+   data-spa-switcher="ai-chat">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<div class="section-shell aichat-hero">
+
+    <div class="hero-caption">AI Assistant</div>
+
+    <h1 class="page-title">AI 聊天</h1>
+
+    <p class="page-subtitle">基于 LLM 的智能对话，可讨论股票、策略、市场分析等话题</p>
+
+</div>
+
+<div id="aichatGlobalError" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger" role="alert"></div>
+
+{% for h in ux_env_hints|default([]) %}
+
+<div class="qc-ux-banner qc-ux-banner--info">
+
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+
+    {% if h.href and h.label %}
+
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+
+    {% endif %}
+
+</div>
+
+{% endfor %}
+
+
+
+<section class="qc-ux-onboarding" aria-label="AI Chat 使用提示">
+
+    <div class="qc-ux-step">
+
+        <span class="qc-ux-step-num">1</span>
+
+        <div class="qc-ux-step-title">把问题说清楚</div>
+
+        <p class="qc-ux-step-desc">建议带上代码、市场（CN/HK/US/Crypto）与周期；需要落地执行时，回到个股详情看买卖计划与证据链。</p>
+
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
+
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.market_panorama') }}">市场全景</a>
+
+    </div>
+
+    <div class="qc-ux-step">
+
+        <span class="qc-ux-step-num">2</span>
+
+        <div class="qc-ux-step-title">异常先看配置</div>
+
+        <p class="qc-ux-step-desc">如出现网络错误、无回复或长时间等待，优先到集成中枢检查大模型配置与后端连通性。</p>
+
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
+
+    </div>
+
+</section>
+
+<div id="aichat-mount" class="aichat-root" data-user-id="{{ current_user.id | int }}"></div>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script nonce="{{ csp_nonce() }}">
+
+(function() {
+
+    "use strict";
+
+    var STORAGE_KEY = "quant_atlas_chat_sessions";
+
+
+
+    function hideGlobalError() {
+
+        $("#aichatGlobalError").hide().empty();
+
+    }
+
+
+
+    function showGlobalError(title, msg) {
+
+        var safeTitle = $("<div/>").text(title || "AI Chat 异常").html();
+
+        var safe = $("<div/>").text(msg || "未知错误").html();
+
+        $("#aichatGlobalError").html(
+
+            '<div class="qc-ux-banner__title">' + safeTitle + "</div>" +
+
+            '<div class="qc-ux-banner__body">' + safe + "</div>" +
+
+            '<a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>'
+
+        ).show();
+
+    }
+
+
+
+    function escapeHtml(text) {
+
+        var div = document.createElement("div");
+
+        div.textContent = text;
+
+        return div.innerHTML;
+
+    }
+
+
+
+    function renderMessage(msg, isUser) {
+
+        var body = isUser ? escapeHtml(msg) : (window.qcRenderMarkdown ? window.qcRenderMarkdown(msg) : escapeHtml(msg));
+
+        return '<div class="aichat-message ' + (isUser ? "user" : "ai") + '">' +
+
+            '<div class="aichat-message-avatar">' + (isUser ? "U" : "AI") + '</div>' +
+
+            '<div class="aichat-message-bubble ' + (isUser ? "" : "markdown-body") + '">' + body + '</div>' +
+
+            "</div>";
+
+    }
+
+
+
+    function renderSession(session, isActive) {
+
+        var title = session.title || "新对话";
+
+        var time = session.time ? new Date(session.time).toLocaleString("zh-CN") : "";
+
+        return '<div class="aichat-session ' + (isActive ? "active" : "") + '" data-id="' + (session.id || "") + '">' +
+
+            '<div class="aichat-session-title">' + escapeHtml(title) + '</div>' +
+
+            '<div class="aichat-session-time">' + (time || "") + '</div>' +
+
+            "</div>";
+
+    }
+
+
+
+    function App(container) {
+
+        this.container = container;
+
+        this.userId = parseInt(container.getAttribute("data-user-id") || "0", 10);
+
+        this.sessions = this.loadSessions();
+
+        this.currentSession = null;
+
+        this.messages = [];
+
+        this.loading = false;
+
+        this.init();
+
+    }
+
+
+
+    App.prototype.init = function() {
+
+        var self = this;
+
+        this.render();
+
+        this.bindEvents();
+
+        if (this.sessions.length === 0) {
+
+            this.createSession();
+
+        } else {
+
+            this.selectSession(this.sessions[0].id);
+
+        }
+
+        this.loadHistory();
+
+    };
+
+
+
+    App.prototype.render = function() {
+
+        var self = this;
+
+        var sessionsHtml = this.sessions.map(function(s) {
+
+            return renderSession(s, self.currentSession === s.id);
+
+        }).join("");
+
+
+
+        this.container.innerHTML =
+
+            '<div class="aichat-container">' +
+
+            '<div class="aichat-sidebar">' +
+
+            '<div class="aichat-sidebar-title">对话列表</div>' +
+
+            '<button class="btn-soft aichat-new-btn" id="aichat-new">新建对话</button>' +
+
+            '<div id="aichat-sessions">' + sessionsHtml + '</div>' +
+
+            "</div>" +
+
+            '<div class="aichat-main">' +
+
+            '<div id="aichat-messages" class="aichat-messages"></div>' +
+
+            '<div class="aichat-input-wrap">' +
+
+            '<textarea class="aichat-input" id="aichat-input" placeholder="输入消息..." rows="1"></textarea>' +
+
+            '<button class="btn-brand aichat-send" id="aichat-send">发送</button>' +
+
+            "</div>" +
+
+            "</div>" +
+
+            "</div>";
+
+    };
+
+
+
+    App.prototype.bindEvents = function() {
+
+        var self = this;
+
+        document.getElementById("aichat-send").onclick = function() { self.send(); };
+
+        document.getElementById("aichat-new").onclick = function() { self.createSession(); };
+
+        var input = document.getElementById("aichat-input");
+
+        input.onkeydown = function(e) {
+
+            if (e.key === "Enter" && !e.shiftKey) {
+
+                e.preventDefault();
+
+                self.send();
+
+            }
+
+        };
+
+    };
+
+
+
+    App.prototype.send = function() {
+
+        var input = document.getElementById("aichat-input");
+
+        var message = input.value.trim();
+
+        if (!message || this.loading) return;
+
+        hideGlobalError();
+
+        this.loading = true;
+
+        this.addMessage(message, true);
+
+        input.value = "";
+
+        this.showLoading();
+
+        var self = this;
+
+        $.ajax({
+
+            url: "/api/v1/ai/chat",
+
+            method: "POST",
+
+            contentType: "application/json",
+
+            data: JSON.stringify({ message: message, thread_id: self.currentSession }),
+
+            success: function(res) {
+
+                self.loading = false;
+
+                self.hideLoading();
+
+                if (res && res.status === "success" && res.data) {
+
+                    var reply = res.data.summary || res.data.agent_summary || "...";
+
+                    self.addMessage(reply, false);
+
+                    self.saveSessionMessage(message, reply);
+
+                } else {
+
+                    var msg = (res && res.error && res.error.message) || (res && res.message) || "抱歉，生成回复失败";
+
+                    self.addMessage(String(msg), false);
+
+                    showGlobalError("生成失败", String(msg));
+
+                }
+
+            },
+
+            error: function(xhr) {
+
+                self.loading = false;
+
+                self.hideLoading();
+
+                var msg = "网络或服务异常";
+
+                try {
+
+                    var j = xhr && xhr.responseJSON ? xhr.responseJSON : null;
+
+                    if (j && j.error && j.error.message) msg = j.error.message;
+
+                    else if (j && j.message) msg = j.message;
+
+                } catch (e) {}
+
+                self.addMessage("发送失败：" + msg, false);
+
+                showGlobalError("发送失败", msg);
+
+            }
+
+        });
+
+    };
+
+
+
+    App.prototype.addMessage = function(msg, isUser) {
+
+        this.messages.push({ text: msg, isUser: isUser, time: Date.now() });
+
+        this.renderMessages();
+
+    };
+
+
+
+    App.prototype.renderMessages = function() {
+
+        var container = document.getElementById("aichat-messages");
+
+        if (!container) return;
+
+        if (this.messages.length === 0) {
+
+            container.innerHTML = '<div class="aichat-empty">开始对话吧</div>';
+
+            return;
+
+        }
+
+        container.innerHTML = this.messages.map(function(m) {
+
+            return renderMessage(m.text, m.isUser);
+
+        }).join("");
+
+        container.scrollTop = container.scrollHeight;
+
+    };
+
+
+
+    App.prototype.showLoading = function() {
+
+        var container = document.getElementById("aichat-messages");
+
+        if (container) container.innerHTML += '<div class="aichat-loading">AI 思考中...</div>';
+
+    };
+
+
+
+    App.prototype.hideLoading = function() {
+
+        var el = document.querySelector(".aichat-loading");
+
+        if (el) el.remove();
+
+    };
+
+
+
+    App.prototype.createSession = function() {
+
+        var id = "chat:" + Date.now();
+
+        var session = { id: id, title: "新对话", messages: [], time: Date.now() };
+
+        this.sessions.unshift(session);
+
+        this.currentSession = id;
+
+        this.messages = [];
+
+        this.saveSessions();
+
+        this.renderSessions();
+
+        this.renderMessages();
+
+    };
+
+
+
+    App.prototype.selectSession = function(id) {
+
+        this.currentSession = id;
+
+        var session = this.sessions.find(function(s) { return s.id === id; });
+
+        if (session) {
+
+            this.messages = (session.messages || []).map(function(m) {
+
+                return { text: m.text, isUser: m.isUser, time: m.time };
+
+            });
+
+        } else {
+
+            this.messages = [];
+
+        }
+
+        this.renderSessions();
+
+        this.renderMessages();
+
+    };
+
+
+
+    App.prototype.loadHistory = function() {
+
+        var self = this;
+
+        $.get("/api/v1/ai/chat/history?limit=20", function(res) {
+
+            if (res && res.status === "success" && res.data) {
+
+                // 历史记录处理
+
+            }
+
+        }).fail(function(xhr) {
+
+            var detail = (xhr && xhr.responseJSON && (xhr.responseJSON.error && xhr.responseJSON.error.message || xhr.responseJSON.message))
+
+                ? String((xhr.responseJSON.error && xhr.responseJSON.error.message) || xhr.responseJSON.message)
+
+                : (xhr && xhr.statusText ? xhr.statusText : "网络或服务异常");
+
+            showGlobalError("历史记录加载失败", detail);
+
+        });
+
+    };
+
+
+
+    App.prototype.saveSessionMessage = function(userMsg, aiMsg) {
+
+        var self = this;
+
+        var session = this.sessions.find(function(s) { return s.id === self.currentSession; });
+
+        if (session) {
+
+            if (!session.messages) session.messages = [];
+
+            session.messages.push({ text: userMsg, isUser: true, time: Date.now() });
+
+            session.messages.push({ text: aiMsg, isUser: false, time: Date.now() });
+
+            if (session.title === "新对话" && userMsg) {
+
+                session.title = userMsg.slice(0, 20);
+
+            }
+
+            session.time = Date.now();
+
+            this.saveSessions();
+
+        }
+
+    };
+
+
+
+    App.prototype.loadSessions = function() {
+
+        try {
+
+            var raw = localStorage.getItem(STORAGE_KEY);
+
+            return raw ? JSON.parse(raw) : [];
+
+        } catch (e) {
+
+            return [];
+
+        }
+
+    };
+
+
+
+    App.prototype.saveSessions = function() {
+
+        try {
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(this.sessions));
+
+        } catch (e) {}
+
+    };
+
+
+
+    App.prototype.renderSessions = function() {
+
+        var container = document.getElementById("aichat-sessions");
+
+        if (!container) return;
+
+        var self = this;
+
+        container.innerHTML = this.sessions.map(function(s) {
+
+            return renderSession(s, self.currentSession === s.id);
+
+        }).join("");
+
+        var self = this;
+
+        container.querySelectorAll(".aichat-session").forEach(function(el) {
+
+            el.onclick = function() {
+
+                self.selectSession(el.getAttribute("data-id"));
+
+            };
+
+        });
+
+    };
+
+
+
+    var container = document.getElementById("aichat-mount");
+
+    if (container) new App(container);
+
+})();
+
+</script>
+
+{% endblock %}
+

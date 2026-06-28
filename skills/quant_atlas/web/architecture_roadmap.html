@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block title %}架构演进 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="roadmap-hero">
+    <div class="roadmap-hero-head">
+        <div>
+            <div class="hero-caption">Phase 4+ Architecture Map</div>
+            <h1 class="page-title">架构演进与页面落点</h1>
+            <p class="page-subtitle">把 quantatlas_plan.md 的重构建议拆成用户可感知的页面能力、适合嵌入的现有入口，以及只应留在后台的工程能力。</p>
+        </div>
+        <div class="roadmap-actions">
+            <a class="btn-brand" href="/observability">打开观测台</a>
+            <a class="btn-soft" href="/integration-hub">集成中枢</a>
+            <a class="btn-soft" href="/capabilities">能力总览</a>
+            <a class="btn-soft" href="/research-pipeline">研究闭环</a>
+        </div>
+    </div>
+    <div id="roadmapFreshnessStrip" class="qc-freshness-strip market-freshness-strip--hero qa-is-hidden" aria-live="polite"></div>
+    <div id="roadmapBeatSyncMini" class="roadmap-beat-sync mt-2"></div>
+    <div id="roadmapActiveJobs" class="roadmap-active-jobs"></div>
+</div>
+
+<div class="roadmap-summary">
+    <div class="roadmap-stat">
+        <strong>7</strong>
+        <span class="muted">建议可以直接页面化</span>
+    </div>
+    <div class="roadmap-stat">
+        <strong>4</strong>
+        <span class="muted">更适合集成到现有页面</span>
+    </div>
+    <div class="roadmap-stat">
+        <strong>3</strong>
+        <span class="muted">应先作为后台能力落地</span>
+    </div>
+    <div class="roadmap-stat">
+        <strong id="uxSurfaceCount">—</strong>
+        <span class="muted">用户中心已落地页面（ui_surfaces）</span>
+    </div>
+</div>
+
+<div class="section-shell">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">用户中心链路落地对照</h2>
+            <div class="panel-subtitle">
+                数据来自 <code>GET /api/v1/ux/decision-flow</code> · 版本 <span id="uxContractVersion">—</span>
+            </div>
+        </div>
+        <div class="roadmap-panel-actions">
+            <input type="text" id="uxCheckSymbol" class="input-soft roadmap-symbol-input" placeholder="自检代码 600519">
+            <button type="button" class="btn-brand btn-sm" id="roadmapRunSelfCheck">运行自检</button>
+            <button type="button" class="btn-soft btn-sm" id="roadmapReloadContract">刷新契约</button>
+        </div>
+    </div>
+    <div id="roadmapSelfCheckResults" class="roadmap-self-check"></div>
+    <div class="fit-table-wrap">
+        <table class="fit-table">
+            <thead>
+                <tr>
+                    <th>页面</th>
+                    <th>已接入能力</th>
+                    <th>路径</th>
+                    <th>状态</th>
+                </tr>
+            </thead>
+            <tbody id="uxSurfacesBody">
+                <tr><td colspan="4" class="fit-desc">加载契约中…</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="section-shell">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">refacter 路线图落地对照</h2>
+            <div class="panel-subtitle">Agent 进化 · 散户助手 · 基础设施 · 多市场 — 数据来自 <code>refactor-status</code> 与 <code>timeseries-health</code></div>
+        </div>
+        <a class="btn-soft btn-sm" href="/retail-assistant">散户助手</a>
+    </div>
+    <div id="roadmapRefactorStatus"></div>
+</div>
+
+<div class="section-shell">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">以用户为中心的功能视角</h2>
+            <div class="panel-subtitle">同一套技术升级，最终要分别服务研究员、交易执行者、管理员和产品决策者。</div>
+        </div>
+    </div>
+    <div class="user-center-grid">
+        <div class="user-card">
+            <h2>投研用户</h2>
+            <p>需要更快找到机会、理解原因、验证假设，并能回看 AI 为什么得出某个结论。</p>
+            <div class="user-need"><strong>最该增强</strong><span class="badge-soft">解释链路</span></div>
+            <div class="user-need"><strong>页面落点</strong><span>AI 投委会 / 研究闭环</span></div>
+        </div>
+        <div class="user-card">
+            <h2>量化研究员</h2>
+            <p>需要把策略因子从代码里解耦出来，快速试验参数，并追踪每次回测的输入输出。</p>
+            <div class="user-need"><strong>最该增强</strong><span class="badge-soft">策略白盒</span></div>
+            <div class="user-need"><strong>页面落点</strong><span>量化实验室 / 参数优化</span></div>
+        </div>
+        <div class="user-card">
+            <h2>交易与风控</h2>
+            <p>需要知道任务是否仍可信、数据是否新鲜、熔断是否触发，以及异常后下一步怎么处理。</p>
+            <div class="user-need"><strong>最该增强</strong><span class="badge-soft">状态可见</span></div>
+            <div class="user-need"><strong>页面落点</strong><span>任务详情 / 集成中枢</span></div>
+        </div>
+        <div class="user-card">
+            <h2>系统管理员</h2>
+            <p>需要把服务、缓存、事件、外部 API 和慢调用放在同一个可诊断视图里。</p>
+            <div class="user-need"><strong>最该增强</strong><span class="badge-soft">Trace + 事件</span></div>
+            <div class="user-need"><strong>页面落点</strong><span>观测台 / 架构演进</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="section-shell">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">用户旅程增强地图</h2>
+            <div class="panel-subtitle">从发现机会到复盘归档，每一步都应该有清晰状态、下一步动作和可追溯证据。</div>
+        </div>
+    </div>
+    <div class="journey-row">
+        <div class="journey-step">
+            <div class="journey-kicker">Step 01</div>
+            <div class="journey-title">发现机会</div>
+            <div class="journey-desc">在市场全景、自选股、信号旗里展示异常波动、数据新鲜度和触发事件。</div>
+        </div>
+        <div class="journey-step">
+            <div class="journey-kicker">Step 02</div>
+            <div class="journey-title">解释原因</div>
+            <div class="journey-desc">在 AI 投委会展示 AgentContext、证据来源、冲突观点和置信度变化。</div>
+        </div>
+        <div class="journey-step">
+            <div class="journey-kicker">Step 03</div>
+            <div class="journey-title">验证策略</div>
+            <div class="journey-desc">在回测和参数优化页显示 DSL 参数、版本、样本范围和门禁判定。</div>
+        </div>
+        <div class="journey-step">
+            <div class="journey-kicker">Step 04</div>
+            <div class="journey-title">执行跟踪</div>
+            <div class="journey-desc">在任务详情页展示排队、执行、回调、重试、失败原因与消息通知。</div>
+        </div>
+        <div class="journey-step">
+            <div class="journey-kicker">Step 05</div>
+            <div class="journey-title">复盘沉淀</div>
+            <div class="journey-desc">把任务 Trace、策略版本、Agent 结论和真实结果沉淀到研究闭环。</div>
+        </div>
+    </div>
+</div>
+
+<div class="section-shell">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">页面功能增强清单</h2>
+            <div class="panel-subtitle">按用户价值排序，先补“能减少迷茫和等待”的页面状态，再补高级配置。</div>
+        </div>
+    </div>
+    <div class="enhance-toolbar" aria-label="功能优先级筛选">
+        <button class="enhance-filter active" type="button" data-filter="all">全部</button>
+        <button class="enhance-filter" type="button" data-filter="p0">P0 立即可见</button>
+        <button class="enhance-filter" type="button" data-filter="p1">P1 工作流增强</button>
+        <button class="enhance-filter" type="button" data-filter="p2">P2 治理指标</button>
+    </div>
+    <div class="enhance-grid" id="enhanceGrid">
+        <div class="enhance-card" data-priority="p0">
+            <div class="enhance-head"><div class="enhance-title">任务详情：统一时间线</div><span class="priority-chip priority-p0">P0</span></div>
+            <div class="enhance-desc">把异步提交、队列等待、Agent 执行、回调通知、失败重试串成一条线，用户不用猜任务卡在哪里。</div>
+            <a class="btn-soft" href="/task/pending">查看任务详情</a>
+        </div>
+        <div class="enhance-card" data-priority="p0">
+            <div class="enhance-head"><div class="enhance-title">观测台：Trace 搜索与慢调用排行</div><span class="priority-chip priority-p0">P0</span></div>
+            <div class="enhance-desc">支持按 Trace ID、任务 ID、股票代码检索，把 API、Agent、数据库日志放在同一屏。</div>
+            <a class="btn-soft" href="/observability">打开观测台</a>
+        </div>
+        <div class="enhance-card" data-priority="p0">
+            <div class="enhance-head"><div class="enhance-title">选股器：策略参数面板</div><span class="priority-chip priority-p0">P0</span></div>
+            <div class="enhance-desc">把硬编码筛选条件改成可读的 DSL 摘要，展示每个条件过滤了多少股票。</div>
+            <a class="btn-soft" href="/stock-selector">打开选股器</a>
+        </div>
+        <div class="enhance-card" data-priority="p1">
+            <div class="enhance-head"><div class="enhance-title">AI 投委会：上下文透明化</div><span class="priority-chip priority-p1">P1</span></div>
+            <div class="enhance-desc">展示 MarketSnapshot、UserPreference、HistoryMemory，让用户知道 AI 到底拿了哪些输入。</div>
+            <a class="btn-soft" href="/ai-committee">打开 AI 投委会</a>
+        </div>
+        <div class="enhance-card" data-priority="p1">
+            <div class="enhance-head"><div class="enhance-title">研究闭环：人工纠偏节点</div><span class="priority-chip priority-p1">P1</span></div>
+            <div class="enhance-desc">对误判、证据不足、参数越界的结果提供人工确认和回滚入口。</div>
+            <a class="btn-soft" href="/research-pipeline">打开研究闭环</a>
+        </div>
+        <div class="enhance-card" data-priority="p0">
+            <div class="enhance-head"><div class="enhance-title">集成中枢：数据新鲜度与任务进度</div><span class="priority-chip priority-p0">已落地</span></div>
+            <div class="enhance-desc">活跃任务、快捷同步、任务消息流与分阶段 Celery 进度已接入。</div>
+            <a class="btn-soft" href="/integration-hub">打开集成中枢</a>
+        </div>
+        <div class="enhance-card" data-priority="p0">
+            <div class="enhance-head"><div class="enhance-title">个股详情：决策简报 + 采纳计划</div><span class="priority-chip priority-p0">已落地</span></div>
+            <div class="enhance-desc">decision-brief、归因时间轴、sector_context、POST trade-plan/adopt 已串联。</div>
+            <a class="btn-soft" href="/stock/600519?m=CN#decision-brief-strip">示例个股</a>
+        </div>
+        <div class="enhance-card" data-priority="p2">
+            <div class="enhance-head"><div class="enhance-title">能力总览：决策链路自检</div><span class="priority-chip priority-p2">P2</span></div>
+            <div class="enhance-desc">按 ux/decision-flow 探针批量检测 API；本页亦可运行同款自检。</div>
+            <a class="btn-soft" href="/capabilities">打开能力总览</a>
+        </div>
+        <div class="enhance-card" data-priority="p2">
+            <div class="enhance-head"><div class="enhance-title">架构演进：事件订阅图</div><span class="priority-chip priority-p2">P2</span></div>
+            <div class="enhance-desc">EventBus 落地后展示事件发布者、订阅者、失败重试和最近吞吐。</div>
+            <a class="btn-soft" href="/architecture-roadmap">查看当前页</a>
+        </div>
+    </div>
+</div>
+
+<div class="roadmap-grid">
+    <div>
+        <div class="section-shell">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">页面落点矩阵</h2>
+                    <div class="panel-subtitle">按“用户是否需要操作或判断”来决定入口，不把纯工程细节暴露成独立页面。</div>
+                </div>
+            </div>
+            <div class="fit-table-wrap">
+                <table class="fit-table">
+                    <thead>
+                        <tr>
+                            <th>能力</th>
+                            <th>页面体现</th>
+                            <th>落点</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fit-name">策略 DSL / 参数热加载</td>
+                            <td class="fit-desc">展示因子阈值、风控线、策略模板与变更记录，支持在线调整非敏感参数。</td>
+                            <td><a class="badge-soft" href="/stock-selector">智能选股</a> <a class="badge-soft" href="/optimize">参数优化</a></td>
+                            <td><span class="status-chip status-integrate">集成现有页</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fit-name">AgentContext 标准化</td>
+                            <td class="fit-desc">把市场快照、用户偏好、历史记忆作为 Agent 输入面板，减少黑盒字符串拼接感。</td>
+                            <td><a class="badge-soft" href="/agent-center">Agent 中心</a> <a class="badge-soft" href="/ai-committee">AI 投委会</a></td>
+                            <td><span class="status-chip status-integrate">集成现有页</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fit-name">Agent 工作流状态机</td>
+                            <td class="fit-desc">呈现选股、研报分析、策略验证、人工纠偏的执行步骤与回滚点。</td>
+                            <td><a class="badge-soft" href="/research-pipeline">研究闭环</a></td>
+                            <td><span class="status-chip status-integrate">集成现有页</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fit-name">EventBus 事件流</td>
+                            <td class="fit-desc">显示 MarketDataUpdated、TradeExecuted 等领域事件的发布、订阅与失败重试。</td>
+                            <td><a class="badge-soft" href="/architecture-roadmap">架构演进</a></td>
+                            <td><span class="status-chip status-new">新增页面</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fit-name">全链路追踪</td>
+                            <td class="fit-desc">按 Trace ID 串起 API、Agent、数据库、外部 API 调用，定位投研任务失败原因。</td>
+                            <td><a class="badge-soft" href="/observability">观测台</a></td>
+                            <td><span class="status-chip status-integrate">集成现有页</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fit-name">缓存 / 冷热数据分层</td>
+                            <td class="fit-desc">展示 Redis、Parquet、Qlib bin 的健康度、命中率、预热状态和数据新鲜度。</td>
+                            <td><a class="badge-soft" href="/integration-hub">集成中枢</a></td>
+                            <td><span class="status-chip status-integrate">集成现有页</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fit-name">异步任务与回调</td>
+                            <td class="fit-desc">复杂复盘任务采用提交、排队、执行、通知四段式反馈，页面展示任务时间线。</td>
+                            <td><a class="badge-soft" href="/task/pending">任务详情</a> <a class="badge-soft" href="/message-center">消息中心</a></td>
+                            <td><span class="status-chip status-new">补强详情页</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fit-name">Polars / Dask / Ray 计算加速</td>
+                            <td class="fit-desc">用户只需要看到任务耗时、吞吐量和资源队列，不需要直接配置计算框架。</td>
+                            <td><a class="badge-soft" href="/backtest">策略回测</a> <a class="badge-soft" href="/integration-hub">集成中枢</a></td>
+                            <td><span class="status-chip status-backend">后台优先</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fit-name">用户中心决策链路</td>
+                            <td class="fit-desc">决策简报、行情鲜度、归因时间轴、策略采纳观察单、活跃任务续传；契约见 ux/decision-flow。</td>
+                            <td><a class="badge-soft" href="/capabilities">能力总览</a> <a class="badge-soft" href="/daily-workbench">操盘台</a> <a class="badge-soft" href="/message-center">消息中心</a></td>
+                            <td><span class="status-chip status-integrate">已落地</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fit-name">API DTO / Contract</td>
+                            <td class="fit-desc">ux/decision-flow 描述页面落点与 self_check_probes；能力总览/本页可一键自检。</td>
+                            <td><a class="badge-soft" href="/capabilities">能力总览</a> <a class="badge-soft" href="/architecture-roadmap">本页对照表</a></td>
+                            <td><span class="status-chip status-integrate">已落地</span></td>
+                        </tr>
+                        <tr>
+                            <td class="fit-name">DI 容器深化 / 适配器标准化</td>
+                            <td class="fit-desc">纯工程治理项，适合用健康检查和架构指标体现，不应干扰业务用户。</td>
+                            <td><a class="badge-soft" href="/architecture-roadmap">架构演进</a></td>
+                            <td><span class="status-chip status-later">治理项</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section-shell">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">实施阶段</h2>
+                    <div class="panel-subtitle">先做能验证效果的薄切片，再扩展到全局架构。</div>
+                </div>
+            </div>
+            <div class="phase-lane">
+                <div class="phase-card">
+                    <div class="phase-badge">短期<br>1-2 周</div>
+                    <div>
+                        <div class="phase-title">热配置、审计自动化、观测台补强</div>
+                        <div class="phase-desc">把策略阈值、风控线、任务 Trace ID 和审计记录变成用户能看懂的运行状态。</div>
+                        <div class="phase-links">
+                            <a class="btn-soft" href="/observability">Trace 查询</a>
+                            <a class="btn-soft" href="/optimize">参数优化</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="phase-card">
+                    <div class="phase-badge">中期<br>3-5 周</div>
+                    <div>
+                        <div class="phase-title">EventBus 与 Agent 状态机</div>
+                        <div class="phase-desc">从命令式调用转向事件驱动，让行情更新、扫描、交易计划和持仓刷新解耦。</div>
+                        <div class="phase-links">
+                            <a class="btn-soft" href="/research-pipeline">研究闭环</a>
+                            <a class="btn-soft" href="/agent-center">Agent 中心</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="phase-card">
+                    <div class="phase-badge">长期<br>6+ 周</div>
+                    <div>
+                        <div class="phase-title">计算下沉与协议层升级</div>
+                        <div class="phase-desc">把大规模回测和因子挖掘迁出 Web 进程，同时提高 API 契约覆盖率。</div>
+                        <div class="phase-links">
+                            <a class="btn-soft" href="/backtest">策略回测</a>
+                            <a class="btn-soft" href="/capabilities">能力总览</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="decision-panel">
+        <div class="section-shell">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">新增页面建议</h2>
+                    <div class="panel-subtitle">真正值得独立成页的，应该承载跨模块判断。</div>
+                </div>
+            </div>
+            <div class="decision-card">
+                <h3>架构演进</h3>
+                <p>当前页面负责展示重构计划、页面落点和阶段优先级，适合给产品和工程共同对齐。</p>
+            </div>
+            <div class="decision-card">
+                <h3>任务详情增强</h3>
+                <p>复盘、回测、Agent 工作流都应复用同一条任务时间线，展示排队、执行、回调和失败原因。</p>
+            </div>
+            <div class="decision-card">
+                <h3>观测台增强</h3>
+                <p>保留现有入口，补齐 Trace、事件流、熔断状态和慢调用排行，而不是再开一个监控页面。</p>
+            </div>
+        </div>
+
+        <div class="section-shell">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">不建议页面化</h2>
+                    <div class="panel-subtitle">这些能力应通过稳定性和性能改善让用户感知。</div>
+                </div>
+            </div>
+            <div class="decision-card">
+                <h3>DI 容器迁移</h3>
+                <p>是测试性和可维护性收益，不需要业务页面；最多在能力总览展示依赖健康度。</p>
+            </div>
+            <div class="decision-card">
+                <h3>适配器标准化</h3>
+                <p>适合以集成中枢的连接状态和错误边界体现，不做单独配置入口。</p>
+            </div>
+            <div class="decision-card">
+                <h3>序列化替换</h3>
+                <p>msgspec、zero-copy 等属于性能实现细节，页面只展示吞吐、延迟和缓存命中率。</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+async function loadRoadmapUxContract() {
+    if (!window.QAUserCenter) return;
+    const symInput = document.getElementById('uxCheckSymbol');
+    const sym = (symInput && symInput.value.trim()) || '600519';
+    const tbody = document.getElementById('uxSurfacesBody');
+    try {
+        const contract = await QAUserCenter.loadDecisionFlowContract('CN', sym);
+        const verEl = document.getElementById('uxContractVersion');
+        if (verEl) verEl.textContent = contract.version || '—';
+        const countEl = document.getElementById('uxSurfaceCount');
+        const surfaces = contract.ui_surfaces || [];
+        if (countEl) countEl.textContent = String(surfaces.length);
+        QAUserCenter.renderUiSurfacesTable(tbody, surfaces);
+    } catch (e) {
+        if (tbody) {
+            tbody.innerHTML =
+                '<tr><td colspan="4" class="fit-desc">契约加载失败：' +
+                (e.message || e) +
+                '</td></tr>';
+        }
+    }
+}
+
+document.getElementById('roadmapReloadContract').addEventListener('click', loadRoadmapUxContract);
+document.getElementById('roadmapRunSelfCheck').addEventListener('click', function () {
+    if (!window.QAUserCenter) return;
+    const sym = (document.getElementById('uxCheckSymbol').value || '600519').trim();
+    QAUserCenter.runDecisionFlowSelfCheck('roadmapSelfCheckResults', {
+        market: 'CN',
+        symbol: sym,
+    });
+});
+if (window.QAUserCenter) {
+    QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('roadmapFreshnessStrip'));
+    QAUserCenter.mountRefactorStatusPanel('roadmapRefactorStatus');
+    QAUserCenter.mountBeatSyncMiniPanel('roadmapBeatSyncMini', 3);
+    QAUserCenter.mountActiveJobsPanel('roadmapActiveJobs', 6);
+    setInterval(function () {
+        QAUserCenter.mountActiveJobsPanel('roadmapActiveJobs', 6);
+    }, 12000);
+    loadRoadmapUxContract();
+}
+
+document.querySelectorAll('.enhance-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const filter = btn.dataset.filter;
+        document.querySelectorAll('.enhance-filter').forEach(item => item.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('#enhanceGrid .enhance-card').forEach(card => {
+            card.style.display = filter === 'all' || card.dataset.priority === filter ? '' : 'none';
+        });
+    });
+});
+</script>
+{% endblock %}

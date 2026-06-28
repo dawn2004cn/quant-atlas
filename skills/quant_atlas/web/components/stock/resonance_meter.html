@@ -1,0 +1,76 @@
+{# Capability Component: technical resonance meter #}
+<div class="section-shell rm-panel"
+    id="resonance-meter"
+    x-data="resonanceMeterCapability()"
+    x-init="init()">
+    <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="panel-title mb-0">📊 技术指标共振计</h2>
+            <div class="panel-subtitle">MACD / KDJ / RSI / 均线综合信号</div>
+        </div>
+        <button type="button" class="btn-soft btn-sm" @click="load()">刷新</button>
+    </div>
+    <div id="indicatorResonance" class="mt-2">
+        <div class="loading-state" x-show="loading" x-cloak>计算共振信号…</div>
+        <template x-if="!loading && data.ok">
+            <div class="rm-grid">
+                <div class="rm-score-row" :style="scoreStyle">
+                    <div class="rm-score-ring">
+                        <span x-text="(data.resonance_score || 0) + '%'" class="rm-score-val"></span>
+                    </div>
+                    <div class="rm-score-body">
+                        <div class="text-lg rm-signal-label" x-text="data.signal_label || '观望'"></div>
+                        <div class="text-xs text-muted" x-text="'买入信号 ' + (data.buy_signals||0) + ' · 卖出信号 ' + (data.sell_signals||0)"></div>
+                    </div>
+                </div>
+                <div class="rm-factor-grid">
+                    <template x-for="d in (data.details || []).slice(0,6)" :key="d.indicator + d.signal">
+                        <div class="trade-plan-panel rm-factor-card">
+                            <div class="text-xs text-muted mb-1" x-text="d.indicator"></div>
+                            <div class="text-sm rm-factor-signal" x-text="signalText(d)"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+        <div class="empty-state" x-show="!loading && !data.ok" x-cloak x-text="data.error || '共振数据不可用'"></div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function resonanceMeterCapability() {
+    return {
+        loading: true,
+        data: { ok: false },
+        get scoreStyle() {
+            const sig = this.data.signal || 'neutral';
+            const pos = 'background:linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05));';
+            const neg = 'background:linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04));';
+            const neu = 'background:linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.04));';
+            if (sig.indexOf('buy') >= 0) return pos;
+            if (sig.indexOf('sell') >= 0) return neg;
+            return neu;
+        },
+        init() { this.load(); },
+        signalText(d) {
+            const map = { buy: '偏多 ↑', sell: '偏空 ↓', neutral: '中性' };
+            return (d.value ? d.value + ' · ' : '') + (map[d.signal] || d.signal);
+        },
+        load() {
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '').toUpperCase();
+            const mkt = (typeof MS_MARKET !== 'undefined' ? MS_MARKET : 'CN').toUpperCase();
+            if (!sym) return;
+            this.loading = true;
+            fetch('/api/v1/stocks/' + encodeURIComponent(mkt) + '/' + encodeURIComponent(sym) + '/resonance', {
+                credentials: 'same-origin',
+            })
+                .then((r) => r.json())
+                .then((res) => {
+                    this.data = res.data || res;
+                })
+                .catch(() => { this.data = { ok: false, error: '加载失败' }; })
+                .finally(() => { this.loading = false; });
+        },
+    };
+}
+</script>

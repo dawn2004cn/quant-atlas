@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}AI研究报告 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/ai-research-report" class="spa-switcher-link"
+   data-spa-switcher="ai-research-report">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="section-shell aireport-hero">
+    <div class="hero-caption">TradingAgents</div>
+    <h1 class="page-title">AI 研究报告</h1>
+    <p class="page-subtitle">六角色协同分析、K 线与默认参数回测对照；结论仅供研究复盘，不构成投资建议。</p>
+    <div id="aireportFreshnessStrip" class="qa-is-hidden qc-freshness-strip aireport-freshness-mt" aria-live="polite"></div>
+</div>
+<div
+    id="ai-research-mount"
+    class="aireport-root"
+    data-user-id="{{ current_user.id | int }}"
+></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/vendor/echarts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/AiResearchReport.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+    $(function () {
+        if (window.QAUserCenter) {
+            QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('aireportFreshnessStrip'));
+        }
+        var el = document.getElementById("ai-research-mount");
+        if (el && window.AiResearchReport) {
+            new AiResearchReport(el);
+        }
+    });
+</script>
+{% endblock %}

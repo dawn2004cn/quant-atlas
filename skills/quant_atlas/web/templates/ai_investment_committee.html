@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}AI 投资委员会决策流 - Quant Atlas{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/vendor/marked.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='js/qa_markdown_safe.js') }}"></script>
+{{ super() }}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/ai-investment-committee" class="spa-switcher-link"
+   data-spa-switcher="ai-investment-committee">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="投委会使用提示">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">观点要落到计划</div>
+        <p class="qc-ux-step-desc">辩论输出用于解释与审计，不直接等于交易；建议回个股详情写买卖计划并放入观察单跟踪。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.signal_observations') }}">观察单</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.ai_analysis') }}">AI 诊股</a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">异常先看配置</div>
+        <p class="qc-ux-step-desc">投委会依赖大模型配置与外部数据证据；失败或超时优先去集成中枢排查。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.message_center') }}">消息中心</a>
+    </div>
+</section>
+
+<div class="comm-hero">
+    <div class="comm-hero-row">
+        <div>
+            <div class="hero-caption">Multi-Agent Consensus Engine</div>
+            <h1 class="page-title comm-hero-title">AI 投资委员会</h1>
+            <p class="page-subtitle">召集多位 AI 专家进行多维度实时辩论。输入代码，即刻开启逻辑审计。</p>
+        </div>
+        <div class="comm-symbol-bar">
+            <input type="text" id="symbolInput" class="input-soft" placeholder="代码: 600519" value="600519" class="input-soft comm-input-narrow">
+            <select id="marketSelect" class="select-soft comm-select-narrow">
+                <option value="CN">🇨🇳 A股</option><option value="US">🇺🇸 美股</option><option value="HK">🇭🇰 港股</option><option value="CRYPTO">₿ 加密</option>
+            </select>
+            <button class="btn-brand" type="button" data-aic-action="start-debate">🚀 开始辩论</button>
+        </div>
+    </div>
+</div>
+
+<div class="context-grid">
+    <div class="context-card">
+        <div class="context-title">AgentContext <span class="badge-soft">输入透明</span></div>
+        <p class="context-copy">每次辩论前先固定上下文，避免不同 Agent 各自拿到不一致的市场信息。</p>
+        <div class="context-list">
+            <div class="context-row"><strong>MarketSnapshot</strong><span id="ctxMarket">CN · 600519 · 待加载</span></div>
+            <div class="context-row"><strong>UserPreference</strong><span>风险中性 · 偏解释</span></div>
+            <div class="context-row"><strong>HistoryMemory</strong><span>近 30 天观察与报告</span></div>
+        </div>
+    </div>
+    <div class="context-card">
+        <div class="context-title">决策边界 <span class="badge-soft">防误用</span></div>
+        <p class="context-copy">页面明确区分“观点生成”和“交易执行”，防止用户把单次 AI 结论当成自动下单信号。</p>
+        <div class="context-list">
+            <div class="context-row"><strong>交易动作</strong><span>仅建议，不执行</span></div>
+            <div class="context-row"><strong>风控门槛</strong><span>波动/回撤优先</span></div>
+            <div class="context-row"><strong>复核要求</strong><span>高冲突时需人工确认</span></div>
+        </div>
+    </div>
+    <div class="context-card">
+        <div class="context-title">可追溯性 <span class="badge-soft">Trace Ready</span></div>
+        <p class="context-copy">辩论完成后应沉淀 Trace ID、证据版本、Agent 投票和最终裁决，便于复盘。</p>
+        <div class="context-list">
+            <div class="context-row"><strong>Trace</strong><span id="ctxTrace">等待任务生成</span></div>
+            <div class="context-row"><strong>证据版本</strong><span>行情/新闻/财报</span></div>
+            <div class="context-row"><strong>沉淀入口</strong><span>研究闭环</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="agent-pulse-row">
+    <div class="agent-pulse-item" id="p-buffett"><div class="agent-avatar-circle">📊</div><div class="bubble-role">巴菲特</div></div>
+    <div class="agent-pulse-item" id="p-lynch"><div class="agent-avatar-circle">📈</div><div class="bubble-role">林奇</div></div>
+    <div class="agent-pulse-item" id="p-wood"><div class="agent-avatar-circle">🎯</div><div class="bubble-role">伍德</div></div>
+    <div class="agent-pulse-item" id="p-risk_man"><div class="agent-avatar-circle">🛡️</div><div class="bubble-role">风控</div></div>
+</div>
+
+<div class="audit-grid">
+    <div class="audit-panel">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">证据栈</h2>
+                <div class="panel-subtitle">用户需要先看到 AI 凭什么判断，再看最终结论。</div>
+            </div>
+        </div>
+        <div class="evidence-list" id="evidenceList">
+            <div class="evidence-item">
+                <div class="evidence-top"><span>行情快照</span><span>待查询</span></div>
+                <div class="evidence-note">价格、成交量、波动、指数环境将作为所有 Agent 的共享输入。</div>
+            </div>
+            <div class="evidence-item">
+                <div class="evidence-top"><span>基本面摘要</span><span>待查询</span></div>
+                <div class="evidence-note">估值、ROE、利润趋势用于价值与质量判断。</div>
+            </div>
+            <div class="evidence-item">
+                <div class="evidence-top"><span>事件与情绪</span><span>待查询</span></div>
+                <div class="evidence-note">新闻、研报、社交情绪用于解释短期异动。</div>
+            </div>
+        </div>
+    </div>
+    <div class="audit-panel">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">冲突雷达</h2>
+                <div class="panel-subtitle">高冲突不是坏事，它提示用户应该复核哪些维度。</div>
+            </div>
+        </div>
+        <div class="conflict-meter" id="conflictMeter">
+            <div class="conflict-row"><span>估值分歧</span><div class="conflict-bar"><div class="conflict-fill w35"></div></div><span>35</span></div>
+            <div class="conflict-row"><span>趋势分歧</span><div class="conflict-bar"><div class="conflict-fill w48"></div></div><span>48</span></div>
+            <div class="conflict-row"><span>风控分歧</span><div class="conflict-bar"><div class="conflict-fill w62"></div></div><span>62</span></div>
+            <div class="conflict-row"><span>证据缺口</span><div class="conflict-bar"><div class="conflict-fill w40"></div></div><span>40</span></div>
+        </div>
+    </div>
+</div>
+
+<div class="human-loop">
+    <div>
+        <h2>人工纠偏与复盘</h2>
+        <p>当结论和你的判断冲突时，不需要重跑全流程。可以先标记误判原因、补充证据，再进入研究闭环沉淀。</p>
+    </div>
+    <div class="human-actions">
+        <button class="btn-soft" type="button" data-aic-action="mark-review" data-review="evidence">证据不足</button>
+        <button class="btn-soft" type="button" data-aic-action="mark-review" data-review="risk">风控优先</button>
+        <button class="btn-brand" type="button" data-aic-action="save-loop">沉淀到研究闭环</button>
+    </div>
+</div>
+
+<div class="comm-board">
+    <div class="chat-stream" id="chatStream">
+        <div class="loading-tile">输入股票代码并点击按钮，在此查看 AI 专家的逻辑交锋</div>
+    </div>
+
+    <div class="sidebar">
+        <div id="decisionPanel" class="qa-is-hidden consensus-panel">
+            <div class="comm-verdict-title">⚖️ 委员会终局裁决</div>
+            
+            <div class="final-action-orb">
+                <div class="comm-verdict-label">Final Decision</div>
+                <div id="finalAction" class="comm-verdict-action">--</div>
+                <div id="confidence" class="comm-verdict-conf">Confidence: --</div>
+            </div>
+
+            <div id="voteStats" class="comm-vote-grid"></div>
+            
+            <div class="comm-verdict-foot">
+                <strong>决策说明：</strong> 基于巴菲特的估值、林奇的动量、伍德的成长以及风控 Agent 的下行压力进行加权聚合。
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+async function startDebate() {
+    const symbol = document.getElementById('symbolInput').value.trim();
+    const market = document.getElementById('marketSelect').value;
+    if (!symbol) return;
+
+    const stream = document.getElementById('chatStream');
+    stream.innerHTML = '';
+    document.getElementById('decisionPanel').style.display = 'none';
+    document.querySelectorAll('.agent-pulse-item').forEach(i => i.classList.remove('active'));
+    updateContextPreview(symbol, market);
+    renderEvidencePreview(symbol, market);
+
+    try {
+        const res = await fetch(`/api/v1/ai-committee/analyze?symbol=${encodeURIComponent(symbol)}&market=${market}`);
+        const json = await res.json();
+        if (!res.ok) {
+            const msg = (json && json.error && json.error.message) || json.message || ('HTTP ' + res.status);
+            throw new Error(String(msg));
+        }
+        const data = json.data !== undefined ? json.data : json;
+        if (!data || !Array.isArray(data.steps) || !data.consensus) {
+            throw new Error('返回结构不符合预期（缺少 steps/consensus）');
+        }
+
+        for (let i = 0; i < data.steps.length; i++) {
+            await new Promise(r => setTimeout(r, 1000));
+            renderStep(data.steps[i], i % 2 === 0 ? 'left' : 'right');
+        }
+
+        await new Promise(r => setTimeout(r, 800));
+        renderConsensus(data.consensus);
+        renderConflictMeter(data.consensus);
+    } catch (e) {
+        stream.innerHTML = `<div class="loading-tile negative">❌ 辩论中断: ${e && e.message ? e.message : String(e)}</div>` +
+            `<div class="mt-3"><a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a> <a class="btn-soft btn-sm" href="/message-center">消息中心</a></div>`;
+    }
+}
+
+function updateContextPreview(symbol, market) {
+    document.getElementById('ctxMarket').textContent = `${market} · ${symbol} · 共享输入已锁定`;
+    document.getElementById('ctxTrace').textContent = `local-${market}-${symbol}-${Date.now().toString().slice(-6)}`;
+}
+
+function renderEvidencePreview(symbol, market) {
+    const evidence = [
+        ['行情快照', `${market}:${symbol}`, '同步价格、成交量、近端波动和指数环境。'],
+        ['基本面摘要', '质量/估值', '用于价值 Agent 和风控 Agent 的共同约束。'],
+        ['事件与情绪', '新闻/研报/社交', '用于解释短期异动，证据不足时提示人工复核。']
+    ];
+    document.getElementById('evidenceList').innerHTML = evidence.map(item => `
+        <div class="evidence-item">
+            <div class="evidence-top"><span>${item[0]}</span><span>${item[1]}</span></div>
+            <div class="evidence-note">${item[2]}</div>
+        </div>
+    `).join('');
+}
+
+function renderConflictMeter(consensus) {
+    const votes = consensus?.votes || {};
+    const bullish = parseInt(votes.bullish || 0, 10);
+    const bearish = parseInt(votes.bearish || 0, 10);
+    const neutral = parseInt(votes.neutral || 0, 10);
+    const risk = parseInt(votes.risk || 0, 10);
+    const total = Math.max(1, bullish + bearish + neutral + risk);
+    const conflict = Math.min(100, Math.round((Math.min(bullish + neutral, bearish + risk) / total) * 160));
+    const riskConflict = Math.min(100, Math.round((risk / total) * 120));
+    const evidenceGap = consensus?.confidence ? Math.max(5, 100 - parseInt(consensus.confidence, 10)) : 40;
+    const rows = [
+        ['估值分歧', Math.max(20, conflict)],
+        ['趋势分歧', Math.max(15, Math.round((neutral / total) * 100))],
+        ['风控分歧', Math.max(10, riskConflict)],
+        ['证据缺口', evidenceGap]
+    ];
+    document.getElementById('conflictMeter').innerHTML = rows.map(([label, value]) => `
+        <div class="conflict-row"><span>${label}</span><div class="conflict-bar"><div class="conflict-fill" style="width:${value}%"></div></div><span>${value}</span></div>
+    `).join('');
+}
+
+function markReview(reason) {
+    const labels = { evidence: '已标记：证据不足，建议补充研报或新闻来源', risk: '已标记：风控优先，建议降低仓位或等待确认' };
+    showToast(labels[reason] || '已标记复核原因', 'info');
+}
+
+function saveToResearchLoop() {
+    showToast('已生成研究闭环草稿：包含上下文、证据栈、投票与人工标记', 'success');
+}
+
+function renderStep(step, side) {
+    const stream = document.getElementById('chatStream');
+    const bubble = document.createElement('div');
+    bubble.className = `bubble ${side}`;
+    
+    const sigLabel = {bullish:'📈 看多', bearish:'📉 看空', neutral:'⏸️ 中性', risk:'⚠️ 警告'}[step.signal];
+    const sigColor = {bullish:'var(--positive)', bearish:'var(--negative)', neutral:'var(--brand)', risk:'#f59e0b'}[step.signal];
+
+    bubble.innerHTML = `
+        <div class="bubble-header">
+            <span class="comm-bubble-icon">${step.agent_avatar}</span>
+            <div class="comm-bubble-body">
+                <div class="bubble-name">${step.agent_name}</div>
+                <div class="bubble-role">${step.agent_role}</div>
+            </div>
+            <span class="bubble-signal" style="background:${sigColor}15; color:${sigColor}">${sigLabel}</span>
+        </div>
+        <div class="comm-bubble-text">${renderMarkdownSafe(step.reasoning)}</div>
+    `;
+    stream.appendChild(bubble);
+    setTimeout(() => bubble.classList.add('visible'), 50);
+    
+    // Activate pulse
+    document.querySelectorAll('.agent-pulse-item').forEach(i => i.classList.remove('active'));
+    const pulseEl = document.getElementById(`p-${step.agent_id}`);
+    if (pulseEl) pulseEl.classList.add('active');
+    
+    bubble.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function renderConsensus(con) {
+    const panel = document.getElementById('decisionPanel');
+    panel.style.display = 'block';
+    
+    const actionMap = {bullish:'积极做多', bearish:'卖出/避险', neutral:'继续持有', risk:'强力降仓'};
+    document.getElementById('finalAction').textContent = actionMap[con.final_action] || con.final_action;
+    document.getElementById('confidence').textContent = `Confidence Score: ${con.confidence}`;
+    
+    const voteStats = document.getElementById('voteStats');
+    voteStats.innerHTML = '';
+    const labels = {bullish:'📈 偏多', bearish:'📉 偏空', neutral:'⏸️ 持平', risk:'🛡️ 风控'};
+    const colors = {bullish:'var(--positive)', bearish:'var(--negative)', neutral:'var(--brand)', risk:'#f59e0b'};
+    
+    Object.keys(con.votes).forEach(k => {
+        const val = con.votes[k];
+        if (parseInt(val) === 0) return;
+        voteStats.innerHTML += `
+            <div class="comm-vote-row">
+                <span class="comm-vote-label">${labels[k]}</span>
+                <div class="comm-vote-track">
+                    <div class="comm-vote-fill" style="width:${val}; background:${colors[k]}"></div>
+                </div>
+                <span class="comm-vote-val">${val}</span>
+            </div>
+        `;
+    });
+    
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-aic-action]');
+    if (!el) return;
+    const action = el.dataset.aicAction;
+    if (action === 'start-debate') startDebate();
+    else if (action === 'mark-review') markReview(el.dataset.review || '');
+    else if (action === 'save-loop') saveToResearchLoop();
+});
+</script>
+{% endblock %}

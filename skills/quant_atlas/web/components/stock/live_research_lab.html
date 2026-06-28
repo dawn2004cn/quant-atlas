@@ -1,0 +1,121 @@
+{# Live-Document: streaming research dashboard (Quant Atlas 5.0) #}
+<div class="section-shell lrl-panel"
+    id="live-research-lab"
+   
+    x-data="liveResearchLabCapability()"
+    x-init="init()">
+    <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="panel-title mb-0">📡 流式研究空间 (Live-Document)</h2>
+            <div class="panel-subtitle">
+                三色灯 · 共振计 · Agent 辩论 — 随行情自动刷新
+                <span class="text-muted" x-show="lastUpdated" x-cloak> · <span x-text="lastUpdated"></span></span>
+            </div>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge bg-dark" x-show="streaming" x-cloak>LIVE</span>
+            <button type="button" class="btn-soft btn-sm" @click="poll(true)">立即刷新</button>
+        </div>
+    </div>
+
+    <div class="mt-3 lrl-lights">
+        <template x-for="key in ['data_truth','technical','agent_debate']" :key="key">
+            <div class="trade-plan-panel text-center" :style="lightStyle(doc.traffic_lights[key])">
+                <div class="text-xs text-muted mb-1" x-text="(doc.traffic_lights[key] || {}).label || key"></div>
+                <div x-text="lightEmoji(doc.traffic_lights[key])" class="lrl-light-emoji"></div>
+                <div class="text-sm font-bold" x-text="(doc.traffic_lights[key] || {}).status || '—'"></div>
+                <div class="text-xs text-muted mt-1" x-text="(doc.traffic_lights[key] || {}).detail || ''"></div>
+            </div>
+        </template>
+    </div>
+
+    <div class="row mt-3 g-3">
+        <div class="col-md-6">
+            <div class="trade-plan-panel">
+                <div class="text-xs font-bold text-muted mb-2">共振计快照</div>
+                <template x-if="doc.resonance && doc.resonance.ok">
+                    <div>
+                        <strong x-text="doc.resonance.signal_label || '观望'"></strong>
+                        <span class="text-muted text-sm" x-text="' · ' + (doc.resonance.resonance_score||0) + '%'"></span>
+                    </div>
+                </template>
+                <div class="text-muted text-sm" x-show="!(doc.resonance && doc.resonance.ok)" x-cloak>共振计算中…</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="trade-plan-panel">
+                <div class="text-xs font-bold text-muted mb-2">辩论共识</div>
+                <template x-if="doc.debate && doc.debate.verdict">
+                    <div>
+                        <span class="badge" :class="verdictClass(doc.debate.verdict)" x-text="doc.debate.verdict"></span>
+                        <span class="text-muted text-sm" x-text="' conf ' + (doc.debate.confidence||0)"></span>
+                    </div>
+                </template>
+                <div class="text-muted text-sm" x-show="!(doc.debate && doc.debate.verdict)" x-cloak>等待辩论轮次…</div>
+            </div>
+        </div>
+    </div>
+
+    <template x-if="doc.handover && doc.handover.eligible">
+        <div class="qc-decision-warn mt-3" x-text="doc.handover.message"></div>
+    </template>
+
+    <template x-if="(doc.recent_events || []).length">
+        <div class="mt-3">
+            <div class="text-xs font-bold text-muted mb-1">实时事件流</div>
+            <template x-for="evt in (doc.recent_events || []).slice(0,5)" :key="evt.timestamp + evt.event">
+                <div class="text-sm text-muted" x-text="evt.summary + ' · ' + (evt.timestamp || '').slice(11,19)"></div>
+            </template>
+        </div>
+    </template>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function liveResearchLabCapability() {
+    return {
+        doc: { traffic_lights: {}, resonance: {}, debate: {}, recent_events: [] },
+        lastUpdated: '',
+        streaming: true,
+        _timer: null,
+        init() {
+            this.poll(true);
+            this._timer = setInterval(() => this.poll(false), 12000);
+        },
+        poll(force) {
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '').toUpperCase();
+            const mkt = (typeof MS_MARKET !== 'undefined' ? MS_MARKET : 'CN').toUpperCase();
+            if (!sym) return;
+            const q = force ? '?full=1' : '';
+            fetch('/api/v1/stocks/' + encodeURIComponent(mkt) + '/' + encodeURIComponent(sym) + '/live-document' + q, {
+                credentials: 'same-origin',
+            })
+                .then((r) => r.json())
+                .then((res) => {
+                    const d = res.data || res;
+                    if (d.ok) {
+                        this.doc = d;
+                        this.lastUpdated = (d.updated_at || '').slice(11, 19);
+                        window.dispatchEvent(new CustomEvent('live-document-updated', { detail: d }));
+                    }
+                })
+                .catch(() => {});
+        },
+        lightEmoji(light) {
+            const c = (light || {}).color || 'yellow';
+            if (c === 'green') return '🟢';
+            if (c === 'red') return '🔴';
+            return '🟡';
+        },
+        lightStyle(light) {
+            const c = (light || {}).color || 'yellow';
+            const bg = c === 'green' ? 'rgba(16,185,129,0.08)' : (c === 'red' ? 'rgba(239,68,68,0.08)' : 'rgba(234,179,8,0.08)');
+            return 'background:' + bg + ';';
+        },
+        verdictClass(v) {
+            if (v === 'bullish') return 'bg-success';
+            if (v === 'bearish') return 'bg-danger';
+            return 'bg-secondary';
+        },
+    };
+}
+</script>

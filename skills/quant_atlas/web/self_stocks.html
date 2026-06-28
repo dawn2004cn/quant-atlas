@@ -1,0 +1,2018 @@
+{% extends "base.html" %}
+
+{% block spa_switcher %}
+
+<a href="/app/self-stocks" class="spa-switcher-link"
+
+   data-spa-switcher="self-stocks">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+
+
+
+
+{% block title %}自选股中心 - Quant Atlas{% endblock %}
+
+
+
+
+
+{% block extra_css %}
+
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
+
+
+{% endblock %}
+
+
+
+
+
+{% block content %}
+
+
+<div id="ssPsychologyBanner" class="qc-ux-banner qc-ux-banner--danger qa-is-hidden" role="alert"></div>
+
+
+<div class="watch-page">
+
+
+    <section class="watch-hero">
+
+
+        <div>
+
+
+            <div class="hero-caption">Strategic Watchlist 2.0</div>
+
+
+            <h1 class="page-title">自选股中心</h1>
+            <p class="page-subtitle">把分组、行情、健康分、异动原因、风险提示、新闻线索和批量动作放到同一个工作台里。</p>
+        </div>
+
+
+        <div class="watch-actions">
+
+
+            <button class="btn-brand" type="button" data-watch-action="open-add-modal">新增标的</button>
+
+
+            <button class="btn-soft" type="button" data-watch-action="open-batch-modal">批量导入</button>
+
+
+            <button class="btn-soft" type="button" data-watch-action="export-watchlist" data-format="csv">导出 CSV</button>
+
+
+        </div>
+
+
+    </section>
+
+
+
+
+
+    {% for h in ux_env_hints|default([]) %}
+
+
+    <div class="qc-ux-banner qc-ux-banner--info">
+
+
+        <div class="qc-ux-banner__title">{{ h.title }}</div>
+
+
+        <div class="qc-ux-banner__body">{{ h.body }}</div>
+
+
+        {% if h.href and h.label %}
+
+
+        <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+
+
+        {% endif %}
+
+
+    </div>
+
+
+    {% endfor %}
+
+
+    <section class="qc-ux-onboarding" aria-label="自选股快速上手" style="margin-bottom:14px;">
+        <div class="qc-ux-step">
+
+
+            <span class="qc-ux-step-num">1</span>
+            <div class="qc-ux-step-title">新增或导入</div>
+            <p class="qc-ux-step-desc">支持单只添加与批量粘贴代码，分组内统一管理。</p>
+            <button class="btn-brand btn-sm" type="button" data-watch-action="open-add-modal">新增标的</button>
+
+
+        </div>
+
+
+        <div class="qc-ux-step">
+
+
+            <span class="qc-ux-step-num">2</span>
+
+
+            <div class="qc-ux-step-title">回操盘台看总览</div>
+            <p class="qc-ux-step-desc">与市场天气、决策分联动，形成「环境 → 个股」视角。</p>
+            <a class="btn-soft btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
+        </div>
+
+
+        <div class="qc-ux-step">
+
+
+            <span class="qc-ux-step-num">3</span>
+            <div class="qc-ux-step-title">用观察单做复盘</div>
+            <p class="qc-ux-step-desc">把信号与计划落成可跟踪条目，便于对照后续走势。</p>
+            <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">模拟观察单</a>
+        </div>
+
+
+    </section>
+
+
+
+
+
+    <section class="glass-panel watch-toolbar">
+
+
+        <select id="groupSelect" class="watch-select" aria-label="自选股分组"></select>
+
+
+        <select id="sortSelect" class="watch-select" aria-label="排序方式">
+            <option value="priority">优先级</option>
+            <option value="health">健康分</option>
+            <option value="change">涨跌幅</option>
+            <option value="risk">风险优先</option>
+            <option value="amount">成交额</option>
+        </select>
+
+
+        <input id="searchInput" class="watch-input" type="search" placeholder="搜索代码 / 名称 / 行业">
+
+
+        <button class="btn-brand" type="button" data-watch-action="refresh-dashboard" id="watchRefreshBtn">刷新</button>
+
+
+    </section>
+
+
+    <div id="watchlistFreshnessStrip" class="qc-freshness-strip qa-is-hidden" aria-live="polite"></div>
+
+
+
+
+
+    <section class="watch-grid">
+
+
+        <aside class="glass-panel watch-panel">
+
+
+            <div class="watch-panel-title">组合概览 <span id="generatedAt" class="mini-label"></span></div>
+
+
+            <div class="stat-grid">
+
+
+                <div class="stat-tile"><div class="stat-label">可评分</div><div id="statTotal" class="stat-value">--</div></div>
+
+
+                <div class="stat-tile"><div class="stat-label">健康均分</div><div id="statAvg" class="stat-value">--</div></div>
+
+
+                <div class="stat-tile"><div class="stat-label">强势标的</div><div id="statStrong" class="stat-value">--</div></div>
+
+
+                <div class="stat-tile"><div class="stat-label">风险标的</div><div id="statRisk" class="stat-value">--</div></div>
+
+
+            </div>
+
+
+            <div id="summaryText" class="share-card mt-3"></div>
+
+
+
+
+
+            <div class="watch-panel-title mt-4">行业暴露</div>
+
+
+            <div id="industryBox"></div>
+
+
+
+
+
+            <div class="watch-panel-title mt-4">情绪分布</div>
+
+
+            <div id="sentimentBox" class="sentiment-strip"></div>
+
+
+        </aside>
+
+
+
+
+
+        <main>
+
+
+            <div id="stockList" class="stock-list">
+
+
+                <div class="glass-panel loading-state">正在加载自选股数据...</div>
+
+
+            </div>
+
+
+        </main>
+
+
+
+
+
+        <aside class="glass-panel watch-panel">
+            <div class="watch-panel-title">风险与动作</div>
+            <div id="alertBox"></div>
+
+
+
+
+
+            <div class="watch-panel-title mt-4">批量能力</div>
+
+
+            <div id="batchBox"></div>
+
+
+            <div class="watch-panel-title mt-4">分享观察卡</div>
+            <div id="shareBox" class="share-card"></div>
+
+
+            
+
+
+            <div class="watch-panel-title mt-4 watch-panel-title--brand">🎓 影子操盘</div>
+
+
+            <div id="shadowMirrors">
+
+
+                <div class="shadow-mirror-grid">
+
+
+                    <div class="stat-tile stat-tile--accent-blue">
+
+
+                        <div class="flex justify-between">
+
+
+                            <span class="stat-label">巴菲特</span>
+
+
+                            <span class="text-sm positive">+5.2%</span>
+
+
+                        </div>
+
+
+                        <div class="text-xs text-muted mt-1">建议卖出 600519，当前估值过高</div>
+
+
+                    </div>
+
+
+                    <div class="stat-tile stat-tile--accent-purple">
+
+
+                        <div class="flex justify-between">
+
+
+                            <span class="stat-label">彼得·林奇</span>
+
+
+                            <span class="text-sm negative">-2.1%</span>
+
+
+                        </div>
+
+
+                        <div class="text-xs text-muted mt-1">建议加仓 000858，业绩反转在即</div>
+
+
+                    </div>
+
+
+                    <div class="stat-tile stat-tile--accent-green">
+
+
+                        <div class="flex justify-between">
+
+
+                            <span class="stat-label">达里奥</span>
+
+
+                            <span class="text-sm positive">+1.8%</span>
+
+
+                        </div>
+
+
+                        <div class="text-xs text-muted mt-1">建议配置 10% 债券避险</div>
+
+
+                    </div>
+
+
+                </div>
+
+
+                <button class="btn-soft btn-sm mt-3 shadow-mirror-btn" type="button" data-watch-action="shadow-details">查看详细对比 →</button>
+
+
+            </div>
+
+
+        </aside>
+
+
+    </section>
+
+
+</div>
+
+
+
+
+
+<div id="addStockModal" class="modal-sheet" data-modal-id="addStockModal">
+
+
+    <div class="modal-card">
+
+
+        <div class="modal-title">新增自选标的</div>
+
+
+        <input type="text" id="newStockCode" class="watch-input" placeholder="例如 600519、000001">
+
+
+        <div class="mini-label mt-2">会加入当前分组，并在刷新后生成健康分、异动原因和诊断入口。</div>
+
+
+        <div class="modal-actions">
+
+
+            <button class="btn-soft" type="button" data-watch-action="close-modal" data-modal-id="addStockModal">取消</button>
+
+
+            <button class="btn-brand" type="button" data-watch-action="submit-add-stock">加入</button>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+
+
+
+<div id="batchModal" class="modal-sheet" data-modal-id="batchModal">
+
+
+    <div class="modal-card">
+
+
+        <div class="modal-title">批量导入标的</div>
+
+
+        <textarea id="batchCodes" class="watch-input" placeholder="每行一个代码，也支持逗号、空格分隔"></textarea>
+
+
+        <div class="modal-actions">
+
+
+            <button class="btn-soft" type="button" data-watch-action="close-modal" data-modal-id="batchModal">取消</button>
+
+
+            <button class="btn-brand" type="button" data-watch-action="submit-batch-add">导入</button>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+{% endblock %}
+
+
+
+
+
+{% block extra_js %}
+
+
+<script nonce="{{ csp_nonce() }}">
+
+
+let watchState = { groups: [], data: null, items: [], quoteFreshness: {} };
+
+
+
+
+
+const fmt = {
+
+
+    num(value, digits = 2) {
+
+
+        const n = Number(value || 0);
+
+
+        return Number.isFinite(n) ? n.toFixed(digits) : '--';
+
+
+    },
+
+
+    money(value) {
+
+
+        const n = Number(value || 0);
+
+
+        if (!Number.isFinite(n) || n <= 0) return '--';
+
+
+        if (n >= 100000000) return (n / 100000000).toFixed(1) + '亿';
+
+
+        if (n >= 10000) return (n / 10000).toFixed(0) + '万';
+
+
+        return n.toFixed(0);
+
+
+    },
+
+
+    esc(value) {
+
+
+        return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({
+
+
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+
+
+        }[c]));
+
+
+    }
+
+
+};
+
+
+
+
+
+function extractData(json, key) {
+
+
+    if (!json) return key ? [] : {};
+
+
+    let payload = json.data !== undefined && json.data !== null ? json.data : json;
+
+
+    if (key) {
+
+
+        if (Array.isArray(payload)) return payload;
+
+
+        if (payload && Array.isArray(payload[key])) return payload[key];
+
+
+        if (Array.isArray(json[key])) return json[key];
+
+
+        return [];
+
+
+    }
+
+
+    return payload ?? {};
+
+
+}
+
+
+
+
+
+async function loadGroups() {
+
+
+    const res = await fetch('/api/v1/stock-groups');
+
+
+    const json = await res.json();
+
+
+    const groups = extractData(json, 'groups') || [];
+
+
+    const select = document.getElementById('groupSelect');
+
+
+    const previous = select.value;
+
+
+    watchState.groups = groups;
+
+
+    select.innerHTML = groups.map(g => `<option value="${fmt.esc(g.id)}">${fmt.esc(g.name || ('分组 ' + g.id))}</option>`).join('');
+
+
+    if (previous && groups.some(g => String(g.id) === previous)) select.value = previous;
+
+
+    if (!select.value && groups.length) select.value = groups[0].id;
+
+
+}
+
+
+
+
+
+async function loadDashboard() {
+
+
+    const list = document.getElementById('stockList');
+
+
+    list.innerHTML = '<div class="glass-panel loading-state">正在加载自选股数据...</div>';
+
+
+    try {
+
+
+        await loadGroups();
+
+
+        const gid = document.getElementById('groupSelect').value;
+
+
+        const sort = document.getElementById('sortSelect').value;
+
+
+        if (!gid) {
+
+
+            renderEmpty('还没有自选分组。可以先在其他页面加自选，或新增一个标的。', { onboarding: true });
+
+
+            renderSidebars({});
+
+
+            return;
+
+
+        }
+
+
+        const url = `/api/v1/watchlist/experience?group_id=${encodeURIComponent(gid)}&sort_by=${encodeURIComponent(sort)}&include_news=true`;
+
+
+        const res = await fetch(url);
+
+
+        const json = await res.json();
+
+
+        if (!res.ok) throw new Error(json.message || '接口请求失败');
+
+
+        const data = extractData(json);
+
+
+        watchState.data = data;
+
+
+        watchState.items = data.items || [];
+
+
+        renderSidebars(data);
+
+
+        renderStocks();
+
+
+    } catch (err) {
+
+
+        list.innerHTML = `<div class="glass-panel empty-state empty-state-block">
+
+
+            <div class="empty-state-title">自选股数据加载失败</div>
+
+
+            <div class="mini-label empty-state-note">${fmt.esc(err.message || err)}</div>
+
+
+            <button type="button" class="btn-brand btn-sm" data-watch-action="refresh-dashboard">重试</button>
+
+
+            <a class="btn-soft btn-sm ml-2" href="/integration-hub">集成中枢</a>
+
+
+        </div>`;
+
+
+    }
+
+
+}
+
+
+
+
+
+function renderSidebars(data) {
+
+
+    const summary = data.summary || {};
+
+
+    const items = data.items || [];
+
+
+    const exposure = data.exposure || {};
+
+
+    document.getElementById('generatedAt').textContent = data.generated_at || '';
+
+
+    document.getElementById('statTotal').textContent = items.length || 0;
+
+
+    document.getElementById('statAvg').textContent = fmt.num(summary.avg_score, 1);
+
+
+    document.getElementById('statStrong').textContent = summary.strong_count || 0;
+
+
+    document.getElementById('statRisk').textContent = summary.risk_count || 0;
+
+
+    document.getElementById('summaryText').textContent = summary.text || '暂无组合摘要。';
+
+
+    renderIndustries(exposure.industries || {});
+
+
+    renderSentiment(exposure.sentiments || {});
+
+
+    renderAlerts(data.alerts || []);
+
+
+    renderBatch(data.batch_actions || []);
+
+
+    renderShare(data.share_card || {});
+
+
+}
+
+
+
+
+
+function renderIndustries(industries) {
+
+
+    const box = document.getElementById('industryBox');
+
+
+    const entries = Object.entries(industries);
+
+
+    if (!entries.length) {
+
+
+        box.innerHTML = '<div class="mini-label">暂无行业暴露数据</div>';
+
+
+        return;
+
+
+    }
+
+
+    const max = Math.max(...entries.map(([, v]) => Number(v || 0)), 1);
+
+
+    box.innerHTML = entries.map(([name, value]) => `
+
+
+        <div class="industry-row">
+
+
+            <div class="flex justify-between"><span class="mini-label">${fmt.esc(name || '其他')}</span><strong>${value}</strong></div>
+
+
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.max(6, value / max * 100)}%"></div></div>
+
+
+        </div>
+
+
+    `).join('');
+
+
+}
+
+
+
+
+
+function renderSentiment(sentiments) {
+
+
+    const items = [
+
+
+        ['bullish', '偏强', 'positive'],
+
+
+        ['neutral', '观察', ''],
+
+
+        ['bearish', '风险', 'negative']
+
+
+    ];
+
+
+    document.getElementById('sentimentBox').innerHTML = items.map(([key, label, cls]) => `
+
+
+        <div class="sentiment-chip">
+
+
+            <div class="stat-label">${label}</div>
+
+
+            <div class="stat-value ${cls}">${Number(sentiments[key] || 0)}</div>
+
+
+        </div>
+
+
+    `).join('');
+
+
+}
+
+
+
+
+
+function renderAlerts(alerts) {
+
+
+    const box = document.getElementById('alertBox');
+
+
+    if (!alerts.length) {
+
+
+        box.innerHTML = '<div class="mini-label">暂无高优先级风险提示</div>';
+
+
+        return;
+
+
+    }
+
+
+    box.innerHTML = alerts.slice(0, 8).map(a => `
+
+
+        <div class="alert-row">
+
+
+            <strong>${fmt.esc(a.name || a.symbol)}</strong>
+
+
+            <span class="mini-label">${fmt.esc(a.content)}</span>
+
+
+        </div>
+
+
+    `).join('');
+
+
+}
+
+
+
+
+
+function renderBatch(actions) {
+
+
+    const box = document.getElementById('batchBox');
+
+
+    if (!actions.length) {
+
+
+        box.innerHTML = '<div class="mini-label">暂无可用批量动作</div>';
+
+
+        return;
+
+
+    }
+
+
+    box.innerHTML = actions.map(a => `
+
+
+        <div class="batch-row">
+
+
+            <strong>${fmt.esc(a.title)}</strong>
+
+
+            <span class="mini-label">${fmt.esc(a.description || '')}</span>
+
+
+        </div>
+
+
+    `).join('');
+
+
+}
+
+
+
+
+
+function renderShare(card) {
+
+
+    const lines = card.highlights || [];
+
+
+    document.getElementById('shareBox').innerHTML = `
+
+
+        <strong>${fmt.esc(card.title || '自选股观察卡')}</strong>
+
+
+        <div>${lines.map(x => `<div>${fmt.esc(x)}</div>`).join('') || '<span class="mini-label">暂无可分享摘要</span>'}</div>
+
+
+        <div class="mini-label mt-2">${fmt.esc(card.watermark || 'Quant Atlas')}</div>
+
+
+    `;
+
+
+}
+
+
+
+
+
+function renderStocks() {
+
+
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+
+
+    const items = watchState.items.filter(it => {
+
+
+        if (!q) return true;
+
+
+        return [it.code, it.name, it.industry].some(x => String(x || '').toLowerCase().includes(q));
+
+
+    });
+
+
+    if (!items.length) {
+
+
+        renderEmpty(
+
+
+            q ? '没有匹配的标的，可清空搜索或换一个关键词。' : '当前分组暂无标的，先新增一只股票开始跟踪。',
+
+
+            { onboarding: !q }
+
+
+        );
+
+
+        return;
+
+
+    }
+
+
+    document.getElementById('stockList').innerHTML = items.map(renderStockCard).join('');
+
+
+    enrichWatchlistFreshness(items);
+
+
+}
+
+
+
+
+
+function stockBriefHref(code) {
+
+
+    const c = String(code || '').trim();
+
+
+    return '/stock/' + encodeURIComponent(c) + '?m=CN#decision-brief-strip';
+
+
+}
+
+
+
+
+
+async function enrichWatchlistFreshness(items) {
+
+
+    const strip = document.getElementById('watchlistFreshnessStrip');
+
+
+    if (!window.QAUserCenter || !items || !items.length) {
+
+
+        if (strip) strip.style.display = 'none';
+
+
+        return;
+
+
+    }
+
+
+    const codes = items.map(it => it.code).filter(Boolean);
+
+
+    const map = await QAUserCenter.fetchMarketQuotesFreshness('CN', codes);
+
+
+    watchState.quoteFreshness = map;
+
+
+    document.querySelectorAll('.watch-fresh-slot').forEach(el => {
+
+
+        const sym = el.getAttribute('data-symbol');
+
+
+        const norm = String(sym || '').replace(/\.(SH|SZ|HK)$/i, '');
+
+
+        const row = map[sym] || map[norm];
+
+
+        if (row) el.outerHTML = QAUserCenter.freshnessBadgeHtml(row);
+
+
+    });
+
+
+    if (strip) {
+
+
+        const live = Object.values(map).filter(r => r && r.is_realtime === true).length;
+
+
+        const total = codes.length;
+
+
+        strip.className = 'qc-freshness-strip ' + (live >= total * 0.5 ? 'realtime' : 'delayed');
+        strip.textContent = '自选行情鲜度 · 已标注 ' + total + ' 只 · 实时 ' + live + ' 只';
+        strip.style.display = 'block';
+
+
+    }
+
+
+}
+
+
+
+
+
+async function adoptFromWatchlist(code, name) {
+
+
+    if (!window.QAUserCenter) {
+
+
+        return addToObservation(code, name);
+
+
+    }
+
+
+    try {
+
+
+        await QAUserCenter.adoptTradePlan({
+
+
+            symbol: code,
+
+
+            market: 'CN',
+
+
+            name: name,
+
+
+            source: 'watchlist_quick',
+
+
+            notes: '自选股中心快捷采纳',
+
+
+        });
+        showToast('已采纳到观察单', 'success');
+    } catch (err) {
+        showToast('采纳失败：' + (err.message || err), 'error');
+    }
+
+
+}
+
+
+
+
+
+function renderStockCard(it) {
+
+
+    const code = fmt.esc(it.code || '');
+
+
+    const change = Number(it.change_pct || 0);
+
+
+    const isPos = change >= 0;
+
+
+    const score = Number(it.health_score || 0);
+
+
+    const scoreColor = score >= 70 ? 'var(--positive)' : (score < 50 ? 'var(--negative)' : 'var(--brand)');
+
+
+    const reasons = (it.reasons || []).slice(0, 2).map(x => `<span class="reason-pill">${fmt.esc(x)}</span>`).join('');
+
+
+    const risks = (it.risk_notes || []).slice(0, 2).map(x => `<span class="reason-pill risk-pill">${fmt.esc(x)}</span>`).join('');
+
+
+    const link = (it.links && it.links.detail) || `/stock/${encodeURIComponent(it.code || '')}?m=CN`;
+
+
+    
+    // 支撑位/压力位模拟计算
+
+    const price = it.price || 0;
+
+
+    const support = (price * 0.95).toFixed(2);
+
+
+    const resistance = (price * 1.05).toFixed(2);
+
+
+    const distanceToSupport = ((price - support) / price * 100).toFixed(1);
+
+
+    const distanceToResistance = ((resistance - price) / price * 100).toFixed(1);
+
+
+    const position = distanceToSupport < distanceToResistance ? 
+
+
+        (distanceToSupport / (parseFloat(distanceToSupport) + parseFloat(distanceToResistance)) * 100).toFixed(0) : 
+
+
+        (100 - distanceToResistance / (parseFloat(distanceToSupport) + parseFloat(distanceToResistance)) * 100).toFixed(0);
+
+
+    
+
+
+    let radarHtml = '';
+
+
+    if (price > 0) {
+
+
+        radarHtml = `
+
+
+            <div class="risk-radar">
+
+
+                <div class="radar-level">
+                    <span class="radar-label">支撑位</span>
+                    <span class="radar-value support">${support}</span>
+
+
+                </div>
+
+
+                <div class="radar-level">
+                    <span class="radar-label">压力位</span>
+                    <span class="radar-value resistance">${resistance}</span>
+
+
+                </div>
+
+
+                <div class="radar-bar-span">
+
+
+                    <div class="radar-bar">
+
+
+                        <div class="radar-bar-fill support" style="width: ${position}%"></div>
+
+
+                        <div class="radar-bar-fill resistance" style="left: ${position}%; width: ${100 - position}%"></div>
+
+
+                        <div class="radar-position" style="left: calc(${position}% - 5px)"></div>
+
+
+                    </div>
+
+
+                    <div class="flex justify-between text-xs text-muted mt-1">
+
+
+                        <span>-${distanceToSupport}%</span>
+
+
+                        <span>+${distanceToResistance}%</span>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+        `;
+
+
+    }
+
+
+    
+
+
+    return `
+
+
+        <article class="stock-card" id="card-${code}" data-watch-code="${code}">
+
+
+            <div>
+
+
+                <div class="stock-name">${fmt.esc(it.name || it.code)}<span class="watch-fresh-slot" data-symbol="${code}">—</span></div>
+
+
+                <div class="stock-meta">${code} · ${fmt.esc(it.industry || '未分类')}</div>
+
+
+                <div class="reason-list">${reasons || '<span class="reason-pill">暂无显著异动</span>'}${risks}</div>
+
+
+                ${radarHtml}
+
+
+            </div>
+
+
+            <div>
+
+
+                <div class="mini-label">价格 / 涨跌</div>
+
+
+                <div class="price ${isPos ? 'positive' : 'negative'}" data-watch-price>${fmt.num(it.price, 2)}</div>
+
+
+                <strong class="${isPos ? 'positive' : 'negative'}" data-watch-change>${isPos ? '+' : ''}${fmt.num(change, 2)}%</strong>
+
+
+            </div>
+
+
+            <div>
+
+
+                <div class="score-ring" style="color:${scoreColor}; border-color:${scoreColor}33">${fmt.num(score, 0)}</div>
+
+
+                <div class="mini-label mt-1">${fmt.esc(it.action || '观察')}</div>
+
+
+            </div>
+
+
+            <div class="card-actions">
+
+
+                <a class="btn-soft btn-sm-round" href="${fmt.esc(link)}">详情</a>
+
+
+                <a class="btn-soft btn-sm-round" href="${fmt.esc(stockBriefHref(it.code))}">简报</a>
+
+
+                <a class="btn-soft btn-sm-round" href="/ai-analysis?symbol=${code}&market=CN">诊股</a>
+
+
+                <button class="btn-soft btn-sm-round" type="button" data-watch-action="adopt" data-code="${code}" data-name="${fmt.esc(it.name || code)}">采纳</button>
+
+
+                <button class="btn-soft btn-sm-round" type="button" data-watch-action="observe" data-code="${code}" data-name="${fmt.esc(it.name || code)}">观察</button>
+
+
+                <button class="btn-soft btn-sm-round" type="button" data-watch-action="remove" data-code="${code}">移除</button>
+
+
+            </div>
+
+
+        </article>
+
+
+    `;
+
+
+}
+
+
+
+
+
+function renderEmpty(message, opts) {
+
+
+    opts = opts || {};
+
+
+    const steps = opts.onboarding ? `
+
+
+        <div class="glass-panel watch-next-panel">
+
+
+            <div class="watch-panel-title">建议下一步</div>
+
+
+            <ol class="watch-next-list">
+
+
+                <li><span class="text-brand watch-next-action" data-watch-action="open-add-modal" role="button" tabindex="0">新增一只自閫</span></li>
+
+
+                <li><a href="/" class="font-weight-bold">今日操盘台</a> —看市场总览</li>
+
+
+                <li><a href="/market-panorama" class="font-weight-bold">市场全景</a>  — 看板块结构</li>
+
+
+            </ol>
+
+
+        </div>` : '';
+
+
+    document.getElementById('stockList').innerHTML = `
+
+
+        <div class="glass-panel empty-state empty-state-block">
+
+
+            <div class="empty-state-title empty-state-title--sm">${fmt.esc(message)}</div>
+
+
+            ${steps}
+
+
+        </div>`;
+
+
+}
+
+
+
+
+
+function closeOnBackdrop(event, id) { if (event.target.id === id) closeModal(id); }
+
+
+
+
+
+function handleWatchAction(event) {
+
+
+    const el = event.target.closest('[data-watch-action]');
+
+
+    if (!el) return;
+
+
+    const action = el.dataset.watchAction;
+
+
+    if (action === 'open-add-modal') openAddModal();
+
+
+    else if (action === 'open-batch-modal') openBatchModal();
+
+
+    else if (action === 'export-watchlist') exportWatchlist(el.dataset.format || 'csv');
+
+
+    else if (action === 'refresh-dashboard') loadDashboard();
+
+
+    else if (action === 'shadow-details') showShadowDetails();
+
+
+    else if (action === 'close-modal') closeModal(el.dataset.modalId || '');
+
+
+    else if (action === 'submit-add-stock') submitAddStock();
+
+
+    else if (action === 'submit-batch-add') submitBatchAdd();
+
+
+    else if (action === 'adopt') adoptFromWatchlist(el.dataset.code || '', el.dataset.name || el.dataset.code || '');
+
+
+    else if (action === 'observe') addToObservation(el.dataset.code || '', el.dataset.name || el.dataset.code || '');
+
+
+    else if (action === 'remove') removeStock(el.dataset.code || '');
+
+
+}
+
+
+
+
+
+function bindWatchPageActions() {
+
+
+    document.addEventListener('click', handleWatchAction);
+
+
+    document.addEventListener('keydown', function(event) {
+
+
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+
+
+        const el = event.target.closest('[data-watch-action="open-add-modal"]');
+
+
+        if (!el) return;
+
+
+        event.preventDefault();
+
+
+        openAddModal();
+
+
+    });
+
+
+    document.querySelectorAll('.modal-sheet[data-modal-id]').forEach(function(modal) {
+
+
+        modal.addEventListener('click', function(event) {
+
+
+            if (event.target === modal) closeModal(modal.id);
+
+
+        });
+
+
+    });
+
+
+}
+
+
+
+
+
+function openAddModal() {
+
+
+    document.getElementById('addStockModal').classList.add('is-open');
+
+
+    setTimeout(() => document.getElementById('newStockCode').focus(), 30);
+
+
+}
+
+
+function openBatchModal() { document.getElementById('batchModal').classList.add('is-open'); }
+
+
+function closeModal(id) { document.getElementById(id).classList.remove('is-open'); }
+
+
+function closeOnBackdrop(event, id) { if (event.target.id === id) closeModal(id); }
+
+
+
+
+
+async function showShadowDetails() {
+
+
+    const codes = (watchState.items || []).map(function (it) { return it.code; }).filter(Boolean).slice(0, 24);
+
+
+    $('#shadowMirrors').html('<div class="mini-label">正在加载影子操盘建议…</div>');
+
+
+    const qs = codes.length
+
+
+        ? '?' + codes.map(function (c) { return 'symbol=' + encodeURIComponent(c); }).join('&')
+
+
+        : '';
+
+
+    try {
+
+
+        const res = await fetch('/api/v1/retail-assistant/shadow-mirror' + qs, { credentials: 'same-origin' });
+
+
+        const json = await res.json();
+
+
+        const data = json.data || json;
+
+
+        const mirrors = data.mirrors || [];
+
+
+        if (!mirrors.length) {
+
+
+            $('#shadowMirrors').html('<div class="mini-label">暂无影子建议</div>');
+
+
+            return;
+
+
+        }
+
+
+        $('#shadowMirrors').html(
+
+
+            '<div class="shadow-mirror-grid">' +
+
+
+            mirrors.map(function (d) {
+
+
+                const picks = (d.picks || []).slice(0, 5).map(function (p) {
+
+
+                    const wt = p.weight_pct != null ? ' · 仓位' + fmt.esc(p.weight_pct) + '%' : '';
+
+
+                    return '<div class="text-xs mt-1"><span class="badge-soft">' + fmt.esc(p.recommendation || '') + '</span> ' +
+
+
+                        fmt.esc(p.symbol || '') + wt + ' · ' + fmt.esc(p.logic || '') + '</div>';
+
+
+                }).join('');
+
+
+                return '<div class="stat-tile">' +
+
+
+                    '<div class="flex justify-between items-center">' +
+
+
+                    '<span class="text-sm font-bold">' + fmt.esc(d.master || '') + '</span>' +
+
+
+                    '<span class="badge-soft">' + fmt.esc(d.style || '') + '</span></div>' +
+
+
+                    '<div class="text-sm mt-2"><strong>' + fmt.esc(d.recommendation || '') + '</strong>  —' + fmt.esc(d.logic || '') + '</div>' +
+
+
+                    picks +
+
+
+                    '</div>';
+
+
+            }).join('') +
+
+
+            '</div><div class="text-xs text-muted mt-3">AI 模拟不同大师风格，仅供参考，不构成投资建议</div>'
+
+
+        );
+
+
+    } catch (err) {
+
+
+        $('#shadowMirrors').html('<div class="mini-label">加载失败：' + fmt.esc(err.message || err) + '</div>');
+
+
+    }
+
+
+}
+
+
+
+
+
+async function submitAddStock() {
+
+
+    const code = document.getElementById('newStockCode').value.trim();
+
+
+    if (!code) return;
+
+
+    const gid = document.getElementById('groupSelect').value;
+
+
+    await addSymbolsToGroup(gid, [code]);
+
+
+    document.getElementById('newStockCode').value = '';
+
+
+    closeModal('addStockModal');
+
+
+    loadDashboard();
+
+
+}
+
+
+
+
+
+async function submitBatchAdd() {
+
+
+    const raw = document.getElementById('batchCodes').value;
+
+
+    const codes = raw.split(/[\s,，;；]+/).map(x => x.trim()).filter(Boolean);
+
+
+    if (!codes.length) return;
+
+
+    await addSymbolsToGroup(document.getElementById('groupSelect').value, codes);
+
+
+    document.getElementById('batchCodes').value = '';
+
+
+    closeModal('batchModal');
+
+
+    loadDashboard();
+
+
+}
+
+
+
+
+
+async function addSymbolsToGroup(groupId, codes) {
+
+
+    for (const code of codes) {
+
+
+        const res = await fetch(`/api/v1/stock-groups/${encodeURIComponent(groupId)}/stocks`, {
+
+
+            method: 'POST',
+
+
+            headers: {'Content-Type': 'application/json'},
+
+
+            body: JSON.stringify({ symbol: code })
+
+
+        });
+
+
+        if (!res.ok) {
+
+
+            const json = await res.json().catch(() => ({}));
+
+
+            showToast(`添加 ${code} 失败：${json.message || '接口错误'}`, 'error');
+
+
+            return;
+
+
+        }
+
+
+    }
+
+
+    showToast(`已加入 ${codes.length} 只标的`, 'success');
+
+
+}
+
+
+
+
+
+async function addToObservation(code, name) {
+
+
+    try {
+
+
+        const res = await fetch('/api/v1/signal-observations', {
+
+
+            method: 'POST',
+
+
+            headers: {'Content-Type': 'application/json'},
+
+
+            body: JSON.stringify({ symbol: code, name: name, source: 'watchlist' })
+
+
+        });
+
+
+        if (res.ok) {
+
+
+            showToast('已加入观察单', 'success');
+
+
+        } else {
+
+
+            const err = await res.json();
+
+
+            showToast(err.message || '加入失败', 'error');
+
+
+        }
+
+
+    } catch(e) { showToast('加入失败', 'error'); }
+
+
+}
+
+
+function removeStock(code) {
+
+
+    const gid = document.getElementById('groupSelect').value;
+
+
+    confirmAction(`确定从当前分组移除 ${code} 吗？`, async function() {
+
+
+        const card = document.getElementById('card-' + code);
+
+
+        if (card) card.classList.add('removing');
+
+
+        const res = await fetch(`/api/v1/stock-groups/${encodeURIComponent(gid)}/stocks/${encodeURIComponent(code)}`, { method: 'DELETE' });
+
+
+        if (res.ok) {
+
+
+            showToast(`已移除 ${code}`, 'success');
+
+
+            loadDashboard();
+
+
+        } else {
+
+
+            if (card) card.classList.remove('removing');
+
+
+            showToast('移除失败', 'error');
+
+
+        }
+
+
+    });
+
+
+}
+
+
+
+
+
+async function exportWatchlist(format) {
+
+
+    const group = watchState.groups.find(g => String(g.id) === String(document.getElementById('groupSelect').value));
+
+
+    const name = group ? group.name : '';
+
+
+    const url = `/api/v1/watchlist/export/${format || 'csv'}?group=${encodeURIComponent(name || '')}`;
+
+
+    const res = await fetch(url);
+
+
+    const json = await res.json();
+
+
+    const data = extractData(json);
+
+
+    if (!res.ok || !data.content) {
+
+
+        showToast(json.message || '导出失败', 'error');
+
+
+        return;
+
+
+    }
+
+
+    const blob = new Blob([data.content], { type: 'text/plain;charset=utf-8' });
+
+
+    const a = document.createElement('a');
+
+
+    a.href = URL.createObjectURL(blob);
+
+
+    a.download = data.filename || `watchlist.${format || 'csv'}`;
+
+
+    a.click();
+
+
+    URL.revokeObjectURL(a.href);
+
+
+}
+
+
+
+
+
+function normalizeWatchCode(sym) {
+
+
+    return String(sym || '').replace(/^(sh|sz)/i, '').replace(/\.(SH|SZ|HK)$/i, '').slice(0, 6);
+
+
+}
+
+
+
+
+
+function bindRealtimeWatchQuotes() {
+
+
+    if (watchState._quoteBound) return;
+
+
+    watchState._quoteBound = true;
+
+
+    document.addEventListener('quant:quote', function (e) {
+
+
+        const d = e.detail || {};
+
+
+        const code = normalizeWatchCode(d.symbol);
+
+
+        if (!code) return;
+
+
+        const card = document.getElementById('card-' + code);
+
+
+        if (!card) return;
+
+
+        const price = Number(d.price);
+
+
+        const chPct = Number(d.change_pct);
+
+
+        if (!Number.isFinite(price)) return;
+
+
+        const priceEl = card.querySelector('[data-watch-price]');
+
+
+        const chEl = card.querySelector('[data-watch-change]');
+
+
+        const isPos = chPct >= 0;
+
+
+        if (priceEl) {
+
+
+            priceEl.textContent = fmt.num(price, 2);
+
+
+            priceEl.classList.toggle('positive', isPos);
+
+
+            priceEl.classList.toggle('negative', !isPos);
+
+
+        }
+
+
+        if (chEl && Number.isFinite(chPct)) {
+
+
+            chEl.textContent = (isPos ? '+' : '') + fmt.num(chPct, 2) + '%';
+
+
+            chEl.classList.toggle('positive', isPos);
+
+
+            chEl.classList.toggle('negative', !isPos);
+
+
+        }
+
+
+        card.classList.add('watch-live-flash');
+
+
+        setTimeout(function () { card.classList.remove('watch-live-flash'); }, 600);
+
+
+    });
+
+
+}
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+
+    bindWatchPageActions();
+
+
+    bindRealtimeWatchQuotes();
+
+
+    if (window.QAUserCenter) {
+
+
+        QAUserCenter.mountPsychologyBanner('ssPsychologyBanner');
+
+
+    }
+
+
+    document.getElementById('groupSelect').addEventListener('change', loadDashboard);
+
+
+    document.getElementById('sortSelect').addEventListener('change', loadDashboard);
+
+
+    document.getElementById('searchInput').addEventListener('input', renderStocks);
+
+
+    document.getElementById('newStockCode').addEventListener('keydown', e => { if (e.key === 'Enter') submitAddStock(); });
+
+
+    loadDashboard();
+
+
+});
+
+
+</script>
+
+
+{% endblock %}
+
+

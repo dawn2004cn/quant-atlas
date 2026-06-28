@@ -1,0 +1,18 @@
+{% extends "layouts/minimal_base.html" %}
+{% block title %}功能已下线 — Quant Atlas{% endblock %}
+{% block body_class %}minimal-shell-body feature-retired-body{% endblock %}
+{% block content %}
+<section class="feature-retired-card">
+    <h1>功能已战略下线</h1>
+    <p>
+        <strong>{{ feature_label }}</strong> 属于审计 P3「战略削减」范围，默认不再对用户开放，以避免误导性演示或过度工程能力干扰核心量化工作流。
+    </p>
+    <p class="fr-meta">
+        开发/内测如需临时启用，可在环境中设置 <code>{{ env_hint }}</code> 后重启服务。
+    </p>
+    <p class="fr-actions">
+        <a href="/" class="btn-soft">返回首页</a>
+        <a href="/market-panorama" class="btn-soft">全市场行情</a>
+    </p>
+</section>
+{% endblock %}

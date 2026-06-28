@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}研究闭环管线 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/research-pipeline" class="spa-switcher-link"
+   data-spa-switcher="research-pipeline">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="rp-hero">
+    <div class="hero-caption">Alpha Production Line</div>
+    <div class="rp-hero-row">
+        <div>
+            <h1 class="page-title">研究闭环流水线</h1>
+            <p class="page-subtitle">监控从原始行情入库、Qlib 转换到 RD-Agent 遗传演化的全自动化生产周期。</p>
+        </div>
+        <div class="rp-hero-actions">
+            <button class="btn-brand" id="rpRefresh">🔄 刷新管线状态</button>
+            <span class="badge-soft" id="rpFetched">已更新: --</span>
+        </div>
+    </div>
+    <div id="rpFreshnessStrip" class="qa-is-hidden qc-freshness-strip rp-freshness-mt" aria-live="polite"></div>
+    <div id="rpActiveJobs" class="rp-active-jobs"></div>
+</div>
+
+<div class="section-shell">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">Agent 工作流闭环</h2>
+            <div class="panel-subtitle">把复杂任务拆成可见状态，让用户知道哪一步能介入、哪一步需要等待。</div>
+        </div>
+        <a class="btn-soft" href="/ai-committee">打开 AI 投委会</a>
+    </div>
+    <div class="workflow-state-grid">
+        <div class="workflow-state">
+            <div class="workflow-kicker">State 01</div>
+            <div class="workflow-title">选股候选</div>
+            <div class="workflow-desc">来自选股白盒、信号旗或自选股异常提醒，记录策略参数版本。</div>
+        </div>
+        <div class="workflow-state">
+            <div class="workflow-kicker">State 02</div>
+            <div class="workflow-title">证据收集</div>
+            <div class="workflow-desc">聚合行情、财务、研报、新闻和情绪，形成共享 AgentContext。</div>
+        </div>
+        <div class="workflow-state">
+            <div class="workflow-kicker">State 03</div>
+            <div class="workflow-title">Agent 辩论</div>
+            <div class="workflow-desc">多 Agent 输出观点、冲突雷达和证据缺口，避免只给单句结论。</div>
+        </div>
+        <div class="workflow-state">
+            <div class="workflow-kicker">State 04</div>
+            <div class="workflow-title">策略验证</div>
+            <div class="workflow-desc">进入回测门禁，展示 IC、回撤、样本区间和是否通过。</div>
+        </div>
+        <div class="workflow-state">
+            <div class="workflow-kicker">State 05</div>
+            <div class="workflow-title">复盘归档</div>
+            <div class="workflow-desc">沉淀 Trace、结论、人工纠偏和真实表现，下一次可复用。</div>
+        </div>
+    </div>
+</div>
+
+<div class="pipeline-flow" id="flowPanel">
+    <div class="flow-step" id="step-ingest">
+        <div class="step-icon">📥</div>
+        <div class="step-label">数据入库</div>
+        <div class="step-status">Pending</div>
+    </div>
+    <div class="flow-step" id="step-bin">
+        <div class="step-icon">⚙️</div>
+        <div class="step-label">Qlib 转换</div>
+        <div class="step-status">Pending</div>
+    </div>
+    <div class="flow-step" id="step-rd">
+        <div class="step-icon">🧬</div>
+        <div class="step-label">因子演化</div>
+        <div class="step-status">Pending</div>
+    </div>
+    <div class="flow-step" id="step-gate">
+        <div class="step-icon">🛡️</div>
+        <div class="step-label">回测门禁</div>
+        <div class="step-status">Pending</div>
+    </div>
+</div>
+
+<div class="section-shell">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">人工介入点</h2>
+            <div class="panel-subtitle">系统自动跑流程，但用户需要能在关键节点改方向、补证据、拒绝弱信号。</div>
+        </div>
+    </div>
+    <div class="review-grid">
+        <div class="review-card">
+            <h3>证据不足时</h3>
+            <p>补充研报、公告或财报字段，然后只重跑证据收集与 Agent 辩论，不必重跑全流程。</p>
+            <button class="btn-soft" type="button" data-rp-action="mark-review" data-review="evidence">标记证据缺口</button>
+        </div>
+        <div class="review-card">
+            <h3>回测门禁失败时</h3>
+            <p>查看失败原因，选择调整参数、缩小样本、加入观察单或直接归档为失败案例。</p>
+            <button class="btn-soft" type="button" data-rp-action="mark-review" data-review="gate">标记门禁失败</button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="mermaid-panel">
+            <div class="mermaid" id="rpMermaid">graph LR; A[Market] --> B[Qlib]; B --> C[RD-Agent]; C --> D[Gate];</div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="section-shell rp-shell-full">
+            <div class="panel-head"><h2 class="panel-title">最近因子实验 (Runs)</h2></div>
+            <div class="runs-table-wrap mt-3 rp-runs-scroll">
+                <table class="table table-sm">
+                    <thead><tr><th>Run ID</th><th>产物</th><th>门禁状态</th></tr></thead>
+                    <tbody id="rpRuns"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if feature_decision_theater %}
+<div class="section-shell">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">决策剧场 Decision Theater</h2>
+            <div class="panel-subtitle">研究流水线 × EventBus 脉冲 × 数据真值告警 — 3D 可导航视图（Quant Atlas 9.0）</div>
+        </div>
+        <a class="btn-soft" href="/decision-replay">决策回溯空间</a>
+    </div>
+    <div id="theaterCanvasWrap" class="rp-theater-wrap">
+        <canvas id="theaterCanvas" class="rp-theater-canvas"></canvas>
+    </div>
+    <div class="text-xs text-muted" id="theaterMeta">加载中…</div>
+</div>
+{% endif %}
+
+<div class="section-shell">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">事件驱动落点</h2>
+            <div class="panel-subtitle">EventBus 落地后，这些领域事件应在此页形成可追踪的研究流。</div>
+        </div>
+        <a class="btn-soft" href="/architecture-roadmap">查看架构演进</a>
+    </div>
+    <div class="event-map">
+        <div class="event-card"><strong>MarketDataUpdated</strong><span>行情更新后触发扫描、信号刷新和自选股提醒。</span></div>
+        <div class="event-card"><strong>ResearchEvidenceCollected</strong><span>证据补齐后触发 Agent 辩论或人工复核。</span></div>
+        <div class="event-card"><strong>StrategyGateEvaluated</strong><span>回测门禁通过或拒绝后通知任务详情与消息中心。</span></div>
+        <div class="event-card"><strong>HumanReviewSubmitted</strong><span>用户纠偏后写入研究记忆，影响后续 AgentContext。</span></div>
+    </div>
+</div>
+
+<div class="section-shell mt-4">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">运维审计与说明</h2>
+            <div class="panel-subtitle">Qlib 增量任务每日 02:40 触发，RD 算子搜索默认深度 5 代。</div>
+        </div>
+    </div>
+    <div class="rp-hint-muted">
+        管线集成状态：<strong>ENABLE_QLIB</strong> 和 <strong>ENABLE_RD_AGENT</strong> 控制主要节点开关。Qlib 门禁由 <code>UnifiedBuyHoldBacktest</code> 驱动，拦截 IC < 0.02 的弱信号因子。
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if feature_decision_theater %}
+<script type="importmap" nonce="{{ csp_nonce() }}">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+<script type="module" nonce="{{ csp_nonce() }}">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+async function loadDecisionTheater() {
+    const wrap = document.getElementById('theaterCanvasWrap');
+    const canvas = document.getElementById('theaterCanvas');
+    const meta = document.getElementById('theaterMeta');
+    if (!wrap || !canvas) return;
+    try {
+        const res = await fetch('/api/v1/decision-theater/space');
+        const json = await res.json();
+        const data = json.data || {};
+        const sceneData = data.scene || {};
+        const nodes = sceneData.nodes || [];
+        const edges = sceneData.edges || [];
+        const w = wrap.clientWidth, h = wrap.clientHeight;
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x0f172a, 10, 60);
+        const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 200);
+        camera.position.set(0, 12, 22);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(w, h);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        const controls = new OrbitControls(camera, canvas);
+        controls.enableDamping = true;
+        const light = new THREE.DirectionalLight(0xffffff, 1.1);
+        light.position.set(5, 12, 8);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x64748b, 0.5));
+        const nodeMap = {};
+        nodes.forEach(n => {
+            const geo = new THREE.SphereGeometry(n.size || 0.4, 16, 16);
+            const mat = new THREE.MeshStandardMaterial({ color: n.color || '#6366f1' });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(n.x || 0, n.y || 0, n.z || 0);
+            scene.add(mesh);
+            nodeMap[n.id] = mesh.position.clone();
+        });
+        edges.forEach(e => {
+            const a = nodeMap[e.from_id], b = nodeMap[e.to_id];
+            if (!a || !b) return;
+            const pts = [a, b];
+            const geo = new THREE.BufferGeometry().setFromPoints(pts);
+            const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: e.color || '#94a3b8', transparent: true, opacity: 0.6 }));
+            scene.add(line);
+        });
+        const summary = data.pipeline_summary || {};
+        if (meta) meta.textContent = `阶段 ${summary.steps_ok || 0}/${summary.step_count || 0} · 事件 ${summary.recent_events || 0} · 待核验 ${summary.pending_truth || 0}`;
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        window.addEventListener('resize', () => {
+            const nw = wrap.clientWidth, nh = wrap.clientHeight;
+            camera.aspect = nw / nh;
+            camera.updateProjectionMatrix();
+            renderer.setSize(nw, nh);
+        });
+    } catch (err) {
+        if (meta) meta.textContent = 'Decision Theater 加载失败';
+        console.warn(err);
+    }
+}
+loadDecisionTheater();
+</script>
+{% endif %}
+<script src="{{ url_for('static', filename='js/vendor/mermaid.min.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+async function loadPipeline() {
+    try {
+        const res = await fetch('/api/v1/research/pipeline-status');
+        const json = await res.json();
+        const d = json.data || {};
+        
+        renderFlow(d.steps || []);
+        renderRuns(d.rd_recent_runs || []);
+        
+        $('#rpFetched').text('已更新: ' + new Date().toLocaleTimeString());
+        if (window.QAUserCenter) {
+            QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('rpFreshnessStrip'));
+            QAUserCenter.mountActiveJobsPanel('rpActiveJobs', 5);
+        }
+        
+        if (d.mermaid) {
+            const el = document.getElementById('rpMermaid');
+            el.removeAttribute('data-processed');
+            el.textContent = d.mermaid;
+            mermaid.run({ nodes: [el] }).catch(() => {});
+        }
+    } catch (e) { window.qcLogError('research_pipeline load failed', e); }
+}
+
+function renderFlow(steps) {
+    const mapping = {
+        'ingest': 'step-ingest',
+        'dump_bin': 'step-bin',
+        'rd_agent': 'step-rd',
+        'qlib_gate': 'step-gate'
+    };
+    
+    steps.forEach(s => {
+        const elId = mapping[s.id];
+        if (elId) {
+            const el = document.getElementById(elId);
+            el.className = 'flow-step ' + (s.ok ? 'success' : 'error');
+            el.querySelector('.step-status').textContent = s.ok ? 'Online' : 'Warning';
+        }
+    });
+}
+
+function renderRuns(runs) {
+    const body = document.getElementById('rpRuns');
+    if (!runs.length) { body.innerHTML = '<tr><td colspan="3" class="text-center">暂无实验记录</td></tr>'; return; }
+    
+    body.innerHTML = runs.map(r => {
+        const g = r.qlib_gate || {};
+        let gateHtml = '<span class="gate-badge">Waiting</span>';
+        if (g.ok) gateHtml = '<span class="gate-badge gate-pass">🟢 PASS</span>';
+        else if (g.ok === false) gateHtml = '<span class="gate-badge gate-fail">🔴 REJECT</span>';
+        
+        return `
+            <tr>
+                <td><code class="rp-code-sm">${r.run_id.slice(0,8)}...</code></td>
+                <td class="rp-td-bold">${r.artifact_count || 0}</td>
+                <td>${gateHtml}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function markPipelineReview(type) {
+    const labels = {
+        evidence: '已标记证据缺口：建议补充研报/公告后重跑 Agent 辩论',
+        gate: '已标记门禁失败：建议进入参数优化或加入观察单'
+    };
+    showToast(labels[type] || '已记录人工复核', 'info');
+}
+
+mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+$(document).ready(() => {
+    loadPipeline();
+    $('#rpRefresh').on('click', loadPipeline);
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-rp-action]');
+        if (!el) return;
+        if (el.dataset.rpAction === 'mark-review') markPipelineReview(el.dataset.review || '');
+    });
+});
+</script>
+{% endblock %}

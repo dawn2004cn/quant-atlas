@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}协作投研工作区 - Quant Atlas{% endblock %}
+
+
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
+
+{% endblock %}
+
+
+
+{% block spa_switcher %}
+
+<a href="/app/collaboration-workspace" class="spa-switcher-link"
+
+   data-spa-switcher="collaboration-workspace">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<div class="page-header">
+
+    <h1 class="page-title">🤝 协作投研工作区</h1>
+
+    <p class="page-subtitle">团队黑板 · 投研流 · 证据链共享 — 数据由 API 驱动，本页仅为 HTML 外壳</p>
+
+</div>
+
+
+
+{% include "partials/ux_env_hints.html" ignore missing %}
+
+
+
+<div
+
+    class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3"
+
+    x-data="collabWorkspaceShell()"
+
+    x-init="init()"
+
+>
+
+    <div class="text-sm text-muted">6.0 协作 OS — Headless 组件工作区</div>
+
+    <button type="button" class="btn-soft btn-sm" @click="bootstrap()">重新加载上下文</button>
+
+</div>
+
+
+
+<div id="collab-capability-zone">
+
+    {% include "components/collaboration/team_context_bar.html" %}
+
+    {% include "components/collaboration/team_blackboard.html" %}
+
+    {% include "components/collaboration/team_research_feed.html" %}
+
+    {% include "components/collaboration/cross_team_pulse.html" %}
+
+    {% include "components/collaboration/team_workflow_panel.html" %}
+
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script nonce="{{ csp_nonce() }}">
+
+function collabWorkspaceShell() {
+
+    return {
+
+        context: null,
+
+        init() {
+
+            this.bootstrap();
+
+        },
+
+        bootstrap() {
+
+            return fetch('/api/v1/ui/collaboration-workspace-context', { credentials: 'same-origin' })
+
+                .then((r) => r.json())
+
+                .then((res) => {
+
+                    this.context = res.data || res;
+
+                    if (window.QATeamContext && this.context.active_team_id) {
+
+                        QATeamContext.writeTeamId(this.context.active_team_id);
+
+                    }
+
+                })
+
+                .catch(() => {});
+
+        },
+
+    };
+
+}
+
+</script>
+
+{% endblock %}
+

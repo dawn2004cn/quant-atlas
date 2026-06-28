@@ -1,0 +1,38 @@
+{% macro skeleton_card(lines=3, width="100%") %}
+<div class="sk-card" style="width:{{ width }}">
+  <div class="sk-row"><div class="sk-block sk-block--sm" style="width:40%"></div></div>
+  {% for i in range(lines) %}
+  <div class="sk-row"><div class="sk-block" style="width:{{ range(60, 95) | random }}%"></div></div>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro skeleton_table(rows=5, cols=4) %}
+<div class="sk-table">
+  <div class="sk-row sk-row--header">
+    {% for c in range(cols) %}
+    <div class="sk-block sk-block--sm" style="width:{{ range(15, 30) | random }}%"></div>
+    {% endfor %}
+  </div>
+  {% for r in range(rows) %}
+  <div class="sk-row">
+    {% for c in range(cols) %}
+    <div class="sk-block" style="width:{{ range(20, 70) | random }}%"></div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro skeleton_stat_grid(count=4) %}
+<div class="sk-grid">
+  {% for i in range(count) %}
+  <div class="sk-stat">
+    <div class="sk-block sk-block--xs" style="width:50%"></div>
+    <div class="sk-block sk-block--lg" style="width:70%; margin-top:8px"></div>
+    <div class="sk-block sk-block--xs" style="width:30%; margin-top:6px"></div>
+  </div>
+  {% endfor %}
+</div>
+{% endmacro %}
+

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-color-scheme="{{ 'us' if (ui_color_scheme or 'cn') == 'us' else 'cn' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    {# Inline theme script: runs before CSS to prevent flash of wrong theme on navigation. #}
+    <script nonce="{{ csp_nonce() }}">(function(){var t=localStorage.getItem('theme');var light=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches;if(t){document.documentElement.setAttribute('data-theme',t)}else if(light){document.documentElement.setAttribute('data-theme','light');t='light'}else{t='dark'}var bg=t==='light'?'#f6f8fb':'#07111f';var fg=t==='light'?'#0f172a':'#eef6ff';document.documentElement.style.backgroundColor=bg;document.documentElement.style.color=fg;document.documentElement.style.colorScheme=t})();</script>
+    <title>{% block title %}量化监控平台{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/vendor/bootstrap-4.6.2.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
+    <link rel="stylesheet" href="{{ versioned_url('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/evidence-card.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/trading-dna-spiral.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/wisdom-mesh-browser.css') }}">
+    {# Preload high-traffic page CSS so shell-nav swaps paint faster #}
+    <link rel="preload" href="{{ url_for('static', filename='css/pages/workbench.css') }}" as="style">
+    <link rel="preload" href="{{ url_for('static', filename='css/pages/stock-detail.css') }}" as="style">
+    <link rel="preload" href="{{ url_for('static', filename='css/pages/strategy.css') }}" as="style">
+    <link rel="preload" href="{{ url_for('static', filename='css/pages/market.css') }}" as="style">
+    {% block extra_css %}{% endblock %}
+</head>
+<body hx-boost="true" {% block body_element_attrs %}data-qa-focus-refresh="auto" data-nav-endpoint="{{ request.endpoint or '' }}"{% endblock %}>
+{% block site_layout %}
+    <a class="skip-link" href="#mainContent">跳到主要内容</a>
+    <div class="app-shell">
+        <nav class="app-nav">
+            <a class="brand-mark" href="/">
+                <span class="brand-badge">Q</span>
+                <span class="brand-copy">
+                    <span class="brand-title">Quant Atlas</span>
+                    <span class="brand-subtitle">量化研究与监控平台</span>
+                </span>
+            </a>
+            <button class="nav-toggle" type="button" id="navToggleBtn" aria-label="展开或收起菜单" aria-expanded="false">
+                <span class="nav-toggle-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+            </button>
+            {% set ep = request.endpoint %}
+            {% set nav_workbench_hub = ep in ('pages.daily_workbench', 'pages.self_stocks', 'pages.market_panorama', 'pages.global_radar', 'pages.hot_sectors', 'pages.tdx_blocks', 'pages.longhu_bang', 'pages.yanbao_hub') %}
+            {% set nav_research = ep in ('pages.quant_lab', 'pages.research_pipeline', 'pages.ai_analysis', 'pages.ai_research_report', 'pages.ai_investment_committee', 'pages.ai_committee_dashboard', 'pages.ai_committee_selection', 'pages.ai_hedge_fund', 'pages.research_canvas', 'pages.war_room', 'pages.voice_briefing', 'pages.decision_replay_space', 'pages.swarm_designer', 'pages.swarm_designer_flow') %}
+            {% set nav_strategy_hub = ep in ('pages.backtest', 'pages.optimize', 'pages.attribution_dashboard', 'pages.strategy_snapshots', 'pages.professional_workbench', 'pages.stock_selector', 'pages.signal_flag', 'pages.signal_observations', 'pages.long_term_select', 'pages.alpha_factory', 'pages.factor_evolution', 'pages.factor_repository', 'pages.factor_detail', 'pages.alpha_marketplace', 'pages.strategy_wizard', 'pages.data_lake_health') %}
+            {% set nav_mine = ep in ('pages.retail_assistant', 'pages.user_spectrum_hub', 'pages.zen_terminal', 'pages.portfolio_resonance', 'pages.profile', 'pages.task_center', 'pages.message_center', 'pages.integration_hub', 'pages.capabilities', 'pages.architecture_roadmap', 'pages.observability', 'pages.alert_center', 'pages.moments', 'pages.collaboration_workspace', 'pages.investment_managers', 'pages.investment_manager_detail', 'pages.users_manage') or (ep and ('user_tiers' in ep)) %}
+            <ul class="nav-links" id="navLinks">
+                <!-- 操盘台 -->
+                <li class="dropdown">
+                    <a class="nav-pill dropdown-toggle {% if nav_workbench_hub %}active{% endif %}" href="#" id="navDdWorkbenchHub" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">🏠 操盘台</a>
+                    <div class="dropdown-menu dropdown-menu-right nav-search-wrapper" aria-labelledby="navDdWorkbenchHub">
+                        <input type="search" class="nav-search-input" placeholder="搜索导航…" aria-label="搜索导航菜单" data-nav-search>
+                        <a class="dropdown-item {% if ep == 'pages.daily_workbench' %}active{% endif %}" href="/" data-nav-label="今日操盘台">🏠 今日操盘台</a>
+                        <a class="dropdown-item {% if ep == 'pages.self_stocks' %}active{% endif %}" href="/self-stocks" data-nav-label="我的自选股">⭐ 我的自选股</a>
+                        <a class="dropdown-item {% if ep == 'pages.market_panorama' %}active{% endif %}" href="/market-panorama" data-nav-label="市场全景">📈 市场全景</a>
+                        <a class="dropdown-item {% if ep == 'pages.global_radar' %}active{% endif %}" href="/global-radar" data-nav-label="全球透视塔">🌏 全球透视塔</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="/app" data-nav-label="SPA 版">⚡ SPA 版</a>
+                        <a class="dropdown-item {% if ep == 'pages.hot_sectors' %}active{% endif %}" href="/hot-sectors" data-nav-label="热点板块">🔥 热点板块</a>
+                        <a class="dropdown-item {% if ep == 'pages.longhu_bang' %}active{% endif %}" href="/longhu-bang" data-nav-label="龙虎榜">🐉 龙虎榜</a>
+                        <a class="dropdown-item {% if ep == 'pages.yanbao_hub' %}active{% endif %}" href="/yanbao-hub" data-nav-label="研报中心">📑 研报中心</a>
+                        <a class="dropdown-item {% if ep == 'pages.tdx_blocks' %}active{% endif %}" href="/tdx-blocks" data-nav-label="通达信板块">🗂️ 通达信板块</a>
+                    </div>
+                </li>
+                <!-- 研究 -->
+                <li class="dropdown">
+                    <a class="nav-pill dropdown-toggle {% if nav_research %}active{% endif %}" href="#" id="navDdResearch" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">🔬 研究</a>
+                    <div class="dropdown-menu dropdown-menu-right nav-search-wrapper" aria-labelledby="navDdResearch">
+                        <input type="search" class="nav-search-input" placeholder="搜索导航…" aria-label="搜索导航菜单" data-nav-search>
+                        <a class="dropdown-item {% if ep in ('pages.ai_investment_committee', 'pages.ai_committee_dashboard', 'pages.ai_committee_selection') %}active{% endif %}" href="/ai-committee" data-nav-label="AI 投委会">🏛️ AI 投委会</a>
+                        <a class="dropdown-item {% if ep == 'pages.ai_analysis' %}active{% endif %}" href="/ai-analysis" data-nav-label="AI 诊股">🔍 AI 诊股</a>
+                        <a class="dropdown-item {% if ep == 'pages.ai_research_report' %}active{% endif %}" href="/ai-research-report" data-nav-label="研究报告">📋 研究报告</a>
+                        <a class="dropdown-item {% if ep == 'pages.research_pipeline' %}active{% endif %}" href="/research-pipeline" data-nav-label="研究闭环">🔄 研究闭环</a>
+                        <a class="dropdown-item {% if ep == 'pages.quant_lab' %}active{% endif %}" href="/quant-lab" data-nav-label="量化实验室">🧪 量化实验室</a>
+                        <div class="nav-group" data-nav-group="research-more">
+                            <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false">
+                                <span>更多研究工具</span>
+                                <svg class="nav-group-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3"/></svg>
+                            </div>
+                            <div class="nav-group-body">
+                                <a class="dropdown-item {% if ep == 'pages.ai_hedge_fund' %}active{% endif %}" href="/ai-hedge-fund" data-nav-label="分析师天团">🎯 分析师天团</a>
+                                <a class="dropdown-item" href="/agent-center" data-nav-label="Agent 中心">🎯 Agent 中心</a>
+                                <a class="dropdown-item {% if ep == 'pages.voice_briefing' %}active{% endif %}" href="/voice-briefing" data-nav-label="语音简报">🎙️ 语音简报</a>
+                                <a class="dropdown-item {% if ep == 'pages.research_canvas' %}active{% endif %}" href="/research-canvas" data-nav-label="Research Canvas">🎨 Research Canvas</a>
+                                {% if feature_war_room %}
+                                <a class="dropdown-item {% if ep == 'pages.war_room' %}active{% endif %}" href="/war-room" data-nav-label="War Room">⚔️ War Room</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <!-- 策略 -->
+                <li class="dropdown">
+                    <a class="nav-pill dropdown-toggle {% if nav_strategy_hub %}active{% endif %}" href="#" id="navDdStrategyHub" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">📈 策略</a>
+                    <div class="dropdown-menu dropdown-menu-right nav-search-wrapper" aria-labelledby="navDdStrategyHub">
+                        <input type="search" class="nav-search-input" placeholder="搜索导航…" aria-label="搜索导航菜单" data-nav-search>
+                        <a class="dropdown-item {% if ep == 'pages.backtest' %}active{% endif %}" href="/backtest" data-nav-label="策略回测">📊 策略回测</a>
+                        <a class="dropdown-item {% if ep == 'pages.signal_flag' %}active{% endif %}" href="/signal-flag" data-nav-label="信号旗手">🚩 信号旗手</a>
+                        <a class="dropdown-item {% if ep == 'pages.stock_selector' %}active{% endif %}" href="/stock-selector" data-nav-label="智能选股">🔍 智能选股</a>
+                        <a class="dropdown-item {% if ep == 'pages.signal_observations' %}active{% endif %}" href="/signal-observations" data-nav-label="模拟观察单">🧾 模拟观察单</a>
+                        <a class="dropdown-item {% if ep == 'pages.strategy_wizard' %}active{% endif %}" href="/strategy-wizard" data-nav-label="策略向导">🧙 策略向导</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item {% if ep == 'pages.alpha_factory' %}active{% endif %}" href="/alpha-factory" data-nav-label="Alpha Factory">🧬 Alpha Factory</a>
+                        <a class="dropdown-item {% if ep == 'pages.factor_repository' %}active{% endif %}" href="/factor-repository" data-nav-label="因子仓库">📚 因子仓库</a>
+                        {% if feature_alpha_marketplace %}
+                        <a class="dropdown-item {% if ep == 'pages.alpha_marketplace' %}active{% endif %}" href="/alpha-marketplace" data-nav-label="Alpha Marketplace">🏪 Alpha 市场</a>
+                        {% endif %}
+                        <a class="dropdown-item {% if ep == 'pages.optimize' %}active{% endif %}" href="/optimize" data-nav-label="参数优化">⚙️ 参数优化</a>
+                        <a class="dropdown-item {% if ep == 'pages.data_lake_health' %}active{% endif %}" href="/data-lake-health" data-nav-label="数据湖健康">💾 数据湖健康</a>
+                    </div>
+                </li>
+                <!-- 我的 -->
+                <li class="dropdown">
+                    <a class="nav-pill dropdown-toggle {% if nav_mine %}active{% endif %}" href="#" id="navDdMine" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">👤 我的</a>
+                    <div class="dropdown-menu dropdown-menu-right nav-search-wrapper" aria-labelledby="navDdMine">
+                        <input type="search" class="nav-search-input" placeholder="搜索导航…" aria-label="搜索导航菜单" data-nav-search>
+                        <a class="dropdown-item {% if ep == 'pages.retail_assistant' %}active{% endif %}" href="/retail-assistant" data-nav-label="零售 AI 助手">🧭 零售 AI 助手</a>
+                        <a class="dropdown-item {% if ep == 'pages.profile' %}active{% endif %}" href="{{ url_for('pages.profile') }}" data-nav-label="个人中心">👤 个人中心</a>
+                        <a class="dropdown-item {% if ep == 'pages.task_center' %}active{% endif %}" href="/task-center" data-nav-label="任务中心">🎯 任务中心</a>
+                        <a class="dropdown-item {% if ep == 'pages.message_center' %}active{% endif %}" href="{{ url_for('pages.message_center') }}" data-nav-label="消息中心">🔔 消息中心</a>
+                        <div class="nav-group" data-nav-group="mine-tiers">
+                            <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false">
+                                <span>角色工作台</span>
+                                <svg class="nav-group-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3"/></svg>
+                            </div>
+                            <div class="nav-group-body">
+                                <a class="dropdown-item" href="/user-tiers/boutique" data-nav-label="量化工坊">🔬 量化工坊</a>
+                                <a class="dropdown-item" href="/user-tiers/investment" data-nav-label="投资公司">🏦 投资公司</a>
+                                <a class="dropdown-item" href="/user-tiers/fund" data-nav-label="基金管理">📋 基金管理</a>
+                                <a class="dropdown-item" href="/user-tiers/institution" data-nav-label="机构级">🐋 机构级</a>
+                                <a class="dropdown-item {% if ep == 'pages.zen_terminal' %}active{% endif %}" href="/zen-terminal" data-nav-label="禅意终端">🧘 禅意终端</a>
+                            </div>
+                        </div>
+                        <div class="nav-group" data-nav-group="mine-platform">
+                            <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false">
+                                <span>平台与协作</span>
+                                <svg class="nav-group-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3"/></svg>
+                            </div>
+                            <div class="nav-group-body">
+                                <a class="dropdown-item {% if ep == 'pages.integration_hub' %}active{% endif %}" href="/integration-hub" data-nav-label="集成中枢">🔗 集成中枢</a>
+                                <a class="dropdown-item {% if ep == 'pages.alert_center' %}active{% endif %}" href="/alert-center" data-nav-label="预警中心">🚨 预警中心</a>
+                                <a class="dropdown-item {% if ep == 'pages.observability' %}active{% endif %}" href="/observability" data-nav-label="观测台">🔎 观测台</a>
+                                <a class="dropdown-item {% if ep == 'pages.moments' %}active{% endif %}" href="/moments" data-nav-label="研究朋友圈">🌐 研究朋友圈</a>
+                                <a class="dropdown-item {% if ep == 'pages.investment_managers' %}active{% endif %}" href="/investment-managers" data-nav-label="投资经理">💼 投资经理</a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                {% if current_user.is_authenticated %}
+                <li>
+                    <a class="nav-pill nav-pill--icon-only {% if ep == 'pages.message_center' %}active{% endif %}" href="{{ url_for('pages.message_center') }}" id="navMsgLink" title="消息中心" aria-label="消息中心">
+                        <svg class="nav-bell-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span class="nav-msg-badge js-nav-bell-badge" aria-live="polite"></span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            <div class="nav-side">
+                {% if current_user.is_authenticated %}
+                <a class="qc-health-indicator qc-health-indicator--ok" id="qcHealthIndicator" href="/alert-center" title="系统健康检测中…" aria-label="系统健康状态">
+                    <span class="qc-health-dot qc-health-dot--ok" id="qcHealthDot"></span>
+                    <span class="qc-health-label">系统</span>
+                </a>
+                <button class="nav-icon-btn" id="commandOpenBtn" title="打开 Jarvis 指令面板" aria-label="打开 Jarvis 指令面板">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m13 2-2 8h7l-9 12 2-8H4z"/></svg>
+                </button>
+                <button class="nav-icon-btn" id="themeToggle" title="切换主题" aria-label="切换主题">
+                    <svg id="themeIconLight" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                    <svg id="themeIconDark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+                {% if current_user.can_manage_users() %}
+                <a class="nav-icon-btn" href="{{ url_for('pages.users_manage') }}" title="用户管理" aria-label="用户管理">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </a>
+                {% endif %}
+                <a class="nav-user-identity" href="{{ url_for('pages.profile') }}" title="个人中心">
+                    <img class="nav-user-avatar" src="{{ current_user.avatar_display_url }}" alt="" width="32" height="32" loading="lazy">
+                    <span class="nav-user-meta">{{ current_user.username }} · {{ current_user.role_name }}</span>
+                </a>
+                <a class="nav-icon-btn nav-icon-btn--logout" href="{{ url_for('auth.logout') }}" title="退出登录" aria-label="退出登录">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </a>
+                {% endif %}
+            </div>
+            {% block spa_switcher %}{% endblock %}
+            <script src="{{ url_for('static', filename='js/switcher_telemetry.js') }}" nonce="{{ csp_nonce() }}"></script>
+        </nav>
+        <div class="qc-mobile-lane">
+            {% if current_user.is_authenticated %}
+            {% include "partials/research_lane.html" %}
+            {% endif %}
+        </div>
+        <div class="qc-mobile-user">
+            {% if current_user.is_authenticated %}
+            <button class="qc-mobile-msg" type="button" id="mobileJarvisBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m13 2-2 8h7l-9 12 2-8H4z"/></svg>
+                <span>Jarvis 指令</span>
+            </button>
+            <a class="qc-mobile-msg" href="{{ url_for('pages.message_center') }}">
+                <svg class="nav-bell-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span>消息中心</span>
+                <span class="nav-msg-badge js-nav-bell-badge" aria-live="polite"></span>
+            </a>
+            <a class="nav-user-identity" href="{{ url_for('pages.profile') }}" title="个人中心">
+                <img class="nav-user-avatar" src="{{ current_user.avatar_display_url }}" alt="" width="28" height="28" loading="lazy">
+                <span class="nav-user-meta">{{ current_user.username }} · {{ current_user.role_name }}</span>
+            </a>
+            {% if current_user.can_manage_users() %}
+            <a class="ghost-link" href="{{ url_for('pages.users_manage') }}">用户管理</a>
+            <a class="nav-icon-btn nav-icon-btn--logout" href="{{ url_for('auth.logout') }}" title="退出登录" aria-label="退出登录">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </a>
+            {% else %}
+            <a class="nav-icon-btn nav-icon-btn--logout qc-mobile-logout-only" href="{{ url_for('auth.logout') }}" title="退出登录" aria-label="退出登录">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </a>
+            {% endif %}
+            {% endif %}
+        </div>
+        <main class="page-wrap" id="mainContent">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-3">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            <div id="qcGlobalHealthBanner" class="qc-global-health-banner qc-global-health-banner--ok qa-is-hidden" role="status">
+                <span class="qc-health-dot qc-health-dot--warning" aria-hidden="true"></span>
+                <span class="qc-global-health-banner__msg"></span>
+                <a class="btn-soft btn-sm" href="/alert-center">预警中心</a>
+            </div>
+            {% include "partials/global_focus_bar.html" %}
+            {% block research_lane %}
+            {% if current_user.is_authenticated %}
+            {% include "partials/research_lane.html" %}
+            {% endif %}
+            {% endblock %}
+            {% block content %}{% endblock %}
+        </main>
+        <footer class="qc-site-footer" role="contentinfo" id="qcSiteFooter">
+            <p id="qcComplianceShort">本平台展示的数据、指标与 AI 生成内容仅供学习研究，不构成投资建议。请独立判断并自担风险。</p>
+            <p>行情与财务数据可能存在延迟或误差，请以交易所、登记结算机构及证券公司官方披露为准。</p>
+            <p class="text-xs text-muted"><a href="/profile">个人中心</a> · <span id="qcComplianceVersion">合规说明</span></p>
+        </footer>
+    </div>
+{% endblock %}
+
+{% block overlay_chrome %}
+    {% if current_user.is_authenticated %}
+    {% include "partials/jarvis_proactive_panel.html" %}
+    {% endif %}
+    
+    <div id="commandOrb">
+        <div class="evo-card jarvis-orb-card">
+            <div class="jarvis-orb-head">
+                <div class="jarvis-orb-title">⚡ ATLAS JARVIS</div>
+                <div class="jarvis-orb-hint">ESC 退出</div>
+            </div>
+            <input type="text" id="jarvisInput" spellcheck="false" autocomplete="off" placeholder="输入指令: '分析 NVDA' / '查看回测' / '去朋友圈' ...">
+            <div id="jarvisFeedback">
+                <div class="muted jarvis-orb-feedback-hint">输入自然语言，AI 将自动识别您的投研意图</div>
+            </div>
+            <div class="jarvis-orb-prompts">
+                <span class="badge-soft jarvis-quick-prompt" data-jarvis-prompt="分析 600519">#分析茅台</span>
+                <span class="badge-soft jarvis-quick-prompt" data-jarvis-prompt="找便宜的好股票">#选股</span>
+                <span class="badge-soft jarvis-quick-prompt" data-jarvis-prompt="查看回测">#回测</span>
+                <span class="badge-soft jarvis-quick-prompt" data-jarvis-prompt="查看龙虎榜">#龙虎榜</span>
+                <span class="badge-soft jarvis-quick-prompt" data-jarvis-prompt="产业链 英伟达">#产业链</span>
+                <span class="badge-soft jarvis-quick-prompt" data-jarvis-prompt="全球市场">#透视塔</span>
+                <span class="badge-soft jarvis-quick-prompt" data-jarvis-prompt="今日涨停">#涨停</span>
+                <span class="badge-soft jarvis-quick-prompt" data-jarvis-prompt="去朋友圈">#朋友圈</span>
+                <span class="badge-soft jarvis-quick-prompt" data-jarvis-prompt="播放晨间语音简报">#语音简报</span>
+                <span class="badge-soft jarvis-quick-prompt" data-jarvis-prompt="帮我找符合去年赚钱风格的票">#赚钱风格</span>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block core_scripts %}
+    <script defer src="{{ url_for('static', filename='js/vendor/jquery-3.7.1.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/vendor/bootstrap-4.6.2.bundle.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/helpers/htmlescape.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/shell_nav.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/base_app.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/api_client.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/state_bus.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/focus_context.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/focus_context_enhancer.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/persona_mask.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/scanner_events.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/compliance_footer.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/truth_badge_client.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/watchlist_quick_actions.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/qa_user_center.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/api_error_banner.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/vendor/htmx.min.js') }}"></script>
+    {% if enable_socketio and current_user.is_authenticated %}
+    <script defer src="{{ url_for('static', filename='js/vendor/socket.io.min.js') }}"></script>
+    {% endif %}
+    <script defer src="{{ url_for('static', filename='js/components/qa-focus-bar.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/components/qa-health-banner.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/components/qa-truth-badge.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/predictive_preload.js') }}"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('{{ url_for("static", filename="sw.js") }}').then(function(reg) {
+                console.debug('[SW] registered', reg.scope);
+            }).catch(function(err) {
+                console.debug('[SW] registration failed', err);
+            });
+        });
+    }
+    </script>
+{% endblock %}
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,76 @@
+{# Jinja2 模板组件库 - 可复用的宏 #}
+
+{# 股票卡片 — 使用 <a> 标签替代 <div> 以获得原生键盘导航和屏幕阅读器支持 #}
+{% macro stock_card(stock) %}
+<a href="/stock/{{ stock.code }}?m=CN" class="stock-card" aria-label="{{ stock.name }} ({{ stock.code }})">
+    <div class="stock-top">
+        <div>
+            <div class="stock-name">{{ stock.name }}</div>
+            <div class="stock-code">{{ stock.code }}</div>
+        </div>
+        <span class="stock-price">{{ stock.price }}</span>
+    </div>
+    <div class="stock-bottom">
+        {% if stock.change_pct > 0 %}
+        <span class="badge positive">+{{ stock.change_pct }}%</span>
+        {% elif stock.change_pct < 0 %}
+        <span class="badge negative">{{ stock.change_pct }}%</span>
+        {% else %}
+        <span class="badge">{{ stock.change_pct }}%</span>
+        {% endif %}
+    </div>
+</a>
+{% endmacro %}
+
+{# 面板标题栏 #}
+{% macro panel_head(title, subtitle='', extra='') %}
+<div class="panel-head">
+    <div>
+        <h3 class="panel-title">{{ title }}</h3>
+        {% if subtitle %}<div class="panel-subtitle">{{ subtitle }}</div>{% endif %}
+    </div>
+    {{ extra }}
+</div>
+{% endmacro %}
+
+{# 加载状态 #}
+{% macro loading_state(message='加载中...') %}
+<div class="loading-state">{{ message }}</div>
+{% endmacro %}
+
+{# 空状态 #}
+{% macro empty_state(message='暂无数据') %}
+<div class="empty-state">{{ message }}</div>
+{% endmacro %}
+
+{# 榜单项 #}
+{% macro ranking_item(item, index, value, name=None) %}
+<div class="list-item">
+    <span class="list-index">{{ index + 1 }}</span>
+    <span class="list-name">{{ name or item.name }}</span>
+    <span class="list-code">{{ item.code }}</span>
+    <span class="list-value">{{ value }}</span>
+</div>
+{% endmacro %}
+
+{# 按钮（CSP：使用 data-ui-action，勿用 onclick 属性） #}
+{% macro btn(text, href='', class='btn-soft', action='') %}
+{% if href %}
+<a href="{{ href }}" class="{{ class }}">{{ text }}</a>
+{% else %}
+<button type="button" class="{{ class }}"{% if action %} data-ui-action="{{ action }}"{% endif %}>{{ text }}</button>
+{% endif %}
+{% endmacro %}
+
+{# 输入框 #}
+{% macro input(id, label, type='text', placeholder='', value='') %}
+<div class="form-group">
+    <label for="{{ id }}">{{ label }}</label>
+    <input type="{{ type }}" id="{{ id }}" class="input-soft" placeholder="{{ placeholder }}" value="{{ value }}">
+</div>
+{% endmacro %}
+
+{# 标签 #}
+{% macro badge(text, class='badge') %}
+<span class="{{ class }}">{{ text }}</span>
+{% endmacro %}

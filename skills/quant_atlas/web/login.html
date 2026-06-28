@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>{{ t('login.title') }} · Quant Atlas</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/auth.css') }}">
+
+</head>
+
+<body class="auth-page">
+
+    <!-- spa_switcher -->
+
+    <a href="/app/login" class="spa-switcher-link"
+
+       data-spa-switcher="login">
+
+      试试新版 →
+
+    </a>
+
+    <div class="login-shell">
+
+        <section class="login-hero">
+
+            <div class="login-hero-badge">Quant Atlas · Flask</div>
+
+            <h2 class="login-hero-title">{{ t('login.hero_title') }}<br>{{ t('login.hero_subtitle') }}</h2>
+
+            <p class="login-hero-copy">{{ t('login.hero_copy') }}</p>
+
+            <div class="login-hero-list">
+
+                <div class="login-hero-item">{{ t('login.hero_feature_1') }}</div>
+
+                <div class="login-hero-item">{{ t('login.hero_feature_2') }}</div>
+
+                <div class="login-hero-item">{{ t('login.hero_feature_3') }}</div>
+
+            </div>
+
+        </section>
+
+        <section class="login-panel">
+
+            <h1>{{ t('login.welcome') }}</h1>
+
+            <p>{{ t('login.welcome_subtitle') }}</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+                {% if messages %}
+
+                    {% for category, message in messages %}
+
+                        <div class="auth-flash">{{ message }}</div>
+
+                    {% endfor %}
+
+                {% endif %}
+
+            {% endwith %}
+
+            {% if login_locked_seconds and login_locked_seconds > 0 %}
+
+            <div class="auth-flash auth-flash--lockout" id="login-lockout" role="alert" aria-live="polite">
+
+                登录尝试过于频繁，请 <strong id="login-retry-countdown">{{ login_locked_seconds }}</strong> 秒后再试
+
+            </div>
+
+            {% endif %}
+
+            <form method="post" id="login-form">
+
+                {{ csrf_html() }}
+
+                <div class="auth-field">
+
+                    <label for="username">{{ t('login.username') }}</label>
+
+                    <input class="auth-input" type="text" id="username" name="username" placeholder="{{ t('login.usernamePlaceholder') }}" required{% if login_locked_seconds and login_locked_seconds > 0 %} disabled{% endif %}>
+
+                </div>
+
+                <div class="auth-field">
+
+                    <label for="password">{{ t('login.password') }}</label>
+
+                    <input class="auth-input" type="password" id="password" name="password" placeholder="{{ t('login.passwordPlaceholder') }}" required{% if login_locked_seconds and login_locked_seconds > 0 %} disabled{% endif %}>
+
+                </div>
+
+                <div class="auth-field auth-remember-row">
+
+                    <input type="checkbox" id="remember_me" name="remember_me" value="on"{% if login_locked_seconds and login_locked_seconds > 0 %} disabled{% endif %}>
+
+                    <label for="remember_me">{{ t('login.remember') }}</label>
+
+                </div>
+
+                <button class="auth-submit" type="submit" id="login-submit"{% if login_locked_seconds and login_locked_seconds > 0 %} disabled{% endif %}>{{ t('login.enter_btn') }}</button>
+
+            </form>
+
+            {% if wechat_login_available %}
+
+            <p class="auth-oauth-actions">
+
+                <a href="{{ url_for('auth.wechat_start') }}" class="auth-oauth-link auth-oauth-link--wechat">{{ t('login.wechat_login') }}</a>
+
+            </p>
+
+            {% endif %}
+
+            {% if oauth_login_available %}
+
+            <p class="auth-oauth-actions auth-oauth-actions--secondary">
+
+                <a href="{{ url_for('auth.oauth_start') }}" class="auth-oauth-link auth-oauth-link--keycloak">Keycloak 登录</a>
+
+            </p>
+
+            {% endif %}
+
+            <p class="auth-register-prompt">
+
+                {{ t('login.no_account') }}<a href="{{ url_for('auth.register') }}">{{ t('login.register_link') }}</a>
+
+            </p>
+
+            <div class="auth-helper">
+
+                {{ t('login.demo_note') }}
+
+            </div>
+
+        </section>
+
+    </div>
+
+    {% if login_locked_seconds and login_locked_seconds > 0 %}
+
+    <script nonce="{{ csp_nonce() }}">
+
+    (function () {
+
+        var remaining = {{ login_locked_seconds | int }};
+
+        var countdownEl = document.getElementById('login-retry-countdown');
+
+        var lockoutEl = document.getElementById('login-lockout');
+
+        var form = document.getElementById('login-form');
+
+        var submitBtn = document.getElementById('login-submit');
+
+        var fields = form ? form.querySelectorAll('input') : [];
+
+
+
+        function unlockForm() {
+
+            if (lockoutEl) lockoutEl.remove();
+
+            if (submitBtn) submitBtn.disabled = false;
+
+            fields.forEach(function (el) { el.disabled = false; });
+
+        }
+
+
+
+        var timer = window.setInterval(function () {
+
+            remaining -= 1;
+
+            if (countdownEl) countdownEl.textContent = String(Math.max(remaining, 0));
+
+            if (remaining <= 0) {
+
+                window.clearInterval(timer);
+
+                unlockForm();
+
+            }
+
+        }, 1000);
+
+    })();
+
+    </script>
+
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/switcher_telemetry.js') }}" nonce="{{ csp_nonce() }}"></script>
+
+</body>
+
+</html>
+

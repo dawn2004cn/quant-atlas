@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}影子操盘 - Quant Atlas{% endblock %}
+{% block spa_switcher %}
+
+<a href="/app/shadow_account" class="spa-switcher-link"
+
+   data-spa-switcher="shadow_account">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/portfolio.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="shadow-hero">
+    <div class="hero-caption">Strategy Extraction</div>
+    <h1 class="page-title">👤 影子操盘</h1>
+    <p class="page-subtitle">从您的交易记录中提取策略特征，对比大师风格，了解自己的投资个性</p>
+</div>
+
+<div class="section-shell">
+    <div class="panel-head">
+        <h2 class="panel-title">📂 上传交易记录</h2>
+    </div>
+    
+    <div class="upload-zone" id="uploadZone">
+        <div class="upload-icon">📄</div>
+        <div class="sh-upload-title">拖拽文件到此处 或 点击上传</div>
+        <div class="text-sm text-muted mt-2">支持 CSV, Excel 格式，需包含交易日期、股票代码、买入价、卖出价、数量</div>
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" class="qa-is-hidden">
+    </div>
+    
+    <div class="sh-upload-actions">
+        <button class="btn-soft" type="button" data-sa-action="use-sample">使用示例数据</button>
+        <button class="btn-soft" type="button" data-sa-action="connect-broker">连接券商账户</button>
+    </div>
+</div>
+
+<div id="analysisResult" class="qa-is-hidden">
+    <div class="section-shell mt-6">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">🎯 您的策略画像</h2>
+                <div class="panel-subtitle">基于 156 笔交易记录分析</div>
+            </div>
+            <button class="btn-brand btn-sm" type="button" data-sa-action="save-profile">保存画像</button>
+        </div>
+        
+        <div class="strategy-profile">
+            <div class="profile-card warren">
+                <div class="profile-icon">🏦</div>
+                <div class="profile-name">巴菲特风格</div>
+                <div class="profile-match">72%</div>
+                <div class="profile-desc">价值投资，长期持有，重视基本面</div>
+            </div>
+            <div class="profile-card lynch">
+                <div class="profile-icon">🔍</div>
+                <div class="profile-name">彼得·林奇风格</div>
+                <div class="profile-match">58%</div>
+                <div class="profile-desc">成长猎手，关注小市值高增长</div>
+            </div>
+            <div class="profile-card dalio">
+                <div class="profile-icon">⚖️</div>
+                <div class="profile-name">达里奥风格</div>
+                <div class="profile-match">45%</div>
+                <div class="profile-desc">全天候配置，风险平价思维</div>
+            </div>
+        </div>
+        
+        <h3 class="mt-6 mb-4">📊 行为分析</h3>
+        <div class="behavior-analysis">
+            <div class="behavior-card">
+                <div class="behavior-title">📈 持仓周期</div>
+                <div class="text-sm">平均持仓 23 天</div>
+                <div class="behavior-bar"><div class="behavior-bar-fill w65"></div></div>
+                <div class="text-xs text-muted mt-2">偏中长线</div>
+            </div>
+            <div class="behavior-card">
+                <div class="behavior-title">🎯 止盈止损</div>
+                <div class="text-sm">止盈 15% / 止损 -8%</div>
+                <div class="behavior-bar"><div class="behavior-bar-fill w70"></div></div>
+                <div class="text-xs text-muted mt-2">纪律性较好</div>
+            </div>
+            <div class="behavior-card">
+                <div class="behavior-title">💰 仓位管理</div>
+                <div class="text-sm">单票 10-20%</div>
+                <div class="behavior-bar"><div class="behavior-bar-fill w55"></div></div>
+                <div class="text-xs text-muted mt-2">分散度适中</div>
+            </div>
+            <div class="behavior-card">
+                <div class="behavior-title">🔄 交易频率</div>
+                <div class="text-sm">月均 12 笔</div>
+                <div class="behavior-bar"><div class="behavior-bar-fill w40"></div></div>
+                <div class="text-xs text-muted mt-2">交易偏频繁</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-shell mt-6">
+        <div class="panel-head">
+            <h2 class="panel-title">📋 提取的策略规则</h2>
+        </div>
+        <div class="extracted-rules">
+            <div class="rule-item">
+                <span class="rule-condition">IF</span> 市值 &lt; 500亿 <span class="rule-condition">AND</span> ROE &gt; 15% 
+                <span class="rule-action">→ 买入</span> (权重: 0.85)
+            </div>
+            <div class="rule-item">
+                <span class="rule-condition">IF</span> PE &gt; 50 <span class="rule-condition">AND</span> 利润增速 &lt; 10% 
+                <span class="rule-action">→ 卖出</span> (权重: 0.72)
+            </div>
+            <div class="rule-item">
+                <span class="rule-condition">IF</span> 持仓盈利 &gt; 20% <span class="rule-condition">AND</span> 持有 &gt; 30天 
+                <span class="rule-action">→ 部分止盈</span> (权重: 0.65)
+            </div>
+            <div class="rule-item">
+                <span class="rule-condition">IF</span> 单票亏损 &gt; -10% 
+                <span class="rule-action">→ 强制止损</span> (权重: 0.90)
+            </div>
+            <div class="rule-item">
+                <span class="rule-condition">IF</span> 大盘跌破 20日均线 
+                <span class="rule-action">→ 减仓至 50%</span> (权重: 0.60)
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-shell mt-6">
+        <div class="panel-head">
+            <h2 class="panel-title">📜 历史记录</h2>
+        </div>
+        <div class="history-list">
+            <div class="history-item">
+                <div>
+                    <div class="sh-step-title">策略画像提取</div>
+                    <div class="history-date">2024-01-15 14:30</div>
+                </div>
+                <div class="history-pnl positive">↑ 72% 匹配</div>
+            </div>
+            <div class="history-item">
+                <div>
+                    <div class="sh-step-title">与巴菲特对比分析</div>
+                    <div class="history-date">2024-01-10 09:15</div>
+                </div>
+                <div class="history-pnl positive">↑ 68% 相似</div>
+            </div>
+            <div class="history-item">
+                <div>
+                    <div class="sh-step-title">回测模拟 - 2023年</div>
+                    <div class="history-date">2024-01-05 16:20</div>
+                </div>
+                <div class="history-pnl positive">+18.5%</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+$('#uploadZone').click(function() {
+    $('#fileInput').click();
+});
+
+$('#uploadZone').on('dragover', function(e) {
+    $(this).addClass('dragover');
+});
+
+$('#uploadZone').on('dragleave', function(e) {
+    $(this).removeClass('dragover');
+});
+
+$('#uploadZone').on('drop', function(e) {
+    $(this).removeClass('dragover');
+    const files = e.originalEvent.dataTransfer.files;
+    if (files.length) processFile(files[0]);
+});
+
+$('#fileInput').change(function(e) {
+    if (e.target.files.length) processFile(e.target.files[0]);
+});
+
+function processFile(file) {
+    showToast('正在分析交易记录...', 'info');
+    
+    // 模拟分析过程
+    setTimeout(function() {
+        $('#analysisResult').slideDown();
+        showToast('✅ 分析完成！发现 156 笔交易记录', 'success');
+    }, 1500);
+}
+
+function useSampleData() {
+    showToast('正在使用示例数据进行分析...', 'info');
+    setTimeout(function() {
+        $('#analysisResult').slideDown();
+        showToast('✅ 示例数据分析完成！', 'success');
+    }, 1500);
+}
+
+function connectBroker() {
+    showToast('券商对接功能开发中...', 'info');
+}
+
+function saveProfile() {
+    showToast('策略画像已保存', 'success');
+}
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-sa-action]');
+    if (!el) return;
+    const action = el.dataset.saAction;
+    if (action === 'use-sample') useSampleData();
+    else if (action === 'connect-broker') connectBroker();
+    else if (action === 'save-profile') saveProfile();
+});
+</script>
+{% endblock %}

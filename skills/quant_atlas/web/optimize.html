@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}参数优化 · Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/strategy.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="opt-page">
+    <section class="section-shell opt-hero">
+        <div class="hero-caption">Parameter Lab</div>
+        <h1 class="page-title">参数优化</h1>
+        <p class="page-subtitle">
+            围绕策略信号、资金曲线与风险指标，在统一回测引擎上迭代参数区间。当前页为<strong>研究工作台入口</strong>：
+            可跳转至「策略回测」逐策略验证，或在「量化实验室」对比因子与模型表现；全网格自动寻优接口将在后续版本接入同一套 <code>/api/v1/backtest</code> 管线。
+        </p>
+    </section>
+
+    <section class="section-shell opt-panel">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">推荐工作流</h2>
+                <div class="panel-subtitle">先定标的与区间，再人工或半自动扫参，最后沉淀为自选与告警</div>
+            </div>
+            <span class="badge-soft">52+ 内置策略</span>
+        </div>
+        <ol class="step-list">
+            <li>在 <a href="/backtest">策略回测</a> 中选择分组与策略，固定起止日期与初始资金，建立基准曲线。</li>
+            <li>记录夏普、最大回撤与交易次数；对敏感参数（如均线周期、RSI 阈值）做小步长网格。</li>
+            <li>结合 <a href="/quant-lab">量化实验室</a> 的因子健康与 IC 摘要，避免过拟合单一区间。</li>
+            <li>将满意组合加入 <a href="/self-stocks">自选股</a> 或消息中心任务，持续跟踪样本外表现。</li>
+        </ol>
+    </section>
+
+    <div class="opt-grid">
+        <a class="opt-card" href="/backtest">
+            <span class="badge-soft">核心</span>
+            <h3>策略回测</h3>
+            <p>按「趋势突破、均值回归、恐慌抄底、机构资金」分组浏览全部注册策略，支持 A 股常用代码与日期区间；开启 Qlib 时可选用买入持有实验管线对照。</p>
+            <span class="go">打开回测 →</span>
+        </a>
+        <a class="opt-card" href="/quant-lab">
+            <span class="badge-soft">因子 / 模型</span>
+            <h3>量化实验室</h3>
+            <p>因子目录、IC 监控、模型预测与回测对比接口集中在此；适合在优化参数前检查特征是否衰减或漂移。</p>
+            <span class="go">进入实验室 →</span>
+        </a>
+        <a class="opt-card" href="/research-pipeline">
+            <span class="badge-soft">闭环</span>
+            <h3>研究闭环</h3>
+            <p>查看 Qlib / RD-Agent 能力与数据管线状态，把回测结论与研发任务串联，便于团队协作与复现。</p>
+            <span class="go">查看管线 →</span>
+        </a>
+    </div>
+
+    <section class="section-shell opt-panel">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">关于自动网格搜索</h2>
+                <div class="panel-subtitle">规划中的能力，不影响当前手动流程</div>
+            </div>
+        </div>
+        <div class="empty-hint">
+            服务端将提供「参数空间 JSON → 异步任务 → 结果表」的一体化 API，并与 Celery 任务队列、消息中心对齐。
+            在此之前，请优先使用本页链接的现有能力完成研究与验证。
+        </div>
+    </section>
+</div>
+{% endblock %}

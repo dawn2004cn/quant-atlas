@@ -1,0 +1,136 @@
+{# Team evidence blackboard — Alpine capability component #}
+<div
+    class="section-shell"
+    id="team-blackboard"
+    x-data="teamBlackboardCapability()"
+    x-init="init()"
+>
+    <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="panel-title mb-0">📋 团队证据黑板</h2>
+            <div class="panel-subtitle">成员与 Agent 提交证据，Arbiter 加权合成团队共识</div>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn-soft btn-sm" @click="load()" :disabled="!teamId">刷新</button>
+            <button type="button" class="btn-brand btn-sm" @click="consensus()" :disabled="!teamId">合成共识</button>
+        </div>
+    </div>
+
+    <div class="text-sm text-muted mt-2" x-show="!teamId" x-cloak>请先在「团队协作上下文」中选择团队。</div>
+
+    <div class="row mt-3 g-2" x-show="teamId" x-cloak>
+        <div class="col-md-4">
+            <input class="form-control form-control-sm" placeholder="证据键 (如 macd)" x-model="form.evidence_key">
+        </div>
+        <div class="col-md-4">
+            <input class="form-control form-control-sm" placeholder="证据值 (如 bullish)" x-model="form.evidence_value">
+        </div>
+        <div class="col-md-2">
+            <select class="form-control form-control-sm" x-model="form.strength">
+                <option value="strong">强</option>
+                <option value="moderate">中</option>
+                <option value="weak">弱</option>
+                <option value="neutral">中性</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn-soft btn-sm w-100" @click="submit()">提交</button>
+        </div>
+        <div class="col-12">
+            <input class="form-control form-control-sm" placeholder="补充说明（可选）" x-model="form.narrative">
+        </div>
+    </div>
+
+    <div class="mt-3 p-3 trade-plan-panel" x-show="consensusResult && consensusResult.ok" x-cloak>
+        <strong>团队共识：</strong>
+        <span class="badge" :class="verdictClass(consensusResult.verdict)" x-text="consensusResult.verdict"></span>
+        <span class="text-muted text-sm" x-text="' conf ' + (consensusResult.confidence||0)"></span>
+        <span class="text-muted text-sm" x-text="' · ' + (consensusResult.entries_used||0) + ' 条证据'"></span>
+    </div>
+
+    <div class="mt-3 collab-scroll-sm">
+        <template x-for="row in entries" :key="row.id">
+            <div class="news-item text-sm mb-2">
+                <div class="d-flex justify-content-between">
+                    <strong x-text="row.evidence_key + ': ' + row.evidence_value"></strong>
+                    <span class="text-muted" x-text="row.strength"></span>
+                </div>
+                <div class="text-muted" x-text="row.narrative || ''"></div>
+                <div class="text-xs text-muted" x-text="row.agent_role + ' · ' + (row.created_at || '')"></div>
+            </div>
+        </template>
+        <div class="text-muted text-sm" x-show="teamId && !entries.length" x-cloak>暂无黑板证据，提交第一条吧。</div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function teamBlackboardCapability() {
+    return {
+        teamId: null,
+        entries: [],
+        consensusResult: null,
+        form: { evidence_key: '', evidence_value: '', strength: 'moderate', narrative: '' },
+        init() {
+            this.teamId = window.QATeamContext ? QATeamContext.readTeamId() : null;
+            if (this.teamId) this.load();
+            window.addEventListener('team-context-changed', (e) => {
+                this.teamId = e.detail ? e.detail.teamId : null;
+                this.entries = [];
+                this.consensusResult = null;
+                if (this.teamId) this.load();
+            });
+        },
+        symbolParam() {
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '').trim();
+            return sym ? '?symbol=' + encodeURIComponent(sym) : '';
+        },
+        load() {
+            if (!this.teamId) return;
+            fetch('/api/v1/teams/' + this.teamId + '/blackboard' + this.symbolParam(), {
+                credentials: 'same-origin',
+            }).then((r) => r.json()).then((res) => {
+                const d = res.data || res;
+                this.entries = d.entries || [];
+            }).catch(() => {});
+        },
+        submit() {
+            if (!this.teamId) return;
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '') || null;
+            fetch('/api/v1/teams/' + this.teamId + '/blackboard', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    evidence_key: this.form.evidence_key,
+                    evidence_value: this.form.evidence_value,
+                    strength: this.form.strength,
+                    narrative: this.form.narrative,
+                    symbol: sym,
+                }),
+            }).then((r) => r.json()).then(() => {
+                this.form.evidence_key = '';
+                this.form.evidence_value = '';
+                this.form.narrative = '';
+                this.load();
+            }).catch(() => {});
+        },
+        consensus() {
+            if (!this.teamId) return;
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '') || '';
+            fetch('/api/v1/teams/' + this.teamId + '/blackboard/consensus', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symbol: sym || null }),
+            }).then((r) => r.json()).then((res) => {
+                this.consensusResult = res.data || res;
+            }).catch(() => {});
+        },
+        verdictClass(v) {
+            if (v === 'bullish') return 'badge-success';
+            if (v === 'bearish') return 'badge-danger';
+            return 'badge-secondary';
+        },
+    };
+}
+</script>

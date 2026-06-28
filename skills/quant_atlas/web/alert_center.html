@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+
+
+
+{% block title %}智能预警中心 | Quant Atlas{% endblock %}
+
+
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
+
+{% endblock %}
+
+
+
+{% block spa_switcher %}
+
+<a href="/app/alert-center" class="spa-switcher-link"
+
+   data-spa-switcher="alert-center">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<div class="container-fluid py-3">
+
+    <div class="alert-hero">
+
+        <h1 class="h2 mb-2">🚨 智能异常预警中心</h1>
+
+        <p class="text-muted mb-0">聚合任务失败、因子 IC、数据新鲜度、系统探针与<strong>跨团队群体智能共识异动</strong>（支持 WebSocket 实时推送）。</p>
+
+    </div>
+
+
+
+    <div class="alert-stat-grid">
+
+        <div class="alert-stat">
+
+            <div class="alert-stat-label">全部告警</div>
+
+            <div class="alert-stat-value" id="statTotal">--</div>
+
+        </div>
+
+        <div class="alert-stat critical">
+
+            <div class="alert-stat-label">Critical</div>
+
+            <div class="alert-stat-value" id="statCritical">--</div>
+
+        </div>
+
+        <div class="alert-stat warning">
+
+            <div class="alert-stat-label">Warning</div>
+
+            <div class="alert-stat-value" id="statWarning">--</div>
+
+        </div>
+
+        <div class="alert-stat info">
+
+            <div class="alert-stat-label">Info</div>
+
+            <div class="alert-stat-value" id="statInfo">--</div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="alert-toolbar">
+
+        <select class="form-select form-select-sm ac-select-auto" id="minLevel">
+
+            <option value="info">全部级别</option>
+
+            <option value="warning">Warning+</option>
+
+            <option value="critical">仅 Critical</option>
+
+        </select>
+
+        <select class="form-select form-select-sm ac-select-auto" id="category">
+
+            <option value="">全部分类</option>
+
+            <option value="task">任务</option>
+
+            <option value="factor">因子</option>
+
+            <option value="data">数据</option>
+
+            <option value="system">系统</option>
+
+            <option value="execution">执行</option>
+
+            <option value="consensus">群体共识</option>
+
+        </select>
+
+        <select class="form-select form-select-sm ac-select-auto" id="limit">
+
+            <option value="30">30 条</option>
+
+            <option value="50" selected>50 条</option>
+
+            <option value="100">100 条</option>
+
+        </select>
+
+        <div class="form-check form-check-inline mb-0">
+
+            <input class="form-check-input" type="checkbox" id="includeProbes" checked>
+
+            <label class="form-check-label" for="includeProbes">含系统探针</label>
+
+        </div>
+
+        <div class="form-check form-check-inline mb-0">
+
+            <input class="form-check-input" type="checkbox" id="autoRefresh">
+
+            <label class="form-check-label" for="autoRefresh">自动刷新 (60s)</label>
+
+        </div>
+
+        <button class="btn btn-sm btn-primary" id="refreshBtn" type="button">刷新</button>
+
+        <button class="btn btn-sm btn-outline-danger" id="dispatchBtn" type="button">推送通知</button>
+
+        <small class="text-muted" id="generatedAt"></small>
+
+    </div>
+
+
+
+    <div class="alert alert-secondary d-none" id="loadError" role="alert"></div>
+
+    <div class="alert-feed" id="alertFeed"></div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script nonce="{{ csp_nonce() }}">
+
+const CATEGORY_LABELS = {
+
+    task: '任务',
+
+    factor: '因子',
+
+    data: '数据',
+
+    system: '系统',
+
+    execution: '执行',
+
+    consensus: '群体共识',
+
+};
+
+
+
+let refreshTimer = null;
+
+
+
+function buildAlertsQuery() {
+
+    const params = new URLSearchParams({
+
+        limit: document.getElementById('limit').value,
+
+        min_level: document.getElementById('minLevel').value,
+
+        include_probes: document.getElementById('includeProbes').checked ? '1' : '0',
+
+    });
+
+    const category = document.getElementById('category').value;
+
+    if (category) params.set('category', category);
+
+    return '/api/v1/system/alerts?' + params.toString();
+
+}
+
+
+
+function formatTime(ts) {
+
+    if (!ts) return '—';
+
+    try {
+
+        const d = new Date(ts);
+
+        if (Number.isNaN(d.getTime())) return ts;
+
+        return d.toLocaleString('zh-CN');
+
+    } catch (e) {
+
+        return ts;
+
+    }
+
+}
+
+
+
+function renderAlertItem(item) {
+
+    const level = item.level || 'info';
+
+    const category = item.category || 'system';
+
+    const catLabel = CATEGORY_LABELS[category] || category;
+
+    const metaBits = [];
+
+    if (item.source) metaBits.push('来源: ' + item.source);
+
+    if (item.occurred_at) metaBits.push('时间: ' + formatTime(item.occurred_at));
+
+    if (item.meta && item.meta.task_name) metaBits.push('任务: ' + item.meta.task_name);
+
+    if (item.meta && item.meta.event) metaBits.push('事件: ' + item.meta.event);
+
+    if (item.meta && item.meta.verdict) metaBits.push('共识: ' + item.meta.verdict);
+
+    if (item.meta && item.meta.team_count) metaBits.push('团队数: ' + item.meta.team_count);
+
+
+
+    const extraClass = item._live ? ' level-consensus-live' : '';
+
+    return '<article class="alert-item level-' + level + extraClass + '">' +
+
+        '<div class="alert-item-header">' +
+
+            '<div class="alert-item-title">' + (item.title || '告警') + '</div>' +
+
+            '<div>' +
+
+                '<span class="alert-badge level-' + level + '">' + level + '</span> ' +
+
+                '<span class="alert-badge cat-' + category + '">' + catLabel + '</span>' +
+
+            '</div>' +
+
+        '</div>' +
+
+        '<div class="alert-item-message">' + (item.message || '') + '</div>' +
+
+        '<div class="alert-item-meta">' + metaBits.join(' · ') + '</div>' +
+
+    '</article>';
+
+}
+
+
+
+function updateSummary(feed) {
+
+    document.getElementById('statTotal').textContent = feed.total != null ? feed.total : '--';
+
+    const byLevel = feed.counts_by_level || {};
+
+    document.getElementById('statCritical').textContent = byLevel.critical || 0;
+
+    document.getElementById('statWarning').textContent = byLevel.warning || 0;
+
+    document.getElementById('statInfo').textContent = byLevel.info || 0;
+
+    document.getElementById('generatedAt').textContent = feed.generated_at
+
+        ? ('更新于 ' + formatTime(feed.generated_at))
+
+        : '';
+
+}
+
+
+
+async function loadAlerts() {
+
+    const errorEl = document.getElementById('loadError');
+
+    const feedEl = document.getElementById('alertFeed');
+
+    errorEl.classList.add('d-none');
+
+    feedEl.innerHTML = '<div class="alert-empty">加载中…</div>';
+
+
+
+    try {
+
+        const response = await fetch(buildAlertsQuery(), { credentials: 'same-origin' });
+
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+
+        const payload = await response.json();
+
+        const feed = (payload.status === 'success' || payload.ok) ? (payload.data ?? payload) : null;
+
+        if (!feed) throw new Error('empty_feed');
+
+
+
+        updateSummary(feed);
+
+        const items = feed.items || [];
+
+        if (!items.length) {
+
+            feedEl.innerHTML = '<div class="alert-empty">当前筛选条件下暂无告警 🎉</div>';
+
+            return;
+
+        }
+
+        feedEl.innerHTML = items.map(renderAlertItem).join('');
+
+    } catch (e) {
+
+        window.qcLogError('Load alerts error', e);
+
+        errorEl.textContent = '预警数据加载失败，请确认已登录且后端服务可用。';
+
+        errorEl.classList.remove('d-none');
+
+        feedEl.innerHTML = '';
+
+    }
+
+}
+
+
+
+function setupAutoRefresh() {
+
+    if (refreshTimer) {
+
+        clearInterval(refreshTimer);
+
+        refreshTimer = null;
+
+    }
+
+    if (document.getElementById('autoRefresh').checked) {
+
+        refreshTimer = setInterval(loadAlerts, 60000);
+
+    }
+
+}
+
+
+
+async function dispatchAlerts() {
+
+    if (!window.confirm('将当前 Warning+ 告警推送到已配置的 Webhook / 钉钉 / 邮件渠道？')) return;
+
+    try {
+
+        const response = await fetch('/api/v1/system/alerts/dispatch', {
+
+            method: 'POST',
+
+            credentials: 'same-origin',
+
+            headers: { 'Content-Type': 'application/json' },
+
+            body: JSON.stringify({
+
+                min_level: document.getElementById('minLevel').value === 'info' ? 'warning' : document.getElementById('minLevel').value,
+
+                limit: Number(document.getElementById('limit').value || 20),
+
+                include_probes: document.getElementById('includeProbes').checked,
+
+                respect_dedup: false,
+
+            }),
+
+        });
+
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+
+        const payload = await response.json();
+
+        const result = payload.data || payload;
+
+        alert('推送完成：成功 ' + (result.sent || 0) + ' 渠道，失败 ' + (result.failed || 0));
+
+    } catch (e) {
+
+        alert('推送失败: ' + e.message);
+
+    }
+
+}
+
+
+
+document.getElementById('refreshBtn').addEventListener('click', loadAlerts);
+
+document.getElementById('dispatchBtn').addEventListener('click', dispatchAlerts);
+
+document.getElementById('minLevel').addEventListener('change', loadAlerts);
+
+document.getElementById('category').addEventListener('change', loadAlerts);
+
+document.getElementById('limit').addEventListener('change', loadAlerts);
+
+document.getElementById('includeProbes').addEventListener('change', loadAlerts);
+
+document.getElementById('autoRefresh').addEventListener('change', setupAutoRefresh);
+
+
+
+function handleRealtimeCrossTeamAlert(payload) {
+
+    const inner = (payload && payload.data) ? payload.data : (payload || {});
+
+    const item = {
+
+        id: inner.alert_id || inner.id || ('rt-' + Date.now()),
+
+        level: inner.level || 'warning',
+
+        category: 'consensus',
+
+        title: inner.title || '全站共识异动',
+
+        message: inner.message || '',
+
+        source: 'cross_team_realtime',
+
+        occurred_at: payload.timestamp || new Date().toISOString(),
+
+        meta: {
+
+            symbol: inner.symbol,
+
+            market: inner.market,
+
+            verdict: inner.verdict,
+
+            team_count: inner.team_count,
+
+            avg_confidence: inner.avg_confidence,
+
+        },
+
+        _live: true,
+
+    };
+
+    const feedEl = document.getElementById('alertFeed');
+
+    const empty = feedEl.querySelector('.alert-empty');
+
+    if (empty) feedEl.innerHTML = '';
+
+    feedEl.insertAdjacentHTML('afterbegin', renderAlertItem(item));
+
+    const totalEl = document.getElementById('statTotal');
+
+    const n = parseInt(totalEl.textContent, 10);
+
+    if (!Number.isNaN(n)) totalEl.textContent = String(n + 1);
+
+    if (item.level === 'warning') {
+
+        const w = document.getElementById('statWarning');
+
+        const wn = parseInt(w.textContent, 10);
+
+        if (!Number.isNaN(wn)) w.textContent = String(wn + 1);
+
+    }
+
+}
+
+
+
+document.addEventListener('quant:cross-team-alert', function (e) {
+
+    handleRealtimeCrossTeamAlert(e.detail);
+
+});
+
+
+
+loadAlerts();
+
+setupAutoRefresh();
+
+</script>
+
+{% endblock %}
+

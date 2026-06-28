@@ -1,0 +1,107 @@
+{% extends "layouts/zen_base.html" %}
+{% block title %}Zen Dashboard · Quant Atlas{% endblock %}
+{% block zen_title %}Portfolio Overview{% endblock %}
+{% block zen_subtitle %}Real-time market intelligence at a glance{% endblock %}
+{% block zen_actions %}
+<button class="zen-btn zen-btn-primary" type="button" data-zd-action="refresh">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+  Refresh
+</button>
+{% endblock %}
+
+{% block zen_content %}
+{% include "components/skeleton.html" %}
+
+<div class="zen-grid zen-grid-4 zen-fade-in" id="zenStats">
+  <div class="zen-glass-card"><div class="zen-stat"><span class="zen-stat-label">Portfolio Value</span><span class="zen-stat-value" id="statValue">--</span><span class="zen-stat-change" id="statChange"></span></div></div>
+  <div class="zen-glass-card"><div class="zen-stat"><span class="zen-stat-label">Today P&L</span><span class="zen-stat-value" id="statPnL">--</span><span class="zen-stat-change" id="statPnLChange"></span></div></div>
+  <div class="zen-glass-card"><div class="zen-stat"><span class="zen-stat-label">Positions</span><span class="zen-stat-value" id="statPositions">--</span><span class="zen-stat-change" id="statPosChange">Active</span></div></div>
+  <div class="zen-glass-card"><div class="zen-stat"><span class="zen-stat-label">Risk Score</span><span class="zen-stat-value" id="statRisk">--</span><span class="zen-stat-change" id="statRiskLabel">Conservative</span></div></div>
+</div>
+
+<div class="zen-grid zen-grid-2 zen-mt-20">
+  <div class="zen-glass-card zen-fade-in zen-fade-in-d1" id="zenPositions">
+    <div class="zen-stat zen-stat-mb"><span class="zen-stat-label">Open Positions</span></div>
+    <div id="positionsSkeleton">{{ skeleton_table(rows=4, cols=4) }}</div>
+    <table class="qa-is-hidden zen-table" id="positionsTable">
+      <thead><tr><th>Symbol</th><th>Qty</th><th>Entry</th><th>Current</th><th>P&L</th></tr></thead>
+      <tbody id="positionsBody"></tbody>
+    </table>
+  </div>
+  <div class="zen-glass-card zen-fade-in zen-fade-in-d2" id="zenAlerts">
+    <div class="zen-stat zen-stat-mb"><span class="zen-stat-label">Recent Alerts</span></div>
+    <div id="alertsSkeleton">{{ skeleton_card(lines=3) }}</div>
+    <div id="alertsBody" class="qa-is-hidden"></div>
+  </div>
+</div>
+
+<div class="zen-glass-card zen-fade-in zen-fade-in-d3 zen-mt-20" id="zenMarket">
+  <div class="zen-stat zen-stat-mb"><span class="zen-stat-label">Market Overview</span></div>
+  <div id="marketSkeleton">{{ skeleton_table(rows=5, cols=5) }}</div>
+  <table class="qa-is-hidden zen-table" id="marketTable">
+    <thead><tr><th>Symbol</th><th>Price</th><th>Change</th><th>Volume</th><th>Status</th></tr></thead>
+    <tbody id="marketBody"></tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+async function fetchJson(url) {
+  const r = await fetch(url);
+  const j = await r.json();
+  return j.data || j;
+}
+function fmt(v) { return typeof v === 'number' ? v.toFixed(2) : v; }
+function pctClass(v) { return v >= 0 ? 'zen-positive' : 'zen-negative'; }
+
+async function refreshAll() {
+  const ids = ['positionsSkeleton','alertsSkeleton','marketSkeleton','positionsTable','alertsBody','marketTable'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id.includes('Skeleton') ? 'block' : 'none';
+  });
+  try {
+    const [stats, positions, alerts, market] = await Promise.all([
+      fetchJson('/api/v1/portfolio/overview').catch(() => null),
+      fetchJson('/api/v1/portfolio/positions').catch(() => null),
+      fetchJson('/api/v1/system/alerts/summary').catch(() => null),
+      fetchJson('/api/v1/global-market/hot-sectors').catch(() => null),
+    ]);
+    if (stats) {
+      document.getElementById('statValue').textContent = '$' + fmt(stats.total_value || 0);
+      document.getElementById('statPnL').textContent = fmt(stats.day_pnl || 0);
+      document.getElementById('statPnL').className = pctClass(stats.day_pnl || 0);
+      document.getElementById('statPositions').textContent = stats.position_count || 0;
+      document.getElementById('statRisk').textContent = (stats.risk_score || 0) + '%';
+    }
+    if (positions && positions.length) {
+      document.getElementById('positionsSkeleton').style.display = 'none';
+      const tb = document.getElementById('positionsTable');
+      tb.style.display = 'table';
+      const body = document.getElementById('positionsBody');
+      body.innerHTML = positions.map(p => `<tr><td>${p.symbol}</td><td>${p.qty}</td><td>${fmt(p.entry_price)}</td><td>${fmt(p.current_price)}</td><td class="${pctClass(p.pnl)}">${fmt(p.pnl)}</td></tr>`).join('');
+    }
+    if (alerts) {
+      document.getElementById('alertsSkeleton').style.display = 'none';
+      document.getElementById('alertsBody').style.display = 'block';
+      const items = alerts.items || [];
+      document.getElementById('alertsBody').innerHTML = items.slice(0, 5).map(a => `<div class="zen-alert-row">${a.message || a.title || a.text || '—'}</div>`).join('') || '<div class="zen-alert-empty">No recent alerts</div>';
+    }
+    if (market && market.sectors) {
+      document.getElementById('marketSkeleton').style.display = 'none';
+      const tb = document.getElementById('marketTable');
+      tb.style.display = 'table';
+      const body = document.getElementById('marketBody');
+      body.innerHTML = market.sectors.slice(0, 8).map(s => `<tr><td>${s.name}</td><td>${fmt(s.index || s.price)}</td><td class="${pctClass(s.change_pct)}">${fmt(s.change_pct)}%</td><td>${s.volume || '—'}</td><td><span class="zen-badge ${s.change_pct >= 0 ? 'zen-badge-verified' : 'zen-badge-disputed'}">${s.change_pct >= 0 ? 'Bullish' : 'Bearish'}</span></td></tr>`).join('');
+    }
+  } catch(e) { window.qcLogError('zen_dashboard refresh failed', e); }
+}
+refreshAll();
+setInterval(refreshAll, 60000);
+document.addEventListener('click', function (e) {
+  const el = e.target.closest('[data-zd-action]');
+  if (el && el.dataset.zdAction === 'refresh') refreshAll();
+});
+</script>
+{% endblock %}

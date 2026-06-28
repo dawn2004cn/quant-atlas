@@ -1,0 +1,67 @@
+{# Jarvis 5.0 proactive signals — global floating panel (vanilla JS) #}
+<div id="jarvisProactivePanel" class="qa-is-hidden jpp-root">
+    <div class="evo-card jpp-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong class="jpp-title">⚡ Jarvis 主动信号</strong>
+            <button type="button" class="btn-soft btn-sm" id="jarvisProactiveDismiss">关闭</button>
+        </div>
+        <div id="jarvisProactiveBody"></div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+(function () {
+    const panel = document.getElementById('jarvisProactivePanel');
+    const body = document.getElementById('jarvisProactiveBody');
+    const dismissBtn = document.getElementById('jarvisProactiveDismiss');
+    if (!panel || !body) return;
+
+    function render(signals) {
+        if (!signals || !signals.length) {
+            panel.style.display = 'none';
+            return;
+        }
+        body.innerHTML = signals.map(function (sig) {
+            return '<div class="trade-plan-panel mb-2 jpp-item">'
+                + '<div class="font-bold">' + (sig.name || sig.symbol) + ' (' + sig.symbol + ')</div>'
+                + '<div class="text-sm text-muted">' + (sig.match_reason || '') + ' · +' + (sig.change_pct || 0) + '%</div>'
+                + '<div class="d-flex gap-2 mt-2 flex-wrap">'
+                + '<button type="button" class="btn-brand btn-sm" data-cmd="' + (sig.jarvis_command || '').replace(/"/g, '&quot;') + '">查看指令</button>'
+                + '<a class="btn-soft btn-sm" href="' + (sig.preview_href || '#') + '">Live 研报</a>'
+                + '</div></div>';
+        }).join('');
+        panel.style.display = 'block';
+        body.querySelectorAll('button[data-cmd]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (typeof openCommandOrb === 'function') openCommandOrb();
+                var input = document.getElementById('jarvisInput');
+                if (input) {
+                    input.value = btn.getAttribute('data-cmd') || '';
+                    input.dispatchEvent(new Event('input'));
+                }
+            });
+        });
+    }
+
+    let stopped = false;
+
+    function scan() {
+        if (stopped) return;
+        fetch('/api/v1/jarvis/proactive', { credentials: 'same-origin' })
+            .then(function (r) {
+                if (r.status === 401) { stopped = true; return null; }
+                return r.json();
+            })
+            .then(function (res) {
+                if (!res) return;
+                var d = res.data || res;
+                render(d.signals || []);
+            })
+            .catch(function () {});
+    }
+
+    if (dismissBtn) dismissBtn.addEventListener('click', function () { stopped = true; panel.style.display = 'none'; });
+    scan();
+    setInterval(scan, 60000);
+})();
+</script>

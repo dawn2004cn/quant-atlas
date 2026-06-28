@@ -1,0 +1,30 @@
+<div class="zen-droplet" id="truthDroplet-{{ droplet_id }}" title="数据健康度">
+  <span class="zen-droplet-dot" id="dropletDot-{{ droplet_id }}"></span>
+  <span id="dropletLabel-{{ droplet_id }}">数据源</span>
+  <span id="dropletPct-{{ droplet_id }}" class="td-droplet-pct"></span>
+</div>
+<script nonce="{{ csp_nonce() }}">
+(function() {
+  var el = document.getElementById('truthDroplet-{{ droplet_id }}');
+  var dot = document.getElementById('dropletDot-{{ droplet_id }}');
+  var label = document.getElementById('dropletLabel-{{ droplet_id }}');
+  var pct = document.getElementById('dropletPct-{{ droplet_id }}');
+  var interval = {{ interval | default(30000) }};
+  var market = '{{ market | default("CN") }}';
+  var symbol = '{{ symbol | default("") }}';
+  if (!symbol) { dot.className = 'zen-droplet-dot warning'; label.textContent = '无代码'; return; }
+  function refresh() {
+    fetch('/api/v1/truth/droplet/' + market + '/' + symbol).then(function(r) { return r.json(); }).then(function(j) {
+      var d = j.data || j;
+      var h = d.health || 0;
+      if (h >= 90) { dot.className = 'zen-droplet-dot healthy'; label.textContent = d.sources + ' 数据源'; }
+      else if (h >= 60) { dot.className = 'zen-droplet-dot warning'; label.textContent = d.sources + ' 数据源'; }
+      else { dot.className = 'zen-droplet-dot critical'; label.textContent = '数据异常'; }
+      pct.textContent = Math.round(h) + '%';
+      el.title = '数据健康: ' + Math.round(h) + '% | 验证: ' + (d.verified_count||0) + '/' + (d.total_count||0);
+    })["catch"](function() { dot.className = 'zen-droplet-dot warning'; label.textContent = '离线'; });
+  }
+  refresh();
+  setInterval(refresh, interval);
+})();
+</script>

@@ -1,0 +1,61 @@
+{# Reusable UI macros — Design System phase 2 #}
+
+{% macro qa_card(title='', class='') %}
+<div class="qa-card {{ class }}">
+  {% if title %}<h3 class="h5 mb-3">{{ title }}</h3>{% endif %}
+  {{ caller() if caller is defined else '' }}
+</div>
+{% endmacro %}
+
+{% macro qa_badge(label, tone='info') %}
+<span class="qa-badge qa-badge--{{ tone }}">{{ label }}</span>
+{% endmacro %}
+
+{% macro qa_empty_state(message='暂无数据') %}
+<p class="text-muted mb-0">{{ message }}</p>
+{% endmacro %}
+
+{% macro qa_page_hero(title, subtitle='', eyebrow='', actions_html='') %}
+<section class="qa-hero">
+  <div class="qa-card qa-hero-main">
+    {% if eyebrow %}
+    <div class="qa-eyebrow"><i class="qa-pulse" aria-hidden="true"></i> {{ eyebrow }}</div>
+    {% endif %}
+    <h2>{{ title }}</h2>
+    {% if subtitle %}<p class="qa-lead">{{ subtitle }}</p>{% endif %}
+    {% if actions_html %}<div class="qa-actions">{{ actions_html | safe }}</div>{% endif %}
+  </div>
+</section>
+{% endmacro %}
+
+{% macro qa_stat_grid(items) %}
+<div class="qa-metrics">
+  {% for item in items %}
+  <div class="qa-metric">
+    <span>{{ item.label }}</span>
+    <strong>{{ item.value }}</strong>
+  </div>
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro qa_panel(title, body_html='', class='') %}
+<div class="qa-card {{ class }}">
+  {% if title %}<h3>{{ title }}</h3>{% endif %}
+  {{ body_html | safe }}
+</div>
+{% endmacro %}
+
+{% macro qa_detail_row(label, value, tone='') %}
+<div class="qa-row">
+  <span>{{ label }}</span>
+  <b class="qa-mono{% if tone %} qa-{{ tone }}{% endif %}">{{ value }}</b>
+</div>
+{% endmacro %}
+
+{% macro qa_task(text, tone='') %}
+<div class="qa-task">
+  <span class="qa-dot{% if tone %} qa-dot--{{ tone }}{% endif %}" aria-hidden="true"></span>
+  <p class="muted qa-note mb-0">{{ text }}</p>
+</div>
+{% endmacro %}

@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}任务详情 - {{ task_id }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/task/{{ task_id }}" class="spa-switcher-link"
+   data-spa-switcher="task-detail">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="task-shell">
+    <div class="task-header">
+        <div class="task-header-title">🔄 任务详情</div>
+        <div class="sr-task-id">任务ID: {{ task_id }}</div>
+        <div class="task-status-badge" id="taskStatus">加载中...</div>
+        <div class="task-info-grid">
+            <div class="task-info-item">
+                <div class="task-info-value" id="taskType">--</div>
+                <div class="task-info-label">任务类型</div>
+            </div>
+            <div class="task-info-item">
+                <div class="task-info-value" id="createdAt">--</div>
+                <div class="task-info-label">创建时间</div>
+            </div>
+            <div class="task-info-item">
+                <div class="task-info-value" id="duration">--</div>
+                <div class="task-info-label">运行时长</div>
+            </div>
+            <div class="task-info-item">
+                <div class="task-info-value" id="progress">--</div>
+                <div class="task-info-label">进度</div>
+            </div>
+        </div>
+        <div class="task-actions">
+            <button class="btn-brand" type="button" data-td-action="retry" id="retryBtn">🔁 重试</button>
+            <button class="btn-soft" type="button" data-td-action="cancel" id="cancelBtn">❌ 取消</button>
+            <a class="btn-soft" href="/">← 返回首页</a>
+        </div>
+    </div>
+
+    <div class="task-section">
+        <div class="task-section-title">🧭 执行时间线</div>
+        <div class="task-timeline">
+            <div class="task-step">
+                <div class="task-step-kicker">Submit</div>
+                <div class="task-step-title">提交参数</div>
+                <div class="task-step-desc">记录策略版本、标的范围、用户触发入口。</div>
+            </div>
+            <div class="task-step">
+                <div class="task-step-kicker">Queue</div>
+                <div class="task-step-title">队列等待</div>
+                <div class="task-step-desc">展示 Celery 队列、等待时长和可取消状态。</div>
+            </div>
+            <div class="task-step">
+                <div class="task-step-kicker">Run</div>
+                <div class="task-step-title">执行追踪</div>
+                <div class="task-step-desc">串联 Trace ID、Agent 步骤、数据源调用和日志。</div>
+            </div>
+            <div class="task-step">
+                <div class="task-step-kicker">Notify</div>
+                <div class="task-step-title">结果通知</div>
+                <div class="task-step-desc">完成、失败、回调、重试建议统一进入消息中心。</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="task-section">
+        <div class="task-section-title">📝 任务参数</div>
+        <div id="taskParams">
+            <div class="loading-state">加载中...</div>
+        </div>
+    </div>
+
+    <div class="task-section">
+        <div class="task-section-title">📋 执行日志</div>
+        <div class="log-console" id="taskLogs">
+            <div class="log-line">等待加载日志...</div>
+        </div>
+    </div>
+
+    <div class="task-section">
+        <div class="task-section-title">📊 任务结果</div>
+        <div id="taskResult">
+            <div class="empty-state">等待任务完成...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+const taskId = '{{ task_id }}';
+let refreshInterval = null;
+
+function loadTaskDetail() {
+    $.get(`/api/v1/tasks/${taskId}`, function(res) {
+        const task = res.data || res;
+        renderTaskInfo(task);
+        renderParams(task.params || {});
+        renderLogs(task.logs || []);
+        renderResult(task.result);
+        updateButtons(task.status);
+    }).fail(function() {
+        $('#taskStatus').text('加载失败');
+    });
+}
+
+function renderTaskInfo(task) {
+    const statusClass = { running: 'running', completed: 'completed', failed: 'failed', pending: 'pending' }[task.status] || 'pending';
+    $('#taskStatus').attr('class', 'task-status-badge ' + statusClass).text(getStatusLabel(task.status));
+    $('#taskType').text(task.type || '未知');
+    $('#createdAt').text(task.created_at ? new Date(task.created_at).toLocaleString() : '--');
+    if (task.started_at && task.completed_at) {
+        const duration = (new Date(task.completed_at) - new Date(task.started_at)) / 1000;
+        $('#duration').text(duration > 60 ? Math.floor(duration / 60) + '分钟' : Math.floor(duration) + '秒');
+    } else if (task.started_at) {
+        const duration = (Date.now() - new Date(task.started_at).getTime()) / 1000;
+        $('#duration').text('运行中 ' + Math.floor(duration) + '秒');
+    } else {
+        $('#duration').text('--');
+    }
+    $('#progress').text((task.progress || 0) + '%');
+}
+
+function getStatusLabel(status) {
+    const labels = { running: '运行中', completed: '已完成', failed: '失败', pending: '等待中', cancelled: '已取消' };
+    return labels[status] || status;
+}
+
+function renderParams(params) {
+    if (Object.keys(params).length === 0) {
+        $('#taskParams').html('<div class="empty-state">无参数</div>');
+        return;
+    }
+    $('#taskParams').html(Object.entries(params).map(([k, v]) => `
+        <div class="result-card">
+            <div class="result-key">${k}</div>
+            <div class="result-value">${typeof v === 'object' ? JSON.stringify(v, null, 2) : v}</div>
+        </div>
+    `).join(''));
+}
+
+function renderLogs(logs) {
+    if (!logs.length) {
+        $('#taskLogs').html('<div class="log-line">暂无日志</div>');
+        return;
+    }
+    $('#taskLogs').html(logs.map(l => `
+        <div class="log-line ${l.level || 'info'}">[${l.timestamp || ''}] ${l.message || ''}</div>
+    `).join(''));
+    $('#taskLogs').scrollTop($('#taskLogs')[0].scrollHeight);
+}
+
+function renderResult(result) {
+    if (!result) {
+        $('#taskResult').html('<div class="empty-state">等待任务完成...</div>');
+        return;
+    }
+    if (typeof result === 'string') {
+        $('#taskResult').html(`<div class="task-output markdown-body">${qcRenderMarkdown(result)}</div>`);
+    } else {
+        $('#taskResult').html(Object.entries(result).map(([k, v]) => `
+            <div class="result-card">
+                <div class="result-key">${k}</div>
+                <div class="result-value">${typeof v === 'object' ? JSON.stringify(v, null, 2) : v}</div>
+            </div>
+        `).join(''));
+    }
+}
+
+function updateButtons(status) {
+    const isRunning = status === 'running' || status === 'pending';
+    $('#retryBtn').prop('disabled', !isRunning && status !== 'failed');
+    $('#cancelBtn').prop('disabled', !isRunning);
+    $('#cancelBtn').text(status === 'running' || status === 'pending' ? '❌ 取消' : '已完成');
+}
+
+function retryTask() {
+    if (confirm('确定要重试此任务吗？')) {
+        $.post(`/api/v1/tasks/${taskId}/retry`, function(res) {
+            showToast('任务已重新提交', 'success');
+            loadTaskDetail();
+        }).fail(function() {
+            showToast('重试失败', 'error');
+        });
+    }
+}
+
+function cancelTask() {
+    if (confirm('确定要取消此任务吗？')) {
+        $.post(`/api/v1/tasks/${taskId}/cancel`, function(res) {
+            showToast('任务已取消', 'success');
+            loadTaskDetail();
+        }).fail(function() {
+            showToast('取消失败', 'error');
+        });
+    }
+}
+
+$(function() {
+    loadTaskDetail();
+    refreshInterval = setInterval(loadTaskDetail, 5000);
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-td-action]');
+        if (!el) return;
+        const action = el.dataset.tdAction;
+        if (action === 'retry') retryTask();
+        else if (action === 'cancel') cancelTask();
+    });
+});
+
+$(window).on('beforeunload', function() {
+    if (refreshInterval) clearInterval(refreshInterval);
+});
+</script>
+{% endblock %}

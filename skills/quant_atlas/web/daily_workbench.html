@@ -1,0 +1,1013 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('workbench.title') }} - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/workbench.css') }}">
+{% endblock %}
+{% block spa_switcher %}
+<a href="/app/daily_workbench" class="spa-switcher-link"
+   data-spa-switcher="daily_workbench">
+  试试新版 →
+</a>
+{% endblock %}
+
+
+
+{% block content %}
+<div id="wbGlobalError" class="qc-ux-banner qc-ux-banner--danger qa-is-hidden" role="alert"></div>
+
+<div class="wb-focus-bar" id="wbFocusBar" aria-label="全局焦点标的">
+    <label for="wbFocusSymbol">焦点标的</label>
+    <input id="wbFocusSymbol" type="text" placeholder="如 600519" autocomplete="off" />
+    <button type="button" class="btn-brand btn-sm" data-wb-action="apply-focus">应用</button>
+    <button type="button" class="btn-soft btn-sm" data-wb-action="clear-focus">清除</button>
+    <span class="wb-focus-label" id="wbFocusLabel"></span>
+    <div class="wb-focus-links">
+        <a class="btn-soft btn-sm qa-is-hidden" id="wbFocusStockLink" href="#">个股详情</a>
+        <a class="btn-soft btn-sm qa-is-hidden" id="wbFocusAttribLink" href="/attribution-dashboard">归因看板</a>
+        <a class="btn-soft btn-sm qa-is-hidden" id="wbFocusDecisionLink" href="#">决策简报</a>
+        <a class="btn-soft btn-sm" href="/alert-center">预警中心</a>
+    </div>
+    <div id="wbFocusBrief" class="wb-focus-brief qa-is-hidden" aria-live="polite"></div>
+</div>
+
+<div id="wbHealthBanner" class="wb-health-banner wb-health-banner--ok qa-is-hidden" role="status">
+    <span class="wb-health-dot wb-health-dot--ok" id="wbHealthDot"></span>
+    <div class="flex-1">
+        <div class="font-bold text-sm" id="wbHealthMessage">系统检测中…</div>
+        <div class="text-xs text-muted" id="wbHealthMeta"></div>
+    </div>
+    <a class="btn-soft btn-sm" href="/alert-center" id="wbHealthLink">查看预警</a>
+</div>
+<div id="wbBeatSyncMini" class="mb-3" aria-label="Beat 时序同步状态"></div>
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="新手上手三步">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">加自选</div>
+        <p class="qc-ux-step-desc">先跟踪几只核心标的，健康度与异动才会出现在本页。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.self_stocks') }}">去自选股</a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">看盘面</div>
+        <p class="qc-ux-step-desc">对照市场全景与涨跌结构，避免「只看个股不看环境」。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.market_panorama') }}">市场全景</a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">3</span>
+        <div class="qc-ux-step-title">做记录</div>
+        <p class="qc-ux-step-desc">用模拟观察单沉淀买卖逻辑，便于复盘与对照 AI 证据链。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">模拟观察单</a>
+    </div>
+</section>
+
+<div id="wbPsychologyBanner" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger wb-psychology-banner" role="alert"></div>
+
+<div id="wbHeroShell" data-wb-card-wrap="hero">
+<div class="wb-hero">
+    <div class="flex justify-between items-center mb-4">
+        <div class="flex gap-2">
+            <button class="btn-brand btn-sm" type="button" data-wb-action="switch-market" data-market="CN" id="btn-CN">A股</button>
+            <button class="btn-soft btn-sm" type="button" data-wb-action="switch-market" data-market="HK" id="btn-HK">港股</button>
+        </div>
+        <div class="text-xs text-muted" id="lastUpdate"></div>
+    </div>
+    <div class="hero-grid">
+        <div>
+            <h1 class="page-title wb-hero-title">{{ _('workbench.title') }}</h1>
+            <p class="text-muted">{{ _('workbench.hero_subtitle') }}</p>
+
+            <div class="weather-card mt-4">
+                <div class="weather-icon" id="marketWeatherIcon">☀️</div>
+                <div class="flex-1">
+                    <div class="font-black text-xs uppercase text-muted">市场天气</div>
+                    <div id="marketWeather" class="font-bold text-lg text-brand">正在观测中...</div>
+                    <div class="flex gap-4 mt-1 text-sm font-bold">
+                        <span class="text-positive">▲ <span id="upStocks">--</span></span>
+                        <span class="text-muted">● <span id="flatStocks">--</span></span>
+                        <span class="text-negative">▼ <span id="downStocks">--</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="wb-morning-call" id="wbMorningCall" aria-label="晨会模式">
+                <div class="text-xs font-black text-muted uppercase mb-2">晨会速览</div>
+                <div class="wb-mc-tabs" id="wbMcTabs"></div>
+                <div class="wb-mc-body" id="wbMcBody"><div class="text-muted text-sm">加载中…</div></div>
+            </div>
+
+            <div class="macro-row" id="macroRow"></div>
+        </div>
+        <aside>
+            <div class="decision-panel" id="decisionPanel">
+                <div class="text-xs font-black text-muted uppercase">智能决策分</div>
+                <div class="meter-val mt-2" id="decisionScore">--</div>
+                <div class="font-bold mt-1" id="decisionStance">...</div>
+                <p class="text-sm text-muted mt-2 px-1" id="decisionAction" class="wb-decision-copy text-sm text-muted mt-2 px-1"></p>
+                <div class="text-xs text-muted mt-2">置信度 <b id="decisionConfidence">--</b></div>
+                <ul class="text-left text-xs mt-2 px-2" id="decisionEvidence" class="wb-decision-list text-left text-xs mt-2 px-2"></ul>
+                <ul class="text-left text-xs mt-2 px-2" id="decisionReasons" class="wb-decision-list text-left text-xs mt-2 px-2"></ul>
+                <div class="qc-trio-actions wb-trio-center">
+                    <a class="btn-brand btn-sm" href="{{ url_for('pages.self_stocks') }}">自选</a>
+                    <a class="btn-soft btn-sm" href="{{ url_for('pages.market_panorama') }}">全景</a>
+                    <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">观察单</a>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+</div>
+
+<div class="wb-layout-bar" id="wbLayoutBar" aria-label="自定义操盘台布局与卡片">
+    <span class="wb-layout-label">布局</span>
+    <select id="wbLayoutPreset" aria-label="操盘台布局预设">
+        <option value="default">默认（均衡）</option>
+        <option value="trade">交易优先</option>
+        <option value="research">研究优先</option>
+    </select>
+    <span class="wb-layout-label ml-8px">显示</span>
+    <label><input type="checkbox" checked data-wb-toggle="hero"> 顶部决策区</label>
+    <label><input type="checkbox" checked data-wb-toggle="todos"> 任务与消息</label>
+    <label><input type="checkbox" checked data-wb-toggle="signal"> 信号旗</label>
+    <label><input type="checkbox" checked data-wb-toggle="review"> 复盘摘要</label>
+    <label><input type="checkbox" checked data-wb-toggle="decision-review"> 待复核决策</label>
+    <label><input type="checkbox" checked data-wb-toggle="recommend"> 今日推荐</label>
+    <label><input type="checkbox" checked data-wb-toggle="headline"> 市场快讯</label>
+    <label><input type="checkbox" checked data-wb-toggle="tradeplan"> 买卖计划</label>
+    <label><input type="checkbox" checked data-wb-toggle="integration"> 集成健康</label>
+    <label><input type="checkbox" checked data-wb-toggle="watchlist"> 自选健康</label>
+    <label><input type="checkbox" checked data-wb-toggle="obs"> 观察单</label>
+    <label><input type="checkbox" checked data-wb-toggle="limitup"> 涨停榜</label>
+    <label><input type="checkbox" checked data-wb-toggle="dragon"> 龙虎榜</label>
+    <span class="wb-layout-label ml-8px">自选条数</span>
+    <select id="wbWlLimit" aria-label="自选股健康度列表条数">
+        <option value="6">6</option>
+        <option value="12" selected>12</option>
+        <option value="18">18</option>
+        <option value="24">24</option>
+        <option value="36">36</option>
+    </select>
+    <button type="button" class="btn-soft btn-sm wb-layout-reset" data-wb-action="reset-layout">恢复默认</button>
+</div>
+
+<div class="wb-cockpit cockpit-grid" id="wbCockpit">
+    <section class="cockpit-card" data-wb-card="todos">
+        <div class="card-head">
+            <h2 class="card-title">📬 任务与消息</h2>
+            <a class="btn-soft btn-sm" href="/message-center">消息中心</a>
+        </div>
+        <div id="wbTodos"><div class="wb-skel" aria-hidden="true"></div></div>
+        <div class="mt-2">
+            <div class="text-xs font-bold text-muted mb-1">进行中的任务</div>
+            <div id="wbActiveJobs" class="text-sm text-muted">加载中…</div>
+        </div>
+    </section>
+    <section class="cockpit-card" data-wb-card="signal">
+        <div class="card-head">
+            <h2 class="card-title">🚩 信号旗</h2>
+            <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_flag') }}">打开</a>
+        </div>
+        <div id="wbSignal"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+    <section class="cockpit-card" data-wb-card="review">
+        <div class="card-head">
+            <h2 class="card-title">📒 复盘摘要</h2>
+            <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">观察单</a>
+        </div>
+        <div id="wbReview"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+    <section class="cockpit-card" data-wb-card="decision-review">
+        <div class="card-head">
+            <h2 class="card-title">🧑⚖️ 待复核决策</h2>
+            <a class="btn-soft btn-sm" href="/signal-observations">观察单</a>
+        </div>
+        <div id="wbDecisionReview"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+    <section class="cockpit-card" data-wb-card="recommend">
+        <div class="card-head">
+            <h2 class="card-title">⭐ 今日 AI Top 3</h2>
+            <a class="btn-soft btn-sm" href="/capabilities">自检</a>
+        </div>
+        <div id="wbRecommend"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+    <section class="cockpit-card" data-wb-card="headline">
+        <div class="card-head">
+            <h2 class="card-title">📰 市场快讯</h2>
+            <a class="btn-soft btn-sm" href="{{ url_for('pages.market_panorama') }}">全景</a>
+        </div>
+        <div id="wbHeadlines"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+    <section class="cockpit-card" data-wb-card="tradeplan">
+        <div class="card-head">
+            <h2 class="card-title">📋 买卖计划</h2>
+            <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">自选</a>
+        </div>
+        <div id="wbTradePlan"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+    <section class="cockpit-card" data-wb-card="integration">
+        <div class="card-head">
+            <h2 class="card-title">🔌 集成健康</h2>
+            <a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>
+        </div>
+        <div id="wbIntegration"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+    <section class="cockpit-card" data-wb-card="watchlist">
+        <div class="card-head">
+            <h2 class="card-title">🛡️ 自选股健康度</h2>
+            <div class="qc-trio-actions wb-trio-flush">
+                <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">管理</a>
+                <a class="btn-soft btn-sm" href="{{ url_for('pages.ai_analysis') }}">诊股</a>
+            </div>
+        </div>
+        <div id="watchlistHealth"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+    <section class="cockpit-card" data-wb-card="obs">
+        <div class="card-head">
+            <h2 class="card-title">🔭 观察单</h2>
+            <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">全部</a>
+        </div>
+        <div id="observationGrid"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+    <section class="cockpit-card" data-wb-card="limitup">
+        <div class="card-head"><h2 class="card-title">🔥 涨停榜</h2></div>
+        <div id="limitUpList"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+    <section class="cockpit-card" data-wb-card="dragon">
+        <div class="card-head">
+            <h2 class="card-title">🐉 龙虎榜</h2>
+            <a class="btn-soft btn-sm" href="{{ url_for('pages.longhu_bang') }}">全市场</a>
+        </div>
+        <div id="dragonList"><div class="wb-skel" aria-hidden="true"></div></div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+let currentMarket = (window.QAFocusContext && QAFocusContext.getFocus().market) || 'CN';
+let wbFocusSymbol = (window.QAFocusContext && QAFocusContext.getFocus().symbol) || '';
+let wbMorningSlideIndex = 0;
+let wbMorningTimer = null;
+
+function wbHideError() {
+    $('#wbGlobalError').hide().empty();
+}
+function wbShowError(msg, payload) {
+    const el = $('#wbGlobalError');
+    if (window.QCApiError && payload && payload.error) {
+        QCApiError.renderBanner(el.get(0), payload, { retryCallback: function () { wbHideError(); loadWorkbench(); } });
+        return;
+    }
+    const safe = $('<div/>').text(msg || '未知错误').html();
+    el.html(
+        '<div class="qc-ux-banner__title">数据暂时加载失败</div>' +
+        '<div class="qc-ux-banner__body">' + safe + '</div>' +
+        '<div class="qc-api-error-actions"><button type="button" class="btn-brand btn-sm" data-wb-action="retry-load">重试</button></div>'
+    ).addClass('qc-ux-banner qc-ux-banner--danger').show();
+}
+function wbEmptyRich(message, actionsHtml) {
+    return '<div class="empty-state empty-state--rich">' +
+        '<div class="font-bold">' + message + '</div>' +
+        (actionsHtml ? '<div class="empty-actions">' + actionsHtml + '</div>' : '') +
+        '</div>';
+}
+
+const WB_STORE_V2 = 'qc_wb_layout_v2';
+const WB_STORE_V1 = 'qc_wb_layout_v1';
+
+const WB_ORDER_DEFAULT = ['todos','signal','review','decision-review','recommend','headline','tradeplan','integration','watchlist','obs','limitup','dragon'];
+const WB_ORDER_TRADE = ['todos','watchlist','obs','tradeplan','decision-review','signal','limitup','dragon','recommend','review','headline','integration'];
+const WB_ORDER_RESEARCH = ['recommend','review','decision-review','headline','obs','signal','integration','watchlist','tradeplan','todos','limitup','dragon'];
+
+function wbDefaultCards() {
+    return {
+        hero: true, todos: true, signal: true, review: true, 'decision-review': true, recommend: true, headline: true,
+        tradeplan: true, integration: true, watchlist: true, obs: true, limitup: true, dragon: true
+    };
+}
+
+function wbDefaultPrefs() {
+    return { version: 2, preset: 'default', cards: wbDefaultCards(), card_order: WB_ORDER_DEFAULT.slice(), wlLimit: 12 };
+}
+
+function wbMigrateV1(v1) {
+    const d = wbDefaultPrefs();
+    const c = d.cards;
+    c.watchlist = v1.cards?.watchlist !== false;
+    c.obs = v1.cards?.obs !== false;
+    c.limitup = v1.cards?.limitup !== false;
+    c.dragon = v1.cards?.dragon !== false;
+    const lim = Number(v1.wlLimit);
+    d.wlLimit = [6, 12, 18, 24, 36].includes(lim) ? lim : 12;
+    return d;
+}
+
+function wbLoadPrefs() {
+    try {
+        const raw2 = localStorage.getItem(WB_STORE_V2);
+        if (raw2) {
+            const p = JSON.parse(raw2);
+            if (p && typeof p === 'object' && p.version === 2) {
+                p.cards = { ...wbDefaultCards(), ...(p.cards || {}) };
+                const lim = Number(p.wlLimit);
+                p.wlLimit = [6, 12, 18, 24, 36].includes(lim) ? lim : 12;
+                if (!Array.isArray(p.card_order) || p.card_order.length < 4) {
+                    p.card_order = WB_ORDER_DEFAULT.slice();
+                }
+                return p;
+            }
+        }
+        const raw1 = localStorage.getItem(WB_STORE_V1);
+        if (raw1) {
+            const p1 = JSON.parse(raw1);
+            if (p1 && typeof p1 === 'object') return wbMigrateV1(p1);
+        }
+    } catch (e) { /* ignore */ }
+    return wbDefaultPrefs();
+}
+
+function wbSavePrefs(p) {
+    try {
+        p.version = 2;
+        localStorage.setItem(WB_STORE_V2, JSON.stringify(p));
+    } catch (e) { /* ignore quota */ }
+}
+
+function wbGetWlLimit() {
+    return wbLoadPrefs().wlLimit;
+}
+
+function wbApplyCardOrder() {
+    const prefs = wbLoadPrefs();
+    const order = prefs.card_order || WB_ORDER_DEFAULT;
+    const root = document.getElementById('wbCockpit');
+    if (!root) return;
+    order.forEach(function (key, i) {
+        const el = root.querySelector('[data-wb-card="' + key + '"]');
+        if (el) el.style.order = String(i);
+    });
+}
+
+function wbApplyCardVisibility() {
+    const prefs = wbLoadPrefs();
+    const cards = prefs.cards;
+    const heroShell = document.getElementById('wbHeroShell');
+    if (heroShell) heroShell.style.display = cards.hero === false ? 'none' : '';
+    document.querySelectorAll('#wbCockpit [data-wb-card]').forEach(function (el) {
+        const k = el.getAttribute('data-wb-card');
+        el.style.display = (k && cards[k] === false) ? 'none' : '';
+    });
+    document.querySelectorAll('[data-wb-toggle]').forEach(function (inp) {
+        const k = inp.getAttribute('data-wb-toggle');
+        if (k === 'hero' || cards.hasOwnProperty(k)) {
+            inp.checked = cards[k] !== false;
+        }
+    });
+    const sel = document.getElementById('wbWlLimit');
+    if (sel) sel.value = String(prefs.wlLimit);
+    const preset = document.getElementById('wbLayoutPreset');
+    if (preset) preset.value = prefs.preset || 'default';
+    wbApplyCardOrder();
+}
+
+function wbSetPreset(which) {
+    const prefs = wbLoadPrefs();
+    prefs.preset = which;
+    if (which === 'trade') prefs.card_order = WB_ORDER_TRADE.slice();
+    else if (which === 'research') prefs.card_order = WB_ORDER_RESEARCH.slice();
+    else prefs.card_order = WB_ORDER_DEFAULT.slice();
+    wbSavePrefs(prefs);
+    wbApplyCardVisibility();
+}
+
+function wbResetLayout() {
+    wbSavePrefs(wbDefaultPrefs());
+    wbApplyCardVisibility();
+    loadWorkbench();
+}
+
+function wbEsc(s) {
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function wbApplyFocus() {
+    const sym = String($('#wbFocusSymbol').val() || '').trim();
+    if (window.QAFocusContext) {
+        const focus = QAFocusContext.setFocus(sym, currentMarket, { replace: true, onChange: function (f) {
+            wbFocusSymbol = f.symbol || '';
+            currentMarket = f.market || currentMarket;
+        }});
+        wbFocusSymbol = focus.symbol || '';
+    } else {
+        wbFocusSymbol = sym.toUpperCase();
+    }
+    loadWorkbench();
+}
+
+function wbClearFocus() {
+    $('#wbFocusSymbol').val('');
+    if (window.QAFocusContext) {
+        QAFocusContext.setFocus('', currentMarket, { replace: true });
+    }
+    wbFocusSymbol = '';
+    loadWorkbench();
+}
+
+function wbSyncFocusUi(focusCtx) {
+    const sym = (focusCtx && focusCtx.symbol) || wbFocusSymbol || '';
+    const label = (focusCtx && focusCtx.symbol_label) || sym;
+    $('#wbFocusSymbol').val(sym);
+    if (sym) {
+        $('#wbFocusLabel').text(label + ' · ' + sym);
+        const stockHref = '/stock/' + encodeURIComponent(sym) + '?m=' + encodeURIComponent(currentMarket);
+        $('#wbFocusStockLink').attr('href', stockHref).show();
+        let attribHref = '/attribution-dashboard?symbol=' + encodeURIComponent(sym) + '&market=' + encodeURIComponent(currentMarket);
+        if (window.QAFocusContext) attribHref = QAFocusContext.appendQuery('/attribution-dashboard', { symbol: sym, market: currentMarket });
+        $('#wbFocusAttribLink').attr('href', attribHref).show();
+        $('#wbFocusDecisionLink').attr('href', stockHref + '#decision-brief-strip').show();
+        wbLoadFocusBrief(sym, currentMarket);
+    } else {
+        $('#wbFocusLabel').text('未设置焦点，可在上方输入代码');
+        $('#wbFocusStockLink, #wbFocusAttribLink, #wbFocusDecisionLink').hide();
+        $('#wbFocusBrief').hide().empty();
+    }
+}
+
+function wbLoadFocusBrief(symbol, market) {
+    const box = document.getElementById('wbFocusBrief');
+    if (!box || !window.QAUserCenter) return;
+    box.style.display = 'block';
+    box.innerHTML = '<span class="text-muted">决策简报加载中…</span>';
+    QAUserCenter.loadDecisionBrief(symbol, market, { timeline_limit: 12 })
+        .then(function (brief) {
+            const header = brief.header || {};
+            const summary = brief.timeline_summary || {};
+            const count = summary.count != null ? summary.count : 0;
+            const warns = (brief.warnings || []).slice(0, 2);
+            let html = '<strong>' + wbEsc(header.name || symbol) + '</strong>';
+            html += ' <span class="text-muted">· 证据 ' + count + ' 条</span>';
+            if (header.chain_name) {
+                html += ' · <span class="text-brand">' + wbEsc(header.chain_name) + '</span>';
+            }
+            if (warns.length) {
+                html += '<div class="text-warning mt-1" class="text-warning-78">' +
+                    wbEsc(warns[0].message || '') + '</div>';
+            }
+            html += '<div class="mt-2 d-flex flex-wrap gap-2">';
+            html += '<button type="button" class="btn-soft btn-sm" data-wb-action="adopt-focus-plan">采纳到观察单</button>';
+            html += '<a class="btn-soft btn-sm" href="/stock/' + encodeURIComponent(symbol) +
+                '?m=' + encodeURIComponent(market) + '#decision-brief-strip">完整简报</a>';
+            html += '</div>';
+            box.innerHTML = html;
+            window._wbFocusBrief = brief;
+        })
+        .catch(function () {
+            box.innerHTML = '<span class="text-muted">决策简报暂不可用</span>';
+        });
+}
+
+async function wbAdoptFocusPlan() {
+    if (!wbFocusSymbol || !window.QAUserCenter) return;
+    try {
+        const data = await QAUserCenter.adoptTradePlan({
+            symbol: wbFocusSymbol,
+            market: currentMarket,
+            source: 'daily_workbench',
+        });
+        const href = (data.links && data.links.observations) || '/signal-observations';
+        if (window.confirm('已写入观察单，是否前往查看？')) window.location.href = href;
+    } catch (e) {
+        alert('采纳失败：' + (e.message || String(e)));
+    }
+}
+
+function wbRenderHealthBanner(banner) {
+    const el = $('#wbHealthBanner');
+    if (!banner) { el.hide(); return; }
+    const level = banner.level || 'ok';
+    el.removeClass('wb-health-banner--ok wb-health-banner--warning wb-health-banner--critical')
+        .addClass('wb-health-banner--' + level).show();
+    $('#wbHealthDot').removeClass('wb-health-dot--ok wb-health-dot--warning wb-health-dot--critical')
+        .addClass('wb-health-dot--' + level);
+    $('#wbHealthMessage').text(banner.message || '系统状态未知');
+    const meta = [];
+    if (banner.critical_count) meta.push('严重 ' + banner.critical_count);
+    if (banner.warning_count) meta.push('预警 ' + banner.warning_count);
+    if (banner.allow_live_trading === false) meta.push('不建议实盘');
+    else if (level === 'ok') meta.push('可正常研究/模拟');
+    $('#wbHealthMeta').text(meta.join(' · ') || '');
+}
+
+function wbRenderMorningCall(mc) {
+    const tabs = $('#wbMcTabs');
+    const body = $('#wbMcBody');
+    const slides = (mc && mc.slides) || [];
+    if (!slides.length) {
+        tabs.empty();
+        body.html('<div class="text-muted text-sm">暂无晨会摘要</div>');
+        return;
+    }
+    wbMorningSlideIndex = Math.min(wbMorningSlideIndex, slides.length - 1);
+    tabs.html(slides.map(function (s, i) {
+        return '<button type="button" class="wb-mc-tab' + (i === wbMorningSlideIndex ? ' active' : '') +
+            '" data-mc-index="' + i + '">' + wbEsc(s.title) + '</button>';
+    }).join(''));
+    const active = slides[wbMorningSlideIndex];
+    const items = (active.items || []).map(function (x) { return '<li>' + wbEsc(x) + '</li>'; }).join('');
+    body.html(items ? '<ul>' + items + '</ul>' : '<div class="text-muted text-sm">暂无条目</div>');
+    tabs.off('click', '.wb-mc-tab').on('click', '.wb-mc-tab', function () {
+        wbMorningSlideIndex = parseInt($(this).attr('data-mc-index'), 10) || 0;
+        wbRenderMorningCall(mc);
+    });
+    if (wbMorningTimer) clearInterval(wbMorningTimer);
+    wbMorningTimer = setInterval(function () {
+        wbMorningSlideIndex = (wbMorningSlideIndex + 1) % slides.length;
+        wbRenderMorningCall(mc);
+    }, 9000);
+}
+
+function wbRenderDecisionExtras(decision) {
+    const conf = decision && decision.confidence;
+    $('#decisionConfidence').text(conf != null ? (Math.round(conf * 100) + '%') : '--');
+    const ev = (decision && decision.evidence) || [];
+    $('#decisionEvidence').html(ev.length ? ev.map(function (e) {
+        const pct = e.confidence != null ? Math.round(parseFloat(e.confidence) * 100) + '%' : '';
+        return '<li class="wb-evidence-item"><b>' + wbEsc(e.label || e.kind) + '</b> ' +
+            wbEsc(e.value || '') + (pct ? ' <span class="text-muted">(' + pct + ')</span>' : '') + '</li>';
+    }).join('') : '');
+}
+
+function wbRenderMacroRow(data) {
+    const lu = data.limit_up_stats?.limit_up ?? (data.limit_up_stocks || []).length;
+    const idx = data.macro_indices || [];
+    const row = $('#macroRow');
+    if (idx.length) {
+        let h = '';
+        idx.forEach(function (m) {
+            const cp = parseFloat(m.change_pct || 0);
+            const cls = cp >= 0 ? 'text-positive' : 'text-negative';
+            h += '<div class="macro-tile"><div class="macro-label">' + wbEsc(m.label) + '</div>' +
+                '<div class="macro-val">' + (m.price != null ? parseFloat(m.price).toFixed(2) : '--') + '</div>' +
+                '<div class="macro-chg ' + cls + '">' + (cp > 0 ? '+' : '') + cp.toFixed(2) + '%</div></div>';
+        });
+        h += '<div class="macro-tile"><div class="macro-label">涨停家数</div><div class="macro-val">' + lu + '</div><div class="macro-chg text-muted">只</div></div>';
+        row.html(h);
+        return;
+    }
+    row.html(
+        '<div class="macro-tile"><div class="macro-label">上证指数</div><div id="macro-SH" class="macro-val">--</div><div id="macro-SH-chg" class="macro-chg">--</div></div>' +
+        '<div class="macro-tile"><div class="macro-label">涨停家数</div><div id="limitUpCountTile" class="macro-val">' + lu + '</div><div class="macro-chg text-muted">只</div></div>'
+    );
+    loadMacro();
+}
+
+async function loadMacro() {
+    try {
+        const res = await fetch('/api/v1/quotes?symbol=sh000001&market=CN');
+        const json = await res.json();
+        const q = json.data?.stocks?.[0] || json.data?.quote || json.data || {};
+        if (window.QAUserCenter && q.data_timestamp !== undefined) {
+            let strip = document.getElementById('wbIndexFreshness');
+            if (!strip) {
+                strip = document.createElement('div');
+                strip.id = 'wbIndexFreshness';
+                strip.className = 'qc-freshness-strip unknown';
+                strip.style.marginTop = '8px';
+                const row = document.getElementById('macroRow');
+                if (row && row.parentNode) row.parentNode.insertBefore(strip, row);
+            }
+            QAUserCenter.renderFreshnessStrip(strip, q, { prefix: '上证指数' });
+        }
+        if (q.price && document.getElementById('macro-SH')) {
+            $('#macro-SH').text(parseFloat(q.price).toFixed(2));
+            const cp = parseFloat(q.change_pct || 0);
+            $('#macro-SH-chg').text((cp > 0 ? '+' : '') + cp.toFixed(2) + '%')
+                .removeClass('text-positive text-negative').addClass(cp >= 0 ? 'text-positive' : 'text-negative');
+        }
+    } catch (e) { /* ignore */ }
+}
+
+function wbRenderTodos(d) {
+    const el = $('#wbTodos');
+    if (!d || d.backend === 'none') {
+        el.html(wbEmptyRich('任务消息服务未连接，后台任务事件暂不可见。', '<a class="btn-soft btn-sm" href="/message-center">消息中心</a>'));
+        return;
+    }
+    const fail = d.fail_or_warn || 0;
+    const lines = (d.last_items || []).map(function (m) {
+        const lab = wbEsc(m.label || m.event || '');
+        const det = wbEsc((m.detail || '').slice(0, 80));
+        return '<li><span class="font-bold">' + lab + '</span><div class="wb-task-meta">' + det + '</div></li>';
+    });
+    const head = '<div class="text-xs text-muted mb-2">后端 <b>' + wbEsc(d.backend) + '</b> · 近条 ' + (d.recent_total || 0) +
+        (fail ? ' · <span class="text-negative">异常类 ' + fail + '</span>' : '') + '</div>';
+    el.html(head + (lines.length ? '<ul class="wb-mini-list wb-mini-list-pad">' + lines.join('') + '</ul>' :
+        '<div class="empty-state">暂无近期任务消息</div>'));
+    wbLoadActiveJobs();
+}
+
+async function wbLoadActiveJobs() {
+    const box = document.getElementById('wbActiveJobs');
+    if (!box || !window.QAUserCenter) return;
+    const items = await QAUserCenter.loadActiveJobs(8);
+    QAUserCenter.renderActiveJobsMini(box, items);
+}
+
+function wbRenderSignal(d) {
+    const el = $('#wbSignal');
+    if (!d || !d.count) {
+        el.html(wbEmptyRich('今日池暂无样本或未扫描。', '<a class="btn-brand btn-sm" href="/signal-flag">去信号旗</a>'));
+        return;
+    }
+    const items = (d.items || []).map(function (it) {
+        const url = '/stock/' + encodeURIComponent(it.code) + '?m=CN';
+        return '<a href="' + url + '" class="watchlist-item" class="link-block" aria-label="' + wbEsc(it.name) + ' ' + wbEsc(it.code) + '">' +
+            '<div><b>' + wbEsc(it.name) + '</b> <small class="text-muted">' + wbEsc(it.code) + '</small></div>' +
+            '<div class="text-brand font-bold">' + (it.score != null ? it.score : '·') + '</div></a>';
+    });
+    el.html('<div class="text-xs text-muted mb-2">池日期 ' + wbEsc(d.pool_date) + ' · 共 ' + d.count + ' 条</div>' + items.join(''));
+}
+
+function wbRenderReview(strip) {
+    const el = $('#wbReview');
+    const day = strip?.daily;
+    const week = strip?.weekly;
+    if (!day && !week) {
+        el.html('<div class="empty-state">复盘服务未就绪或无数据</div>');
+        return;
+    }
+    const line = function (title, x) {
+        if (!x) return '';
+        return '<div class="mb-3"><div class="font-bold text-sm">' + title + '</div>' +
+            '<div class="text-xs text-muted">' + wbEsc(x.start || '') + ' ~ ' + wbEsc(x.end || '') + '</div>' +
+            '<div class="text-sm mt-1">样本 ' + (x.count || 0) + ' · 胜率 ' + Number(x.win_rate || 0).toFixed(1) + '% · 均收益 ' +
+            Number(x.avg_return_pct || 0).toFixed(2) + '%</div></div>';
+    };
+    el.html(line('今日', day) + line('近一周', week));
+}
+
+function wbRenderRecommend(d) {
+    const el = $('#wbRecommend');
+    const items = d?.items || [];
+    if (!items.length) {
+        el.html('<div class="empty-state">' + wbEsc(d?.message || '暂无推荐') + '</div>');
+        return;
+    }
+    const cards = items.map(function (it) {
+        const pos = it.industry_position || {};
+        const buy = it.buy_zone || {};
+        const win = it.estimated_win_rate || {};
+        const cal = it.agent_calibration || {};
+        const calBadge = (cal.samples >= 2)
+            ? '<span class="badge-soft wb-badge-tiny" title="AutoValidator 历史准确率">AI校准 +' + wbEsc(cal.boost) + '</span>'
+            : '';
+        const logic = Array.isArray(it.core_logic) ? it.core_logic.join('；') : (it.core_logic || '');
+        const brief = (it.links && it.links.decision_brief) || ('/stock/' + encodeURIComponent(it.code) + '?m=CN#decision-brief-strip');
+        return (
+            '<div class="glass-panel wb-glass-compact">' +
+            '<div class="font-bold">#' + (it.rank || '') + ' ' + wbEsc(it.name || it.code) +
+            ' <small class="text-muted">' + wbEsc(it.code) + '</small>' + calBadge + '</div>' +
+            '<div class="text-xs text-muted mt-1">' + wbEsc(it.one_line_verdict || logic) + '</div>' +
+            '<div class="text-xs mt-2">产业链：' + wbEsc(pos.position || pos.opportunity || '—') + '</div>' +
+            '<div class="text-xs mt-1">买入区 ' + wbEsc(buy.low) + '–' + wbEsc(buy.high) +
+            ' · 止损 ' + wbEsc(it.stop_loss) + ' · 目标 ' + wbEsc(it.take_profit_1 || it.target_price) + '</div>' +
+            '<div class="text-xs text-muted mt-1">估算胜率 ' + wbEsc(win.rate) + '%（样本 ' + wbEsc(win.samples) + '）</div>' +
+            '<div class="mt-2 d-flex flex-wrap gap-2">' +
+            '<a class="btn-brand btn-sm" href="' + wbEsc(brief) + '">简报</a>' +
+            '<a class="btn-soft btn-sm" href="' + wbEsc((it.links && it.links.diagnosis) || brief) + '">诊股</a>' +
+            '<button type="button" class="btn-soft btn-sm" data-wb-action="adopt-top-pick" data-code="' + wbEsc(it.code) + '" data-name="' + wbEsc(it.name || it.code) + '">采纳</button>' +
+            '</div></div>'
+        );
+    });
+    el.html(cards.join('') + '<div class="text-xs text-muted mt-1">' + wbEsc(d.disclaimer || '') + '</div>');
+}
+
+async function wbAdoptTopPick(code, name) {
+    if (!window.QAUserCenter || !code) return;
+    try {
+        await QAUserCenter.adoptTradePlan({
+            symbol: code,
+            market: currentMarket,
+            name: name || code,
+            source: 'daily_top_pick',
+        });
+        alert('已采纳到观察单');
+    } catch (e) {
+        alert('采纳失败：' + (e.message || e));
+    }
+}
+
+function wbRenderHeadlines(list) {
+    const el = $('#wbHeadlines');
+    if (!list || !list.length) {
+        el.html('<div class="empty-state">暂无快讯</div>');
+        return;
+    }
+    const lis = list.map(function (h) {
+        const tag = h.signal_tag || '中性';
+        let tagCls = 'wb-signal-tag--neutral';
+        if (tag === '利好') tagCls = 'wb-signal-tag--bull';
+        else if (tag === '利空') tagCls = 'wb-signal-tag--bear';
+        const tagHtml = '<span class="wb-signal-tag ' + tagCls + '">' + wbEsc(tag) + '</span>';
+        const t = wbEsc(h.title || '');
+        const u = h.url ? '<a href="' + wbEsc(h.url) + '" target="_blank" rel="noopener">' + t + '</a>' : t;
+        const symHint = (h.affected_symbols || []).slice(0, 2).join(', ');
+        const metaExtra = symHint ? ' · ' + wbEsc(symHint) : '';
+        return '<li>' + tagHtml + u +
+            '<div class="wb-task-meta">' + wbEsc(h.source || '') + ' · ' +
+            wbEsc(h.published_at || '').slice(5, 16) + metaExtra + '</div></li>';
+    });
+    el.html('<ul class="wb-mini-list wb-mini-list-pad">' + lis.join('') + '</ul>');
+}
+
+function wbRenderTradePlan(tp) {
+    const el = $('#wbTradePlan');
+    if (!tp || !tp.symbol) {
+        el.html(wbEmptyRich('暂无自选或计划生成失败。', '<a class="btn-soft btn-sm" href="/self-stocks">去自选</a>'));
+        return;
+    }
+    el.html(
+        '<div class="font-bold">' + wbEsc(tp.name) + ' <small class="text-muted">' + wbEsc(tp.symbol) + '</small></div>' +
+        '<div class="text-sm mt-2">入场参考 <b>' + (tp.entry_price != null ? tp.entry_price : '--') + '</b> · 止损 <b>' + (tp.stop_loss != null ? tp.stop_loss : '--') + '</b></div>' +
+        '<div class="text-xs text-muted mt-1">盈亏比 ' + (tp.risk_reward_ratio != null ? tp.risk_reward_ratio : '--') + '</div>' +
+        '<div class="mt-2 d-flex flex-wrap gap-2">' +
+        '<a class="btn-soft btn-sm" href="/stock/' + encodeURIComponent(tp.symbol) + '#section-trade-plan">完整计划</a>' +
+        '<button type="button" class="btn-brand btn-sm" data-wb-action="adopt-trade-plan" data-symbol="' + wbEsc(tp.symbol) + '">采纳观察单</button>' +
+        '</div>'
+    );
+}
+
+async function wbAdoptTradePlanSymbol(symbol) {
+    if (!window.QAUserCenter) return;
+    try {
+        await QAUserCenter.adoptTradePlan({
+            symbol: symbol,
+            market: currentMarket,
+            source: 'daily_workbench_trade_plan',
+        });
+        alert('已加入观察单');
+    } catch (e) {
+        alert('采纳失败：' + (e.message || String(e)));
+    }
+}
+
+function wbRenderIntegration(d) {
+    const el = $('#wbIntegration');
+    if (!d || d.available === false) {
+        el.html(wbEmptyRich(d?.summary || '集成栈不可用', '<a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>'));
+        return;
+    }
+    const n = d.issue_count || 0;
+    const issues = (d.issues || []).map(function (x) { return '<li>' + wbEsc(x) + '</li>'; });
+    const beat = d.timeseries_beat || {};
+    let beatLine = '';
+    if (beat.available) {
+        const ok = beat.last_ok === true;
+        const status = beat.sync_in_progress
+            ? '同步进行中'
+            : (ok ? '最近 Beat 成功' : (beat.last_ok === false ? '最近 Beat 失败' : 'Beat 待运行'));
+        beatLine =
+            '<div class="text-xs text-muted mt-2">时序 Beat · ' + wbEsc(beat.schedule_label || '16:35') +
+            ' · ' + wbEsc(status) +
+            (beat.last_run_at ? ' · ' + wbEsc(String(beat.last_run_at).replace('T', ' ').slice(0, 16)) : '') +
+            ' · <a href="/data-lake-health">数据湖健康</a></div>';
+    }
+    el.html(
+        '<div class="text-sm">' + (n ? '<span class="text-negative font-bold">' + n + ' 项需关注</span>' : '<span class="text-positive font-bold">未发现阻断项</span>') + '</div>' +
+        beatLine +
+        (issues.length ? '<ul class="wb-mini-list wb-mini-list-pad mt-2">' + issues.join('') + '</ul>' : '')
+    );
+}
+
+function wbNormalizeWatchCode(symbol) {
+    return String(symbol || '').replace(/\.(SH|SZ|HK)$/i, '').toUpperCase();
+}
+
+function wbRenderWatchlistHealth(items) {
+    const wItems = items || [];
+    if (!wItems.length) {
+        $('#watchlistHealth').html(wbEmptyRich('暂无自选行情，先在自选股里添加标的。', '<a class="btn-brand btn-sm" href="/self-stocks">去自选股</a> <a class="btn-soft btn-sm" href="/market-panorama">市场全景</a>'));
+        return;
+    }
+    $('#watchlistHealth').html(wItems.map(function (it) {
+        const hs = it.health_score != null ? it.health_score : 60;
+        const chg = parseFloat(it.change_pct || 0);
+        return '<a href="/stock/' + encodeURIComponent(it.code) + '?m=' + currentMarket + '" class="watchlist-item link-block" data-wb-watch-code="' + wbEsc(it.code) + '" aria-label="' + wbEsc(it.name || it.code) + '">' +
+            '<div><div class="font-bold">' + wbEsc(it.name || it.code) + ' <small class="text-muted">' + wbEsc(it.code) + '</small></div>' +
+            '<div class="text-xs mt-1"><span class="font-bold wb-watch-price">' + (it.price != null ? it.price : '--') + '</span>' +
+            '<span class="wb-watch-chg ' + (chg >= 0 ? 'text-positive' : 'text-negative') + ' ml-2">' +
+            (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%</span></div></div>' +
+            '<div class="text-right"><div class="font-bold ' + (hs >= 55 ? 'text-positive' : 'text-negative') + '">' + hs + '</div><div class="text-xs text-muted">健康度</div></div></a>';
+    }).join(''));
+}
+
+function wbApplyQuotePatch(d) {
+    if (!d || !d.symbol) return;
+    const incoming = wbNormalizeWatchCode(d.symbol);
+    $('#watchlistHealth [data-wb-watch-code]').each(function () {
+        const row = $(this);
+        const code = wbNormalizeWatchCode(row.attr('data-wb-watch-code'));
+        if (code !== incoming) return;
+        if (d.price != null) row.find('.wb-watch-price').text(d.price);
+        if (d.change_pct != null) {
+            const chg = parseFloat(d.change_pct);
+            const chgEl = row.find('.wb-watch-chg');
+            chgEl.removeClass('text-positive text-negative')
+                .addClass(chg >= 0 ? 'text-positive' : 'text-negative')
+                .text((chg >= 0 ? '+' : '') + chg.toFixed(2) + '%');
+        }
+    });
+}
+
+async function loadDecisionReviewPanel() {
+    const el = $('#wbDecisionReview');
+    if (!el.length) return;
+    try {
+        const data = await (window.QCApi ? QCApi.get('/decision/review-queue/summary') : null);
+        wbRenderDecisionReview(data || {});
+    } catch (e) {
+        el.html(wbEmptyRich('复核队列暂不可用', ''));
+    }
+}
+
+function wbRenderDecisionReview(d) {
+    const el = $('#wbDecisionReview');
+    const pending = d.pending_count || 0;
+    const overdue = d.overdue_count || 0;
+    const items = d.items || [];
+    if (!pending) {
+        el.html(wbEmptyRich('暂无待复核决策', '<span class="text-xs text-muted">' + wbEsc(d.cta || '') + '</span>'));
+        return;
+    }
+    const badge = overdue
+        ? '<span class="badge badge-danger ml-1">' + overdue + ' 超时</span>'
+        : '';
+    const rows = items.map(function (it) {
+        const pri = it.priority === 'high' ? '🔴 ' : '';
+        return '<li><b>' + pri + wbEsc(it.subject || it.decision_id) + '</b>' +
+            '<div class="wb-task-meta">' + wbEsc(it.reason || '') +
+            ' · 置信 ' + Math.round((it.confidence || 0) * 100) + '%' +
+            (it.review_by ? ' · 截止 ' + wbEsc(String(it.review_by).slice(0, 16)) : '') +
+            '</div></li>';
+    }).join('');
+    el.html(
+        '<div class="text-sm font-bold">待处理 ' + pending + ' 条' + badge + '</div>' +
+        '<ul class="wb-mini-list wb-mini-list-pad mt-2">' + rows + '</ul>' +
+        '<div class="text-xs text-muted mt-1">' + wbEsc(d.cta || '') + '</div>'
+    );
+}
+
+async function loadWorkbench() {
+    wbHideError();
+    try {
+        const wl = wbGetWlLimit();
+        let path = '/daily-workbench?market=' + encodeURIComponent(currentMarket) + '&watchlist_limit=' + wl;
+        if (wbFocusSymbol) path += '&symbol=' + encodeURIComponent(wbFocusSymbol);
+        const data = await (window.QCApi ? QCApi.get(path) : fetch('/api/v1' + path).then(function (r) {
+            if (!r.ok) throw { message: 'HTTP ' + r.status };
+            return r.json().then(function (b) { return b.data !== undefined ? b.data : b; });
+        }));
+
+        if (data.focus_context) {
+            wbSyncFocusUi(data.focus_context);
+            if (data.focus_context.symbol) wbFocusSymbol = data.focus_context.symbol;
+        }
+
+        wbRenderHealthBanner(data.health_banner);
+        wbRenderMorningCall(data.morning_call);
+
+        const s = data.market_sentiment || {};
+        const p = data.market_panorama || {};
+        $('#upStocks').text(s.stats?.gainers || p.up || 0);
+        $('#flatStocks').text(s.stats?.neutral || p.flat || 0);
+        $('#downStocks').text(s.stats?.losers || p.down || 0);
+        $('#marketWeather').text(s.description || '行情观测中');
+        if (s.emoji) $('#marketWeatherIcon').text(s.emoji);
+
+        wbRenderMacroRow(data);
+
+        $('#decisionScore').text(data.decision?.score ?? '--');
+        $('#decisionStance').text(data.decision?.stance || '中性');
+        $('#decisionAction').text(data.decision?.action || '');
+        wbRenderDecisionExtras(data.decision || {});
+        const rs = data.decision?.reasons || [];
+        $('#decisionReasons').html(rs.length ? rs.map(function (x) { return '<li>' + wbEsc(x) + '</li>'; }).join('') : '');
+
+        const wItems = data.watchlist_health?.items || [];
+        wbRenderWatchlistHealth(wItems);
+
+        const oItems = data.observation_cards || [];
+        $('#observationGrid').html(oItems.length ? oItems.map(function (it) {
+            return '<a href="/stock/' + encodeURIComponent(it.code) + '?m=' + currentMarket + '" class="obs-item" class="link-block" aria-label="' + wbEsc(it.name) + '">' +
+                '<div><b>' + wbEsc(it.name) + '</b> <small class="text-muted">' + wbEsc(it.code) + '</small>' +
+                '<div class="text-xs text-muted">' + wbEsc(it.trigger_status || '') + ' · ' + wbEsc(it.source || '') + '</div></div>' +
+                '<div class="text-brand font-bold">' + (it.current_price != null ? it.current_price : it.entry_price) + '</div></div>';
+        }).join('') : wbEmptyRich('暂无在册观察单。', '<a class="btn-soft btn-sm" href="/signal-observations">打开观察单</a>'));
+
+        const luItems = data.limit_up_stocks || [];
+        const mkt = currentMarket === 'HK' ? 'HK' : 'CN';
+        $('#limitUpList').html(luItems.length ? luItems.map(function (it) {
+            return '<a href="/stock/' + encodeURIComponent(it.code) + '?m=' + mkt + '" class="limitup-item" class="link-block" aria-label="' + wbEsc(it.name) + '">' +
+                '<div><b>' + wbEsc(it.name) + '</b></div>' +
+                '<div class="text-positive font-bold">+' + parseFloat(it.change_pct || 0).toFixed(1) + '%</div></div>';
+        }).join('') : '<div class="empty-state">当前未发现涨停样本（或行情未就绪）。</div>');
+
+        const dl = data.dragon_list?.inflow_stocks || [];
+        $('#dragonList').html(dl.length ? dl.map(function (it) {
+            return '<a href="/stock/' + encodeURIComponent(it.code) + '?m=CN" class="dragon-item" class="link-block" aria-label="' + wbEsc(it.name) + '">' +
+                '<div><b>' + wbEsc(it.name) + '</b></div>' +
+                '<div class="text-positive font-bold">' + parseFloat(it.inflow || 0).toFixed(1) + '亿</div></div>';
+        }).join('') : wbEmptyRich('暂无龙虎榜净流入样本。', '<a class="btn-soft btn-sm" href="/longhu-bang">龙虎榜中心</a>'));
+
+        wbRenderTodos(data.task_digest);
+        wbRenderSignal(data.signal_flag_preview);
+        wbRenderReview(data.review_strip);
+        wbRenderRecommend(data.recommendations_preview);
+        wbRenderHeadlines(data.headlines);
+        wbRenderTradePlan(data.trade_plan_strip);
+        wbRenderIntegration(data.integration_digest);
+        loadDecisionReviewPanel();
+
+        $('#lastUpdate').text('更新于: ' + new Date().toLocaleTimeString());
+        wbApplyCardOrder();
+    } catch (e) {
+        window.qcLogError('daily_workbench load failed', e);
+        wbShowError(e.message || String(e), e.payload);
+    }
+}
+
+function switchMarket(m) {
+    currentMarket = m;
+    if (window.QAFocusContext && wbFocusSymbol) {
+        QAFocusContext.setFocus(wbFocusSymbol, m, { replace: true });
+    }
+    $('#wbHeroShell .flex.gap-2 button').removeClass('btn-brand').addClass('btn-soft');
+    $('#btn-' + m).addClass('btn-brand').removeClass('btn-soft');
+    loadWorkbench();
+}
+
+$(document).ready(function () {
+    wbApplyCardVisibility();
+    $('#wbLayoutBar').on('change', '[data-wb-toggle]', function () {
+        const prefs = wbLoadPrefs();
+        const k = this.getAttribute('data-wb-toggle');
+        if (!k) return;
+        prefs.cards[k] = $(this).is(':checked');
+        wbSavePrefs(prefs);
+        wbApplyCardVisibility();
+    });
+    $('#wbWlLimit').on('change', function () {
+        const prefs = wbLoadPrefs();
+        const v = parseInt(String($(this).val()), 10);
+        prefs.wlLimit = [6, 12, 18, 24, 36].includes(v) ? v : 12;
+        wbSavePrefs(prefs);
+        loadWorkbench();
+    });
+    $('#wbLayoutPreset').on('change', function () {
+        wbSetPreset(String($(this).val() || 'default'));
+    });
+    $('#wbFocusSymbol').on('keydown', function (ev) {
+        if (ev.key === 'Enter') { ev.preventDefault(); wbApplyFocus(); }
+    });
+    document.addEventListener('click', function (ev) {
+        const el = ev.target.closest('[data-wb-action]');
+        if (!el) return;
+        const action = el.dataset.wbAction;
+        if (action === 'apply-focus') wbApplyFocus();
+        else if (action === 'clear-focus') wbClearFocus();
+        else if (action === 'switch-market') switchMarket(el.dataset.market || 'CN');
+        else if (action === 'reset-layout') wbResetLayout();
+        else if (action === 'retry-load') { wbHideError(); loadWorkbench(); }
+        else if (action === 'adopt-focus-plan') wbAdoptFocusPlan();
+        else if (action === 'adopt-top-pick') wbAdoptTopPick(el.dataset.code || '', el.dataset.name || el.dataset.code || '');
+        else if (action === 'adopt-trade-plan') wbAdoptTradePlanSymbol(el.dataset.symbol || '');
+    });
+    document.addEventListener('qa:focus-change', function (ev) {
+        if (ev.detail) {
+            wbSyncFocusUi(ev.detail);
+            if (ev.detail.symbol) wbFocusSymbol = ev.detail.symbol;
+        }
+    });
+    document.addEventListener('quant:quote', function (ev) {
+        wbApplyQuotePatch(ev.detail);
+    });
+    wbSyncFocusUi({ symbol: wbFocusSymbol, symbol_label: wbFocusSymbol });
+    if (window.QAUserCenter) {
+        QAUserCenter.mountPsychologyBanner('wbPsychologyBanner');
+        QAUserCenter.mountBeatSyncMiniPanel('wbBeatSyncMini', 5);
+    }
+    loadWorkbench();
+});
+</script>
+{% endblock %}

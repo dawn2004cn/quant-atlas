@@ -1,0 +1,600 @@
+{% extends "base.html" %}
+
+{% block spa_switcher %}
+
+<a href="/app/investment-manager-detail" class="spa-switcher-link"
+
+   data-spa-switcher="investment-manager-detail">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+
+
+
+
+{% block title %}投资经理回溯 - Quant Atlas{% endblock %}
+
+
+
+
+
+{% block extra_css %}
+
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/portfolio.css') }}">
+
+
+{% endblock %}
+
+
+
+
+
+{% block content %}
+
+
+<div class="pm-detail">
+
+
+  <section class="section-shell pm-card">
+
+
+    <div class="hero-caption">Manager</div>
+
+
+    <div class="pm-hero">
+
+
+      <img id="pmAvatar" src="/avatars/pm/{{ manager_id }}" alt="">
+
+
+      <div class="pmd-hero-flex">
+
+
+        <h1 class="page-title pmd-title" id="pmName">{{ manager_id }}</h1>
+
+
+        <div class="text-muted" id="pmTagline" class="pmd-tagline">--</div>
+
+
+        <div class="pm-meta" id="pmSpecialty">--</div>
+
+
+        <div class="pm-meta" id="pmEntry">入市时间锛?-</div>
+
+
+        <p class="page-subtitle" id="pmBio" class="pmd-bio">--</p>
+
+
+      </div>
+
+
+    </div>
+
+
+    <div class="pm-flex">
+
+
+      <span class="pill" id="pmCohort">--</span>
+
+
+      <span class="pill" id="pmStrategy">--</span>
+
+
+      <span class="pill" id="pmEquity">--</span>
+
+
+      <input id="date" class="input-soft pmd-date-input" type="date">
+
+
+      <button id="btnLoad" class="btn-brand" type="button">加载回溯</button>
+
+
+    </div>
+
+
+
+
+
+    <div class="curve-wrap">
+
+
+      <h2 class="panel-title">收益曲线</h2>
+
+
+      <div class="curve-shell">
+
+
+        <svg id="equitySvg" viewBox="0 0 1000 240" preserveAspectRatio="none" class="pmd-equity-svg">
+
+
+          <path id="equityPath" d="" fill="none" stroke="rgba(52,152,219,0.95)" stroke-width="3"></path>
+
+
+          <path id="equityArea" d="" fill="rgba(52,152,219,0.12)" stroke="none"></path>
+
+
+        </svg>
+
+
+      </div>
+
+
+      <div class="curve-meta">
+
+
+        <span class="pill" id="curveRange">区间锛?-</span>
+
+
+        <span class="pill" id="curveRet">累计锛?-</span>
+
+
+        <span class="pill" id="curveMdd">最大回撤：--</span>
+
+
+      </div>
+
+
+      <div class="text-muted pmd-chart-note">说明：曲线基于净值快照（equity），没有净值数据时将不显示。/div>
+
+
+    </div>
+
+
+  </section>
+
+
+
+
+
+  <section class="section-shell pm-card">
+
+
+    <h2 class="panel-title">当日持仓</h2>
+
+
+    <div class="table-responsive">
+
+
+      <table class="table">
+
+
+        <thead><tr><th>股票</th><th>股数</th><th>均价</th><th>现价</th><th>市值/th><th>仓位</th></tr></thead>
+
+
+        <tbody id="holdRows"></tbody>
+
+
+      </table>
+
+
+    </div>
+
+
+  </section>
+
+
+
+
+
+  <section class="section-shell pm-card">
+
+
+    <h2 class="panel-title">交易流水（最近）</h2>
+
+
+    <div class="table-responsive">
+
+
+      <table class="table">
+
+
+        <thead><tr><th>时间</th><th>股票</th><th>方向</th><th>价格</th><th>股数</th><th>璐</th><th>绋</th><th>原因</th></tr></thead>
+
+
+        <tbody id="tradeRows"></tbody>
+
+
+      </table>
+
+
+    </div>
+
+
+  </section>
+
+
+</div>
+
+
+{% endblock %}
+
+
+
+
+
+{% block extra_js %}
+
+
+<script nonce="{{ csp_nonce() }}">
+
+
+const managerId = "{{ manager_id }}";
+
+
+function fmt(v,d=2){ const n=Number(v); return Number.isFinite(n)? n.toFixed(d): '--'; }
+
+
+function isoToday(){ const t=new Date(); return t.toISOString().split('T')[0]; }
+
+
+
+
+
+function _computeMaxDrawdown(values){
+
+
+  let peak = -Infinity, mdd = 0;
+
+
+  for(const v of values){
+
+
+    const x = Number(v);
+
+
+    if(!Number.isFinite(x) || x<=0) continue;
+
+
+    if(x > peak) peak = x;
+
+
+    if(peak>0) mdd = Math.min(mdd, (x/peak - 1));
+
+
+  }
+
+
+  return mdd; // negative
+
+
+}
+
+
+
+
+
+function renderEquityCurve(nav){
+
+
+  const svg = document.getElementById('equitySvg');
+
+
+  const path = document.getElementById('equityPath');
+
+
+  const area = document.getElementById('equityArea');
+
+
+  const cap = Array.isArray(nav) ? nav.filter(x=>x && x.equity!=null) : [];
+
+
+  if(!cap.length){
+
+
+    path.setAttribute('d','');
+
+
+    area.setAttribute('d','');
+
+
+    $('#curveRange').text('区间锛?-');
+
+
+    $('#curveRet').text('累计锛?-');
+
+
+    $('#curveMdd').text('最大回撤：--');
+
+
+    return;
+
+
+  }
+
+
+  const xs = cap.map(x => String(x.nav_date||'').slice(0,10)).filter(Boolean);
+
+
+  const ysRaw = cap.map(x => Number(x.equity));
+
+
+  const ys = ysRaw.map(v => (Number.isFinite(v) && v>0) ? v : null).filter(v=>v!=null);
+
+
+  if(ys.length < 2){
+
+
+    path.setAttribute('d','');
+
+
+    area.setAttribute('d','');
+
+
+    $('#curveRange').text(`区间锛?{xs[0]||'--'} ~ ${xs[xs.length-1]||'--'}`);
+
+
+    $('#curveRet').text('累计锛?-');
+
+
+    $('#curveMdd').text('最大回撤：--');
+
+
+    return;
+
+
+  }
+
+
+  const W=1000,H=240,padX=14,padY=14;
+
+
+  const minY = Math.min(...ys);
+
+
+  const maxY = Math.max(...ys);
+
+
+  const spanY = Math.max(1e-9, maxY-minY);
+
+
+  const n = ysRaw.length;
+
+
+  const pts = [];
+
+
+  for(let i=0;i<n;i++){
+
+
+    const v = Number(ysRaw[i]);
+
+
+    if(!Number.isFinite(v) || v<=0) continue;
+
+
+    const x = padX + ( (W-2*padX) * (i/(n-1)) );
+
+
+    const y = padY + ( (H-2*padY) * (1 - ( (v-minY)/spanY )) );
+
+
+    pts.push([x,y]);
+
+
+  }
+
+
+  if(pts.length < 2){
+
+
+    path.setAttribute('d','');
+
+
+    area.setAttribute('d','');
+
+
+    return;
+
+
+  }
+
+
+  const d = 'M ' + pts.map(p => `${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join(' L ');
+
+
+  path.setAttribute('d', d);
+
+
+  const a = d + ` L ${(pts[pts.length-1][0]).toFixed(2)} ${(H-padY).toFixed(2)} L ${(pts[0][0]).toFixed(2)} ${(H-padY).toFixed(2)} Z`;
+
+
+  area.setAttribute('d', a);
+
+
+
+
+
+  const start = ys[0], end = ys[ys.length-1];
+
+
+  const ret = start>0 ? (end/start - 1) : 0;
+
+
+  const mdd = _computeMaxDrawdown(ys);
+
+
+  $('#curveRange').text(`区间锛?{xs[0]||'--'} ~ ${xs[xs.length-1]||'--'}`);
+
+
+  $('#curveRet').text(`累计锛?{fmt(ret*100,2)}%`);
+
+
+  $('#curveMdd').text(`最大回撤：${fmt(mdd*100,2)}%`);
+
+
+}
+
+
+
+
+
+function loadDetail(){
+
+
+  const d = ($('#date').val()||'').trim() || isoToday();
+
+
+  $.getJSON(`/api/v1/investment-managers/${managerId}`, { date: d })
+
+
+    .done(res => {
+
+
+      const data = res.data || {};
+
+
+      const m = data.manager || {};
+
+
+      $('#pmName').text(m.name || m.manager_id || managerId);
+
+
+      $('#pmAvatar').attr('src', (m.avatar_url || ('/avatars/pm/'+encodeURIComponent(m.manager_id||managerId))));
+
+
+      $('#pmTagline').text(m.tagline || '');
+
+
+      $('#pmSpecialty').text(m.specialty || '');
+
+
+      $('#pmEntry').text('入市时间锛? + (m.entry_time_display || '—'));
+
+
+      $('#pmBio').text(m.bio || '--');
+
+
+      $('#pmCohort').text('老中青：' + (m.cohort || '--'));
+
+
+      $('#pmStrategy').text('策略锛? + (m.strategy_id || '--'));
+
+
+
+
+
+      const nav = data.nav || [];
+
+
+      const last = nav.length ? nav[nav.length-1] : null;
+
+
+      $('#pmEquity').text(last ? ('总市值：¥' + fmt(last.equity,0) + ' / 现金：?? + fmt(last.cash,0)) : '暂无净鍊?);
+
+
+      renderEquityCurve(nav);
+
+
+
+
+
+      const holds = data.holdings || [];
+
+
+      $('#holdRows').html(holds.map(h => `
+
+
+        <tr>
+
+
+          <td>${h.symbol||'--'}</td>
+
+
+          <td>${h.shares||0}</td>
+
+
+          <td>¥${fmt(h.avg_cost)}</td>
+
+
+          <td>¥${fmt(h.market_price)}</td>
+
+
+          <td>¥${fmt(h.market_value,0)}</td>
+
+
+          <td>${fmt((Number(h.weight||0)*100),2)}%</td>
+
+
+        </tr>`).join('') || '<tr><td colspan="6" class="text-center text-muted">当日无持仓快照/td></tr>');
+
+
+
+
+
+      const trades = data.trades || [];
+
+
+      $('#tradeRows').html(trades.map(t => `
+
+
+        <tr>
+
+
+          <td>${(t.trade_date||'').slice(0,19) || '--'}</td>
+
+
+          <td>${t.symbol||'--'}</td>
+
+
+          <td class="${t.action==='BUY'?'positive':'negative'}">${t.action||'--'}</td>
+
+
+          <td>¥${fmt(t.price)}</td>
+
+
+          <td>${t.shares||0}</td>
+
+
+          <td>¥${fmt(t.fee)}</td>
+
+
+          <td>¥${fmt(t.tax)}</td>
+
+
+          <td>${t.reason||''}</td>
+
+
+        </tr>`).join('') || '<tr><td colspan="8" class="text-center text-muted">暂无交易</td></tr>');
+
+
+    })
+
+
+    .fail(()=> showToast('加载失败', 'error'));
+
+
+}
+
+
+
+
+
+$(function(){
+
+
+  $('#date').val(isoToday());
+
+
+  $('#btnLoad').on('click', loadDetail);
+
+
+  loadDetail();
+
+
+});
+
+
+</script>
+
+
+{% endblock %}
+
+
+
+
+

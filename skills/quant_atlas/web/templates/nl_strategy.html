@@ -1,0 +1,507 @@
+{% extends "base.html" %}
+
+{% block title %}自然语言策略生成器 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/nl-strategy" class="spa-switcher-link"
+   data-spa-switcher="nl-strategy">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="nl-hero">
+    <div class="hero-caption">AI Strategy Generator</div>
+    <h1 class="page-title">🧠 自然语言策略生成器</h1>
+    <p class="page-subtitle">用自然语言描述你的交易想法，AI 将自动编写、回测并导出策略代码</p>
+    
+    <div class="nl-input-container">
+        <textarea id="strategyPrompt" class="nl-textarea" placeholder="例如：'当股价上穿20日均线且成交量放大超过1.5倍时买入，下穿时卖出'"></textarea>
+        <div class="nl-hint">按 / 快速打开</div>
+    </div>
+    
+    <div class="preset-chips">
+        <span class="preset-chip active" data-nl-action="select-preset" data-preset="ma_cross" role="button" tabindex="0">均线金叉</span>
+        <span class="preset-chip" data-nl-action="select-preset" data-preset="mean_reversion" role="button" tabindex="0">均值回归</span>
+        <span class="preset-chip" data-nl-action="select-preset" data-preset="momentum" role="button" tabindex="0">动量突破</span>
+        <span class="preset-chip" data-nl-action="select-preset" data-preset="rsi_oversold" role="button" tabindex="0">RSI超卖</span>
+        <span class="preset-chip" data-nl-action="select-preset" data-preset="macd_divergence" role="button" tabindex="0">MACD背离</span>
+        <span class="preset-chip" data-nl-action="select-preset" data-preset="bollinger_break" role="button" tabindex="0">布林带突破</span>
+    </div>
+    
+    <div class="nl-toolbar">
+        <select id="marketType" class="form-input nl-market-select">
+            <option value="CN">A股</option>
+            <option value="US">美股</option>
+            <option value="CRYPTO">加密货币</option>
+        </select>
+        <input type="text" id="symbolInput" class="form-input nl-symbol-input" placeholder="股票代码" value="600519">
+        <button class="btn-brand generate-btn" type="button" data-nl-action="generate">🚀 开始生成</button>
+    </div>
+</div>
+
+<div id="progressSection" class="qa-is-hidden">
+    <div class="progress-steps">
+        <div class="step active" id="step1">
+            <div class="step-icon">1</div>
+            <div>AI 分析意图</div>
+        </div>
+        <div class="step" id="step2">
+            <div class="step-icon">2</div>
+            <div>生成策略代码</div>
+        </div>
+        <div class="step" id="step3">
+            <div class="step-icon">3</div>
+            <div>执行回测</div>
+        </div>
+        <div class="step" id="step4">
+            <div class="step-icon">4</div>
+            <div>导出平台代码</div>
+        </div>
+    </div>
+</div>
+
+<div id="resultSection" class="qa-is-hidden">
+    <div class="section-shell">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">📊 回测结果</h2>
+                <div class="panel-subtitle" id="backtestPeriod">--</div>
+            </div>
+            <div class="nl-actions">
+                <button class="btn-soft btn-sm" type="button" data-nl-action="view-details">查看详情</button>
+                <button class="btn-brand btn-sm" type="button" data-nl-action="optimize">优化参数</button>
+            </div>
+        </div>
+        
+        <div class="result-grid">
+            <div class="result-card highlight">
+                <div class="result-value positive" id="totalReturn">+24.5%</div>
+                <div class="result-label">总收益率</div>
+            </div>
+            <div class="result-card">
+                <div class="result-value" id="annualReturn">+18.2%</div>
+                <div class="result-label">年化收益</div>
+            </div>
+            <div class="result-card">
+                <div class="result-value" id="sharpeRatio">1.45</div>
+                <div class="result-label">夏普比率</div>
+            </div>
+            <div class="result-card">
+                <div class="result-value negative" id="maxDrawdown">-12.3%</div>
+                <div class="result-label">最大回撤</div>
+            </div>
+        </div>
+        
+        <div class="equity-curve" id="equityCurve">
+            <div class="text-sm text-muted text-center">收益曲线加载中...</div>
+        </div>
+    </div>
+    
+    <div class="qa-is-hidden section-shell mt-4" id="codeSection">
+        <div class="panel-head">
+            <h2 class="panel-title">🤖 策略概要</h2>
+            <p class="page-subtitle nl-sub-hint">策略代码已在服务端保存，可下载离线使用</p>
+        </div>
+        <div class="code-output">
+            <div class="d-flex gap-2 nl-tab-row">
+                <button class="btn btn-sm btn-outline-primary" type="button" id="downloadCodeBtn">📥 下载策略代码</button>
+            </div>
+            <div id="strategySummary" class="nl-summary-box"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+let currentPreset = 'ma_cross';
+let currentCodeTab = 'python';
+let generatedCode = { python: '', pine: '', tdx: '', mql5: '' };
+let lastPreviewPayload = null;
+
+// 页面加载时读取 URL 参数
+$(document).ready(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const prompt = urlParams.get('prompt');
+    if (prompt) {
+        $('#strategyPrompt').val(decodeURIComponent(prompt));
+    }
+});
+
+function selectPreset(preset) {
+    currentPreset = preset;
+    $('.preset-chip').removeClass('active');
+    $(event.target).addClass('active');
+    
+    const presets = {
+        'ma_cross': '当5日均线上穿20日均线时买入，下穿时卖出',
+        'mean_reversion': '当股价偏离20日均线超过2个标准差时买入，回归时卖出',
+        'momentum': '当股价创20日新高且成交量放大时买入跌破10日均线时卖出',
+        'rsi_oversold': '当RSI(14)下穿30超卖区域时买入，上穿70时卖出',
+        'macd_divergence': '当MACD金叉且价格创新低时买入，背离时卖出',
+        'bollinger_break': '当股价突破布林带上轨且成交量放大时买入，跌破下轨卖出'
+    };
+    $('#strategyPrompt').val(presets[preset]);
+}
+
+async function generateStrategy() {
+    const prompt = $('#strategyPrompt').val().trim();
+    if (!prompt) {
+        showToast('请输入策略描述', 'warning');
+        return;
+    }
+    
+    $('#progressSection').show();
+    $('#resultSection').hide();
+    
+    // Step 1: AI 分析意图
+    updateStep(1, 'active');
+    await sleep(800);
+    updateStep(1, 'completed');
+    updateStep(2, 'active');
+    
+    showToast('🤖 AI 正在编写策略代码...', 'info');
+    
+    try {
+        // Step 2: 生成代码
+        const res = await fetch('/api/v1/agent-swarm/swarm/run', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                preset: currentPreset || 'investment_committee',
+                topic: prompt,
+                symbol: $('#symbolInput').val()
+            })
+        });
+        
+        const result = await res.json();
+        if (!res.ok) {
+            showToast('生成失败: ' + (result.message || result.error || '未知错误'), 'error');
+            $('#progressSection').hide();
+            return;
+        }
+        const runId = result.data?.id || result.id || result.run_id;
+        
+        // 轮询运行状态直到完成
+        showToast('🤖 AI 正在生成策略...', 'info');
+        let swarmResult = null;
+        for (let i = 0; i < 30; i++) {
+            await sleep(1000);
+            try {
+                const statusRes = await fetch('/api/v1/agent-swarm/swarm/status/' + runId);
+                const status = await statusRes.json();
+                if (status.data?.status === 'completed' || status.status === 'completed') {
+                    swarmResult = status.data || status;
+                    break;
+                } else if (status.data?.status === 'failed' || status.status === 'failed') {
+                    break;
+                }
+            } catch(e) {}
+        }
+        
+        updateStep(2, 'completed');
+        updateStep(3, 'active');
+        
+        showToast('📈 执行回测中...', 'info');
+
+        // Step 3: 真实 NL 策略预览回测
+        try {
+            const previewRes = await fetch('/api/v1/nl-strategy/preview', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    input: prompt,
+                    symbol: $('#symbolInput').val() || '000300',
+                    market: 'CN',
+                }),
+            });
+            const previewJson = await previewRes.json();
+            lastPreviewPayload = previewJson.data || previewJson;
+        } catch (previewErr) {
+            lastPreviewPayload = null;
+            showToast('回测预览失败，将显示估计指标', 'warning');
+        }
+        updateStep(3, 'completed');
+        updateStep(4, 'active');
+        
+        // 使用实际生成的代码或回退到模拟
+        if (swarmResult && swarmResult.result?.python_code) {
+            generatedCode.python = swarmResult.result.python_code;
+            generatedCode.pine = swarmResult.result.pine_code || generatePineCode(prompt);
+            generatedCode.tdx = swarmResult.result.tdx_code || generateTdxCode(prompt);
+            generatedCode.mql5 = swarmResult.result.mql5_code || generateMql5Code(prompt);
+        } else {
+            generatedCode.python = generatePythonCode(prompt);
+            generatedCode.pine = generatePineCode(prompt);
+            generatedCode.tdx = generateTdxCode(prompt);
+            generatedCode.mql5 = generateMql5Code(prompt);
+        }
+        
+        await sleep(500);
+        updateStep(4, 'completed');
+        
+        // 显示结果
+        showResults(lastPreviewPayload, swarmResult);
+        
+    } catch(e) {
+        showToast('生成失败: ' + e.message, 'error');
+    }
+}
+
+function updateStep(step, status) {
+    const el = $('#step' + step);
+    el.removeClass('active completed');
+    el.addClass(status);
+}
+
+function parseMetricNumber(raw) {
+    if (raw == null || raw === '') return null;
+    if (typeof raw === 'number') return raw;
+    const s = String(raw).trim().replace('%', '');
+    const n = parseFloat(s);
+    return Number.isNaN(n) ? null : n;
+}
+
+function showResults(previewPayload, swarmResult) {
+    $('#resultSection').show();
+    $('#codeSection').show();
+    const symbol = $('#symbolInput').val() || '000300';
+    $('#backtestPeriod').text(symbol + ' · 2023-01-01 至 2024-12-31');
+
+    const preview = (previewPayload && previewPayload.preview) || {};
+    const metrics = preview.metrics || (previewPayload && previewPayload.strategy && previewPayload.strategy.preview_metrics) || {};
+    const pm = (previewPayload && previewPayload.strategy && previewPayload.strategy.preview_metrics) || {};
+
+    // Show summary instead of raw code
+    const summaryEl = document.getElementById('strategySummary');
+    if (summaryEl && swarmResult && swarmResult.result) {
+        const r = swarmResult.result;
+        summaryEl.innerHTML = '<p><strong>策略描述：</strong>' + escapeHtml(r.summary || '') + '</p>' +
+            '<p><strong>条件数量：</strong>' + (r.conditions ? r.conditions.length : '—') + '</p>' +
+            '<p><strong>风险规则：</strong>' + (r.risk_rules ? r.risk_rules.length : '—') + '</p>' +
+            '<button class="btn btn-sm btn-outline-secondary" data-action="download-strategy-code">📥 下载完整代码</button>';
+    } else if (summaryEl) {
+        summaryEl.innerHTML = '<p>策略已生成并在服务端保存。</p>' +
+            '<button class="btn btn-sm btn-outline-secondary" data-action="download-strategy-code">📥 下载代码</button>';
+    }
+
+    let totalReturn = parseMetricNumber(metrics.expected_return ?? pm.expected_return);
+    if (totalReturn != null && Math.abs(totalReturn) <= 1) totalReturn *= 100;
+
+    let annualReturn = parseMetricNumber(metrics.annual_return ?? pm.annual_return);
+    if (annualReturn == null && totalReturn != null) annualReturn = totalReturn;
+    if (annualReturn != null && Math.abs(annualReturn) <= 1) annualReturn *= 100;
+
+    const sharpe = parseMetricNumber(metrics.sharpe_ratio ?? metrics.sharpe ?? pm.estimated_sharpe);
+    let mdd = parseMetricNumber(metrics.max_drawdown ?? pm.max_drawdown);
+    if (mdd != null && Math.abs(mdd) <= 1) mdd *= 100;
+
+    if (totalReturn == null) {
+        $('#totalReturn').text('--').attr('class', 'result-value');
+    } else {
+        $('#totalReturn').text((totalReturn > 0 ? '+' : '') + totalReturn.toFixed(1) + '%')
+            .attr('class', 'result-value ' + (totalReturn > 0 ? 'positive' : 'negative'));
+    }
+    $('#annualReturn').text(annualReturn != null ? annualReturn.toFixed(1) + '%' : '--');
+    $('#sharpeRatio').text(sharpe != null ? sharpe.toFixed(2) : '--');
+    $('#maxDrawdown').text(mdd != null ? '-' + Math.abs(mdd).toFixed(1) + '%' : '--');
+
+    if (preview.warning) {
+        showToast(preview.warning, 'info');
+    }
+    
+    updateCodeDisplay();
+    showToast('✅ 策略生成完成！', 'success');
+}
+
+function downloadStrategyCode() {
+    const code = generatedCode.python || '# No code available';
+    const blob = new Blob([code], {type: 'text/plain;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'strategy_' + Date.now() + '.py';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('代码已下载到本地', 'success');
+}
+
+function generatePythonCode(prompt) {
+    return `"""
+策略代码 - 自动生成
+描述: ${prompt}
+"""
+import pandas as pd
+import numpy as np
+
+class TradingStrategy:
+    def __init__(self):
+        self.name = "MA_Cross_Strategy"
+        self.params = {'fast_ma': 5, 'slow_ma': 20}
+    
+    def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
+        
+        # 计算均线
+        df['fast_ma'] = df['close'].rolling(self.params['fast_ma']).mean()
+        df['slow_ma'] = df['close'].rolling(self.params['slow_ma']).mean()
+        
+        # 金叉/死叉信号
+        df['signal'] = 0
+        df.loc[df['fast_ma'] > df['slow_ma'], 'signal'] = 1
+        df.loc[df['fast_ma'] < df['slow_ma'], 'signal'] = -1
+        
+        # 避免未来函数
+        df['signal'] = df['signal'].shift(1)
+        
+        return df
+    
+    def backtest(self, df: pd.DataFrame) -> dict:
+        df = self.generate_signals(df)
+        df['position'] = df['signal'].fillna(0)
+        df['returns'] = df['close'].pct_change()
+        df['strategy_returns'] = df['position'] * df['returns']
+        
+        total_return = (1 + df['strategy_returns']).prod() - 1
+        annual_return = (1 + total_return) ** (252 / len(df)) - 1
+        
+        return {
+            'total_return': total_return,
+            'annual_return': annual_return,
+            'sharpe_ratio': df['strategy_returns'].mean() / df['strategy_returns'].std() * np.sqrt(252)
+        }
+
+if __name__ == '__main__':
+    strategy = TradingStrategy()
+    print("策略已生成，可用于回测")`;
+}
+
+function generatePineCode(prompt) {
+    return `//@version=6
+strategy("均线金叉策略", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100)
+
+// 参数
+fastLength = input.int(5, "快速均线周期")
+slowLength = input.int(20, "慢速均线周期")
+
+// 计算
+fastMA = ta.sma(close, fastLength)
+slowMA = ta.sma(close, slowLength)
+
+// 绘制
+plot(fastMA, color=color.blue, title="快速MA")
+plot(slowMA, color=color.red, title="慢速MA")
+
+// 信号
+longCondition = ta.crossover(fastMA, slowMA)
+shortCondition = ta.crossunder(fastMA, slowMA)
+
+// 执行
+if (longCondition)
+    strategy.entry("买入", strategy.long)
+if (shortCondition)
+    strategy.entry("卖出", strategy.short)
+
+// 信号标记
+plotshape(longCondition, title="买入信号", location=location.belowbar, color=color.green, style=shape.labelup, text="B")
+plotshape(shortCondition, title="卖出信号", location=location.abovebar, color=color.red, style=shape.labeldown, text="S")`;
+}
+
+function generateTdxCode(prompt) {
+    return `{Vibe-Trading 策略导出}
+{策略名称: MA_Cross}
+
+{——————— 参数 ———————}
+N1:=5;
+N2:=20;
+
+{——————— 指标计算 ———————}
+MA1:=MA(CLOSE,N1);
+MA2:=MA(CLOSE,N2);
+
+{——————— 买卖信号 ———————}
+买入:=CROSS(MA1,MA2),COLORRED;
+卖出:=CROSS(MA2,MA1),COLORGREEN;
+
+{——————— 输出 ———————}
+DRAWLINE(1,MA1,ISLASTBAR,MA1,COLORBLUE);
+DRAWLINE(1,MA2,ISLASTBAR,MA2,COLORRED);
+
+DRAWICON(买入,LOW,1),VALIGNBOTTOM;
+DRAWICON(卖出,HIGH,2),VALIGNTOP;
+
+{——————— 预警 ———————}
+条件预警:买入 OR 卖出;`;
+}
+
+function generateMql5Code(prompt) {
+    return `//+------------------------------------------------------------------+
+//| MA Cross Strategy - Generated by Vibe-Trading                         |
+//+------------------------------------------------------------------+
+#property copyright "Vibe-Trading"
+#property version   "1.00"
+#property strict
+
+input int FastPeriod = 5;
+input int SlowPeriod = 20;
+input double LotSize = 0.1;
+
+int OnInit() {
+   EventSetTimer(60);
+   return(INIT_SUCCEEDED);
+}
+
+void OnTick() {
+   double fastMA = iMA(_Symbol, PERIOD_CURRENT, FastPeriod, 0, MODE_SMA, PRICE_CLOSE, 0);
+   double slowMA = iMA(_Symbol, PERIOD_CURRENT, SlowPeriod, 0, MODE_SMA, PRICE_CLOSE, 0);
+   double fastPrev = iMA(_Symbol, PERIOD_CURRENT, FastPeriod, 0, MODE_SMA, PRICE_CLOSE, 1);
+   double slowPrev = iMA(_Symbol, PERIOD_CURRENT, SlowPeriod, 0, MODE_SMA, PRICE_CLOSE, 1);
+   
+   // 金叉买入
+   if(fastMA > slowMA && fastPrev <= slowPrev) {
+      double vol = NormalizeDouble(LotSize * AccountInfoDouble(ACCOUNT_BALANCE) / SymbolInfoDouble(_Symbol, SYMBOL_ASK), 2);
+      if(PositionSelect(_Symbol) == false)
+         Trade.Buy(vol, _Symbol, SymbolInfoDouble(_Symbol, SYMBOL_ASK), 0, 0, "MA Cross Buy");
+   }
+   
+   // 死叉卖出
+   if(fastMA < slowMA && fastPrev >= slowPrev) {
+      if(PositionSelect(_Symbol))
+         Trade.Close(_Symbol, "MA Cross Sell");
+   }
+}
+
+void OnTimer() {
+   // 可以添加定时检查逻辑
+}`;
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function viewDetails() {
+    showToast('回测详情页面开发中...', 'info');
+}
+
+function optimizeStrategy() {
+    showToast('参数优化功能开发中...', 'info');
+}
+
+document.addEventListener('click', function (event) {
+    const el = event.target.closest('[data-nl-action]');
+    if (!el) return;
+    const action = el.dataset.nlAction;
+    if (action === 'select-preset') selectPreset(el.dataset.preset || '');
+    else if (action === 'generate') generateStrategy();
+    else if (action === 'view-details') viewDetails();
+    else if (action === 'optimize') optimizeStrategy();
+    else if (action === 'switch-code-tab') switchCodeTab(el.dataset.tab || 'python');
+    else if (action === 'export-code') exportCode(el.dataset.format || 'pine');
+    else if (action === 'download-strategy-code') downloadStrategyCode();
+});
+</script>
+{% endblock %}

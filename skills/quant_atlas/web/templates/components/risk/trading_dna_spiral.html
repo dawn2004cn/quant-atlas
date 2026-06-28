@@ -1,0 +1,222 @@
+<!-- Trading DNA Spiral Visualization (Phase 14) -->
+<!-- Canvas-based spiral chart showing XP distribution with crack effects -->
+
+<div class="qc-panel" x-data="tradingDNASpiralCapability()" x-init="init()" id="trading-dna-spiral-panel">
+    <div class="panel-head">
+        <div class="panel-info">
+            <h3 class="panel-title">
+                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                我的交易 DNA
+            </h3>
+            <p class="panel-subtitle">XP: {{ total_xp }} · 稳健度: {{ "%.0f"|format(balance_ratio * 100) }}%</p>
+        </div>
+    </div>
+
+    <div class="p-4 flex flex-col items-center">
+        <canvas
+            id="dnaSpiralCanvas"
+            width="400"
+            height="400"
+            class="max-w-full"
+        ></canvas>
+
+        <!-- XP Breakdown -->
+        <div class="mt-4 w-full grid grid-cols-2 gap-3">
+            <div class="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-center">
+                <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ prudent }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">稳健行为</div>
+            </div>
+            <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-center">
+                <div class="text-2xl font-bold text-red-600 dark:text-red-400">{{ reckless }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">冲动行为</div>
+            </div>
+        </div>
+
+        <!-- Streak -->
+        <div class="mt-3 w-full text-center">
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium"
+                  :class="streak_days > 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'">
+                🔥 连续稳健 {{ streak_days }} 天
+            </span>
+        </div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function tradingDNASpiralCapability() {
+    return {
+        total_xp: 0,
+        prudent: 0,
+        reckless: 0,
+        streak_days: 0,
+        balance_ratio: 0.5,
+        canvas: null,
+        ctx: null,
+        animFrame: null,
+        crackIntensity: 0,
+
+        async init() {
+            this.canvas = document.getElementById('dnaSpiralCanvas');
+            if (!this.canvas) return;
+            this.ctx = this.canvas.getContext('2d');
+
+            // Load data
+            try {
+                const res = await fetch('/api/v1/risk/companion/dna');
+                const json = await res.json();
+                if (json.ok && json.data) {
+                    this.total_xp = json.data.total_xp || 0;
+                    this.prudent = json.data.prudent_actions || 0;
+                    this.reckless = json.data.reckless_actions || 0;
+                    this.streak_days = json.data.streak_days || 0;
+                    this.balance_ratio = json.data.balance_ratio || 0.5;
+                }
+            } catch (e) {
+                window.qcLogError('Failed to load trading DNA', e);
+            }
+
+            // Calculate crack intensity
+            this.crackIntensity = Math.max(0, (this.reckless - this.prudent) / Math.max(this.prudent + this.reckless, 1));
+
+            this.draw();
+            this.animate();
+        },
+
+        draw() {
+            const ctx = this.ctx;
+            const w = this.canvas.width;
+            const h = this.canvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Background glow
+            const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, 180);
+            const safeColor = this.balance_ratio >= 0.5 ? 'rgba(34, 197, 94,' : 'rgba(239, 68, 68,';
+            gradient.addColorStop(0, safeColor + '0.15)');
+            gradient.addColorStop(1, safeColor + '0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
+
+            // Draw spiral
+            const total = this.prudent + this.reckless;
+            if (total === 0) {
+                // Empty state
+                ctx.fillStyle = 'rgba(156, 163, 175, 0.3)';
+                ctx.font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('暂无交易数据', cx, cy);
+                return;
+            }
+
+            const prudentRatio = this.prudent / total;
+            const maxRadius = 150;
+            const turns = 3;
+            const steps = 500;
+
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+
+            for (let i = 0; i < steps; i++) {
+                const t = i / steps;
+                const angle = t * turns * 2 * Math.PI;
+                const radius = t * maxRadius;
+                const x = cx + Math.cos(angle) * radius;
+                const y = cy + Math.sin(angle) * radius;
+
+                // Color based on prudent ratio
+                const color = t < prudentRatio ? '#22c55e' : '#ef4444';
+                const alpha = 0.6 + 0.4 * Math.sin(t * Math.PI);
+                ctx.strokeStyle = color + Math.round(alpha * 255).toString(16).padStart(2, '0');
+
+                if (i === 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+
+            // Draw cracks when reckless > prudent
+            if (this.crackIntensity > 0.2) {
+                this.drawCracks(cx, cy, maxRadius);
+            }
+
+            // Center XP badge
+            ctx.beginPath();
+            ctx.arc(cx, cy, 35, 0, Math.PI * 2);
+            ctx.fillStyle = this.balance_ratio >= 0.5 ? '#166534' : '#991b1b';
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 18px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(this.total_xp, cx, cy - 6);
+            ctx.font = '10px sans-serif';
+            ctx.fillText('XP', cx, cy + 10);
+        },
+
+        drawCracks(cx, cy, maxRadius) {
+            const ctx = this.ctx;
+            const numCracks = Math.floor(this.crackIntensity * 8) + 1;
+            const pseudo = (seed) => {
+                const x = Math.sin(seed * 12.9898 + this.crackIntensity * 78.233) * 43758.5453;
+                return x - Math.floor(x);
+            };
+
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
+            ctx.lineWidth = 1.5;
+
+            for (let i = 0; i < numCracks; i++) {
+                const angle = (i / numCracks) * Math.PI * 2 + pseudo(i + 1) * 0.5;
+                const startR = 30 + pseudo(i + 11) * 40;
+                const endR = startR + 30 + pseudo(i + 21) * 60 * this.crackIntensity;
+
+                ctx.beginPath();
+                ctx.moveTo(
+                    cx + Math.cos(angle) * startR,
+                    cy + Math.sin(angle) * startR
+                );
+
+                // Jagged crack path
+                let px = cx + Math.cos(angle) * startR;
+                let py = cy + Math.sin(angle) * startR;
+                const segments = 5;
+                for (let s = 0; s < segments; s++) {
+                    const t = (s + 1) / segments;
+                    const r = startR + (endR - startR) * t;
+                    const jag = (pseudo(i * 10 + s + 31) - 0.5) * 20 * this.crackIntensity;
+                    px = cx + Math.cos(angle + jag / r) * r;
+                    py = cy + Math.sin(angle + jag / r) * r;
+                    ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+            }
+        },
+
+        animate() {
+            // Subtle breathing animation
+            let phase = 0;
+            const animate = () => {
+                phase += 0.02;
+                const scale = 1 + Math.sin(phase) * 0.02;
+
+                this.ctx.save();
+                this.ctx.translate(200, 200);
+                this.ctx.scale(scale, scale);
+                this.ctx.translate(-200, -200);
+                this.draw();
+                this.ctx.restore();
+
+                this.animFrame = requestAnimationFrame(animate);
+            };
+            animate();
+        },
+    };
+}
+</script>
+

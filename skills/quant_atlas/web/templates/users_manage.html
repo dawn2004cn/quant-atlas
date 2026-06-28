@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}用户管理 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="users-container">
+    <section class="section-shell">
+        <div class="hero-caption">User Management</div>
+        <h1 class="page-title">用户管理</h1>
+        <p class="page-subtitle">创建和管理系统用户</p>
+    </section>
+
+    <section class="section-shell form-section">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">创建新用户</h2>
+                <div class="panel-subtitle">添加新的系统用户</div>
+            </div>
+        </div>
+        <form id="createUserForm">
+            <div class="form-group">
+                <label class="label" for="newUsername">用户名</label>
+                <input type="text" class="input-soft" id="newUsername" required>
+            </div>
+            <div class="form-group">
+                <label class="label" for="newPassword">密码</label>
+                <input type="password" class="input-soft" id="newPassword" required>
+            </div>
+            <div class="form-group">
+                <label class="label" for="newRole">角色</label>
+                <select id="newRole" class="select-soft">
+                    <option value="viewer">访客</option>
+                    <option value="trader">交易员</option>
+                    <option value="researcher">研究员</option>
+                    <option value="developer">开发者</option>
+                    <option value="admin">管理员</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-brand">创建用户</button>
+        </form>
+    </section>
+
+    <section class="section-shell users-section">
+        <div class="panel-head">
+            <div>
+                <h2 class="panel-title">现有用户</h2>
+                <div class="panel-subtitle">管理已创建的用户</div>
+            </div>
+        </div>
+        <div id="userList">
+            <div class="empty-state">加载中...</div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+$(document).ready(function() {
+    var roleCatalog = [];
+
+    function loadRoles(cb) {
+        $.getJSON('/api/v1/roles').done(function(res) {
+            var d = res.data !== undefined ? res.data : res;
+            roleCatalog = d.items || d.roles || [];
+            if (cb) cb();
+        }).fail(function(xhr) {
+            showToast(xhr.status === 403 ? '无权限' : '加载角色失败', 'error');
+        });
+    }
+
+    function roleOptionsHtml(currentCode) {
+        if (!roleCatalog.length) return '';
+        return roleCatalog.map(function(r) {
+            var sel = (r.code === currentCode) ? ' selected' : '';
+            return '<option value="' + r.code + '"' + sel + '>' + r.label + '</option>';
+        }).join('');
+    }
+
+    function loadUsers() {
+        $.get('/api/v1/users', function(res) {
+            if (!res.status || res.status === 'success') {
+                const users = res.data || res.users || [];
+                $('#userList').empty();
+                if (users.length === 0) {
+                    $('#userList').append('<div class="empty-state">暂无用户</div>');
+                } else {
+                    users.forEach(function(user) {
+                        var demo = user.protected ? '<span class="badge-demo">演示账号</span> ' : '';
+                        var delBtn = user.protected ? '' : '<button type="button" class="btn-soft btn-sm delete-user" data-username="' + user.username + '">删除</button>';
+                        $('#userList').append(`
+                            <div class="user-item">
+                                <div class="user-info">${demo}${user.username} <span class="um-role-muted">(${user.role_name})</span></div>
+                                <div class="user-actions">
+                                    <select class="select-soft role-select" data-username="${user.username}" aria-label="角色">${roleOptionsHtml(user.role)}</select>
+                                    <button type="button" class="btn-soft btn-sm save-role" data-username="${user.username}">保存角色</button>
+                                    <button type="button" class="btn-soft btn-sm change-password" data-username="${user.username}">修改密码</button>
+                                    ${delBtn}
+                                </div>
+                            </div>
+                        `);
+                    });
+                }
+            } else {
+                showToast('加载用户失败: ' + (res.message || '未知错误'), 'error');
+            }
+        }).fail(function(xhr) {
+            if (xhr.status === 403) {
+                $('#userList').html('<div class="empty-state">无权限访问用户列表（需管理员）</div>');
+            }
+        });
+    }
+
+    $('#createUserForm').submit(function(e) {
+        e.preventDefault();
+        const newUsername = $('#newUsername').val();
+        const newPassword = $('#newPassword').val();
+        const newRole = $('#newRole').val();
+
+        $.ajax({
+            url: '/api/v1/users',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ username: newUsername, password: newPassword, role: newRole }),
+            success: function(res) {
+                if (!res.status || res.status === 'success') {
+                    showToast(res.message || '用户创建成功', 'success');
+                    $('#createUserForm')[0].reset();
+                    loadUsers();
+                } else {
+                    showToast('创建用户失败: ' + (res.message || '未知错误'), 'error');
+                }
+            }
+        });
+    });
+
+    $('#userList').on('click', '.save-role', function() {
+        const username = $(this).data('username');
+        const role = $(this).closest('.user-actions').find('select.role-select').val();
+        $.ajax({
+            url: '/api/v1/users/' + encodeURIComponent(username) + '/role',
+            method: 'PATCH',
+            contentType: 'application/json',
+            data: JSON.stringify({ role: role }),
+            success: function(res) {
+                if (!res.status || res.status === 'success') {
+                    showToast(res.message || '角色已更新', 'success');
+                    loadUsers();
+                } else {
+                    showToast(res.message || '更新失败', 'error');
+                }
+            },
+            error: function(xhr) {
+                showToast(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : '更新失败', 'error');
+            }
+        });
+    });
+
+    $('#userList').on('click', '.delete-user', function() {
+        const username = $(this).data('username');
+        if (confirm(`确定要删除用户 ${username} 吗？`)) {
+            $.ajax({
+                url: `/api/v1/users/${username}`,
+                method: 'DELETE',
+                success: function(res) {
+                    if (!res.status || res.status === 'success') {
+                        showToast(res.message || '用户删除成功', 'success');
+                        loadUsers();
+                    } else {
+                        showToast('删除失败: ' + (res.message || '未知错误'), 'error');
+                    }
+                }
+            });
+        }
+    });
+
+    $('#userList').on('click', '.change-password', function() {
+        const username = $(this).data('username');
+        const newPassword = prompt(`请输入 ${username} 的新密码:`);
+        if (newPassword) {
+            const confirmPassword = prompt('请再次输入新密码进行确认:');
+            if (newPassword === confirmPassword) {
+                $.ajax({
+                    url: '/api/v1/change-password',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ username: username, new_password: newPassword, confirm_password: confirmPassword }),
+                    success: function(res) {
+                        if (!res.status || res.status === 'success') {
+                            showToast(res.message || '密码修改成功', 'success');
+                        } else {
+                            showToast('修改密码失败: ' + (res.message || '未知错误'), 'error');
+                        }
+                    }
+                });
+            } else {
+                showToast('两次输入的密码不一致！', 'warning');
+            }
+        }
+    });
+
+    loadRoles(function() { loadUsers(); });
+});
+</script>
+{% endblock %}

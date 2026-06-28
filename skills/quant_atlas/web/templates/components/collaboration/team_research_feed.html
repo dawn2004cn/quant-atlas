@@ -1,0 +1,108 @@
+{# Team research moments feed — publish evidence chains & logic challenges #}
+<div
+    class="section-shell"
+    id="team-research-feed"
+    x-data="teamResearchFeedCapability()"
+    x-init="init()"
+>
+    <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="panel-title mb-0">📡 团队投研流</h2>
+            <div class="panel-subtitle">发布证据链、接受逻辑挑战 — 类朋友圈协作频道</div>
+        </div>
+        <button type="button" class="btn-soft btn-sm" @click="load()" :disabled="!teamId">刷新</button>
+    </div>
+
+    <div class="text-sm text-muted mt-2" x-show="!teamId" x-cloak>请先在「团队协作上下文」中选择团队。</div>
+
+    <div class="mt-3" x-show="teamId" x-cloak>
+        <textarea class="form-control form-control-sm mb-2" rows="2" placeholder="发布投研观点或证据链摘要…" x-model="publishText"></textarea>
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" class="btn-brand btn-sm" @click="publish()">发布到团队频道</button>
+            <button type="button" class="btn-soft btn-sm" @click="publishWithProvenance()">附带当前证据链</button>
+        </div>
+    </div>
+
+    <div class="mt-3 collab-scroll-md">
+        <template x-for="item in items" :key="item.id || item.post_id">
+            <div class="news-item text-sm mb-2">
+                <div class="font-bold" x-text="item.author_name || item.actor_id || '成员'"></div>
+                <div x-text="item.content_text || item.text || ''"></div>
+                <div class="d-flex gap-2 mt-2 align-items-center flex-wrap">
+                    <input class="form-control form-control-sm collab-challenge-input" placeholder="逻辑挑战…" x-model="item._challenge">
+                    <button type="button" class="btn-soft btn-sm" @click="challenge(item)">挑战</button>
+                </div>
+            </div>
+        </template>
+        <div class="text-muted text-sm" x-show="teamId && !items.length" x-cloak>团队频道暂无动态。</div>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function teamResearchFeedCapability() {
+    return {
+        teamId: null,
+        items: [],
+        publishText: '',
+        init() {
+            this.teamId = window.QATeamContext ? QATeamContext.readTeamId() : null;
+            if (this.teamId) this.load();
+            window.addEventListener('team-context-changed', (e) => {
+                this.teamId = e.detail ? e.detail.teamId : null;
+                this.items = [];
+                if (this.teamId) this.load();
+            });
+        },
+        load() {
+            if (!this.teamId) return;
+            fetch('/api/v1/teams/' + this.teamId + '/research-feed', { credentials: 'same-origin' })
+                .then((r) => r.json())
+                .then((res) => {
+                    const d = res.data || res;
+                    this.items = (d.items || []).map((row) => Object.assign({}, row, { _challenge: '' }));
+                })
+                .catch(() => {});
+        },
+        publish(extra) {
+            if (!this.teamId) return;
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '') || null;
+            fetch('/api/v1/teams/' + this.teamId + '/research-feed/publish', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(Object.assign({
+                    content_text: this.publishText,
+                    symbol: sym,
+                }, extra || {})),
+            }).then((r) => r.json()).then(() => {
+                this.publishText = '';
+                this.load();
+            }).catch(() => {});
+        },
+        publishWithProvenance() {
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '') || null;
+            fetch('/api/v1/system/sequence-chain?symbol=' + encodeURIComponent(sym || '') + '&limit=1', {
+                credentials: 'same-origin',
+            }).then((r) => r.json()).then((res) => {
+                const chains = (res.data || res).chains || [];
+                const prov = chains[0] ? chains[0].provenance_id : null;
+                this.publish({ provenance_id: prov, content_text: this.publishText || ('证据链 ' + (prov || sym || '')) });
+            }).catch(() => this.publish());
+        },
+        challenge(item) {
+            const postId = item.id || item.post_id;
+            const text = (item._challenge || '').trim();
+            if (!postId || !text || !this.teamId) return;
+            fetch('/api/v1/teams/' + this.teamId + '/research-feed/' + postId + '/challenge', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ challenge_text: text }),
+            }).then((r) => r.json()).then(() => {
+                item._challenge = '';
+                this.load();
+            }).catch(() => {});
+        },
+    };
+}
+</script>

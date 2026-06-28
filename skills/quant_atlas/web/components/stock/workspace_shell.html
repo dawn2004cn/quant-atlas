@@ -1,0 +1,106 @@
+{# Micro-frontend workspace: toolbar + layout persistence #}
+<div
+    class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2"
+    x-data="stockWorkspaceShell()"
+    x-init="init()"
+>
+    <div class="text-sm text-muted">工作区布局（拖拽组件排序，自动保存）</div>
+    <div class="d-flex gap-2">
+        <button type="button" class="btn-soft btn-sm" @click="toggleEdit()" x-text="editMode ? '完成编辑' : '编辑布局'"></button>
+        <button type="button" class="btn-soft btn-sm" @click="resetLayout()">恢复默认</button>
+    </div>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+const STOCK_CAPABILITY_DEFAULT_LAYOUT = [
+    'live-research-lab',
+    'team-context-bar',
+    'decision-brief-strip',
+    'attribution-timeline',
+    'strategy-copilot',
+    'evidence-replay',
+    'resonance-meter',
+    'team-blackboard',
+    'team-research-feed',
+];
+
+function stockWorkspaceShell() {
+    return {
+        editMode: false,
+        layout: STOCK_CAPABILITY_DEFAULT_LAYOUT.slice(),
+        init() {
+            this.loadLayout().then(() => this.applyLayout());
+        },
+        toggleEdit() {
+            this.editMode = !this.editMode;
+            const zone = document.getElementById('stock-capability-zone');
+            if (!zone) return;
+            zone.querySelectorAll(':scope > *').forEach((el) => {
+                el.draggable = this.editMode;
+                el.classList.toggle('ws-drag-card', this.editMode);
+            });
+        },
+        loadLayout() {
+            return fetch('/api/v1/user/page-preferences', { credentials: 'same-origin' })
+                .then((r) => r.json())
+                .then((res) => {
+                    const prefs = res.data || res;
+                    const custom = prefs.stock_detail_layout;
+                    if (Array.isArray(custom) && custom.length) {
+                        this.layout = custom.filter((id) => STOCK_CAPABILITY_DEFAULT_LAYOUT.includes(id));
+                        const missing = STOCK_CAPABILITY_DEFAULT_LAYOUT.filter((id) => !this.layout.includes(id));
+                        this.layout = this.layout.concat(missing);
+                    }
+                })
+                .catch(() => {});
+        },
+        saveLayout() {
+            return fetch('/api/v1/user/page-preferences', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ stock_detail_layout: this.layout }),
+            }).catch(() => {});
+        },
+        resetLayout() {
+            this.layout = STOCK_CAPABILITY_DEFAULT_LAYOUT.slice();
+            this.applyLayout();
+            this.saveLayout();
+        },
+        applyLayout() {
+            const zone = document.getElementById('stock-capability-zone');
+            if (!zone) return;
+            const map = {};
+            zone.querySelectorAll(':scope > *').forEach((el) => {
+                if (el.id) map[el.id] = el;
+            });
+            this.layout.forEach((id) => {
+                const el = map[id];
+                if (el) zone.appendChild(el);
+            });
+            this.wireDrag(zone);
+        },
+        wireDrag(zone) {
+            const self = this;
+            zone.querySelectorAll(':scope > *').forEach((card) => {
+                card.ondragstart = (e) => {
+                    if (!self.editMode) return e.preventDefault();
+                    e.dataTransfer.setData('text/plain', card.id || '');
+                };
+                card.ondragover = (e) => { if (self.editMode) e.preventDefault(); };
+                card.ondrop = (e) => {
+                    if (!self.editMode) return;
+                    e.preventDefault();
+                    const draggedId = e.dataTransfer.getData('text/plain');
+                    const dragged = document.getElementById(draggedId);
+                    const target = card;
+                    if (!dragged || dragged === target) return;
+                    zone.insertBefore(dragged, target);
+                    self.layout = Array.from(zone.children).map((c) => c.id).filter(Boolean);
+                    self.saveLayout();
+                };
+            });
+        },
+    };
+}
+</script>

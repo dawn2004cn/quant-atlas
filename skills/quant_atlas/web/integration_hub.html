@@ -1,0 +1,640 @@
+{% extends "base.html" %}
+
+{% block title %}集成中枢 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
+{% endblock %}
+
+{% block content %}
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="集成中枢使用提示">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">先排查“为什么不工作”</div>
+        <p class="qc-ux-step-desc">大模型、MySQL、Celery、通达信离线数据等问题，优先在这里确认在线/降级/离线状态。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.message_center') }}">消息中心</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.message_center') }}?filter=psychology">心理提醒</a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">再回到业务页面</div>
+        <p class="qc-ux-step-desc">配置确认后回到操盘台、自选、观察单或研报中心验证闭环是否恢复。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">自选股</a>
+    </div>
+</section>
+
+<div class="ih-hero">
+    <div class="hero-caption">System Command Center</div>
+    <h1 class="page-title">系统集成中枢</h1>
+    <p class="page-subtitle">实时监控 Atlas 核心引擎连通性、数据库积压及异步任务流水。</p>
+    
+    <div class="ih-badges mt-3">
+        <span class="ih-badge on"><span class="dot"></span>MySQL: {{ database_backend }}</span>
+        <span class="ih-badge {% if enable_celery %}on{% else %}off{% endif %}"><span class="dot"></span>Celery Worker</span>
+        <span class="ih-badge {% if enable_qlib %}on{% else %}off{% endif %}"><span class="dot"></span>Qlib Engine</span>
+    </div>
+    <div class="quick-links mt-3">
+        <a class="btn-soft btn-sm" href="/retail-assistant">散户助手</a>
+        <a class="btn-soft btn-sm" href="/message-center?filter=psychology">心理卫士消息</a>
+        {% if current_user.is_authenticated and current_user.may_trigger_server_data_ingestion() %}
+        <button type="button" class="btn-soft btn-sm" id="ihPsychologyScanBtn">触发心理巡检</button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="status-grid" id="statusDashboard">
+    <!-- Status cards will be rendered here -->
+    <div class="status-card"><div class="status-indicator"></div><div><div class="status-label">加载中...</div></div></div>
+</div>
+
+<div class="quality-grid" id="qualityGrid">
+    <div class="quality-card">
+        <div class="quality-head"><span class="quality-title">数据新鲜度</span><span class="quality-score" id="freshScore">--</span></div>
+        <div class="quality-bar"><div class="quality-fill w40" id="freshBar"></div></div>
+        <div class="quality-note">衡量行情、因子、预测结果是否足够新，避免用户基于过期数据决策。</div>
+    </div>
+    <div class="quality-card">
+        <div class="quality-head"><span class="quality-title">异步吞吐</span><span class="quality-score" id="queueScore">--</span></div>
+        <div class="quality-bar"><div class="quality-fill w40" id="queueBar"></div></div>
+        <div class="quality-note">关注 Celery、长任务和消息中心，回答“任务为什么还没完成”。</div>
+    </div>
+    <div class="quality-card">
+        <div class="quality-head"><span class="quality-title">外部依赖</span><span class="quality-score" id="adapterScore">--</span></div>
+        <div class="quality-bar"><div class="quality-fill w40" id="adapterBar"></div></div>
+        <div class="quality-note">OpenBB、Kronos、LLM 等依赖需要清晰显示在线、降级或离线。</div>
+    </div>
+    <div class="quality-card">
+        <div class="quality-head"><span class="quality-title">预热覆盖</span><span class="quality-score" id="warmScore">--</span></div>
+        <div class="quality-bar"><div class="quality-fill w40" id="warmBar"></div></div>
+        <div class="quality-note">Qlib、OpenBB、缓存层的冷启动状态应在用户发起任务前可见。</div>
+    </div>
+</div>
+
+<div class="ops-container">
+    <div class="ops-main">
+        <div class="section-shell">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">数据与缓存分层</h2>
+                    <div class="panel-subtitle">把“推拉结合、冷热分离、预热机制”翻译成用户能判断的数据质量。</div>
+                </div>
+                <a class="btn-soft" href="/observability">打开观测台</a>
+            </div>
+            <div class="runtime-map">
+                <div class="runtime-card">
+                    <h3>实时与热数据</h3>
+                    <div class="runtime-row"><strong>核心行情</strong><span id="hotQuotesState">Redis / Quote Cache 待接入</span></div>
+                    <div class="runtime-row"><strong>任务消息</strong><span id="celeryState">检查中...</span></div>
+                    <div class="runtime-row"><strong>Kronos预测</strong><span id="kronosStatus">检查中...</span></div>
+                    <div class="runtime-row"><strong>实时推送</strong><span id="realtimeWsState">WebSocket 检查中...</span></div>
+                </div>
+                <div class="runtime-card">
+                    <h3>历史与冷数据</h3>
+                    <div class="runtime-row"><strong>Qlib bin</strong><span id="qlibBinState">由 Qlib Engine 决定</span></div>
+                    <div class="runtime-row"><strong>QuestDB 日K</strong><span id="questdbState">检查中...</span></div>
+                    <div class="runtime-row"><strong>ClickHouse</strong><span id="clickhouseState">检查中...</span></div>
+                    <div class="runtime-row"><strong>Celery Beat 日K</strong><span id="questdbBeatState">—</span></div>
+                    <div class="runtime-row"><strong>Beat 近次</strong><span id="questdbBeatHistory">—</span></div>
+                    <div class="runtime-row"><strong>最近同步</strong><span id="timeseriesSyncState">—</span></div>
+                    <div class="runtime-row"><strong>QMT 执行</strong><span id="qmtExecState">—</span></div>
+                    <div class="runtime-row"><strong>QuantML因子</strong><span id="quantmlStatus">检查中...</span></div>
+                    <div class="runtime-row"><strong>FinGPT</strong><span id="fingptStatus">检查中...</span></div>
+                    <div class="runtime-row"><strong>AI Agent</strong><span id="agentStatus">检查中...</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-shell">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">热配置白名单</h2>
+                    <div class="panel-subtitle">只把非敏感业务参数页面化，密钥和基础设施配置仍留在环境变量。</div>
+                </div>
+                <a class="btn-soft" href="/stock-selector">查看策略白盒</a>
+            </div>
+            <div class="hot-config-grid">
+                <div class="hot-config-card">
+                    <h3>选股阈值</h3>
+                    <p>如评分下限、Top N、流动性过滤线，适合与选股白盒和参数优化联动。</p>
+                </div>
+                <div class="hot-config-card">
+                    <h3>风控线</h3>
+                    <p>如最大回撤、止损比例、波动上限，适合在任务详情和 AI 投委会中展示。</p>
+                </div>
+                <div class="hot-config-card">
+                    <h3>Agent 偏好</h3>
+                    <p>如保守/进取、证据优先、解释长度，适合进入 AgentContext。</p>
+                </div>
+                <div class="hot-config-card">
+                    <h3>不可页面化</h3>
+                    <p>API Key、数据库连接、服务地址等敏感参数仍应由环境变量和部署系统管理。</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-shell">
+            <div class="panel-head">
+                <div>
+                    <h2 class="panel-title">FinGPT 审计审计流</h2>
+                    <div class="panel-subtitle">历史预测与情绪数据回溯</div>
+                </div>
+                <div class="ih-filter-row">
+                    <input id="tickerFilter" class="form-control ih-filter-input" placeholder="代码过滤">
+                    <button class="btn-soft btn-sm" type="button" data-ih-action="load-predictions">预测</button>
+                    <button class="btn-soft btn-sm" type="button" data-ih-action="load-sentiments">情绪</button>
+                </div>
+            </div>
+            <div id="fingptTable" class="ih-table-mt">
+                <div class="loading-tile">选择上方类别加载数据</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <div class="section-shell">
+            <div class="panel-head"><h2 class="panel-title">进行中的任务</h2></div>
+            <div id="ihActiveJobs" class="mini-label ih-jobs-label">加载中…</div>
+        </div>
+        <div class="section-shell mt-3">
+            <div class="panel-head">
+                <h2 class="panel-title">快捷同步</h2>
+                <button class="btn-brand btn-sm" type="button" data-ih-action="market-refresh">龙虎榜+研报</button>
+            </div>
+            <p class="panel-subtitle ih-sync-subtitle">触发 Celery 基础市场刷新，下方显示分阶段进度。</p>
+            <div class="ih-sync-actions">
+                <button class="btn-soft btn-sm" type="button" data-ih-action="questdb-sync">QuestDB 增量同步</button>
+                <button class="btn-soft btn-sm" type="button" data-ih-action="questdb-backfill">全市场 Backfill</button>
+            </div>
+            <div id="ihTaskProgress"></div>
+        </div>
+        <div class="section-shell mt-3">
+            <div class="panel-head"><h2 class="panel-title">最近任务流</h2></div>
+            <div class="log-stream" id="taskLog">
+                <div class="log-entry"><span class="log-ts">--:--:--</span><span class="log-msg">等待任务触发...</span></div>
+            </div>
+        </div>
+        
+        <div class="evo-card mt-3 ih-db-card">
+            <div class="ih-db-title">📊 数据库统计</div>
+            <div id="dbCounts" class="ih-db-grid"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/task_feedback.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+function ihEsc(s) {
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function refreshDashboard() {
+    const [stackRes, rtRes] = await Promise.all([
+        fetch('/api/v1/integration/stack-status'),
+        fetch('/api/v1/realtime/status').catch(() => null),
+    ]);
+    const json = await stackRes.json();
+    const data = json.data || {};
+    const layers = data.layers || {};
+    let realtime = {};
+    if (rtRes && rtRes.ok) {
+        const rtJson = await rtRes.json();
+        realtime = rtJson.data || rtJson;
+        window.__ihRealtime = realtime;
+    }
+    
+    const dashboard = document.getElementById('statusDashboard');
+    const configs = [
+        { label: 'MySQL 数据库', key: 'mysql_enabled', isGlobal: true, meta: () => data.mysql_enabled ? '已启用' : '已禁用' },
+        { label: 'QuestDB 时序库', key: 'timeseries_ohlcv', meta: l => {
+            if (!l.questdb_enabled) return '未配置 ENABLE_QUESTDB';
+            const rows = l.questdb_rows != null ? (l.questdb_rows / 10000).toFixed(1) + '万行' : '—';
+            const warn = (l.warnings || []).length ? ' · ' + l.warnings.join(', ') : '';
+            return (l.questdb_connected ? '在线 · ' + rows : '离线') + warn;
+        }},
+        { label: 'Qlib 因子引擎', key: 'quantml_factors', meta: l => l.ok ? `样本因子: ${l.sample_count || 0}` : (l.reason || '未配置') },
+        { label: 'OpenBB 适配器', key: 'openbb_global', meta: l => l.adapter_callable ? '在线' : '离线' },
+        { label: 'Celery 异步队列', key: 'celery_tasks', meta: l => {
+            const base = l.enabled ? '已启用' : (l.reason || '未配置');
+            const beat = l.questdb_beat || {};
+            if (beat.enabled) return base + ' · Beat ' + (beat.schedule_label || '16:35');
+            if (l.enabled) return base + ' · Beat 已关闭';
+            return base;
+        }},
+        { label: 'QMT 执行网关', key: 'execution_gateway', meta: l => {
+            const q = l.qmt || {};
+            const mode = q.execution_mode || 'disabled';
+            if (mode === 'simulation') return 'simulation · 未实盘提交';
+            if (mode === 'live') return 'live · QMT_LIVE_SUBMIT=1';
+            return q.configured ? mode : '未配置账户';
+        }},
+        { label: 'WebSocket 推送', key: 'realtime_ws', isRealtime: true, meta: () => '加载中' },
+        { label: 'Kronos 预测', key: 'kronos', meta: l => l.ok ? `模型: ${l.model_count || 0}` : (l.reason || '未配置') },
+        { label: 'FinGPT', key: 'fingpt', meta: l => l.ok ? '已配置' : (l.reason || '未配置') },
+        { label: 'AI Agent', key: 'quantml_agent', meta: l => l.ok ? '可用' : (l.reason || l.error || '不可用') }
+    ];
+    
+    dashboard.innerHTML = configs.map(cfg => {
+        if (cfg.isRealtime) {
+            const on = realtime.socketio_enabled && realtime.quote_broadcast;
+            const rooms = realtime.rooms || {};
+            return `
+            <div class="status-card">
+                <div class="status-indicator ${on ? 'online' : 'offline'}"></div>
+                <div>
+                    <div class="status-label">${cfg.label}</div>
+                    <div class="status-meta">${on ? 'SocketIO · market ' + (rooms.market || 0) : '未启用或广播关闭'}</div>
+                </div>
+            </div>`;
+        }
+        const layer = cfg.isGlobal ? { ok: data[cfg.key] } : layers[cfg.key] || {};
+        const isOnline = layer.ok || layer.adapter_callable || layer.questdb_connected
+            || (layer.qmt && layer.qmt.configured)
+            || (cfg.isGlobal && data[cfg.key]);
+        const isWarn = (layer.warnings || []).length > 0;
+        const indicatorClass = isOnline && !isWarn ? 'online' : (isWarn ? 'offline' : (isOnline ? 'online' : 'offline'));
+        return `
+            <div class="status-card">
+                <div class="status-indicator ${indicatorClass}"></div>
+                <div>
+                    <div class="status-label">${cfg.label}</div>
+                    <div class="status-meta">${cfg.meta(layer)}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    renderQuality(data, layers, realtime);
+
+    // Update DB counts
+    if (data.mysql_integration_row_counts) {
+        const dbBox = document.getElementById('dbCounts');
+        dbBox.innerHTML = Object.entries(data.mysql_integration_row_counts).map(([k, v]) => `
+            <div class="ih-stat-row">
+                <span class="muted">${k}</span>
+                <span class="ih-stat-value">${v}</span>
+            </div>
+        `).join('');
+    }
+}
+
+function setQuality(id, score, note) {
+    const value = Math.max(0, Math.min(100, score));
+    document.getElementById(id + 'Score').textContent = value + '%';
+    document.getElementById(id + 'Bar').style.width = value + '%';
+    if (note && document.getElementById(id + 'Note')) document.getElementById(id + 'Note').textContent = note;
+}
+
+function layerPercent(flags) {
+    let on = 0;
+    let total = 0;
+    for (const [enabled, weight] of flags) {
+        total += weight;
+        if (enabled) on += weight;
+    }
+    return total ? Math.round((on / total) * 100) : 0;
+}
+
+function renderQuality(data, layers, realtime) {
+    const qlib = layers.quantml_factors || {};
+    const openbb = layers.openbb_global || {};
+    const celery = layers.celery_tasks || {};
+    const kronos = layers.kronos || {};
+    const fingpt = layers.fingpt || {};
+    const agent = layers.quantml_agent || {};
+    const ts = layers.timeseries_ohlcv || {};
+    const execGw = layers.execution_gateway || {};
+
+    const fresh = layerPercent([
+        [!!qlib.ok, 25],
+        [Number(qlib.sample_count || 0) > 0, 20],
+        [!!openbb.adapter_callable, 15],
+        [!!data.mysql_enabled, 15],
+        [!!ts.questdb_connected || !ts.questdb_enabled, 15],
+        [!(ts.warnings || []).length, 10],
+    ]);
+    const queue = layerPercent([
+        [!!celery.enabled, 50],
+        [!!celery.broker_url_configured, 30],
+        [!!celery.ok, 20],
+    ]);
+    const adapter = layerPercent([
+        [!!openbb.adapter_callable, 34],
+        [!!kronos.ok, 33],
+        [!!data.mysql_enabled, 33],
+    ]);
+    const warm = layerPercent([
+        [!!data.mysql_enabled, 34],
+        [!!qlib.ok, 33],
+        [!!openbb.adapter_callable, 33],
+    ]);
+
+    setQuality('fresh', fresh);
+    setQuality('queue', queue);
+    setQuality('adapter', adapter);
+    setQuality('warm', warm);
+    
+    // 详细状态显示
+    const kronosStatus = kronos.ok ? `已加载 ${kronos.model_count || 0} 模型` : (kronos.reason || '未配置');
+    const qlibStatus = qlib.ok ? `可用 · 样本因子 ${qlib.sample_count || 0}` : (qlib.reason || '未配置');
+    const celeryStatus = celery.enabled
+        ? ('已启用' + ((celery.questdb_beat || {}).enabled ? ' · Beat ' + ((celery.questdb_beat || {}).schedule_label || '16:35') : ''))
+        : (celery.reason || '未配置');
+    const fingptStatus = fingpt.ok ? '已配置' : (fingpt.reason || '未配置');
+    const agentStatus = agent.ok ? '可用' : (agent.error || agent.reason || '不可用');
+    
+    document.getElementById('qlibBinState').textContent = qlibStatus;
+    document.getElementById('hotQuotesState').textContent = openbb.adapter_callable ? 'OpenBB 在线，热缓存待统计' : '行情适配器离线';
+    
+    // 更新 Kronos 状态显示
+    const kronosEl = document.getElementById('kronosStatus');
+    if (kronosEl) kronosEl.textContent = kronosStatus;
+    
+    // 更新 Celery 状态显示
+    const celeryEl = document.getElementById('celeryStatus');
+    if (celeryEl) celeryEl.textContent = celeryStatus;
+    
+    // 更新 FinGPT 状态显示
+    const fingptEl = document.getElementById('fingptStatus');
+    if (fingptEl) fingptEl.textContent = fingptStatus;
+    
+    // 更新 Agent 状态显示
+    const agentEl = document.getElementById('agentStatus');
+    if (agentEl) agentEl.textContent = agentStatus;
+
+    const questdbEl = document.getElementById('questdbState');
+    if (questdbEl) {
+        if (!ts.questdb_enabled) questdbEl.textContent = '未启用';
+        else if (!ts.questdb_connected) questdbEl.textContent = '连接失败';
+        else {
+            const sample = ts.questdb_sample_sh600519 != null ? ` · 茅台 ${ts.questdb_sample_sh600519} 行` : '';
+            questdbEl.textContent = `${(ts.questdb_rows || 0).toLocaleString()} 行${sample}`;
+        }
+    }
+    const chEl = document.getElementById('clickhouseState');
+    if (chEl) {
+        chEl.textContent = ts.clickhouse_rows != null
+            ? `${Number(ts.clickhouse_rows).toLocaleString()} 行`
+            : (ts.questdb_enabled ? '未配置' : '—');
+    }
+    const syncEl = document.getElementById('timeseriesSyncState');
+    if (syncEl) {
+        const prog = ts.sync_progress || {};
+        if (prog.status === 'running') {
+            syncEl.textContent = `同步中 ${prog.percent || 0}% (${prog.symbols_done || 0}/${prog.symbols_total || '?'})`;
+        } else if (ts.last_sync_at) {
+            const okMark = ts.last_sync_ok ? '成功' : '失败';
+            const mode = ts.last_sync_mode ? ` · ${ts.last_sync_mode}` : '';
+            const rows = ts.last_sync_rows != null ? ` · +${ts.last_sync_rows}行` : '';
+            const failN = ts.last_sync_failed_samples ? ` · 失败${ts.last_sync_failed_samples}` : '';
+            syncEl.textContent = `${ts.last_sync_at.slice(0, 19)} · ${ts.last_sync_source || 'sync'} · ${okMark}${mode}${rows}${failN}`;
+        } else {
+            syncEl.textContent = '尚无同步记录';
+        }
+    }
+    const beatEl = document.getElementById('questdbBeatState');
+    if (beatEl) {
+        const beat = ts.celery_beat || celery.questdb_beat || {};
+        if (!beat.enabled) beatEl.textContent = 'Beat 已关闭 (QUESTDB_SYNC_BEAT=0)';
+        else {
+            const taskShort = beat.task ? String(beat.task).split('.').pop() : 'questdb_ohlcv_sync_tick';
+            let beatText = `${beat.schedule_label || '16:35'} · ${taskShort}`;
+            if (beat.sync_in_progress) {
+                const pct = (beat.sync_progress && beat.sync_progress.percent) || 0;
+                beatText += ` · 同步中 ${pct}%`;
+            } else if (beat.last_beat_run_at) {
+                const ok = beat.last_beat_run_ok ? '✓' : '✗';
+                beatText += ` · 上次 ${String(beat.last_beat_run_at).slice(0, 16)} ${ok}`;
+            }
+            beatEl.textContent = beatText;
+        }
+    }
+    const beatHistEl = document.getElementById('questdbBeatHistory');
+    if (beatHistEl) {
+        const runs = (ts.celery_beat || celery.questdb_beat || {}).recent_beat_runs || [];
+        if (runs.length) {
+            beatHistEl.textContent = runs.map(function (r) {
+                return String(r.recorded_at || '').slice(0, 16) + (r.ok ? ' ✓' : ' ✗');
+            }).join(' · ');
+        } else {
+            beatHistEl.textContent = '尚无 Beat 记录';
+        }
+    }
+    const qmtEl = document.getElementById('qmtExecState');
+    if (qmtEl) {
+        const q = execGw.qmt || {};
+        const mode = q.execution_mode || 'disabled';
+        if (mode === 'simulation') qmtEl.textContent = 'simulation（安全默认）';
+        else if (mode === 'live') qmtEl.textContent = 'live · 实盘提交已开启';
+        else qmtEl.textContent = '未配置';
+    }
+    const wsEl = document.getElementById('realtimeWsState');
+    if (wsEl) {
+        const r = realtime || window.__ihRealtime || {};
+        const on = r.socketio_enabled && r.quote_broadcast;
+        const rooms = r.rooms || {};
+        wsEl.textContent = on
+            ? `SocketIO · market ${rooms.market || 0} · alerts ${rooms.alerts || 0}`
+            : '未启用或 origins 未配置';
+    }
+    if ((ts.warnings || []).length && typeof showToast === 'function') {
+        const key = 'ih_ts_warn_' + (ts.warnings || []).join('_');
+        if (!window.sessionStorage.getItem(key)) {
+            window.sessionStorage.setItem(key, '1');
+            showToast('时序库提示: ' + ts.warnings.join(' · '), 'warning');
+        }
+    }
+}
+
+async function loadActiveJobsPanel() {
+    const box = document.getElementById('ihActiveJobs');
+    if (!box || !window.QAUserCenter) return;
+    const items = await QAUserCenter.loadActiveJobs(8);
+    QAUserCenter.renderActiveJobsMini(box, items);
+}
+
+async function runQuestdbFullBackfill() {
+    if (!confirm('触发全市场 QuestDB/ClickHouse Backfill？将分批写入 TDX 日K，可能耗时数小时。')) return;
+    const el = document.getElementById('ihTaskProgress');
+    if (el) el.innerHTML = '<div class="mini-label">全市场 Backfill 提交中…</div>';
+    try {
+        const res = await fetch('/api/v1/system/timeseries-ohlcv-backfill', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ batch_size: 200, max_batches: 0 }),
+        });
+        const json = await res.json();
+        const d = json.data || json;
+        if (!res.ok) throw new Error((json.error && json.error.message) || 'backfill_failed');
+        if (d.mode === 'async') {
+            showToast('Backfill 已投递 Celery · ' + (d.task_id || ''), 'success');
+            if (el) el.innerHTML = '<div class="mini-label">异步任务 ' + ihEsc(d.task_id || '') + '</div>';
+        } else {
+            const qRows = (d.questdb && d.questdb.rows_written) || 0;
+            showToast('Backfill 完成：QuestDB 写入 ' + qRows + ' 行', d.ok ? 'success' : 'warning');
+            if (el) el.innerHTML = '<div class="mini-label">Q 写入 ' + qRows + ' 行 · 批次 ' + (d.total_batches || '—') + '</div>';
+        }
+        refreshDashboard();
+        loadTaskMessages();
+    } catch (e) {
+        if (el) el.innerHTML = '<div class="mini-label text-negative">Backfill 失败：' + ihEsc(e.message || e) + '</div>';
+        showToast('全市场 Backfill 失败', 'error');
+    }
+}
+
+async function runQuestdbIncrementalSync() {
+    if (!confirm('触发 QuestDB/ClickHouse 增量日K同步？可能耗时数分钟。')) return;
+    const el = document.getElementById('ihTaskProgress');
+    if (el) el.innerHTML = '<div class="mini-label">QuestDB 同步进行中…</div>';
+    try {
+        const res = await fetch('/api/v1/system/timeseries-ohlcv-sync', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ force: false }),
+        });
+        const json = await res.json();
+        const d = json.data || json;
+        if (!res.ok) throw new Error((json.error && json.error.message) || 'sync_failed');
+        const qRows = (d.questdb && d.questdb.rows_written) || 0;
+        showToast(`同步完成：QuestDB 写入 ${qRows} 行`, d.ok ? 'success' : 'warning');
+        if (el) {
+            el.innerHTML = '<div class="mini-label">Q 写入 ' + qRows + ' 行 · 标的 ' + (d.symbols_requested || '—') + '</div>';
+        }
+        refreshDashboard();
+        loadTaskMessages();
+    } catch (e) {
+        if (el) el.innerHTML = '<div class="mini-label text-negative">同步失败：' + ihEsc(e.message || e) + '</div>';
+        showToast('QuestDB 同步失败', 'error');
+    }
+}
+
+async function runBasicMarketRefresh() {
+    if (!window.QAUserCenter || !window.QCTaskFeedback) {
+        alert('任务进度组件未加载，请刷新页面后重试');
+        return;
+    }
+    const el = document.getElementById('ihTaskProgress');
+    if (el) el.innerHTML = '<div class="mini-label">正在提交任务…</div>';
+    try {
+        await QAUserCenter.runRegisteredTask(
+            'app.tasks.market_tasks.refresh_basic_market_data',
+            { kind: 'all' },
+            {
+                element: el,
+                onComplete: function () {
+                    loadTaskMessages();
+                    loadActiveJobsPanel();
+                },
+            }
+        );
+    } catch (e) {
+        if (el) el.innerHTML = '<div class="mini-label text-negative">提交失败：' + ihEsc(e.message || e) + '</div>';
+    }
+}
+
+async function loadTaskMessages() {
+    const res = await fetch('/api/v1/system/task-messages?limit=50');
+    const json = await res.json();
+    const items = (json.data && json.data.items) || json.data || json.items || [];
+    const log = document.getElementById('taskLog');
+    if (!items.length) {
+        log.innerHTML = '<div class="log-entry"><span class="log-ts">--:--:--</span><span class="log-msg">暂无任务事件</span></div>';
+        return;
+    }
+    log.innerHTML = items.map(m => {
+        const raw = m.ts || m.timestamp || '';
+        const t = raw ? String(raw).split('T')[1].split('.')[0].slice(0, 8) : '--:--:--';
+        const label = m.label || m.task_name || m.event || '任务';
+        const detail = m.detail || m.message || '';
+        return '<div class="log-entry"><span class="log-ts">' + t + '</span><span class="log-msg">' +
+            ihEsc(label) + (detail ? ': ' + ihEsc(detail) : '') + '</span></div>';
+    }).join('');
+}
+
+async function loadPredictions() {
+    const ticker = document.getElementById('tickerFilter').value;
+    const res = await fetch(`/api/v1/fingpt/predictions?limit=15${ticker ? '&ticker='+ticker : ''}`);
+    const json = await res.json();
+    renderTable(json.data.items || [], ['id', 'ticker', 'prediction_date', 'predicted_movement', 'confidence']);
+}
+
+async function loadSentiments() {
+    const ticker = document.getElementById('tickerFilter').value;
+    const res = await fetch(`/api/v1/fingpt/sentiments?limit=15${ticker ? '&ticker='+ticker : ''}`);
+    const json = await res.json();
+    renderTable(json.data.items || [], ['id', 'ticker', 'created_at', 'sentiment_score', 'impact_level']);
+}
+
+function renderTable(items, keys) {
+    const box = document.getElementById('fingptTable');
+    if (!items.length) { box.innerHTML = '<div class="empty-state">暂无符合条件的数据</div>'; return; }
+    
+    let html = `<table class="table table-sm ih-table-compact"><thead><tr>${keys.map(k => `<th>${k}</th>`).join('')}</tr></thead><tbody>`;
+    html += items.map(it => `<tr>${keys.map(k => `<td>${it[k] || '--'}</td>`).join('')}</tr>`).join('');
+    html += '</tbody></table>';
+    box.innerHTML = html;
+}
+
+async function triggerPsychologyScan() {
+    const btn = document.getElementById('ihPsychologyScanBtn');
+    if (!btn) return;
+    btn.disabled = true;
+    const prev = btn.textContent;
+    btn.textContent = '巡检中…';
+    try {
+        const res = await fetch('/api/v1/system/retail-psychology-scan', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        const json = await res.json();
+        const d = json.data || json;
+        if (!res.ok) throw new Error((json.error && json.error.message) || json.message || 'scan_failed');
+        showToast(
+            '心理巡检完成：扫描 ' + (d.users_scanned || 0) + ' 人，告警 ' + (d.warnings || 0) + '，推送 ' + (d.messages_pushed || 0) + ' 条',
+            (d.warnings || 0) > 0 ? 'warning' : 'success'
+        );
+        loadTaskMessages();
+        if (typeof window.updateNavMessageBadge === 'function') window.updateNavMessageBadge();
+    } catch (e) {
+        showToast('心理巡检失败：' + (e.message || e), 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = prev;
+    }
+}
+
+$(document).ready(() => {
+    const psychBtn = document.getElementById('ihPsychologyScanBtn');
+    if (psychBtn) psychBtn.addEventListener('click', triggerPsychologyScan);
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-ih-action]');
+        if (!el) return;
+        const action = el.dataset.ihAction;
+        if (action === 'load-predictions') loadPredictions();
+        else if (action === 'load-sentiments') loadSentiments();
+        else if (action === 'market-refresh') runBasicMarketRefresh();
+        else if (action === 'questdb-sync') runQuestdbIncrementalSync();
+        else if (action === 'questdb-backfill') runQuestdbFullBackfill();
+    });
+    refreshDashboard();
+    loadTaskMessages();
+    loadActiveJobsPanel();
+    setInterval(loadTaskMessages, 5000);
+    setInterval(loadActiveJobsPanel, 8000);
+});
+</script>
+{% endblock %}

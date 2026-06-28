@@ -1,0 +1,741 @@
+{% extends "base.html" %}
+
+{% block title %}Swarm Flow Editor - Quant Atlas 7.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vendor/xyflow.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/swarm.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="mb-2">
+        <h1 class="page-title">🕸️ Swarm Flow Editor</h1>
+        <p class="page-subtitle text-muted">基于 React Flow 编辑 <code>research_graph_topology.json</code> — 拖拽节点、连线，保存后 graph.py 下次加载生效</p>
+    </div>
+    <div class="flow-toolbar">
+        <button type="button" class="btn-brand btn-sm" id="btnReload">重新加载</button>
+        <button type="button" class="btn-soft btn-sm" id="btnAutoLayout">自动布局</button>
+        <button type="button" class="btn-brand btn-sm" id="btnSave">保存拓扑</button>
+        <button type="button" class="btn-soft btn-sm" id="btnValidate">校验</button>
+        <a class="btn-soft btn-sm" href="/swarm-designer">经典 Designer</a>
+        <span class="flow-status" id="flowStatus">加载中…</span>
+    </div>
+    <div id="swarm-flow-root"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" nonce="{{ csp_nonce() }}">
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'https://esm.sh/react@18.3.1';
+import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
+import {
+    ReactFlow,
+    ReactFlowProvider,
+    Background,
+    Controls,
+    MiniMap,
+    addEdge,
+    applyNodeChanges,
+    applyEdgeChanges,
+    MarkerType,
+    Handle,
+    Position,
+    useReactFlow,
+} from 'https://esm.sh/@xyflow/react@12.3.6?deps=react@18.3.1,react-dom@18.3.1';
+
+const KIND_OPTIONS = [
+    { value: 'supervisor', label: '编排者', color: '#3b82f6' },
+    { value: 'agent', label: '分析节点', color: '#10b981' },
+    { value: 'debate', label: '辩论节点', color: '#f59e0b' },
+    { value: 'filter', label: '过滤器', color: '#8b5cf6' },
+    { value: 'synthesis', label: '综合决策', color: '#ec4899' },
+    { value: 'arbiter', label: '仲裁者', color: '#6366f1' },
+    { value: 'parallel_group', label: '并行组', color: '#06b6d4' },
+];
+const KIND_COLOR_MAP = Object.fromEntries(KIND_OPTIONS.map((k) => [k.value, k.color]));
+
+function SwarmNode({ data, selected }) {
+    const kind = data.kind || 'agent';
+    const isEntry = data._isEntry;
+    const isExit = data._isExit;
+    return React.createElement('div', {
+        className: `swarm-node kind-${kind}${selected ? ' selected' : ''}`,
+    },
+        React.createElement(Handle, { type: 'target', position: Position.Top, id: 'in' }),
+        isEntry ? React.createElement('div', { className: 'node-badge badge-entry', title: '入口节点' }, '▶') : null,
+        isExit ? React.createElement('div', { className: 'node-badge badge-exit', title: '出口节点' }, '■') : null,
+        React.createElement('div', { className: 'node-label' }, data.label || data.id),
+        React.createElement('div', { className: 'node-kind' }, kind),
+        data.agent_role ? React.createElement('div', { className: 'node-role' }, data.agent_role) : null,
+        React.createElement(Handle, { type: 'source', position: Position.Bottom, id: 'out' }),
+    );
+}
+
+const nodeTypes = { swarm: SwarmNode };
+
+function layoutNodes(nodeList, edgeList, conditionalEdges) {
+    if (!nodeList.length) return [];
+    const outgoing = {};
+    const incoming = {};
+    edgeList.forEach((e) => {
+        outgoing[e.source] = outgoing[e.source] || [];
+        outgoing[e.source].push(e.target);
+        incoming[e.target] = incoming[e.target] || [];
+    });
+    (conditionalEdges || []).forEach((ce) => {
+        Object.values(ce.mapping || {}).forEach((target) => {
+            outgoing[ce.from] = outgoing[ce.from] || [];
+            outgoing[ce.from].push(target);
+        });
+    });
+
+    const roots = nodeList.filter((n) => !incoming[n.id] || !incoming[n.id].length);
+    const order = [];
+    const visited = new Set();
+    const queue = roots.length ? roots.map((n) => n.id) : [nodeList[0].id];
+    while (queue.length) {
+        const id = queue.shift();
+        if (visited.has(id)) continue;
+        visited.add(id);
+        order.push(id);
+        (outgoing[id] || []).forEach((t) => { if (!visited.has(t)) queue.push(t); });
+    }
+    nodeList.forEach((n) => { if (!visited.has(n.id)) order.push(n.id); });
+
+    const depth = {};
+    order.forEach((id) => {
+        const parents = (incoming[id] || []).map((p) => depth[p.id] || 0);
+        depth[id] = parents.length ? Math.max(...parents) + 1 : 0;
+    });
+
+    const byDepth = {};
+    order.forEach((id) => {
+        const d = depth[id] || 0;
+        byDepth[d] = byDepth[d] || [];
+        byDepth[d].push(id);
+    });
+
+    const byId = Object.fromEntries(nodeList.map((n) => [n.id, n]));
+    return order.map((id) => {
+        const d = depth[id] || 0;
+        const colIdx = byDepth[d].indexOf(id);
+        return {
+            ...byId[id],
+            position: { x: 60 + colIdx * 220, y: 40 + d * 130 },
+        };
+    });
+}
+
+function topologyToFlow(topology) {
+    const entryId = topology.entry_node || '';
+    const exitId = topology.exit_node || '';
+    const nodes = (topology.nodes || []).map((n, i) => ({
+        id: n.id,
+        type: 'swarm',
+        position: { x: 60 + (i % 4) * 220, y: 40 + Math.floor(i / 4) * 130 },
+        data: {
+            label: n.label || n.id,
+            kind: n.kind || 'agent',
+            agent_role: n.agent_role || '',
+            id: n.id,
+            _isEntry: n.id === entryId,
+            _isExit: n.id === exitId,
+        },
+    }));
+
+    const edges = (topology.edges || []).map((e, i) => ({
+        id: `e-${e.from}-${e.to}-${i}`,
+        source: e.from,
+        target: e.to,
+        animated: true,
+        markerEnd: { type: MarkerType.ArrowClosed },
+    }));
+
+    const condEdges = (topology.conditional_edges || []).map((ce, ci) => {
+        return Object.entries(ce.mapping || {}).map(([routeKey, targetId], mi) => ({
+            id: `ce-${ce.from}-${targetId}-${ci}-${mi}`,
+            source: ce.from,
+            target: targetId,
+            label: routeKey,
+            style: { stroke: '#f59e0b', strokeDasharray: '6 3', strokeWidth: 2 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#f59e0b' },
+            animated: false,
+            data: { conditional: true, router: ce.router, routeKey },
+        }));
+    }).flat();
+
+    return { nodes, edges: [...edges, ...condEdges] };
+}
+
+function flowToTopology(flowNodes, flowEdges, meta) {
+    const nodePayload = flowNodes.map((n) => {
+        const d = n.data || {};
+        const out = {
+            id: n.id,
+            kind: d.kind || 'agent',
+            agent_role: d.agent_role || '',
+            label: d.label || n.id,
+            config: d.config || {},
+        };
+        return out;
+    });
+
+    const regularEdges = flowEdges
+        .filter((e) => !e.data?.conditional)
+        .map((e) => ({ from: e.source, to: e.target }));
+
+    const condMap = {};
+    flowEdges
+        .filter((e) => e.data?.conditional)
+        .forEach((e) => {
+            const from = e.source;
+            if (!condMap[from]) {
+                condMap[from] = { from, router: e.data.router || `route_after_${from}`, mapping: {} };
+            }
+            condMap[from].mapping[e.data.routeKey || e.target] = e.target;
+        });
+
+    const entry = meta.entry_node || (nodePayload[0]?.id || '');
+    const exitNode = meta.exit_node || (nodePayload[nodePayload.length - 1]?.id || '');
+    return {
+        schema_version: meta.schema_version || 'v1',
+        id: meta.id || 'research_default',
+        name: meta.name || '研究图谱',
+        description: meta.description || '',
+        debate: meta.debate || { investment_rounds: 3, risk_rounds: 3 },
+        entry_node: entry,
+        exit_node: exitNode,
+        nodes: nodePayload,
+        edges: regularEdges,
+        conditional_edges: Object.values(condMap).length ? Object.values(condMap) : (meta.conditional_edges || []),
+    };
+}
+
+function useUndoable(initialState) {
+    const [state, setStateRaw] = useState(initialState);
+    const historyRef = useRef([initialState]);
+    const idxRef = useRef(0);
+
+    const setState = useCallback((updater) => {
+        setStateRaw((prev) => {
+            const next = typeof updater === 'function' ? updater(prev) : updater;
+            const newHistory = historyRef.current.slice(0, idxRef.current + 1);
+            newHistory.push(next);
+            if (newHistory.length > 50) newHistory.shift();
+            historyRef.current = newHistory;
+            idxRef.current = newHistory.length - 1;
+            return next;
+        });
+    }, []);
+
+    const undo = useCallback(() => {
+        if (idxRef.current > 0) {
+            idxRef.current--;
+            setStateRaw(historyRef.current[idxRef.current]);
+        }
+    }, []);
+
+    const redo = useCallback(() => {
+        if (idxRef.current < historyRef.current.length - 1) {
+            idxRef.current++;
+            setStateRaw(historyRef.current[idxRef.current]);
+        }
+    }, []);
+
+    const canUndo = idxRef.current > 0;
+    const canRedo = idxRef.current < historyRef.current.length - 1;
+
+    return [state, setState, undo, redo, canUndo, canRedo];
+}
+
+function Palette({ blocks, onAdd }) {
+    const onDragStart = (e, block) => {
+        e.dataTransfer.setData('application/swarm-block', JSON.stringify(block));
+        e.dataTransfer.effectAllowed = 'copy';
+    };
+    return React.createElement('div', { id: 'swarm-palette' },
+        React.createElement('div', { className: 'palette-title' }, '积木块'),
+        blocks.map((b, i) => React.createElement('div', {
+            key: i,
+            className: 'palette-block',
+            draggable: true,
+            onDragStart: (e) => onDragStart(e, b),
+            onClick: () => onAdd(b),
+        },
+            React.createElement('span', {
+                className: 'palette-dot',
+                style: { background: KIND_COLOR_MAP[b.kind] || '#94a3b8' },
+            }),
+            b.label,
+        )),
+    );
+}
+
+function MetaPanel({ meta, onChange }) {
+    return React.createElement('div', { className: 'meta-section' },
+        React.createElement('div', { className: 'prop-title' }, '拓扑元数据'),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, '名称'),
+            React.createElement('input', {
+                value: meta.name || '',
+                onChange: (e) => onChange({ ...meta, name: e.target.value }),
+            }),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, '描述'),
+            React.createElement('input', {
+                value: meta.description || '',
+                onChange: (e) => onChange({ ...meta, description: e.target.value }),
+            }),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, '入口节点'),
+            React.createElement('input', {
+                value: meta.entry_node || '',
+                onChange: (e) => onChange({ ...meta, entry_node: e.target.value }),
+            }),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, '出口节点'),
+            React.createElement('input', {
+                value: meta.exit_node || '',
+                onChange: (e) => onChange({ ...meta, exit_node: e.target.value }),
+            }),
+        ),
+        React.createElement('div', { style: { display: 'flex', gap: 8, marginTop: 4 } },
+            React.createElement('div', { className: 'prop-field', style: { flex: 1 } },
+                React.createElement('label', null, '投资辩论轮'),
+                React.createElement('input', {
+                    type: 'number', min: 1, max: 10,
+                    value: meta.debate?.investment_rounds ?? 3,
+                    onChange: (e) => onChange({ ...meta, debate: { ...meta.debate, investment_rounds: parseInt(e.target.value) || 3 } }),
+                }),
+            ),
+            React.createElement('div', { className: 'prop-field', style: { flex: 1 } },
+                React.createElement('label', null, '风险辩论轮'),
+                React.createElement('input', {
+                    type: 'number', min: 1, max: 10,
+                    value: meta.debate?.risk_rounds ?? 3,
+                    onChange: (e) => onChange({ ...meta, debate: { ...meta.debate, risk_rounds: parseInt(e.target.value) || 3 } }),
+                }),
+            ),
+        ),
+    );
+}
+
+function PropPanel({ node, edges, nodes, onUpdate, onDelete, onClose, onDeleteEdge, onSetEntry, onSetExit, onAddCondEdge, meta }) {
+    if (!node) {
+        return React.createElement('div', { style: { padding: '16px', color: '#94a3b8', fontSize: '0.82rem' } },
+            '点击节点查看属性');
+    }
+    const d = node.data || {};
+    const nodeEdges = edges.filter((e) => e.source === node.id || e.target === node.id);
+    const isEntry = meta.entry_node === node.id;
+    const isExit = meta.exit_node === node.id;
+
+    return React.createElement(React.Fragment, null,
+        React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+            React.createElement('span', { className: 'prop-title' }, '节点属性'),
+            React.createElement('button', { onClick: onClose, style: { background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#94a3b8' } }, '✕'),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, 'ID'),
+            React.createElement('input', { value: d.id || node.id, disabled: true, style: { opacity: 0.6 } }),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, '标签'),
+            React.createElement('input', {
+                value: d.label || '',
+                onChange: (e) => onUpdate(node.id, { ...d, label: e.target.value }),
+            }),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, '类型'),
+            React.createElement('select', {
+                value: d.kind || 'agent',
+                onChange: (e) => onUpdate(node.id, { ...d, kind: e.target.value }),
+            },
+                KIND_OPTIONS.map((o) => React.createElement('option', { key: o.value, value: o.value }, o.label)),
+            ),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, 'Agent Role'),
+            React.createElement('input', {
+                value: d.agent_role || '',
+                onChange: (e) => onUpdate(node.id, { ...d, agent_role: e.target.value }),
+                placeholder: 'e.g. macro_analyst',
+            }),
+        ),
+        React.createElement('div', { style: { display: 'flex', gap: 6, flexWrap: 'wrap' } },
+            React.createElement('button', {
+                className: 'prop-cond-btn',
+                style: isEntry ? { background: '#dcfce7', borderColor: '#22c55e', color: '#166534' } : {},
+                onClick: () => onSetEntry(node.id),
+            }, isEntry ? '✓ 入口' : '设为入口'),
+            React.createElement('button', {
+                className: 'prop-cond-btn',
+                style: isExit ? { background: '#fee2e2', borderColor: '#ef4444', color: '#991b1b' } : {},
+                onClick: () => onSetExit(node.id),
+            }, isExit ? '✓ 出口' : '设为出口'),
+        ),
+        React.createElement('div', { className: 'prop-section' },
+            React.createElement('button', { className: 'prop-delete', onClick: () => onDelete(node.id) }, '🗑 删除节点'),
+        ),
+        nodeEdges.length ? React.createElement('div', { className: 'prop-section' },
+            React.createElement('div', { style: { fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: 6 } },
+                `连线 (${nodeEdges.length})`),
+            nodeEdges.map((e) => React.createElement('div', { key: e.id, className: 'prop-edge-item' },
+                React.createElement('span', null,
+                    e.data?.conditional ? `⟶ ${e.label || e.target} (条件)` :
+                    e.source === node.id ? `⟶ ${e.target}` : `⟵ ${e.source}`),
+                React.createElement('button', { onClick: () => onDeleteEdge(e.id) }, '✕'),
+            )),
+        ) : null,
+        React.createElement('div', { className: 'prop-section' },
+            React.createElement('button', {
+                className: 'prop-cond-btn',
+                onClick: () => onAddCondEdge(node.id),
+            }, '+ 添加条件分支'),
+        ),
+    );
+}
+
+function CondEdgeDialog({ sourceId, targetNodes, onConfirm, onCancel }) {
+    const [target, setTarget] = useState('');
+    const [routeKey, setRouteKey] = useState('');
+    return React.createElement('div', {
+        style: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+        onClick: onCancel,
+    },
+        React.createElement('div', {
+            style: { background: '#fff', borderRadius: 12, padding: 20, minWidth: 300, boxShadow: '0 8px 32px rgba(0,0,0,0.15)' },
+            onClick: (e) => e.stopPropagation(),
+        },
+            React.createElement('div', { style: { fontWeight: 700, marginBottom: 12 } }, `添加条件分支 — 自 ${sourceId}`),
+            React.createElement('div', { className: 'prop-field', style: { marginBottom: 8 } },
+                React.createElement('label', null, '路由键 (route key)'),
+                React.createElement('input', { value: routeKey, onChange: (e) => setRouteKey(e.target.value), placeholder: 'e.g. risk_manager' }),
+            ),
+            React.createElement('div', { className: 'prop-field', style: { marginBottom: 12 } },
+                React.createElement('label', null, '目标节点'),
+                React.createElement('select', { value: target, onChange: (e) => setTarget(e.target.value) },
+                    React.createElement('option', { value: '' }, '— 选择 —'),
+                    targetNodes.filter((n) => n.id !== sourceId).map((n) =>
+                        React.createElement('option', { key: n.id, value: n.id }, `${n.data?.label || n.id} (${n.id})`)
+                    ),
+                ),
+            ),
+            React.createElement('div', { style: { display: 'flex', gap: 8, justifyContent: 'flex-end' } },
+                React.createElement('button', { className: 'btn-soft btn-sm', onClick: onCancel }, '取消'),
+                React.createElement('button', {
+                    className: 'btn-brand btn-sm',
+                    disabled: !target || !routeKey,
+                    onClick: () => onConfirm({ target, routeKey }),
+                }, '添加'),
+            ),
+        ),
+    );
+}
+
+function FlowEditor() {
+    const [nodes, setNodes, undo, redo, canUndo, canRedo] = useUndoable([]);
+    const [edges, setEdges] = useState([]);
+    const [meta, setMeta] = useState({});
+    const [blocks, setBlocks] = useState([]);
+    const [status, setStatus] = useState('加载中…');
+    const [selectedNodeId, setSelectedNodeId] = useState(null);
+    const [panelOpen, setPanelOpen] = useState(false);
+    const [condDialog, setCondDialog] = useState(null);
+    const nodeCounter = useRef(0);
+    const reactFlowInstance = useReactFlow();
+
+    const load = useCallback(() => {
+        setStatus('加载拓扑…');
+        Promise.all([
+            fetch('/api/v1/swarm/topology/research-graph', { credentials: 'same-origin' }).then((r) => r.json()),
+            fetch('/api/v1/swarm/topology/blocks', { credentials: 'same-origin' }).then((r) => r.json()),
+        ])
+            .then(([topoRes, blocksRes]) => {
+                const d = topoRes.data || topoRes;
+                const topo = d.topology || {};
+                setMeta(topo);
+                const { nodes: ns, edges: es } = topologyToFlow(topo);
+                setNodes(ns);
+                setEdges(es);
+                nodeCounter.current = ns.length;
+                setSelectedNodeId(null);
+                setPanelOpen(false);
+                const b = (blocksRes.data || blocksRes).blocks || [];
+                setBlocks(b);
+                setStatus(`已加载 · ${d.source || 'research_graph'} · ${ns.length} 节点`);
+            })
+            .catch(() => setStatus('加载失败'));
+    }, [setNodes]);
+
+    useEffect(() => { load(); }, [load]);
+
+    const onNodesChange = useCallback((changes) => {
+        setNodes((nds) => applyNodeChanges(changes, nds));
+    }, [setNodes]);
+    const onEdgesChange = useCallback((changes) => {
+        setEdges((eds) => applyEdgeChanges(changes, eds));
+    }, []);
+    const onConnect = useCallback((conn) => {
+        setEdges((eds) => addEdge({
+            ...conn,
+            animated: true,
+            markerEnd: { type: MarkerType.ArrowClosed },
+        }, eds));
+    }, []);
+
+    const onNodeClick = useCallback((_, node) => {
+        setSelectedNodeId(node.id);
+        setPanelOpen(true);
+    }, []);
+
+    const onPaneClick = useCallback(() => {
+        setSelectedNodeId(null);
+        setPanelOpen(false);
+    }, []);
+
+    const onDragOver = useCallback((e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    }, []);
+
+    const onDrop = useCallback((e) => {
+        e.preventDefault();
+        const raw = e.dataTransfer.getData('application/swarm-block');
+        if (!raw) return;
+        try {
+            const block = JSON.parse(raw);
+            const pos = reactFlowInstance.screenToFlowPosition({ x: e.clientX, y: e.clientY });
+            nodeCounter.current++;
+            const id = (block.agent_role || block.kind) + '_' + nodeCounter.current;
+            const newNode = {
+                id,
+                type: 'swarm',
+                position: pos,
+                data: { id, label: block.label, kind: block.kind || 'agent', agent_role: block.agent_role || '' },
+            };
+            setNodes((nds) => [...nds, newNode]);
+            setSelectedNodeId(id);
+            setPanelOpen(true);
+        } catch (_) {}
+    }, [reactFlowInstance, setNodes]);
+
+    const addBlockFromPalette = useCallback((block) => {
+        nodeCounter.current++;
+        const id = (block.agent_role || block.kind) + '_' + nodeCounter.current;
+        const newNode = {
+            id,
+            type: 'swarm',
+            position: { x: 100 + (nodeCounter.current % 4) * 220, y: 100 + Math.floor(nodeCounter.current / 4) * 130 },
+            data: { id, label: block.label, kind: block.kind || 'agent', agent_role: block.agent_role || '' },
+        };
+        setNodes((nds) => [...nds, newNode]);
+        setSelectedNodeId(id);
+        setPanelOpen(true);
+    }, [setNodes]);
+
+    const autoLayout = useCallback(() => {
+        setNodes((nds) => layoutNodes(nds, edges.filter((e) => !e.data?.conditional), meta.conditional_edges));
+        setStatus('已自动布局');
+    }, [edges, meta, setNodes]);
+
+    const updateNodeData = useCallback((nodeId, newData) => {
+        setNodes((nds) => nds.map((n) =>
+            n.id === nodeId ? { ...n, data: { ...n.data, ...newData } } : n
+        ));
+    }, [setNodes]);
+
+    const deleteNode = useCallback((nodeId) => {
+        setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+        setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+        setSelectedNodeId(null);
+        setPanelOpen(false);
+    }, [setNodes]);
+
+    const deleteEdge = useCallback((edgeId) => {
+        setEdges((eds) => eds.filter((e) => e.id !== edgeId));
+    }, []);
+
+    const setEntryNode = useCallback((nodeId) => {
+        setMeta((m) => ({ ...m, entry_node: nodeId }));
+        setNodes((nds) => nds.map((n) => ({
+            ...n,
+            data: { ...n.data, _isEntry: n.id === nodeId },
+        })));
+    }, [setNodes]);
+
+    const setExitNode = useCallback((nodeId) => {
+        setMeta((m) => ({ ...m, exit_node: nodeId }));
+        setNodes((nds) => nds.map((n) => ({
+            ...n,
+            data: { ...n.data, _isExit: n.id === nodeId },
+        })));
+    }, [setNodes]);
+
+    const addCondEdge = useCallback((sourceId) => {
+        setCondDialog({ sourceId });
+    }, []);
+
+    const confirmCondEdge = useCallback(({ target, routeKey }) => {
+        if (!condDialog) return;
+        const sourceId = condDialog.sourceId;
+        const newEdge = {
+            id: `ce-${sourceId}-${target}-${Date.now()}`,
+            source: sourceId,
+            target,
+            label: routeKey,
+            style: { stroke: '#f59e0b', strokeDasharray: '6 3', strokeWidth: 2 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#f59e0b' },
+            animated: false,
+            data: { conditional: true, router: `route_after_${sourceId}`, routeKey },
+        };
+        setEdges((eds) => [...eds, newEdge]);
+        setCondDialog(null);
+    }, [condDialog]);
+
+    const validate = useCallback(() => {
+        const payload = flowToTopology(nodes, edges, meta);
+        fetch('/api/v1/swarm/topology/validate', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        })
+            .then((r) => r.json())
+            .then((res) => {
+                const d = res.data || res;
+                const v = d.validation || {};
+                if (v.ok || d.ok) {
+                    setStatus(`✅ 校验通过 · 执行序: ${(v.execution_order || []).join(' → ')}`);
+                } else {
+                    setStatus(`⚠️ ${(v.unsupported_nodes || []).join(', ') || d.error || '校验失败'}`);
+                }
+            })
+            .catch(() => setStatus('校验失败'));
+    }, [nodes, edges, meta]);
+
+    const save = useCallback(() => {
+        const payload = flowToTopology(nodes, edges, meta);
+        setStatus('保存中…');
+        fetch('/api/v1/swarm/topology/research-graph', {
+            method: 'PUT',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topology: payload }),
+        })
+            .then((r) => r.json())
+            .then((res) => {
+                const d = res.data || res;
+                if (d.saved_to) {
+                    setStatus(`已保存 → ${d.saved_to}`);
+                    setMeta(d.topology || payload);
+                } else {
+                    setStatus(`保存失败: ${d.error || '未知错误'}`);
+                }
+            })
+            .catch(() => setStatus('保存失败'));
+    }, [nodes, edges, meta]);
+
+    useEffect(() => {
+        const handlers = [];
+        const bind = (id, fn) => {
+            const el = document.getElementById(id);
+            if (el) { el.addEventListener('click', fn); handlers.push([el, fn]); }
+        };
+        bind('btnReload', load);
+        bind('btnAutoLayout', autoLayout);
+        bind('btnSave', save);
+        bind('btnValidate', validate);
+        return () => { handlers.forEach(([el, fn]) => el.removeEventListener('click', fn)); };
+    }, [load, autoLayout, save, validate]);
+
+    useEffect(() => {
+        const el = document.getElementById('flowStatus');
+        if (el) el.textContent = status;
+    }, [status]);
+
+    useEffect(() => {
+        const handleKey = (e) => {
+            if (e.target.matches('input,select,textarea')) return;
+            if ((e.key === 'Delete' || e.key === 'Backspace') && selectedNodeId) {
+                e.preventDefault();
+                deleteNode(selectedNodeId);
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                if (e.shiftKey) redo(); else undo();
+            }
+        };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [selectedNodeId, deleteNode, undo, redo]);
+
+    const proOptions = useMemo(() => ({ hideAttribution: true }), []);
+    const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
+
+    return React.createElement('div', { style: { display: 'flex', width: '100%', height: '100%' } },
+        React.createElement(Palette, { blocks, onAdd: addBlockFromPalette }),
+        React.createElement('div', { id: 'swarm-canvas-wrap', onDragOver, onDrop },
+            React.createElement(ReactFlow, {
+                nodes,
+                edges,
+                nodeTypes,
+                onNodesChange,
+                onEdgesChange,
+                onConnect,
+                onNodeClick,
+                onPaneClick,
+                fitView: true,
+                proOptions,
+                deleteKeyCode: null,
+            },
+                React.createElement(Background, { gap: 16 }),
+                React.createElement(MiniMap, { zoomable: true, pannable: true }),
+                React.createElement(Controls, null),
+            ),
+            React.createElement('div', { className: 'undo-bar' },
+                React.createElement('button', { className: 'undo-btn', onClick: undo, disabled: !canUndo }, '↩ 撤销'),
+                React.createElement('button', { className: 'undo-btn', onClick: redo, disabled: !canRedo }, '↪ 重做'),
+            ),
+        ),
+        React.createElement('div', { id: 'swarm-prop-panel', className: panelOpen || blocks.length ? '' : 'hidden' },
+            React.createElement(MetaPanel, { meta, onChange: setMeta }),
+            React.createElement('div', { style: { borderTop: '1px solid #f1f5f9', paddingTop: 10 } }),
+            React.createElement(PropPanel, {
+                node: selectedNode,
+                edges,
+                nodes,
+                onUpdate: updateNodeData,
+                onDelete: deleteNode,
+                onClose: () => { setSelectedNodeId(null); setPanelOpen(false); },
+                onDeleteEdge: deleteEdge,
+                onSetEntry: setEntryNode,
+                onSetExit: setExitNode,
+                onAddCondEdge: addCondEdge,
+                meta,
+            }),
+        ),
+        condDialog ? React.createElement(CondEdgeDialog, {
+            sourceId: condDialog.sourceId,
+            targetNodes: nodes,
+            onConfirm: confirmCondEdge,
+            onCancel: () => setCondDialog(null),
+        }) : null,
+    );
+}
+
+function App() {
+    return React.createElement(ReactFlowProvider, null,
+        React.createElement(FlowEditor),
+    );
+}
+
+const root = createRoot(document.getElementById('swarm-flow-root'));
+root.render(React.createElement(App));
+</script>
+{% endblock %}

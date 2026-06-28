@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}禅意终端 — Quant Atlas{% endblock %}
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/zen-pages.css') }}">
+
+{% endblock %}
+
+{% block spa_switcher %}
+
+<a href="/app/zen_terminal" class="spa-switcher-link"
+
+   data-spa-switcher="zen_terminal">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
+
+
+
+
+
+{% block content %}
+
+<div class="zen-container">
+
+  <div class="zen-header">
+
+    <div class="zen-logo">⧩ ZEN</div>
+
+    <label class="zen-mode-toggle">
+
+      <input type="checkbox" id="zenToggle" checked>
+
+      禅意模式
+
+    </label>
+
+  </div>
+
+
+
+  <div class="zen-search-container">
+
+    <input type="text" class="zen-search-bar" id="zenSearch" placeholder="搜索股票、形态、策略、情绪… 例如：600519 走势共振" autocomplete="off">
+
+    <div class="zen-search-results" id="zenSearchResults"></div>
+
+  </div>
+
+
+
+  <div class="zen-main">
+
+    <div class="zen-kline" id="zenKline">
+
+      <span>K 线区域 — 加载中…</span>
+
+    </div>
+
+    <div class="zen-sidebar">
+
+      <div class="zen-card">
+
+        <div class="zen-card-title">复杂度等级</div>
+
+        <div class="zen-complexity-bar" id="complexityBar">
+
+          <div class="zen-complexity-dot"></div>
+
+          <div class="zen-complexity-dot"></div>
+
+          <div class="zen-complexity-dot"></div>
+
+          <div class="zen-complexity-dot"></div>
+
+          <div class="zen-complexity-dot"></div>
+
+        </div>
+
+        <div class="zen-card-label" id="complexityLabel">新手</div>
+
+      </div>
+
+      <div class="zen-card">
+
+        <div class="zen-card-title">组合多样性</div>
+
+        <div class="zen-card-value" id="diversityScore">--</div>
+
+        <div class="zen-card-label">分数越高越分散</div>
+
+      </div>
+
+      <div class="zen-card">
+
+        <div class="zen-card-title">数据真相度</div>
+
+        <div class="zen-card-value zen-truth-val" id="truthIndex">--</div>
+
+        <div class="zen-card-label">Guardian 认证</div>
+
+      </div>
+
+      <div class="qa-is-hidden zen-card" id="crowdingCard">
+
+        <div class="zen-card-title zen-crowd-title">⚠ 拥挤预警</div>
+
+        <div id="crowdingList"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<script nonce="{{ csp_nonce() }}">
+
+let searchTimeout = null;
+
+
+
+document.getElementById("zenSearch").addEventListener("input", function() {
+
+  clearTimeout(searchTimeout);
+
+  const query = this.value.trim();
+
+  if (query.length < 2) {
+
+    document.getElementById("zenSearchResults").style.display = "none";
+
+    return;
+
+  }
+
+  searchTimeout = setTimeout(() => performSearch(query), 300);
+
+});
+
+
+
+function performSearch(query) {
+
+  fetch("/api/v1/phase18/zen/search", {
+
+    method: "POST",
+
+    headers: {"Content-Type": "application/json"},
+
+    body: JSON.stringify({query})
+
+  })
+
+  .then(r => r.json())
+
+  .then(data => {
+
+    const container = document.getElementById("zenSearchResults");
+
+    container.innerHTML = "";
+
+    if (!data.ok || !data.results.length) {
+
+      container.style.display = "none";
+
+      return;
+
+    }
+
+    data.results.forEach(r => {
+
+      const div = document.createElement("div");
+
+      div.className = "zen-search-result";
+
+      div.innerHTML = `
+
+        <div class="result-label">${r.label}</div>
+
+        <div class="result-desc">${r.description}</div>
+
+        <div class="result-source">${r.source} · ${Math.round(r.confidence * 100)}% 匹配</div>
+
+      `;
+
+      if (r.action_url) {
+
+        div.style.cursor = "pointer";
+
+        div.onclick = () => { window.location.href = r.action_url; };
+
+      }
+
+      container.appendChild(div);
+
+    });
+
+    container.style.display = "block";
+
+  })
+
+  .catch(() => {});
+
+}
+
+
+
+function toggleZenMode() {
+
+  const enabled = document.getElementById("zenToggle").checked;
+
+  fetch("/api/v1/phase18/zen/toggle", {
+
+    method: "POST",
+
+    headers: {"Content-Type": "application/json"},
+
+    body: JSON.stringify({enabled})
+
+  });
+
+}
+
+document.getElementById("zenToggle").addEventListener("change", toggleZenMode);
+
+
+
+// Load config on page load
+
+fetch("/api/v1/zen-mode/zen/config")
+
+  .then(r => r.json())
+
+  .then(data => {
+
+    if (data.ok) {
+
+      const cfg = data.data;
+
+      document.getElementById("zenToggle").checked = cfg.zen_enabled;
+
+      updateComplexityBar(cfg.complexity_level);
+
+    }
+
+  });
+
+
+
+function updateComplexityBar(level) {
+
+  const dots = document.querySelectorAll(".zen-complexity-dot");
+
+  dots.forEach((d, i) => d.classList.toggle("active", i < level));
+
+  const labels = {1: "新手", 2: "进阶", 3: "熟练", 4: "专家", 5: "大师"};
+
+  document.getElementById("complexityLabel").textContent = labels[level] || "新手";
+
+}
+
+
+
+// Load truth index
+
+fetch("/api/v1/provenance/truth-dashboard")
+
+  .then(r => r.json())
+
+  .then(data => {
+
+    if (data.ok && data.data) {
+
+      document.getElementById("truthIndex").textContent = (data.data.global_truth_index * 100).toFixed(1) + "%";
+
+    }
+
+  })
+
+  .catch(() => {});
+
+</script>
+
+{% endblock %}
+

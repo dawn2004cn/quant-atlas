@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+
+{% block title %}朋友圈 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/user.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/moments" class="spa-switcher-link"
+   data-spa-switcher="moments">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="moments moments--feed-first">
+  <section class="section-shell card moments-hero">
+    <div class="feed-toolbar">
+      <h2 class="panel-title">📝 投资笔记</h2>
+      <button class="btn-soft btn-sm" type="button" data-mm-action="auto-note">AI 自动生成</button>
+    </div>
+    <div id="autoNotes" class="mt-3">
+      <div class="text-sm text-muted">点击上方按钮，AI 自动生成您的今日投资感悟</div>
+    </div>
+  </section>
+
+  <section class="section-shell card">
+    <div class="feed-toolbar">
+      <h2 class="panel-title">动态</h2>
+      <button id="btnMore" class="btn-soft moments-btn-more" type="button">加载更多</button>
+    </div>
+    <div id="feed"></div>
+  </section>
+
+  <section class="section-shell card composer composer--slim">
+    <div>
+      <span class="composer-title" id="composerTitle">发布</span>
+      <button type="button" class="qa-is-hidden composer-cancel btn-soft moments-cancel" id="composerCancel">取消编辑</button>
+    </div>
+    <textarea id="content" class="input-soft" placeholder="分享文字或配图（最多 9 张图/视频）"></textarea>
+    <div class="composer-bar">
+      <input id="file" type="file" multiple accept="image/*,video/*" class="btn-soft">
+      <button id="btnPost" class="btn-brand" type="button">发送</button>
+      <span class="att-counter" id="attCount">0 / 9</span>
+      <span class="text-muted mono" id="postHint" class="moments-hint text-muted mono"></span>
+    </div>
+    <div id="attPreview"></div>
+  </section>
+
+  <details class="moments-help section-shell card moments-help-pad">
+    <summary>关于本页（基金经理与 Agent 自动动态）</summary>
+    <div>
+      收盘后 active 经理会发调仓与收益摘要；6 个研究 Agent 会发角色视角点评。用户发帖附件存于本机上传目录。
+    </div>
+  </details>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+const MAX_ATT = 9;
+let uploaded = [];
+let cursorBefore = null;
+let editingPostId = null;
+const postCache = {};
+
+function fmtDate(s){ return (s||'').slice(0,19).replace('T',' '); }
+function esc(s){ return String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+function gridClass(n){
+  if(n<=1) return 'cols-1';
+  if(n===2) return 'cols-2';
+  return 'cols-3';
+}
+
+function isImageAtt(a){
+  const mt = String(a.mime_type||'').toLowerCase();
+  if(mt.indexOf('image/')===0) return true;
+  const u = String(a.file_url||'');
+  return /\.(png|jpe?g|gif|webp|bmp|svg|avif|jfif|ico|tif|tiff|heic)(\?|#|$)/i.test(u);
+}
+function isVideoAtt(a){
+  const mt = String(a.mime_type||'').toLowerCase();
+  if(mt.indexOf('video/')===0) return true;
+  const u = String(a.file_url||'');
+  return /\.(mp4|webm|mov|mkv|m4v)(\?|#|$)/i.test(u);
+}
+
+function renderAttCells(items, opts){
+  const { preview } = opts || {};
+  return (items||[]).map((a, i)=>{
+    const url = esc(a.file_url||'');
+    const name = esc(a.file_name||'');
+    const mtype = String(a.media_type||'').toLowerCase();
+    const asImg = isImageAtt(a) || mtype === 'image';
+    const asVid = !asImg && (isVideoAtt(a) || mtype === 'video');
+    if(asImg){
+      const rm = preview ? `<button type="button" class="att-remove" data-i="${i}" title="移除">×</button>` : '';
+      return `<div class="cell">${rm}<a href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="" loading="lazy"></a></div>`;
+    }
+    if(asVid){
+      const rm = preview ? `<button type="button" class="att-remove" data-i="${i}" title="移除">×</button>` : '';
+      return `<div class="cell cell-video">${rm}<video muted playsinline preload="metadata" src="${url}"></video><button type="button" class="vid-play" aria-label="播放">▶</button></div>`;
+    }
+    const isPdf = /\.pdf$/i.test(url);
+    if (isPdf) {
+      return `<div class="cell moments-att-pdf"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg><span class="moments-att-name"><a href="${url}" target="_blank" rel="noopener" class="moments-att-link">${name||'PDF'}</a></span></div>`;
+    }
+    return `<div class="cell moments-att-file"><a href="${url}" target="_blank" rel="noopener" class="moments-att-link">${name||'附件'}</a></div>`;
+  }).join('');
+}
+
+function renderPreview(){
+  const el = $('#attPreview');
+  $('#attCount').text(`${uploaded.length} / ${MAX_ATT}`);
+  if(!uploaded.length){ el.html(''); return; }
+  const cls = gridClass(uploaded.length);
+  el.html(`<div class="att-grid ${cls}">${renderAttCells(uploaded, { preview: true })}</div>`);
+}
+
+function renderFeed(items, append=true){
+  const el = $('#feed');
+  if(!append){
+    Object.keys(postCache).forEach(k=>{ delete postCache[k]; });
+  }
+  (items||[]).forEach(p=>{ const id = Number(p.post_id||0); if(id) postCache[id] = p; });
+  const html = (items||[]).map(p=>{
+    const pid = Number(p.post_id||0);
+    const atts = (p.attachments||[]);
+    const n = atts.length;
+    const attsHtml = n ? `<div class="att-grid ${gridClass(n)}">${renderAttCells(atts, { preview: false })}</div>` : '';
+    const likeCount = Number(p.like_count||0);
+    const cmtCount = Number(p.comment_count||0);
+    const canEdit = !!p.can_edit;
+    const ownBar = canEdit ? `<div class="post-own">
+      <button type="button" class="chip-ghost btnEditPost" data-post-id="${pid}">编辑</button>
+      <button type="button" class="chip-ghost btnDeletePost" data-post-id="${pid}">删除</button>
+    </div>` : '';
+    const rawText = (p.content_text||'');
+    const bodyBlock = rawText.trim() ? `
+        <div class="post-body-wrap" data-post-id="${pid}">
+          <div class="post-body-inner">${esc(rawText)}</div>
+          <button type="button" class="post-body-toggle" data-post-id="${pid}">全文</button>
+        </div>` : '';
+    return `
+      <div class="post">
+        <div class="post-head">
+          <div>
+            <span class="author">${esc(p.author_name||'--')}</span>
+            <span class="meta"> · ${esc(p.actor_type||'')} · ${esc(p.actor_id||'')} </span>
+          </div>
+          <div class="moments-head-right">
+            ${ownBar}
+            <div class="meta">${esc(fmtDate(p.created_at))}</div>
+          </div>
+        </div>
+        ${bodyBlock}
+        ${attsHtml}
+        <div class="post-actions">
+          <button class="chip btnLike" data-post-id="${pid}" type="button">点赞 <span class="likeCount">${likeCount}</span></button>
+          <button class="chip btnToggleComments" data-post-id="${pid}" type="button">评论 <span class="commentCount">${cmtCount}</span></button>
+        </div>
+        <div class="comments" id="c-${pid}" class="moments-comments">
+          <div class="moments-comment-hint text-muted" id="cHint-${pid}">加载评论中…</div>
+          <div class="cList" id="cList-${pid}"></div>
+          <div class="comment-box">
+            <input class="input-soft cInput" data-post-id="${pid}" placeholder="写评论…">
+            <button class="btn-soft btnSendComment" data-post-id="${pid}" type="button" class="moments-comment-send">发送</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('') || '<div class="text-center text-muted moments-empty">暂无动态</div>';
+  if(append) el.append(html); else el.html(html);
+  requestAnimationFrame(function(){ refreshPostBodyClamps(); });
+}
+
+function refreshPostBodyClamps(){
+  $('#feed .post-body-wrap').each(function(){
+    const $w = $(this);
+    if($w.hasClass('expanded')) return;
+    const inner = $w.find('.post-body-inner')[0];
+    const $btn = $w.find('.post-body-toggle');
+    if(!inner){ $btn.removeClass('show'); return; }
+    if(inner.scrollHeight > inner.clientHeight + 2){
+      $btn.addClass('show').text('全文');
+    } else {
+      $btn.removeClass('show');
+    }
+  });
+}
+
+function renderComments(postId, items){
+  const list = $(`#cList-${postId}`);
+  if(!items || !items.length){
+    list.html('<div class="text-muted moments-no-comments">暂无评论</div>');
+    return;
+  }
+  list.html(items.map(c=>`
+    <div class="comment">
+      <div><span class="who">${esc(c.author_name||'--')}</span><span class="when">${esc(fmtDate(c.created_at))}</span></div>
+      <div class="txt">${esc(c.content_text||'')}</div>
+    </div>
+  `).join(''));
+}
+
+function loadComments(postId){
+  $(`#cHint-${postId}`).text('加载评论中…');
+  return $.getJSON(`/api/v1/moments/${postId}/comments`, { limit: 50 }).done(res=>{
+    const data = (res||{}).data||{};
+    renderComments(postId, data.items||[]);
+    $(`#cHint-${postId}`).text('');
+  }).fail(()=>{
+    $(`#cHint-${postId}`).text('加载评论失败');
+  });
+}
+
+function loadFeed(reset=false){
+  const params = { limit: 30 };
+  if(!reset && cursorBefore) params.before_post_id = cursorBefore;
+  return $.getJSON('/api/v1/moments/feed', params).done(res=>{
+    const data = res.data||{};
+    const items = data.items||[];
+    if(reset){ $('#feed').html(''); }
+    renderFeed(items, true);
+    cursorBefore = data.next_before_post_id || null;
+  });
+}
+
+async function uploadFiles(files){
+  const remaining = MAX_ATT - uploaded.length;
+  if(remaining <= 0){
+    $('#postHint').text(`已达 ${MAX_ATT} 个上限`);
+    return;
+  }
+  const arr = Array.from(files||[]);
+  const toAdd = arr.slice(0, remaining);
+  if(arr.length > toAdd.length){
+    $('#postHint').text(`最多 ${MAX_ATT} 个，已忽略 ${arr.length - toAdd.length} 个`);
+  }
+  for(const f of toAdd){
+    const fd = new FormData();
+    fd.append('file', f);
+    const out = await $.ajax({ url:'/api/v1/moments/upload', method:'POST', data:fd, processData:false, contentType:false });
+    const data = (out||{}).data||{};
+    if(data.ok) uploaded.push(data);
+  }
+  renderPreview();
+}
+
+$(function(){
+  window.addEventListener('error', function (e) {
+    try { window.qcLogError('moments page error', e.error || e.message); } catch (_) {}
+    showToast('朋友圈页面脚本异常：' + (e.message || 'unknown'), 'error');
+  });
+
+  loadFeed(true);
+  renderPreview();
+
+  $('#btnMore').on('click', ()=> loadFeed(false));
+
+  $('#feed').on('click', '.post-body-toggle', function(e){
+    e.preventDefault();
+    const $btn = $(this);
+    const $w = $btn.closest('.post-body-wrap');
+    const exp = $w.hasClass('expanded');
+    if(exp){
+      $w.removeClass('expanded');
+      $btn.text('全文');
+      setTimeout(function(){ refreshPostBodyClamps(); }, 0);
+    } else {
+      $w.addClass('expanded');
+      $btn.text('收起').addClass('show');
+    }
+  });
+
+  $('.moments--feed-first').on('click', '.vid-play', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    const cell = $(this).closest('.cell-video');
+    const v = cell.find('video')[0];
+    if(!v) return;
+    $(this).hide();
+    $(v).css('pointer-events', 'auto');
+    v.controls = true;
+    v.muted = false;
+    v.play().catch(()=>{});
+  });
+
+  $('#feed').on('click', '.btnLike', function(){
+    const pid = Number($(this).data('post-id')||0);
+    const btn = $(this);
+    $.post(`/api/v1/moments/${pid}/like`).done(res=>{
+      const data = (res||{}).data||{};
+      if(data.ok){
+        btn.find('.likeCount').text(String(data.like_count||0));
+      }
+    });
+  });
+  $('#feed').on('click', '.btnToggleComments', function(){
+    const pid = Number($(this).data('post-id')||0);
+    const box = $(`#c-${pid}`);
+    const open = box.is(':visible');
+    if(open){ box.hide(); return; }
+    box.show();
+    loadComments(pid);
+  });
+  $('#feed').on('click', '.btnSendComment', function(){
+    const pid = Number($(this).data('post-id')||0);
+    const input = $(`.cInput[data-post-id="${pid}"]`);
+    const text = (input.val()||'').toString();
+    $(this).prop('disabled', true);
+    $.ajax({
+      url:`/api/v1/moments/${pid}/comments`,
+      method:'POST',
+      contentType:'application/json',
+      data: JSON.stringify({ content_text: text }),
+    }).done(res=>{
+      const data = (res||{}).data||{};
+      if(data.ok){
+        input.val('');
+        const cbtn = $(`.btnToggleComments[data-post-id="${pid}"]`);
+        const n = Number(cbtn.find('.commentCount').text()||0) + 1;
+        cbtn.find('.commentCount').text(String(n));
+        loadComments(pid);
+      } else {
+        showToast('评论失败：' + (data.error||'unknown'), 'error');
+      }
+    }).fail(()=> showToast('评论失败', 'error'))
+      .always(()=> $(this).prop('disabled', false));
+  });
+
+  $('#attPreview').on('click', '.att-remove', function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    const i = Number($(this).data('i'));
+    if(Number.isFinite(i) && i >= 0 && i < uploaded.length){
+      uploaded.splice(i, 1);
+      renderPreview();
+      $('#postHint').text('');
+    }
+  });
+
+  $('#file').on('change', async function(){
+    const files = Array.from(this.files||[]);
+    if(files.length){
+      $('#postHint').text(`上传中…`);
+      await uploadFiles(files);
+      $('#postHint').text('');
+    }
+    this.value = '';
+  });
+
+  function resetComposer(){
+    editingPostId = null;
+    $('#content').val('');
+    uploaded = [];
+    renderPreview();
+    $('#composerTitle').text('发布');
+    $('#btnPost').text('发送');
+    $('#composerCancel').hide();
+  }
+
+  $('#composerCancel').on('click', resetComposer);
+
+  $('#feed').on('click', '.btnEditPost', function(){
+    const pid = Number($(this).data('post-id')||0);
+    const p = postCache[pid];
+    if(!p) return;
+    editingPostId = pid;
+    $('#content').val(p.content_text||'');
+    uploaded = JSON.parse(JSON.stringify(p.attachments||[]));
+    renderPreview();
+    $('#composerTitle').text('编辑动态');
+    $('#btnPost').text('保存');
+    $('#composerCancel').show();
+    try { document.querySelector('.composer--slim').scrollIntoView({behavior:'smooth'}); } catch(e){}
+  });
+
+  $('#feed').on('click', '.btnDeletePost', function(){
+    const pid = Number($(this).data('post-id')||0);
+    if(!pid || !confirm('确定删除这条动态？')) return;
+    $.ajax({ url:`/api/v1/moments/${pid}`, method:'DELETE' }).done(res=>{
+      const data = (res||{}).data||{};
+      if(data.ok){
+        if(editingPostId===pid) resetComposer();
+        cursorBefore = null;
+        loadFeed(true);
+      } else {
+        const err = data.error||'';
+        showToast(err==='forbidden' ? '无权删除' : ('删除失败：' + err), 'error');
+      }
+    }).fail(()=> showToast('删除失败', 'error'));
+  });
+
+  $('#btnPost').on('click', ()=>{
+    const text = ($('#content').val()||'').toString();
+    $('#btnPost').prop('disabled', true);
+    const req = editingPostId
+      ? $.ajax({
+          url:`/api/v1/moments/${editingPostId}`,
+          method:'PATCH',
+          contentType:'application/json',
+          data: JSON.stringify({ content_text:text, attachments: uploaded }),
+        })
+      : $.ajax({
+          url:'/api/v1/moments',
+          method:'POST',
+          contentType:'application/json',
+          data: JSON.stringify({ content_text:text, attachments: uploaded }),
+        });
+    req.done(res=>{
+      const data = (res||{}).data||{};
+      if(data.ok){
+        resetComposer();
+        cursorBefore = null;
+        loadFeed(true);
+      } else {
+        const err = data.error||'unknown';
+        showToast(err === 'too_many_attachments' ? '附件最多 9 个'
+          : err === 'forbidden' ? '无权操作'
+          : err === 'content_empty' ? '内容不能为空'
+          : ((editingPostId ? '保存' : '发布') + '失败：' + err), 'error');
+      }
+    }).fail(()=> showToast(editingPostId ? '保存失败' : '发布失败', 'error'))
+      .always(()=> $('#btnPost').prop('disabled', false));
+  });
+});
+
+function generateAutoNote() {
+    const fallback = [
+        '今日市场情绪偏多，可关注消费和新能源板块。',
+        '观察到自选股出现技术信号，可考虑加入观察单。',
+        '龙虎榜显示机构资金异动，建议关注相关标的。',
+        '组合压力测试显示极端行情下回撤可控，风险管理有效。',
+        '根据历史相似度分析，当前走势与过往震荡修复阶段有相似之处。',
+    ];
+    fetch('/api/v1/briefing/smart-daily?market=CN&top_n=1&narrative=1')
+        .then(res => res.json())
+        .then(json => {
+            const data = json.data || json;
+            const narrative = data.narrative || data.summary
+                || (Array.isArray(data.picks) && data.picks[0] && (data.picks[0].rationale || data.picks[0].name));
+            const text = narrative ? String(narrative).trim() : '';
+            document.getElementById('content').value = text || fallback[new Date().getDate() % fallback.length];
+            showToast(text ? '已根据智能简报生成笔记，可编辑后发布' : '已填入模板笔记，可编辑后发布', 'success');
+        })
+        .catch(err => {
+            window.qcLogError('generateAutoNote failed', err);
+            document.getElementById('content').value = fallback[new Date().getDate() % fallback.length];
+            showToast('简报暂不可用，已填入模板笔记', 'warning');
+        });
+}
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-mm-action]');
+    if (el && el.dataset.mmAction === 'auto-note') generateAutoNote();
+});
+</script>
+{% endblock %}

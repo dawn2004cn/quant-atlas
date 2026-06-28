@@ -1,0 +1,79 @@
+{# Team selector bar — syncs active team across capability components #}
+<div class="section-shell ctb-panel"
+    id="team-context-bar"
+   
+    x-data="teamContextBar()"
+    x-init="init()">
+    <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="panel-title mb-0">👥 团队协作上下文</h2>
+            <div class="panel-subtitle">选择投研小组后，黑板与投研流将按团队隔离</div>
+        </div>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+            <select class="form-control form-control-sm ctb-team-select" x-model.number="activeTeamId" @change="onTeamChange()">
+                <option :value="null">— 未选择团队 —</option>
+                <template x-for="t in teams" :key="t.team_id">
+                    <option :value="t.team_id" x-text="t.team_name + ' (' + t.role + ')'"></option>
+                </template>
+            </select>
+            <button type="button" class="btn-soft btn-sm" @click="setSequenceScope()" :disabled="!activeTeamId">设为证据链可见范围</button>
+            <button type="button" class="btn-soft btn-sm" @click="refresh()">刷新</button>
+        </div>
+    </div>
+    <div class="text-sm text-muted mt-2" x-show="tenant" x-cloak>
+        租户 <strong x-text="tenant.name || tenant.slug"></strong>
+        <span x-show="activeTeamId" x-cloak> · 当前团队 #<span x-text="activeTeamId"></span></span>
+    </div>
+    <div class="text-sm text-warning mt-1" x-show="!teams.length" x-cloak>
+        尚未加入团队，可在协作工作区创建或加入投研组。
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/collaboration/team_context_store.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+function teamContextBar() {
+    return {
+        tenant: null,
+        teams: [],
+        activeTeamId: null,
+        init() {
+            const saved = window.QATeamContext && QATeamContext.readTeamId();
+            if (saved) this.activeTeamId = saved;
+            this.refresh();
+            window.addEventListener('team-context-changed', (e) => {
+                if (e.detail && e.detail.teamId !== undefined) {
+                    this.activeTeamId = e.detail.teamId;
+                }
+            });
+        },
+        refresh() {
+            if (!window.QATeamContext) return;
+            return QATeamContext.fetchTenantContext().then((ctx) => {
+                this.tenant = ctx.tenant || null;
+                this.teams = ctx.teams || [];
+                if (!this.activeTeamId && ctx.active_team_id) {
+                    this.activeTeamId = ctx.active_team_id;
+                    QATeamContext.writeTeamId(this.activeTeamId);
+                }
+            }).catch(() => {});
+        },
+        onTeamChange() {
+            if (window.QATeamContext) QATeamContext.writeTeamId(this.activeTeamId);
+            window.dispatchEvent(new CustomEvent('team-context-changed', {
+                detail: { teamId: this.activeTeamId },
+            }));
+        },
+        setSequenceScope() {
+            if (!this.activeTeamId) return;
+            fetch('/api/v1/teams/' + this.activeTeamId + '/sequence-scope', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ visibility: 'team' }),
+            }).then((r) => r.json()).then(() => {
+                if (window.showToast) showToast('已设置团队证据链可见范围', 'success');
+            }).catch(() => {});
+        },
+    };
+}
+</script>

@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+
+{% block title %}Research Canvas - Quant Atlas 10.0{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vendor/xyflow.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research-canvas.css') }}">
+{% endblock %}
+
+{% block spa_switcher %}
+<a href="/app/research-canvas" class="spa-switcher-link"
+   data-spa-switcher="research-canvas">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2">
+    <div class="canvas-toolbar">
+        <h1 class="page-title rc-title-sm">Research Canvas</h1>
+        <button type="button" class="btn-soft btn-sm" id="btnSaveLayout">保存布局</button>
+        <button type="button" class="btn-soft btn-sm" id="btnAutoLayout">自动排列</button>
+        <button type="button" class="btn-soft btn-sm" id="btnClearCanvas">清空画布</button>
+        <span class="canvas-status" id="canvasStatus">就绪</span>
+    </div>
+    <div id="canvas-root"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/vendor/socket.io.min.js') }}"></script>
+<script type="module" nonce="{{ csp_nonce() }}">
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'https://esm.sh/react@18.3.1';
+import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
+import {
+    ReactFlow,
+    Background,
+    Controls,
+    MiniMap,
+    addEdge,
+    applyNodeChanges,
+    applyEdgeChanges,
+    MarkerType,
+    Handle,
+    Position,
+    useReactFlow,
+    ReactFlowProvider,
+} from 'https://esm.sh/@xyflow/react@12.3.6?deps=react@18.3.1,react-dom@18.3.1';
+
+const NODE_TYPES = {
+    data_source: { icon: '📊', label: '数据源', color: '#22d3ee' },
+    agent_team: { icon: '🤖', label: 'Agent 团队', color: '#a78bfa' },
+    backtest_env: { icon: '📈', label: '回测环境', color: '#34d399' },
+    trading_account: { icon: '💰', label: '交易账户', color: '#fca5a5' },
+    event_block: { icon: '⚡', label: '事件积木', color: '#fbbf24' },
+    analysis_widget: { icon: '🔬', label: '分析组件', color: '#818cf8' },
+};
+
+const PALETTE_ITEMS = [
+    { type: 'data_source', label: '行情数据', config: { source: 'tdx', symbols: '600519' } },
+    { type: 'data_source', label: '基本面', config: { source: 'fundamental' } },
+    { type: 'data_source', label: '舆情数据', config: { source: 'sentiment' } },
+    { type: 'agent_team', label: '研究团队', config: { topology: 'research_default' } },
+    { type: 'agent_team', label: '辩论团队', config: { topology: 'debate_pipeline' } },
+    { type: 'backtest_env', label: '回测引擎', config: { period: '1y', strategy: 'momentum' } },
+    { type: 'trading_account', label: '模拟账户', config: { account: 'shadow' } },
+    { type: 'event_block', label: '加息事件', config: { event: 'rate_hike', delta: 50 } },
+    { type: 'event_block', label: '黑天鹅', config: { event: 'black_swan' } },
+    { type: 'analysis_widget', label: '归因分析', config: { widget: 'attribution' } },
+    { type: 'analysis_widget', label: '风险仪表盘', config: { widget: 'risk_dashboard' } },
+];
+
+function CanvasNode({ data, selected }) {
+    const typeInfo = NODE_TYPES[data.nodeType] || NODE_TYPES.analysis_widget;
+    const status = data.status || 'idle';
+    return React.createElement('div', {
+        className: `cn-node type-${data.nodeType}${selected ? ' selected' : ''}`,
+    },
+        React.createElement(Handle, { type: 'target', position: Position.Left, id: 'in' }),
+        React.createElement('div', { className: 'cn-node-header' },
+            React.createElement('div', { className: 'cn-node-icon' }, typeInfo.icon),
+            React.createElement('div', { className: 'cn-node-title' }, data.label || typeInfo.label),
+            React.createElement('div', { className: `cn-node-status ${status}` },
+                status === 'live' ? '● LIVE' : status === 'running' ? '⟳' : status === 'error' ? '✕' : '○'),
+        ),
+        React.createElement('div', { className: 'cn-node-body' },
+            data.subtitle || `${typeInfo.label} · ${data.nodeType}`,
+        ),
+        React.createElement(Handle, { type: 'source', position: Position.Right, id: 'out' }),
+    );
+}
+
+const nodeTypes = { canvas: CanvasNode };
+
+function Sidebar({ onAdd }) {
+    const onDragStart = (e, item) => {
+        e.dataTransfer.setData('application/canvas-block', JSON.stringify(item));
+        e.dataTransfer.effectAllowed = 'copy';
+    };
+    const grouped = {};
+    PALETTE_ITEMS.forEach((item) => {
+        const key = item.type;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(item);
+    });
+    return React.createElement('div', { id: 'canvas-sidebar' },
+        Object.entries(grouped).map(([type, items]) =>
+            React.createElement('div', { key: type, className: 'sidebar-section' },
+                React.createElement('div', { className: 'sidebar-title' }, NODE_TYPES[type]?.label || type),
+                items.map((item, i) =>
+                    React.createElement('div', {
+                        key: i,
+                        className: 'canvas-block',
+                        draggable: true,
+                        onDragStart: (e) => onDragStart(e, item),
+                        onClick: () => onAdd(item),
+                    },
+                        React.createElement('div', {
+                            className: 'block-icon',
+                            style: { background: NODE_TYPES[type]?.color + '33', color: NODE_TYPES[type]?.color },
+                        }, NODE_TYPES[type]?.icon),
+                        item.label,
+                    ),
+                ),
+            ),
+        ),
+    );
+}
+
+function PropPanel({ node, onUpdate, onClose, onDelete }) {
+    if (!node) return null;
+    const d = node.data || {};
+    const typeInfo = NODE_TYPES[d.nodeType] || {};
+    return React.createElement('div', { id: 'canvas-props' },
+        React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+            React.createElement('span', { className: 'prop-title' }, `${typeInfo.icon} 节点属性`),
+            React.createElement('button', { onClick: onClose, style: { background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' } }, '✕'),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, '名称'),
+            React.createElement('input', { value: d.label || '', onChange: (e) => onUpdate(node.id, { label: e.target.value }) }),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, '副标题'),
+            React.createElement('input', { value: d.subtitle || '', onChange: (e) => onUpdate(node.id, { subtitle: e.target.value }) }),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, '状态'),
+            React.createElement('select', { value: d.status || 'idle', onChange: (e) => onUpdate(node.id, { status: e.target.value }) },
+                React.createElement('option', { value: 'idle' }, '空闲'),
+                React.createElement('option', { value: 'live' }, '实时'),
+                React.createElement('option', { value: 'running' }, '运行中'),
+                React.createElement('option', { value: 'error' }, '错误'),
+            ),
+        ),
+        React.createElement('div', { className: 'prop-field' },
+            React.createElement('label', null, '配置 (JSON)'),
+            React.createElement('textarea', {
+                value: JSON.stringify(d.config || {}, null, 2),
+                onChange: (e) => { try { onUpdate(node.id, { config: JSON.parse(e.target.value) }); } catch {} },
+                rows: 5,
+            }),
+        ),
+        React.createElement('button', {
+            onClick: () => onDelete(node.id),
+            style: { padding: '6px 12px', border: '1px solid #7f1d1d', borderRadius: 6, background: '#450a0a', color: '#fca5a5', cursor: 'pointer', fontSize: '0.8rem', width: '100%' },
+        }, '删除节点'),
+    );
+}
+
+function EventLog({ events, onToggle, collapsed }) {
+    if (events.length === 0) return null;
+    return React.createElement('div', { className: `event-log${collapsed ? ' collapsed' : ''}` },
+        React.createElement('div', { className: 'event-log-header', onClick: onToggle },
+            React.createElement('span', { className: 'event-log-title' }, `共鸣事件 (${events.length})`),
+            React.createElement('span', { className: 'event-log-toggle' }, collapsed ? '展开 ▼' : '收起 ▲'),
+        ),
+        !collapsed ? React.createElement('div', { className: 'event-log-content' },
+            events.slice(0, 20).map((evt, i) =>
+                React.createElement('div', { key: i, className: 'event-item' },
+                    React.createElement('span', { className: 'event-time' }, evt.time),
+                    React.createElement('span', { className: `event-type ${evt.type}` }, evt.label),
+                    React.createElement('span', { className: 'event-detail' }, evt.detail),
+                    evt.priority ? React.createElement('span', { className: `event-badge ${evt.priority}` }, evt.priority) : null,
+                ),
+            ),
+        ) : null,
+    );
+}
+
+function ResearchCanvas() {
+    const [nodes, setNodes] = useState([]);
+    const [edges, setEdges] = useState([]);
+    const [selectedNodeId, setSelectedNodeId] = useState(null);
+    const [socketConnected, setSocketConnected] = useState(false);
+    const [resonanceEvents, setResonanceEvents] = useState([]);
+    const [eventLogCollapsed, setEventLogCollapsed] = useState(false);
+    const nodeCounter = useRef(0);
+    const socketRef = useRef(null);
+    const { screenToFlowPosition } = useReactFlow();
+
+    useEffect(() => {
+        try {
+            const socket = io({ transports: ['websocket', 'polling'] });
+            socketRef.current = socket;
+            socket.on('connect', () => {
+                setSocketConnected(true);
+                socket.emit('subscribe', { room: 'canvas', symbols: [] });
+            });
+            socket.on('disconnect', () => setSocketConnected(false));
+            socket.on('canvas_update', (data) => {
+                if (data.node_id) {
+                    setNodes((nds) => nds.map((n) =>
+                        n.id === data.node_id ? { ...n, data: { ...n.data, ...data.updates } } : n
+                    ));
+                }
+            });
+            socket.on('mesh_event', (data) => {
+                setNodes((nds) => nds.map((n) => {
+                    if (n.data.nodeType === 'agent_team' && data.event_name) {
+                        return { ...n, data: { ...n.data, lastEvent: data.event_name, status: 'running' } };
+                    }
+                    return n;
+                }));
+            });
+            
+            // 10.0 Neural Resonance events
+            socket.on('canvas_resonance_update', (data) => {
+                const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+                const evt = {
+                    time,
+                    type: 'resonance',
+                    label: '共鸣触发',
+                    detail: `${data.action_type} (相似度 ${(data.similarity * 100).toFixed(1)}%)`,
+                    priority: data.similarity > 0.8 ? 'high' : data.similarity > 0.7 ? 'medium' : 'low',
+                };
+                setResonanceEvents((evts) => [evt, ...evts].slice(0, 100));
+                
+                // Update node status if symbol matches
+                const symbol = data.trigger_vector?.metadata?.symbol;
+                if (symbol) {
+                    setNodes((nds) => nds.map((n) =>
+                        n.data.config?.symbols === symbol ? { ...n, data: { ...n.data, status: 'live', lastEvent: 'resonance' } } : n
+                    ));
+                }
+            });
+            
+            socket.on('canvas_research_trigger_update', (data) => {
+                const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+                const evt = {
+                    time,
+                    type: 'research_trigger',
+                    label: '研究触发',
+                    detail: `${data.symbol} - ${data.trigger_type} (置信度 ${(data.confidence * 100).toFixed(1)}%)`,
+                    priority: data.confidence > 0.8 ? 'high' : 'medium',
+                };
+                setResonanceEvents((evts) => [evt, ...evts].slice(0, 100));
+                
+                // Update node status for research nodes
+                setNodes((nds) => nds.map((n) =>
+                    n.data.nodeType === 'agent_team' ? { ...n, data: { ...n.data, status: 'running', lastEvent: 'research_triggered' } } : n
+                ));
+            });
+            
+            socket.on('canvas_execution_update', (data) => {
+                const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+                const isFailover = data.event_type === 'execution_failover';
+                const isRecovery = data.event_type === 'execution_recovery';
+                const evt = {
+                    time,
+                    type: 'execution',
+                    label: isFailover ? '执行故障转移' : isRecovery ? '场所恢复' : '执行更新',
+                    detail: isFailover
+                        ? `${data.symbol}: ${data.original_venue} → ${data.failover_venue}`
+                        : isRecovery
+                        ? `${data.venue_id}: ${data.previous_status} → ${data.new_status}`
+                        : JSON.stringify(data).slice(0, 80),
+                    priority: isFailover ? 'high' : isRecovery ? 'low' : 'medium',
+                };
+                setResonanceEvents((evts) => [evt, ...evts].slice(0, 100));
+                
+                // Update trading account nodes
+                if (data.symbol) {
+                    setNodes((nds) => nds.map((n) =>
+                        n.data.nodeType === 'trading_account' ? { ...n, data: { ...n.data, status: isFailover ? 'error' : 'live', lastEvent: data.event_type } } : n
+                    ));
+                }
+            });
+            const heartbeat = setInterval(() => socket.emit('heartbeat'), 25000);
+            return () => { clearInterval(heartbeat); socket.disconnect(); };
+        } catch (e) { /* silent: SocketIO unavailable */ }
+    }, []);
+
+    const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
+    const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
+    const onConnect = useCallback((conn) => setEdges((eds) => addEdge({
+        ...conn,
+        animated: true,
+        style: { stroke: '#475569' },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#475569' },
+    }, eds)), []);
+
+    const onNodeClick = useCallback((_, node) => setSelectedNodeId(node.id), []);
+    const onPaneClick = useCallback(() => setSelectedNodeId(null), []);
+
+    const addNode = useCallback((item) => {
+        nodeCounter.current++;
+        const id = `cn_${nodeCounter.current}`;
+        const typeInfo = NODE_TYPES[item.type] || {};
+        const newNode = {
+            id,
+            type: 'canvas',
+            position: { x: 100 + (nodeCounter.current % 4) * 240, y: 80 + Math.floor(nodeCounter.current / 4) * 160 },
+            data: {
+                id,
+                nodeType: item.type,
+                label: item.label,
+                subtitle: typeInfo.label,
+                config: item.config || {},
+                status: 'idle',
+            },
+        };
+        setNodes((nds) => [...nds, newNode]);
+        setSelectedNodeId(id);
+    }, []);
+
+    const onDragOver = useCallback((e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }, []);
+    const onDrop = useCallback((e) => {
+        e.preventDefault();
+        const raw = e.dataTransfer.getData('application/canvas-block');
+        if (!raw) return;
+        try {
+            const item = JSON.parse(raw);
+            const position = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+            nodeCounter.current++;
+            const id = `cn_${nodeCounter.current}`;
+            const typeInfo = NODE_TYPES[item.type] || {};
+            const newNode = {
+                id,
+                type: 'canvas',
+                position,
+                data: { id, nodeType: item.type, label: item.label, subtitle: typeInfo.label, config: item.config || {}, status: 'idle' },
+            };
+            setNodes((nds) => [...nds, newNode]);
+            setSelectedNodeId(id);
+        } catch {}
+    }, [screenToFlowPosition]);
+
+    const updateNode = useCallback((nodeId, updates) => {
+        setNodes((nds) => nds.map((n) => n.id === nodeId ? { ...n, data: { ...n.data, ...updates } } : n));
+    }, []);
+
+    const deleteNode = useCallback((nodeId) => {
+        setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+        setEdges((eds) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
+        setSelectedNodeId(null);
+    }, []);
+
+    const autoLayout = useCallback(() => {
+        setNodes((nds) => nds.map((n, i) => ({
+            ...n,
+            position: { x: 80 + (i % 4) * 240, y: 60 + Math.floor(i / 4) * 160 },
+        })));
+    }, []);
+
+    const clearCanvas = useCallback(() => { setNodes([]); setEdges([]); setSelectedNodeId(null); }, []);
+    
+    const toggleEventLog = useCallback(() => {
+        setEventLogCollapsed((c) => !c);
+    }, []);
+
+    const saveLayout = useCallback(() => {
+        const payload = {
+            nodes: nodes.map((n) => ({ id: n.id, type: n.data.nodeType, label: n.data.label, position: n.position, config: n.data.config })),
+            edges: edges.map((e) => ({ source: e.source, target: e.target })),
+        };
+        localStorage.setItem('research_canvas_layout', JSON.stringify(payload));
+        document.getElementById('canvasStatus').textContent = '已保存';
+    }, [nodes, edges]);
+
+    useEffect(() => {
+        const bind = (id, fn) => document.getElementById(id)?.addEventListener('click', fn);
+        bind('btnSaveLayout', saveLayout);
+        bind('btnAutoLayout', autoLayout);
+        bind('btnClearCanvas', clearCanvas);
+    }, [saveLayout, autoLayout, clearCanvas]);
+
+    const selectedNode = nodes.find((n) => n.id === selectedNodeId) || null;
+    const proOptions = useMemo(() => ({ hideAttribution: true }), []);
+
+    return React.createElement('div', { style: { display: 'flex', width: '100%', height: '100%' } },
+        React.createElement(Sidebar, { onAdd: addNode }),
+        React.createElement('div', { id: 'canvas-main', onDragOver, onDrop },
+            socketConnected ? React.createElement('div', { className: 'live-indicator' },
+                React.createElement('div', { className: 'live-dot' }),
+                'MESH LIVE',
+            ) : null,
+            React.createElement(ReactFlow, {
+                nodes,
+                edges,
+                nodeTypes,
+                onNodesChange,
+                onEdgesChange,
+                onConnect,
+                onNodeClick,
+                onPaneClick,
+                fitView: true,
+                proOptions,
+                style: { background: '#0f1117' },
+            },
+                React.createElement(Background, { gap: 24, size: 1, color: '#1e293b' }),
+                React.createElement(MiniMap, { zoomable: true, pannable: true, style: { background: '#1e293b' } }),
+                React.createElement(Controls, { style: { background: '#1e293b', border: '1px solid #334155' } }),
+            ),
+            React.createElement(EventLog, { events: resonanceEvents, onToggle: toggleEventLog, collapsed: eventLogCollapsed }),
+        ),
+        selectedNode ? React.createElement(PropPanel, {
+            node: selectedNode,
+            onUpdate: updateNode,
+            onClose: () => setSelectedNodeId(null),
+            onDelete: deleteNode,
+        }) : null,
+    );
+}
+
+function App() {
+    return React.createElement(ReactFlowProvider, null,
+        React.createElement(ResearchCanvas),
+    );
+}
+
+const root = createRoot(document.getElementById('canvas-root'));
+root.render(React.createElement(App));
+</script>
+{% endblock %}

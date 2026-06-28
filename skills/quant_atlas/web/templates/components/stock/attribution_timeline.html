@@ -1,0 +1,77 @@
+{# Capability Component: attribution-timeline + debate round overlay #}
+<div
+    class="section-shell"
+    id="attribution-timeline"
+    x-data="attributionTimelineCapability()"
+    x-init="init()"
+>
+    <div class="panel-head d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <h2 class="panel-title mb-0">归因时间轴</h2>
+            <div class="panel-subtitle">新闻、研报、龙虎榜与 AI 辩论轮次按时间对齐</div>
+        </div>
+        <span
+            x-show="debateVerdict"
+            x-cloak
+            class="badge"
+            :class="debateVerdict === 'bullish' ? 'bg-success' : (debateVerdict === 'bearish' ? 'bg-danger' : 'bg-secondary')"
+            x-text="'辩论共识: ' + debateVerdict"
+        ></span>
+    </div>
+    <div id="attributionTimelineBox" class="mt-2">
+        <div class="text-muted text-sm">加载决策简报后展示…</div>
+    </div>
+    <template x-if="debateRounds.length">
+        <div class="mt-3">
+            <div class="text-xs font-bold text-muted mb-1">最近辩论轮次 (EventBus)</div>
+            <template x-for="r in debateRounds" :key="r.timestamp + r.agent_role">
+                <div class="qc-timeline-marker">
+                    <div class="d-flex justify-content-between gap-2">
+                        <strong x-text="r.agent_role + ' · ' + r.stance"></strong>
+                        <span class="text-muted text-xs" x-text="'R' + r.round_num + ' · conf ' + r.confidence"></span>
+                    </div>
+                    <div class="text-muted mt-1 text-sm" x-text="r.evidence_summary"></div>
+                </div>
+            </template>
+        </div>
+    </template>
+</div>
+
+<script nonce="{{ csp_nonce() }}">
+function attributionTimelineCapability() {
+    return {
+        debateRounds: [],
+        debateVerdict: '',
+        _pollTimer: null,
+        init() {
+            this.pollDebate();
+            this._pollTimer = setInterval(() => this.pollDebate(), 45000);
+            window.addEventListener('live-document-updated', (e) => {
+                const d = (e.detail || {}).debate || {};
+                if (d.verdict) this.debateVerdict = d.verdict;
+                if (d.rounds) this.debateRounds = d.rounds;
+            });
+        },
+        pollDebate() {
+            const sym = (typeof MS_SYMBOL !== 'undefined' ? MS_SYMBOL : '').toUpperCase();
+            const mkt = (typeof MS_MARKET !== 'undefined' ? MS_MARKET : 'CN').toUpperCase();
+            if (!sym) return;
+            fetch(
+                '/api/v1/system/arbiter/consensus?symbol=' + encodeURIComponent(sym) + '&market=' + encodeURIComponent(mkt),
+                { credentials: 'same-origin' }
+            )
+                .then((r) => r.json())
+                .then((res) => {
+                    const data = res.data || res;
+                    if (data.ok && data.recent_rounds) {
+                        this.debateRounds = data.recent_rounds.slice().reverse();
+                        this.debateVerdict = data.verdict || '';
+                    } else if (data.recent_rounds) {
+                        this.debateRounds = (data.recent_rounds || []).slice().reverse();
+                    }
+                })
+                .catch(() => {});
+        },
+    };
+}
+</script>
