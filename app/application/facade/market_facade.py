@@ -6,8 +6,8 @@ from pydantic import ValidationError as PydanticValidationError
 
 from app.application.errors import ValidationError
 from app.domain.enums import MarketCode
-from app.application.facade._helpers import observe_facade, parse_market, validation_error_from_pydantic
-from app.application.facade.dto.market_facade_dto import (
+from app.facade._helpers import observe_facade, parse_market, validation_error_from_pydantic
+from app.facade.dto.market_facade_dto import (
     HistoryBarsQueryDTO,
     MarketPanoramaDTO,
     MarketQuotesQueryDTO,
