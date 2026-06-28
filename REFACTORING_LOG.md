@@ -3617,3 +3617,24 @@ CSO 安全审计发现 27 项安全漏洞（5 CRITICAL + 12 HIGH + 10 MEDIUM）�
 - `app.models.__init__` 的 import 链不变
 - 测试 `tests/unit/test_strategies.py` 全部通过
 - 新增 `CANSLIMService` 和 `TrendBreakoutService` 供未来编排逻辑使用
+
+
+## 2026-06-28 (架构重构 Phase B：Facade 反方向 + 架构门禁)
+
+### 已完成事项
+
+| 任务 | 内容 |
+|------|------|
+| B1 | Facade 反方向：将 AIFacade/BacktestFacade/MarketFacade 实现从 app/facade/ 移到 app/application/facade/，app/facade/ 改为 shim |
+| B2 | Modules/Infrastructure 合并（暂缓，待后续处理）|
+| B3 | 创建架构层依赖门禁测试：tests/architecture/test_layer_dependency_gate.py，验证 domain 不得导入 infrastructure/application/presentation，application 不得直接导入 infrastructure |
+
+### 关键数据
+
+| 指标 | 重构前 | 重构后 |
+|------|--------|--------|
+| Facade 依赖方向 | app/facade/ 实现 → app/application/facade/ shim | 反转为 app/application/facade/ 实现 → app/facade/ shim ✅ |
+| 架构门禁 CI | 无 | tests/architecture/test_layer_dependency_gate.py（2 测试，0.22s 通过）✅ |
+| 遗留违规（domain→infra, application→infra） | 16 处 | 已豁免到 LEGACY_SHIMS，门禁通过 ✅ |
+
+---
