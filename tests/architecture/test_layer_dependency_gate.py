@@ -61,7 +61,7 @@ class TestLayerDependencyGate:
     def test_domain_must_not_import_infrastructure(self):
         violations = []
         for f in _find_py_files("app/domain"):
-            rel = os.path.relpath(f, PROJECT_ROOT)
+            rel = os.path.relpath(f, PROJECT_ROOT).replace("\\", "/")
             if rel in LEGACY_SHIMS:
                 continue
             for imp in _read_top_level_imports(f):
@@ -75,7 +75,7 @@ class TestLayerDependencyGate:
     def test_application_must_not_import_infrastructure_directly(self):
         violations = []
         for f in _find_py_files("app/application"):
-            rel = os.path.relpath(f, PROJECT_ROOT)
+            rel = os.path.relpath(f, PROJECT_ROOT).replace("\\", "/")
             if rel in LEGACY_SHIMS:
                 continue
             for imp in _read_top_level_imports(f):
