@@ -1,10 +1,12 @@
-"""
-Facade package exposing high-level APIs for the Quant Atlas platform.
-Each facade groups related services behind a simple, stable interface.
-"""
+"""Shim — re-exports from application-layer facade.
 
-from app.facade.ai_facade import AIFacade
-from app.facade.backtest_facade import BacktestFacade
-from app.facade.market_facade import MarketFacade
+New code should import from app.application.facade directly.
+"""
+from app.application.facade import AIFacade, BacktestFacade, MarketFacade  # noqa: F401
 
-__all__ = ["MarketFacade", "BacktestFacade", "AIFacade"]
+import warnings
+warnings.warn(
+    "import from app.facade is deprecated; use app.application.facade instead",
+    DeprecationWarning,
+    stacklevel=2,
+)

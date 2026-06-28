@@ -1,11 +1,11 @@
 """Application-layer facade entry — stable imports for presentation and tasks.
 
-Re-exports the platform facades from ``app.facade`` so routes and jobs
-depend on ``app.application.facade`` instead of reaching into services.
+Real implementations live here; app.facade is a shim for backward compat.
 """
-
-from app.facade import AIFacade, BacktestFacade, MarketFacade
-from app.facade.dto import AIAnalysisResultDTO, BacktestResultDTO
+from app.application.facade.ai_facade import AIFacade
+from app.application.facade.backtest_facade import BacktestFacade
+from app.application.facade.market_facade import MarketFacade
+from app.application.facade.dto import AIAnalysisResultDTO, BacktestResultDTO
 
 __all__ = [
     "AIFacade",

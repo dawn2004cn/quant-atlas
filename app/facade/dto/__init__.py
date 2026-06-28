@@ -1,18 +1,9 @@
-"""Facade-layer DTOs (Pydantic v2)."""
+"""Shim — re-exports from application-layer facade DTOs."""
+from app.application.facade.dto import *  # noqa: F401, F403
 
-from app.facade.dto.ai_facade_dto import AIAnalysisRequestDTO, AIAnalysisResultDTO
-from app.facade.dto.backtest_facade_dto import BacktestResultDTO
-from app.facade.dto.market_facade_dto import (
-    HistoryBarsQueryDTO,
-    MarketPanoramaDTO,
-    MarketQuotesQueryDTO,
+import warnings
+warnings.warn(
+    "import from app.facade.dto is deprecated; use app.application.facade.dto instead",
+    DeprecationWarning,
+    stacklevel=2,
 )
-
-__all__ = [
-    "AIAnalysisRequestDTO",
-    "AIAnalysisResultDTO",
-    "BacktestResultDTO",
-    "HistoryBarsQueryDTO",
-    "MarketPanoramaDTO",
-    "MarketQuotesQueryDTO",
-]
