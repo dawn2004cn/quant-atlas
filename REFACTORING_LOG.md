@@ -3593,3 +3593,27 @@ CSO 安全审计发现 27 项安全漏洞（5 CRITICAL + 12 HIGH + 10 MEDIUM）�
 - MySQL 用户限制到 localhost
 
 ---
+
+## 2026-06-28 (God Class split: trend_breakout.py)
+
+### 问题
+`app/models/trend_breakout.py` 是一个 946 行的巨型文件（God Class），包含 24 个策略类。虽然每个类本身职责单一，但文件级别缺乏分层结构，将模型层计算与服务层编排混在一起。
+
+### 修改
+
+| 文件 | 行数 | 职责 |
+|------|------|------|
+| `app/models/trend_breakout_model.py` | 862 | 24 个纯计算策略类（仅依赖 pandas/numpy/ta），零基础设施依赖 |
+| `app/models/trend_breakout_service.py` | 111 | `CANSLIMService` + `TrendBreakoutService` 业务编排服务 |
+| `app/models/trend_breakout.py` | 70 | 门面（facade），re-export model + service，保持向后兼容 |
+
+### 拆分边界
+- **model**: 所有 `generate_signals()`、`get_start_idx()`、属性描述符等纯 pandas/numpy 计算
+- **service**: `CANSLIMService.merge_fundamentals()`、`TrendBreakoutService.batch_generate_signals()` 等编排逻辑
+- **facade**: 原文件改为 `from .trend_breakout_model import ...; from .trend_breakout_service import ...` + `__all__`
+
+### 影响
+- 零 break change：`from app.models.trend_breakout import MAStrategy` 仍然可用
+- `app.models.__init__` 的 import 链不变
+- 测试 `tests/unit/test_strategies.py` 全部通过
+- 新增 `CANSLIMService` 和 `TrendBreakoutService` 供未来编排逻辑使用

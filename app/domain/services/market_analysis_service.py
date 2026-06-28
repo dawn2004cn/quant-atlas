@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 from typing import Any
 
-from app.core.engine import MarketRegimeManager
+from app.domain.services.regime_manager import MarketRegimeManager
 
 
 class MarketAnalysisDomainService:
