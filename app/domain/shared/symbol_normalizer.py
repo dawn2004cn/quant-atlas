@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Symbol normalizer — A 股等平台统一代码格式（canonical: sh600519）。"""
 
 

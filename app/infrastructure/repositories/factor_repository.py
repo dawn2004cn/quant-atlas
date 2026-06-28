@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Factor Repository - manages factor metadata and performance data.
 
 This module provides CRUD operations for factor metadata, IC records,
@@ -8,14 +9,15 @@ exposures, and decay detection.
 
 from datetime import datetime, timedelta
 from typing import Any
+
+from sqlalchemy import desc, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import select, update, desc
 
 from app.domain.ports.factor_repository_port import FactorRepositoryPort
 from app.infrastructure.database.models.factor import (
-    FactorMetadata,
-    FactorICRecord,
     FactorDecayLog,
+    FactorICRecord,
+    FactorMetadata,
 )
 
 

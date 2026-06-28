@@ -6,6 +6,7 @@ from flask import Blueprint, request
 from flask_login import login_required
 
 from app.core.registry import register_routes
+
 from ...common import ok_response, parse_market
 from ...decorators import service_fallback
 

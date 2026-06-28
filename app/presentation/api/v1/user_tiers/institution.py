@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 
 from app.core.rbac_guard import require_rbac
 from app.core.registry import register_routes
@@ -15,7 +15,10 @@ _bp = Blueprint("institution", __name__)
 
 def _get_services():
     from app.modules.system.services.institution_tier_service import (
-        MarketImpactModelService, AdvancedExecutionAlgoService, FederatedDeploymentService, RBACService,
+        AdvancedExecutionAlgoService,
+        FederatedDeploymentService,
+        MarketImpactModelService,
+        RBACService,
     )
     return MarketImpactModelService(), AdvancedExecutionAlgoService(), FederatedDeploymentService(), RBACService()
 

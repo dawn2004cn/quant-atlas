@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Swarm YAML preset loader.
 
 Ported from Vibe-Trading.
@@ -9,11 +10,9 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-
-from app.infrastructure.agent.swarm.models import RunStatus, SwarmAgentSpec, SwarmRun, SwarmTask, TaskStatus
-
 # Presets are now in the config directory
 from app.infrastructure.agent.repositories.preset_repository import PresetRepository
+from app.infrastructure.agent.swarm.models import RunStatus, SwarmAgentSpec, SwarmRun, SwarmTask, TaskStatus
 
 PRESET_REPO = PresetRepository(Path("instance/agents/swarms/presets"))
 

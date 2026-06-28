@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Multi-factor orthogonalization interceptor.
 
 This service checks if a new alpha has high correlation with existing
@@ -10,7 +11,6 @@ from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
-
 
 from app.core.logger import get_logger
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Whale Tracker - 主力追踪与资金流分析服务."""
 
 

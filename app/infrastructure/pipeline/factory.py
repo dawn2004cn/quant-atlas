@@ -1,8 +1,10 @@
 """Dynamic Pipeline Builder."""
 
 import importlib
-from app.infrastructure.pipeline.base import Pipeline, DataProcessor
+
 from app.infrastructure.config_loader.loader import DynamicConfigLoader
+from app.infrastructure.pipeline.base import DataProcessor, Pipeline
+
 
 class PipelineFactory:
     """Creates a pipeline instance based on dynamic config."""

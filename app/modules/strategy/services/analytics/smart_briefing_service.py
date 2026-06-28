@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Smart Daily Briefing - 智能投研日报服务."""
 
 

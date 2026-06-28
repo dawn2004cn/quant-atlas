@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Asynchronous repository implementations for Phase 41 migration.
 
 This module provides async versions of MySQL repositories, replacing
@@ -14,17 +15,23 @@ Key benefits:
 import json
 from datetime import datetime
 from typing import Any
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import select, delete, update, desc
 
-from app.domain.entities import UserAccount
+from sqlalchemy import delete, desc, select, update
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
 from app.core.query_limits import MAX_WATCHLIST_SYMBOLS
-from app.infrastructure.database.models.auth import User
-from app.infrastructure.repositories.common.user_mapper import user_row_to_account
-from app.infrastructure.database.models.market import Watchlist, StockGroup, StockGroupItem
+from app.domain.entities import UserAccount
 from app.infrastructure.database.models.advanced import SignalFlagPool
-from app.infrastructure.database.models.trading import FTTrade, FTOrder
-from app.infrastructure.database.models.investment import InvestmentManager, ManagerNAV, ManagerTrade, ManagerHoldingsSnap
+from app.infrastructure.database.models.auth import User
+from app.infrastructure.database.models.investment import (
+    InvestmentManager,
+    ManagerHoldingsSnap,
+    ManagerNAV,
+    ManagerTrade,
+)
+from app.infrastructure.database.models.market import StockGroup, StockGroupItem, Watchlist
+from app.infrastructure.database.models.trading import FTOrder, FTTrade
+from app.infrastructure.repositories.common.user_mapper import user_row_to_account
 
 
 class AsyncRepositoryBase:

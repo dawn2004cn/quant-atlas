@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for user price alert storage."""
 
 from abc import ABC, abstractmethod

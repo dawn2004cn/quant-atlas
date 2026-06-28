@@ -1,14 +1,14 @@
 from __future__ import annotations
+
 """将 pytdx 返回值转为 JSON 友好结构。"""
 
 
 import base64
+import logging
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
-
-import logging
 logger = logging.getLogger(__name__)
 def to_jsonable(value: Any) -> Any:
     if value is None:

@@ -27,30 +27,17 @@ Quote Aggregator - 多数据源行情聚合器
 
 
 import asyncio
-
-
-
-from dataclasses import dataclass, field
-
-from enum import Enum
-
-from typing import Any
 from collections.abc import Callable
-
-
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
 
 import redis
 
+from app.core.logger import get_logger
 from app.infrastructure.redis_client import RedisClientPool
 
-
-
-from app.core.logger import get_logger
-
-from .market_stream import Quote, MarketStreamProcessor
-
-
-
+from .market_stream import MarketStreamProcessor, Quote
 
 logger = get_logger(__name__)
 

@@ -1,12 +1,12 @@
 """Repository base classes and interfaces."""
 
 from .base import (
-    InvestmentManagerRepositoryBase,
+    AnalysisReportRepositoryBase,
     BasicMarketDataRepositoryBase,
+    InvestmentManagerRepositoryBase,
+    MomentsRepositoryBase,
     NewsArchiveRepositoryBase,
     SignalFlagPoolRepositoryBase,
-    MomentsRepositoryBase,
-    AnalysisReportRepositoryBase,
 )
 
 __all__ = [

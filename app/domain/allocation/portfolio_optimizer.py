@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Portfolio Optimizer - MVO / Black-Litterman / Risk Budgeting.
 
 This module implements from strategy_plan1.md:
@@ -18,7 +19,6 @@ from typing import Any
 import numpy as np
 
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

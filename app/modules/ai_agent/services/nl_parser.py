@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Advanced Natural Language Understanding for Jarvis."""
 
 
@@ -7,7 +9,6 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
-
 
 from app.core.logger import get_logger
 

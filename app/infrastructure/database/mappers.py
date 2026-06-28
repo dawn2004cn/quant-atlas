@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 """Infrastructure mappers - convert between DB models and Domain entities."""
 
 
 from datetime import datetime
 from typing import Any
+
 from app.domain.dto import BarData
 
 

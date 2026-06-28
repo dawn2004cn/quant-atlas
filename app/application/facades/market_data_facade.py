@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 """Facade for unified market data access."""
 
 from typing import Any
+
 from app.modules.data.services.basic_market_data_service import BasicMarketDataService
 from app.modules.market_data.services.market_service import MarketApplicationService
+
 
 class MarketDataFacade:
     """Facade for aggregating market data service operations."""

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Infrastructure adapter for ``DataQualityPort``."""
 
 from typing import Any

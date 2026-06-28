@@ -46,7 +46,7 @@ class EvolutionArbiterService:
             elif "volatil" in text:
                 regime = Regime.VOLATILE
             return RegimeSnapshot(regime=regime, confidence=confidence, source="meta_arbiter")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("regime detection failed: %s", exc)
             return RegimeSnapshot(regime=Regime.UNKNOWN, confidence=0.0, source="error")
 
@@ -146,7 +146,7 @@ class EvolutionArbiterService:
                 sharpe=sharpe,
                 max_drawdown=max_dd,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("simulation failed for %s: %s", base.strategy_id, exc)
             return base
 

@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Pluggable mesh transports — Redis Pub/Sub (default) and in-memory (tests)."""
 
 import json
 import logging
 import threading
 from abc import ABC, abstractmethod
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from app.core.mesh.protocol import MESH_EVENTS_CHANNEL
 
@@ -57,7 +58,7 @@ class MemoryMeshTransport(MeshTransport):
         for handler in handlers:
             try:
                 handler(channel, message)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("memory mesh handler error: %s", exc)
         return True
 
@@ -123,7 +124,7 @@ class RedisMeshTransport(MeshTransport):
             self._health["last_connect_at"] = datetime.now(timezone.utc).isoformat()
             self._health["last_error"] = None
             return True
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             self._health["connected"] = False
             self._health["last_error"] = str(exc)
             logger.warning("Redis mesh transport unavailable: %s", exc)
@@ -147,7 +148,7 @@ class RedisMeshTransport(MeshTransport):
             from datetime import datetime, timezone
             self._health["last_publish_at"] = datetime.now(timezone.utc).isoformat()
             return int(receivers or 0) >= 0
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             self._health["publish_failures"] += 1
             self._health["last_error"] = str(exc)
             self._disconnect()
@@ -212,9 +213,9 @@ class RedisMeshTransport(MeshTransport):
                     for handler in handlers:
                         try:
                             handler(channel, data)
-                        except Exception as exc:  # noqa: BLE001
+                        except Exception as exc:
                             logger.warning("mesh redis handler: %s", exc)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 self._health["last_error"] = str(exc)
                 self._disconnect()
                 logger.warning("mesh redis listener disconnected: %s", exc)
@@ -259,7 +260,7 @@ class NATSMeshTransport(MeshTransport):
             self._nc = loop.run_until_complete(_open())
             self._loop = loop
             return True
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("NATS mesh transport unavailable: %s", exc)
             self._nc = None
             self._loop = None
@@ -278,7 +279,7 @@ class NATSMeshTransport(MeshTransport):
 
             asyncio.run_coroutine_threadsafe(_pub(), self._loop).result(timeout=5.0)
             return True
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("mesh nats publish failed: %s", exc)
             return False
 
@@ -307,7 +308,7 @@ class NATSMeshTransport(MeshTransport):
                     await self._nc.close()
 
                 asyncio.run_coroutine_threadsafe(_close(), self._loop).result(timeout=3.0)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("mesh nats close: %s", exc)
         self._nc = None
         self._loop = None
@@ -340,7 +341,7 @@ class NATSMeshTransport(MeshTransport):
                     for handler in handlers:
                         try:
                             handler(channel, data)
-                        except Exception as exc:  # noqa: BLE001
+                        except Exception as exc:
                             logger.warning("mesh nats handler: %s", exc)
 
                 for ch in channels:
@@ -351,7 +352,7 @@ class NATSMeshTransport(MeshTransport):
             asyncio.run_coroutine_threadsafe(_subscribe_all(), self._loop).result(timeout=5.0)
             while not self._stop.is_set():
                 self._stop.wait(0.5)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("mesh nats listener stopped: %s", exc)
 
 
@@ -371,7 +372,7 @@ def create_mesh_transport(
             from app.core.runtime_config import get_runtime
 
             kind = (get_runtime("MESH_TRANSPORT", "redis") or "redis").strip().lower()
-        except Exception:  # noqa: BLE001
+        except Exception:
             kind = "redis"
 
     if kind == "memory":
@@ -384,7 +385,7 @@ def create_mesh_transport(
                 from app.core.runtime_config import get_runtime
 
                 url = (get_runtime("MESH_NATS_URL", "nats://127.0.0.1:4222") or "").strip()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 url = "nats://127.0.0.1:4222"
         transport = NATSMeshTransport(url)
         if transport._connect():

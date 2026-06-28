@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.modules.strategy.services.analytics.unified_attribution_service import UnifiedAttributionService
 from app.domain.dto.analytics_dto import AttributionReportDTO
+from app.modules.strategy.services.analytics.unified_attribution_service import UnifiedAttributionService
 
 
 class AttributionFacade:

@@ -20,10 +20,8 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from scipy.stats import norm
-
 from backtest.stdio_json import write_stdout_json
-
+from scipy.stats import norm
 
 # --- Black-Scholes pricing ---
 

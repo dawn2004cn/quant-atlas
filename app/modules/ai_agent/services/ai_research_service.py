@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """TradingAgents 研究流程的应用层封装（供 Flask API 调用）。"""
 
 
@@ -9,6 +11,7 @@ from typing import Any
 
 from app.core.base_service import BaseApplicationService
 from app.domain.ports.research_port import ResearchPort
+
 from .fingpt_application_service import FinGPTApplicationService
 
 _AGENT_SOURCE_KEYS: tuple[tuple[str, str], ...] = (

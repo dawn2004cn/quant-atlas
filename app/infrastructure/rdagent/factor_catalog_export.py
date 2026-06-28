@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """RD 成功注册后，将 ``factor_task`` 条目追加到 ``config/factor_catalog/autopublish.jsonl``（按 artifact_id 去重）。"""
 
 
@@ -7,11 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
 from ...core.logger import get_logger
 from .artifact_registry import RDAgentArtifactRegistry
-
-
 
 logger = get_logger(__name__)
 

@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 """RD-Agent 因子任务提交前校验：数据目录存在、平台默认 ``qlib_bin`` 就绪或可行动指引。"""
 
 
 from pathlib import Path
 from typing import Any
 
-from ...domain.exceptions import InvalidConfigurationError
-from ...domain.services.rdagent_config import parse_rdagent_loop_params
 from ...config import BASE_DIR
 from ...core.runtime_config import get_runtime_bool
+from ...domain.exceptions import InvalidConfigurationError
+from ...domain.services.rdagent_config import parse_rdagent_loop_params
 
 # 与 ``run_factor_mining_loop`` 默认 provider 对齐
 _MIN_CSV_FOR_DUMP_HINT = 1

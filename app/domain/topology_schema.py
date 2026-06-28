@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """JSON graph descriptors for visual swarm orchestration (Quant Atlas 7.0)."""
 
 from enum import Enum

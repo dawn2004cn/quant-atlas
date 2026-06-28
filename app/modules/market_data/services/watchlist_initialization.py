@@ -1,8 +1,8 @@
 """Delegate watchlist service initialization to keep services.py lightweight."""
 import logging
 
-from app.modules.market_data.services.watchlist_service import WatchlistApplicationService
 from app.modules.market_data.services.stock_group_service import StockGroupApplicationService
+from app.modules.market_data.services.watchlist_service import WatchlistApplicationService
 
 logger = logging.getLogger(__name__)
 

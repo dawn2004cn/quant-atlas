@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """Celery: TDX vs timeseries store freshness spot-check."""
 
 from typing import Any
 
-from app.modules.data.services.ohlcv_reconciliation_service import run_ohlcv_reconciliation
 from app.core.logger import get_logger
+from app.modules.data.services.ohlcv_reconciliation_service import run_ohlcv_reconciliation
 
 logger = get_logger(__name__)
 

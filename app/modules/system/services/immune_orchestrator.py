@@ -1,13 +1,13 @@
 from __future__ import annotations
+
 """Immune System Orchestrator: Automates stress testing."""
 
 
 from typing import Any
-from app.modules.system.services.alpha.factor_performance_engine import FactorPerformanceEngine
-from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
-
 
 from app.core.logger import get_logger
+from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
+from app.modules.system.services.alpha.factor_performance_engine import FactorPerformanceEngine
 
 logger = get_logger(__name__)
 

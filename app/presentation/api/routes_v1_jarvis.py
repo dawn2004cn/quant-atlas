@@ -8,8 +8,8 @@ from flask_login import login_required
 from ...application.errors import ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
-from .decorators import service_fallback
 from .common import ok_response
+from .decorators import service_fallback
 from .v1_context import ApiV1Context
 
 

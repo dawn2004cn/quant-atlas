@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,8 +27,8 @@ warnings.warn(
 """Bound AI analysis adapter for application services."""
 
 from collections.abc import Callable
-from app.domain.ports.ai_analysis_port import AiAnalysisPort
 
+from app.domain.ports.ai_analysis_port import AiAnalysisPort
 
 _create_ai_analysis: Callable[[], AiAnalysisPort] | None = None
 def bind_ai_analysis_infrastructure(*, adapter_factory: Callable[[], AiAnalysisPort]) -> None:

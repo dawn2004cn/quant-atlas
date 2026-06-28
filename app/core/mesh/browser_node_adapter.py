@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """BrowserNodeAdapter — bridges SocketIO browser clients into the federated mesh (9.0 Fabric)."""
 
 import logging

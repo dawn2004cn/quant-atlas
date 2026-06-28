@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Trading workflows for new architecture services."""
 
 

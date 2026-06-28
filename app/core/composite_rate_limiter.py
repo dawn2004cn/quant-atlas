@@ -14,10 +14,10 @@ from __future__ import annotations
 
 import functools
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from threading import Lock
 from typing import Any
-from collections.abc import Callable
 
 from flask import request
 from flask_login import current_user

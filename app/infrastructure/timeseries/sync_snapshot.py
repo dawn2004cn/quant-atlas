@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Persist last QuestDB/ClickHouse OHLCV sync summary for health probes."""
 
 import json
@@ -32,7 +33,7 @@ def _redis_client() -> Any | None:
         if not url:
             return None
         return RedisClientPool.get(url).client
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("timeseries sync progress redis unavailable: %s", exc)
         return None
 
@@ -69,7 +70,7 @@ def set_timeseries_sync_progress(
                 _REDIS_PROGRESS_TTL_SEC,
                 json.dumps(payload, ensure_ascii=False),
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("set_timeseries_sync_progress redis failed: %s", exc)
 
 
@@ -82,7 +83,7 @@ def get_timeseries_sync_progress() -> dict[str, Any] | None:
                 data = json.loads(raw)
                 if isinstance(data, dict):
                     return data
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("get_timeseries_sync_progress redis: %s", exc)
     if not _PROGRESS_PATH.is_file():
         return None
@@ -163,7 +164,7 @@ def clear_timeseries_sync_progress() -> None:
     if client is not None:
         try:
             client.delete(_REDIS_PROGRESS_KEY)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("clear_timeseries_sync_progress redis: %s", exc)
 
 

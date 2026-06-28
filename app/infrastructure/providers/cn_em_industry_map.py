@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """东方财富 clist 拉取 A 股代码→行业（东财板块名），带进程内 TTL 缓存。"""
 
 
@@ -8,13 +9,13 @@ import random
 import threading
 import time
 from typing import Any
+
 import requests
 from requests import exceptions as req_exc
 from urllib3.exceptions import ProtocolError
 
 from ...core.logger import get_logger
 from . import DEFAULT_UA
-
 
 logger = get_logger(__name__)
 
@@ -129,7 +130,7 @@ def fetch_cn_industry_map(*, timeout: float = 25.0, page_size: int = 500) -> dic
                 ind = str(row.get("f127") or "").strip()
                 if ind:
                     out[code] = ind
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning(
             "Eastmoney industry map fetch failed (will backoff, stale cache kept if any): %s",
             exc,

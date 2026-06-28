@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for investment manager persistence."""
 
 from abc import ABC, abstractmethod

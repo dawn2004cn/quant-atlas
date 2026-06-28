@@ -8,6 +8,7 @@ from flask_login import login_required
 from app.core.registry import register_routes
 from app.core.runtime_config import get_runtime, get_runtime_bool
 from app.infrastructure.realtime.websocket_adapter import get_room_clients
+
 from .common import ok_response
 from .v1_context import ApiV1Context
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """AI committee stock selection API routes."""
 
 

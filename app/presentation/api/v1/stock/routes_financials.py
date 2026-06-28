@@ -9,6 +9,7 @@ from app.application.errors import ValidationError
 from app.core.registry import register_routes
 from app.domain.enums import MarketCode
 from app.modules.data.services.gpcw_service import get_gpcw_service
+
 from ...common import ok_response, parse_market
 from ...decorators import service_fallback
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """ORM models for Execution Feedback and Slippage Analysis.
 
 Phase 42: 交易反馈环与滑点分析
@@ -12,7 +13,8 @@ This module provides data models for:
 
 
 from datetime import datetime
-from sqlalchemy import String, Integer, Double, DateTime, Text, UniqueConstraint, Index
+
+from sqlalchemy import DateTime, Double, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..orm import Base

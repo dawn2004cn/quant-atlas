@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """QuestDB / ClickHouse connection settings (from environment)."""
 
 from dataclasses import dataclass

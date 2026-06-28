@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
-from flask import Blueprint, request, current_app, jsonify
+from flask import Blueprint, current_app, jsonify, request
 
 from app.application.errors import AuthorizationError, ValidationError
+from app.core.runtime_config import get_runtime_bool
 from app.infrastructure.auth.jwt_token_service import (
     create_access_token,
     create_refresh_token,
     decode_refresh_token,
     jwt_auth_enabled,
 )
-from app.core.runtime_config import get_runtime_bool
+
 from ..auth_guard import api_auth_required, resolve_api_user
 from ..responses import success_response
 

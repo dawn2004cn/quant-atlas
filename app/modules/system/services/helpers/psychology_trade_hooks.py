@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Record real fills into psychology_operation_store for guardian analysis."""
 
 from typing import Any
 
+from app.core.logger import get_logger
 from app.modules.system.services.helpers.psychology_execution_loader import (
     encode_retail_strategy_id,
 )
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -43,6 +44,6 @@ def record_execution_fill(
             change_pct=float(change_pct or 0.0),
             metadata=meta,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("psychology_trade_hooks.record_execution_fill: %s", exc)
         return None

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Global Tool Wrapper - Knowledge Intermediary IO Optimization.
 
 This module implements from midify_plan13.md:
@@ -11,19 +12,19 @@ Usage:
     wrapped_tools = wrapper.wrap_all_tools(quant_tools)
 """
 
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
-from collections.abc import Callable
-
-from .evidence_blackboard import (
-    get_evidence_blackboard,
-    EvidenceBlackboard,
-    EvidenceType,
-    EvidenceStrength,
-)
-from .knowledge_intermediary import EvidenceAwareCache
 
 from app.core.logger import get_logger
+
+from .evidence_blackboard import (
+    EvidenceBlackboard,
+    EvidenceStrength,
+    EvidenceType,
+    get_evidence_blackboard,
+)
+from .knowledge_intermediary import EvidenceAwareCache
 
 logger = get_logger(__name__)
 

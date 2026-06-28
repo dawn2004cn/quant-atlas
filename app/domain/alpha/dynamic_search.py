@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Dynamic Search Strategy - 根据因子失效原因动态调整搜索策略.
 
 实现 Section 1: 决策层根据失效原因动态调整搜索策略。

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Celery tasks for factor lifecycle management.
 
 Phase 41: 因子生命周期管理 - 定时任务

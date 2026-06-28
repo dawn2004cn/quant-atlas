@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class BotStatusDTO(BaseModel):
     running_bots: list[str]
     open_trades_count: int

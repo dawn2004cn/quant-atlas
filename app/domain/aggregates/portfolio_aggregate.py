@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Portfolio Aggregate Root.
 
 Aggregate root for portfolio with positions and orders.
@@ -11,9 +12,9 @@ from typing import Any
 
 from app.domain.base import AggregateRoot
 from app.domain.services.portfolio_calculation_service import (
+    PortfolioSnapshot,
     PositionSide,
     PositionSnapshot,
-    PortfolioSnapshot,
 )
 from app.domain.services.trading_policy_service import TradingPolicy, TradingPolicyService
 

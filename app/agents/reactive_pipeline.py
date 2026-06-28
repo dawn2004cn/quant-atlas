@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Async Pipeline Deep Optimization - Streaming Decision & Reactive Blackboard.
 
 This module implements from midify_plan11.md:
@@ -15,14 +16,13 @@ Usage:
 
 import asyncio
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
-from collections.abc import Callable
 from enum import Enum
+from typing import Any
 
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

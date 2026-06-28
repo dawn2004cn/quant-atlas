@@ -52,8 +52,8 @@ class SQLiteConnectionPool:
 
     def close_all(self) -> None:
         with self._lock:
-            for db_path, pool in self._pools.items():
-                for cid, conn in pool.items():
+            for _db_path, pool in self._pools.items():
+                for _cid, conn in pool.items():
                     try:
                         conn.close()
                     except Exception:
@@ -66,7 +66,7 @@ class SQLiteConnectionPool:
         for db_path in list(self._pools.keys()):
             if not self._in_use.get(db_path, set()):
                 pool = self._pools.pop(db_path, {})
-                for cid, conn in pool.items():
+                for _cid, conn in pool.items():
                     try:
                         conn.close()
                     except Exception:

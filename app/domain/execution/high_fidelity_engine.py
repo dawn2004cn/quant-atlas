@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """High-Fidelity Execution Engine - Slippage, Impact & Consistency.
 
 This module implements from strategy_plan.md:
@@ -18,7 +19,6 @@ from datetime import datetime
 from typing import Any
 
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

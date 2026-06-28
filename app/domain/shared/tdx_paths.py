@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """解析 ``TDX_ROOT_PATH`` 下 vipdoc / hq_cache 路径（domain 纯逻辑）。"""
 
 from dataclasses import dataclass

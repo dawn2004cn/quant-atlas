@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Stock Cache - Facade combining all repositories.
 
 This module provides backward-compatible StockCache while using
@@ -10,9 +11,9 @@ import threading
 from typing import Any
 
 from .adapters import create_database_adapter
-from .stock_repository import StockRepository
 from .history_repository import HistoryRepository
 from .sentiment_repository import SentimentRepository
+from .stock_repository import StockRepository
 
 
 class StockCache:

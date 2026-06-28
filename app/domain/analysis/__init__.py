@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain analysis module for pure business analysis logic."""
 
 

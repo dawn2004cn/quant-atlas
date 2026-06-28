@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """AKShare loader: free, no-auth data for A-shares, US, HK, futures, forex, macro.
 
 AKShare (https://github.com/akfamily/akshare) is a completely free financial
@@ -8,14 +9,12 @@ data aggregator covering Chinese and global markets.  No API token required.
 
 
 import pandas as pd
-
-from app.core.runtime_config import get_runtime
 from backtest.loaders.base import validate_date_range
 from backtest.loaders.registry import register
-from app.core.resilience import protected_loader
-
 
 from app.core.logger import get_logger
+from app.core.resilience import protected_loader
+from app.core.runtime_config import get_runtime
 
 logger = get_logger(__name__)
 
@@ -96,7 +95,7 @@ class DataLoader:
     def is_available(self) -> bool:
         """Available if akshare is installed."""
         try:
-            import akshare  # noqa: F401
+            import akshare
             return True
         except ImportError:
             return False

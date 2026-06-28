@@ -6,7 +6,5 @@ from __future__ import annotations
 
 from app.domain.shared.pytdx_quote_mapper import pytdx_row_to_quote_payload
 
-
-
 __all__ = ["pytdx_row_to_quote_payload"]
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Redis Session State Cache - Multi-Worker State Sharing.
 
 This module implements from midify_plan13.md optimization:
@@ -13,11 +14,11 @@ Usage:
 """
 
 
-import orjson as json
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+import orjson as json
 
 from app.core.logger import get_logger
 

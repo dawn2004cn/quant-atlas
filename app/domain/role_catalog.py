@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """角色代码与内置演示账号（与 SQLite ``roles`` / 种子用户一致）。"""
 
 

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from typing import Any
+
+from app.core.logger import get_logger
 from app.core.registry import ServiceRegistry
 from app.modules.strategy.services.strategy.strategy_template_service import StrategyTemplate
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

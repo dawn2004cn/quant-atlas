@@ -1,19 +1,18 @@
 from __future__ import annotations
+
 """Portfolio optimization implementations."""
 
 
 import numpy as np
 
+from ...core.logger import get_logger
 from ...domain.ports.portfolio_ports import (
+    AttributionAnalysisPort,
+    EfficientFrontier,
+    OptimizationResult,
     PortfolioAsset,
     PortfolioOptimizerPort,
-    AttributionAnalysisPort,
-    OptimizationResult,
-    EfficientFrontier,
 )
-from ...core.logger import get_logger
-
-
 
 logger = get_logger(__name__)
 

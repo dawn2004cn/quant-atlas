@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """CorrectionIntentService — apply arbiter regime shifts to TradePlan parameters."""
 
 from typing import Any

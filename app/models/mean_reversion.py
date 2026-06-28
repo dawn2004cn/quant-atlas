@@ -1,11 +1,11 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+from ta.momentum import RSIIndicator, StochasticOscillator
 from ta.trend import CCIIndicator, SMAIndicator
+from ta.volatility import BollingerBands
 
 from ..core.base_strategy import BaseTradingStrategy
-from ta.momentum import RSIIndicator, StochasticOscillator
 from ..core.kdj import tdx_k_d
-from ta.volatility import BollingerBands
 
 
 class ChannelPullbackStrategy(BaseTradingStrategy):

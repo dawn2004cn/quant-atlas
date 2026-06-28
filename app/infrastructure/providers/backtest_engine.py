@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Backtest Engine - 回测核心引擎模块.
 
 Deprecated: This engine is preserved for compatibility. New production backtests
@@ -10,28 +11,27 @@ See: docs/审计白皮书.md — Phase 2 回测统一
 
 
 import warnings
-
-
-from typing import Any
-import pandas as pd
 from datetime import date
+from typing import Any
 
+import pandas as pd
+
+from ...core.logger import get_logger
 from ...core.risk_controls import (
-    load_default_risk_params,
-    load_default_trade_cost_params,
-    load_default_position_sizing_params,
     compute_atr,
     compute_liquidity_filters,
+    load_default_position_sizing_params,
+    load_default_risk_params,
+    load_default_trade_cost_params,
     round_shares_for_market,
 )
-from ...core.logger import get_logger
-from .backtest_dividends import dividend_cash_for_bar
-from .cn_backtest_rules import can_trade_cn_on_date, is_cn_symbol
 from ..compute.native_compute import (
     calculate_annual_return,
     calculate_max_drawdown,
     calculate_sharpe_ratio,
 )
+from .backtest_dividends import dividend_cash_for_bar
+from .cn_backtest_rules import can_trade_cn_on_date, is_cn_symbol
 
 logger = get_logger(__name__)
 

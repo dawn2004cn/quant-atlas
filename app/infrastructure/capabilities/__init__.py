@@ -13,15 +13,15 @@ Usage::
             ...
 """
 
-from app.infrastructure.capabilities.registry import CapabilityRegistry, capability
 from app.infrastructure.capabilities import (
+    backtest_capability,
     bars_capability,
-    profile_capability,
     financial_capability,
     news_capability,
-    backtest_capability,
+    profile_capability,
     selector_capability,
 )
+from app.infrastructure.capabilities.registry import CapabilityRegistry, capability
 
 __all__ = [
     "CapabilityRegistry",

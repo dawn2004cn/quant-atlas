@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shadow Account persistence (~/.vibe-trading/shadow_accounts/).
 
 Layout:

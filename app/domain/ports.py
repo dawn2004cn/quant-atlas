@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain ports to support dependency inversion.
 
 DEPRECATED: This module is kept for backward compatibility.
@@ -13,30 +14,30 @@ This file will be removed in a future version.
 
 
 from .ports import (
-    MarketDataProvider,
-    NewsProvider,
-    WebSearchProvider,
-    SentimentProvider,
+    AgentLLMPort,
+    AgentRepository,
+    BacktestProvider,
+    ExchangePort,
     FinGPTPersistencePort,
     IndicatorProvider,
+    KronosPredictorPort,
+    KronosRepository,
+    MarketDataProvider,
+    NewsProvider,
+    OpenBBRepository,
+    PaymentGatewayPort,
+    PaymentRepository,
+    QlibDataProviderPort,
+    QuantMLFactorRepository,
+    SentimentProvider,
+    StockGroupRepository,
     StrategyProvider,
-    BacktestProvider,
+    ToolFacadePort,
     TradeRepository,
-    ExchangePort,
     TradingBotProvider,
     UserRepository,
     WatchlistRepository,
-    StockGroupRepository,
-    PaymentRepository,
-    PaymentGatewayPort,
-    KronosRepository,
-    KronosPredictorPort,
-    OpenBBRepository,
-    QuantMLFactorRepository,
-    AgentRepository,
-    AgentLLMPort,
-    ToolFacadePort,
-    QlibDataProviderPort,
+    WebSearchProvider,
 )
 
 __all__ = [

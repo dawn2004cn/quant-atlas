@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Swarm Preset Repository for dynamic configurations."""
 
 

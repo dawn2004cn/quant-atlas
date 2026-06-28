@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Remember tool: LLM-initiated persistent memory operations (save / recall / forget)."""
 
 
 import json
 from typing import Any
 
-from app.infrastructure.agent.swarm.tools_base import BaseTool
 from app.infrastructure.agent.memory.persistent import PersistentMemory
+from app.infrastructure.agent.swarm.tools_base import BaseTool
 
 
 class RememberTool(BaseTool):

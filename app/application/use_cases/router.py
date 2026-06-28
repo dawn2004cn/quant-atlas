@@ -1,9 +1,9 @@
 from __future__ import annotations
+
 """UseCase Router Adapter - Gradual integration with existing routes."""
 
 
 from flask import jsonify
-
 
 
 class UseCaseRouter:

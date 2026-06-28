@@ -105,9 +105,12 @@ def register_alpha_factory_routes(blueprint: Blueprint, ctx: ApiV1Context) -> No
         symbol = (request.args.get("symbol") or "600519").strip()
         if not formula:
             raise ValidationError("formula_required")
-        from app.domain.enums import MarketCode
-        from datetime import date, timedelta as _td
+        from datetime import date
+        from datetime import timedelta as _td
+
         import pandas as pd
+
+        from app.domain.enums import MarketCode
         end = date.today()
         start = end - _td(days=365)
         bars = ctx.market_service.get_history(symbol, MarketCode.CN, start=start.isoformat(), end=end.isoformat())

@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 """Selection Tools - 选股和自选股相关工具."""
 
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
 from langchain_core.tools import tool
+from pydantic import BaseModel, ConfigDict, Field
+
 from ..core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -86,8 +88,8 @@ def get_user_watchlist(user_id: int) -> WatchlistToolResult:
     """获取用户自选股列表."""
     from app.config import get_settings
     from app.infrastructure.repositories.common.deps import (
-        create_watchlist_repository,
         create_stock_group_repository,
+        create_watchlist_repository,
     )
     from app.modules.market_data.services.watchlist_service import WatchlistApplicationService
 

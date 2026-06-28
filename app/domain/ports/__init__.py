@@ -35,14 +35,14 @@ except ImportError as e:
 # ── Domain-level ports ─────────────────────────────────────────────────
 
 try:
-    from .portfolio_ports import PortfolioOptimizerPort, AttributionAnalysisPort, PortfolioAsset
+    from .portfolio_ports import AttributionAnalysisPort, PortfolioAsset, PortfolioOptimizerPort
 except ImportError:
     PortfolioOptimizerPort = None  # type: ignore[misc, assignment]
     AttributionAnalysisPort = None  # type: ignore[misc, assignment]
     PortfolioAsset = None  # type: ignore[misc, assignment]
 
 try:
-    from .risk_ports import RiskPreFlightPort, PositionSizingPort, RiskPort, RiskMetrics
+    from .risk_ports import PositionSizingPort, RiskMetrics, RiskPort, RiskPreFlightPort
 except ImportError:
     RiskPreFlightPort = None  # type: ignore[misc, assignment]
     PositionSizingPort = None  # type: ignore[misc, assignment]
@@ -51,12 +51,12 @@ except ImportError:
 
 try:
     from .infrastructure_ports import (
-        IExperimentRepository,
-        IMessageStore,
-        IMarketDataProvider,
-        IIngestorAdapter,
-        IDataMapper,
         IAnalyticsEngine,
+        IDataMapper,
+        IExperimentRepository,
+        IIngestorAdapter,
+        IMarketDataProvider,
+        IMessageStore,
     )
 except ImportError as e:
     logger.warning("__init__.py.infrastructure_ports: %s", e)
@@ -65,11 +65,11 @@ except ImportError as e:
 
 try:
     from .port_registry import (
+        IQuoteProvider,
+        IStockCache,
         PortRegistry,
         port,
         resolve_infrastructure_port,
-        IStockCache,
-        IQuoteProvider,
         set_fallback_resolver,
     )
 except ImportError as e:
@@ -88,7 +88,7 @@ except ImportError as e:
     logger.warning("__init__.py.timeseries_port: %s", e)
 
 try:
-    from .llm_port import ResolvedLlmConfig, LlmProviderPort
+    from .llm_port import LlmProviderPort, ResolvedLlmConfig
 except ImportError as e:
     logger.warning("__init__.py.llm_port: %s", e)
 
@@ -106,13 +106,13 @@ except ImportError as e:
 
 try:
     from .tdx_ports import (
-        TdxLocalFilePort,
-        TdxDaykWritePort,
-        TdxDaykSyncSessionPort,
-        TdxGpcwRepository,
-        TdxFinancePort,
-        TdxBlockReadPort,
         PytdxMarketPort,
+        TdxBlockReadPort,
+        TdxDaykSyncSessionPort,
+        TdxDaykWritePort,
+        TdxFinancePort,
+        TdxGpcwRepository,
+        TdxLocalFilePort,
     )
 except ImportError as e:
     logger.warning("__init__.py.tdx_ports: %s", e)
@@ -122,8 +122,8 @@ try:
         CnFundamentalsPort,
         CnSectorBoardPort,
         HotSectorStoragePort,
-        StockCachePort,
         QuoteCachePort,
+        StockCachePort,
     )
 except ImportError as e:
     logger.warning("__init__.py.data_source_ports: %s", e)
@@ -137,11 +137,11 @@ except ImportError as e:
 
 try:
     from .signal_alert_ports import (
+        AlertNotificationChannelPort,
+        PriceAlertRepository,
         SignalFlagPoolRepository,
         SignalObservationRepository,
         StrategySnapshotPort,
-        AlertNotificationChannelPort,
-        PriceAlertRepository,
     )
 except ImportError as e:
     logger.warning("__init__.py.signal_alert_ports: %s", e)

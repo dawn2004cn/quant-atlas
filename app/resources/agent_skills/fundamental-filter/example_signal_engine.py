@@ -6,11 +6,7 @@
 
 
 
-import numpy as np
-import pandas as pd
-
-
-class SignalEngine:
+import numpy as npimport pandas as pdclass SignalEngine:
     """基本面因子过滤信号引擎。
 
     通过 PE/PB/ROE 三重过滤筛选价值股，满足条件的股票等权分配。

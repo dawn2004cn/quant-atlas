@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain-integrated Services - App services using domain layer.
 
 Shows how application services integrate with domain services.
@@ -9,8 +10,6 @@ Shows how application services integrate with domain services.
 from app.application.domain_facade import (
     get_domain_facade,
 )
-
-
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

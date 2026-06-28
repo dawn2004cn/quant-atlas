@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
-from ..auth_guard import api_auth_required
+
 from ....application.errors import ValidationError
-from ....domain.enums import MarketCode
-from ..responses import success_response
 from ....domain.dto.quote_factory import canonical_panorama_dict
+from ....domain.enums import MarketCode
+from ..auth_guard import api_auth_required
+from ..responses import success_response
+
 
 def create_market_blueprint(ctx):
     bp = Blueprint("v2_market", __name__)
@@ -15,7 +17,7 @@ def create_market_blueprint(ctx):
         try:
             mc = MarketCode(str(market).upper())
         except ValueError:
-            raise ValidationError(f"Invalid market: {market}")
+            raise ValidationError(f"Invalid market: {market}") from None
         if ctx.market_facade is not None:
             panorama_dict = ctx.market_facade.get_panorama(mc)
         else:
@@ -31,7 +33,7 @@ def create_market_blueprint(ctx):
         try:
             mc = MarketCode(market.upper())
         except ValueError:
-            raise ValidationError(f"Invalid market: {market}")
+            raise ValidationError(f"Invalid market: {market}") from None
         profile = ctx.stock_service.get_stock_detail(symbol, mc)
         if hasattr(profile, "to_dict"):
             payload = profile.to_dict()
@@ -47,8 +49,8 @@ def create_market_blueprint(ctx):
     @bp.get("/stocks")
     @api_auth_required
     def stock_search():
-        from .request_parsers import parse_dto
         from ....application.dto.v2_dtos import StockSearchDTO
+        from .request_parsers import parse_dto
         dto = parse_dto(request.args.to_dict(), StockSearchDTO, partial=True)
         results = ctx.stock_service.search_stocks(
             keyword=dto.keyword,
@@ -61,8 +63,8 @@ def create_market_blueprint(ctx):
     @bp.get("/stocks/<symbol>/history")
     @api_auth_required
     def stock_history(symbol: str):
-        from .request_parsers import parse_dto
         from ....application.dto import StockHistoryDTO
+        from .request_parsers import parse_dto
         dto = parse_dto(request.args.to_dict(), StockHistoryDTO, partial=True)
         try:
             mc = MarketCode(str(dto.market).upper())
@@ -92,7 +94,7 @@ def create_market_blueprint(ctx):
         try:
             mc = MarketCode(market.upper())
         except ValueError:
-            raise ValidationError(f"Invalid market: {market}")
+            raise ValidationError(f"Invalid market: {market}") from None
         if ctx.market_facade is not None:
             bars = ctx.market_facade.get_history_bars(
                 symbol=symbol,

@@ -6,10 +6,11 @@ from flask import Blueprint, request
 from flask_login import login_required
 
 from app.application.errors import ValidationError
-from app.modules.system.services.system.alert_center_service import AlertCenterService
-from app.modules.system.services.system.alert_notification_service import AlertNotificationService
 from app.core.registry import register_routes
 from app.domain.dto.alert_dto import AlertCategory
+from app.modules.system.services.system.alert_center_service import AlertCenterService
+from app.modules.system.services.system.alert_notification_service import AlertNotificationService
+
 from .common import ok_response
 from .v1_context import ApiV1Context
 

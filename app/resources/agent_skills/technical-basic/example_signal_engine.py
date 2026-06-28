@@ -6,11 +6,7 @@
 
 
 
-import numpy as np
-import pandas as pd
-
-
-def compute_rsi(close: pd.Series, period: int = 14) -> pd.Series:
+import numpy as npimport pandas as pddef compute_rsi(close: pd.Series, period: int = 14) -> pd.Series:
     """计算 RSI（Wilder EWM 平滑）。
 
     Args:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Order State Machine - 订单状态机核心实现。
 
 定义订单状态及转换规则:

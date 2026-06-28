@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar
-from collections.abc import Callable
 
 from flask import Request, g, request
 

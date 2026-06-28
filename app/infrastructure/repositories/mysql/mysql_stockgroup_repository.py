@@ -1,18 +1,18 @@
 from __future__ import annotations
+
 """MySQL StockGroup Repository."""
 
 
 from typing import Any
 
-from sqlalchemy import select, and_, desc
+from sqlalchemy import and_, desc, select
+
+from app.core.logger import get_logger
+from app.core.query_limits import MAX_STOCK_GROUP_SYMBOLS
 
 from ....domain.ports import StockGroupRepository
 from ...database.models.market import StockGroup, StockGroupItem
 from .mysql_repositories import MySQLRepositoryBase
-
-
-from app.core.logger import get_logger
-from app.core.query_limits import MAX_STOCK_GROUP_SYMBOLS
 
 logger = get_logger(__name__)
 

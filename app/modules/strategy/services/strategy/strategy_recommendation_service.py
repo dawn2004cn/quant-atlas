@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Strategy Recommendation Service - Find the best strategy for a specific symbol."""
 
 
 from app.core.base_service import BaseApplicationService
 from app.domain.enums import MarketCode
+
 
 class StrategyRecommendationService(BaseApplicationService):
     def __init__(self, market_service: object, strategy_registry: object):

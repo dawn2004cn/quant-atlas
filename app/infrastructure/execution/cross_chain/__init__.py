@@ -2,9 +2,9 @@
 
 from app.infrastructure.execution.cross_chain.cross_chain_driver import CrossChainDriver
 from app.infrastructure.execution.cross_chain.execution_venue import (
-    ExecutionVenue,
     ExecutionRequest,
     ExecutionResult,
+    ExecutionVenue,
     OrderSide,
     OrderType,
     VenueStatus,

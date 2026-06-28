@@ -87,7 +87,7 @@ def enable_hot_swap_patch() -> None:
 
     # Lazy import via string — prevents domain layer from pulling in
     # application-layer code at module load time.
-    from app.application.services.orchestration.meta_arbiter_service import MetaArbiterService  # noqa: PLC0414
+    from app.application.services.orchestration.meta_arbiter_service import MetaArbiterService
 
     _original_synthesize = MetaArbiterService.synthesize  # type: ignore[misc]
     MetaArbiterService.synthesize = _patched_synthesize  # type: ignore[assignment]
@@ -99,5 +99,5 @@ def enable_hot_swap_patch() -> None:
 if _original_synthesize is None:
     try:
         enable_hot_swap_patch()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("Hot-swap patch initialization failed (non-fatal): %s", exc)

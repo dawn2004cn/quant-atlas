@@ -13,17 +13,15 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-from pydantic import BaseModel, ConfigDict, model_validator, field_validator
-
+from backtest.loaders.base import NoAvailableSourceError
 from backtest.loaders.registry import (
     FALLBACK_CHAINS,
     LOADER_REGISTRY,
     get_loader_cls_with_fallback,
     resolve_loader,
 )
-from backtest.loaders.base import NoAvailableSourceError
 from backtest.stdio_json import write_stdout_json
-
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from app.core.logger import get_logger
 
@@ -66,8 +64,8 @@ class BacktestConfigSchema(BaseModel):
     def valid_date(cls, v: str) -> str:
         try:
             pd.Timestamp(v)
-        except Exception:
-            raise ValueError(f"invalid date format: {v!r} (expected YYYY-MM-DD)")
+        except Exception as exc:
+            raise ValueError(f"invalid date format: {v!r} (expected YYYY-MM-DD)") from exc
         return v
 
     @field_validator("interval")

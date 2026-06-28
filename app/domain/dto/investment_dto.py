@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class ManagerStatsDTO(BaseModel):
     equity: float
     return_pct: float

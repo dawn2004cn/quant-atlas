@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Trading metrics calculations for backtest performance evaluation."""
 
 
@@ -8,9 +9,13 @@ from typing import Any
 import pandas as pd
 
 from app.infrastructure.compute.native_compute import (
-    calculate_max_drawdown as _rust_max_drawdown,
-    calculate_sharpe_ratio as _rust_sharpe_ratio,
     calculate_annual_return as _rust_annual_return,
+)
+from app.infrastructure.compute.native_compute import (
+    calculate_max_drawdown as _rust_max_drawdown,
+)
+from app.infrastructure.compute.native_compute import (
+    calculate_sharpe_ratio as _rust_sharpe_ratio,
 )
 
 

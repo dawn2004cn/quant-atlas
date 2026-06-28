@@ -7,10 +7,10 @@
 """
 
 
+import logging
+
 import pandas as pd
 
-
-import logging
 logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Harmonic pattern definitions: (b_ratio_range, d_ratio_range, name)
@@ -356,7 +356,7 @@ class SignalEngine:
             True 如果 pyharmonics 可正常导入。
         """
         try:
-            from pyharmonics.technicals import OHLCTechnicals  # noqa: F401
+            from pyharmonics.technicals import OHLCTechnicals
             return True
         except ImportError:
             return False

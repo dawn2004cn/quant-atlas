@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Integration Events - Emit domain events to external systems.
 
 Emits domain events to Celery tasks and other external systems.
@@ -6,21 +7,19 @@ Emits domain events to Celery tasks and other external systems.
 
 
 
+from app.core.logger import get_logger
 from app.domain.events.handlers import (
     DomainEvent,
     EventBus,
-    StockCreatedEvent,
-    SignalGeneratedEvent,
-    PositionOpenedEvent,
-    PositionClosedEvent,
-    OrderSubmittedEvent,
     OrderFilledEvent,
+    OrderSubmittedEvent,
+    PositionClosedEvent,
+    PositionOpenedEvent,
+    SignalGeneratedEvent,
+    StockCreatedEvent,
     get_event_bus,
     publish_event,
 )
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

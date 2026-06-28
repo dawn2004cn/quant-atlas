@@ -3,14 +3,15 @@
 import hashlib
 from datetime import datetime, timezone
 from typing import Any
-from sqlalchemy import select, and_, func, desc
 
-from ...database.mysql_client import mysql_get_connection
-from ...database.models.advanced import ArchivedNews as DBNews, NewsSymbolMeta as DBMeta
-from app.infrastructure.mappers.symbol_normalizer import SymbolNormalizer
-
+from sqlalchemy import and_, desc, func, select
 
 from app.core.logger import get_logger
+from app.infrastructure.mappers.symbol_normalizer import SymbolNormalizer
+
+from ...database.models.advanced import ArchivedNews as DBNews
+from ...database.models.advanced import NewsSymbolMeta as DBMeta
+from ...database.mysql_client import mysql_get_connection
 
 logger = get_logger(__name__)
 

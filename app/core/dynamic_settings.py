@@ -1,10 +1,11 @@
 """Dynamic configuration management."""
 
 import json
-from pathlib import Path
-from typing import Any
 from collections.abc import Callable
+from pathlib import Path
 from threading import RLock
+from typing import Any
+
 
 class DynamicSettings:
     """Settings manager supporting dynamic updates."""

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """量化实验室 API：``/api/factor/list``、``/api/model/predict``、``/api/backtest/compare``。"""
 
 
@@ -6,8 +7,8 @@ from flask import Blueprint, jsonify, request
 from flask_login import login_required
 
 from ...application.errors import ValidationError
-from ...application.services.qlib.backtest_compare_service import BacktestCompareService
 from ...application.services.factor.factor_catalog_service import FactorCatalogService
+from ...application.services.qlib.backtest_compare_service import BacktestCompareService
 from ...application.services.research.model_predict_lab_service import ModelPredictLabService
 from ...domain.enums import MarketCode
 from ..api.request_parsers import parse_float_param, parse_int_param

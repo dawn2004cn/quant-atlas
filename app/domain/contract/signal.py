@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Signal Contract - Unified Signal representation."""
 
 

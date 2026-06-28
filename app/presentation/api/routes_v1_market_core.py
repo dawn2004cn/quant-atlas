@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 """Market / pool HTTP adapters (extracted from monolithic routes.py)."""
 
 from flask import Blueprint, request
 from flask_login import login_required
 
-from ...core.logger import get_logger
-from ...core.registry import register_routes
 from app.modules.system.services.ui.data_freshness_service import enrich_market_payload
 
-from .decorators import service_fallback
+from ...core.logger import get_logger
+from ...core.registry import register_routes
 from .common import ok_resource, ok_response, parse_market
+from .decorators import service_fallback
 from .request_parsers import parse_int_param
 from .v1_context import ApiV1Context
 

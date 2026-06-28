@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 """Retail psychology guardian Celery beat — scan watchlist behavior and notify message center."""
 
 from typing import Any
 
+from app.core.logger import get_logger
+from app.core.runtime_config import get_runtime_bool
 from app.modules.user.services.user.psychology_guardian_batch_service import (
     run_psychology_guardian_batch,
 )
-from app.core.logger import get_logger
-from app.core.runtime_config import get_runtime_bool
 
 logger = get_logger(__name__)
 

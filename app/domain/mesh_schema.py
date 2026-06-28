@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Federated Agent Mesh descriptors (Quant Atlas 9.0)."""
 
 from enum import Enum

@@ -8,7 +8,6 @@
 import pandas as pd
 import requests
 
-
 BASE_URL = "https://www.okx.com/api/v5"
 
 

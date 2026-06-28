@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 """Strategy DSL - Configurable stock selection using JSON/YAML."""
 
 
 import json
 from dataclasses import dataclass, field
 from typing import Any
-
 
 from app.core.logger import get_logger
 

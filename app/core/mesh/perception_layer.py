@@ -8,9 +8,9 @@ import logging
 import math
 import threading
 import time
+from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
-from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 

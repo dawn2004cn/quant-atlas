@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Collaboration OS API — tenants, teams, tenant context."""
 
 from flask import Blueprint, request
@@ -8,8 +9,8 @@ from ...application.errors import AuthorizationError, ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
 from .common import ok_response
+from .decorators import require_role, service_fallback
 from .v1_context import ApiV1Context
-from .decorators import service_fallback, require_role
 
 
 def _uid() -> int:

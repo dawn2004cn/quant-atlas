@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Route Module Registry - Modular route registration.
 
 This module provides a pattern for organizing routes into separate modules
@@ -6,8 +7,8 @@ while maintaining compatibility with the existing Flask blueprint system.
 """
 
 
-from dataclasses import dataclass, field
 from collections.abc import Callable
+from dataclasses import dataclass, field
 
 from flask import Blueprint
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Vectorized Memory store for semantic agent knowledge.
 
 Uses a local vector store to persist and retrieve agent research findings.
@@ -8,12 +9,11 @@ Uses a local vector store to persist and retrieve agent research findings.
 from pathlib import Path
 from typing import Any
 
+from app.core.logger import get_logger
+
 # Using a lightweight local vector store implementation (simulated via file-based index for now)
 # In production, this would interface with chromadb or faiss
 from app.infrastructure.agent.memory.persistent import PersistentMemory
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

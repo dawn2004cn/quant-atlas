@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for AI equity analysis adapters."""
 
 from typing import Any, Protocol

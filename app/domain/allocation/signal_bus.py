@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Redis Stream Signal Bus for Low-Latency Signal Processing.
 
 Implements from strategy_plan2.md:
@@ -13,11 +14,12 @@ Usage:
 """
 
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
-from collections.abc import Callable
 from uuid import uuid4
+
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -110,7 +112,7 @@ class SignalBus:
             )
 
             signals = []
-            for stream_name, stream_messages in messages.items():
+            for _stream_name, stream_messages in messages.items():
                 for msg_id, msg in stream_messages:
                     signal = self._parse_message(msg_id, msg)
                     signals.append(signal)

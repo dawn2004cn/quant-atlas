@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Order Recovery - 订单故障恢复机制。
 
 在进程重启或网络中断后:
@@ -9,12 +10,13 @@ from __future__ import annotations
 
 
 import time
-from dataclasses import dataclass, field
 from collections.abc import Callable
+from dataclasses import dataclass, field
 
 from app.core.logger import get_logger
-from .order_tracker import OrderStateMachine, OrderState, OrderTracker
+
 from .order_persistence import OrderPersistence
+from .order_tracker import OrderState, OrderStateMachine, OrderTracker
 
 logger = get_logger(__name__)
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """MySQL implementation of Signal Observation Repository."""
 
 
@@ -7,7 +8,6 @@ from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
 
 from app.core.logger import get_logger
 from app.core.utils.sql_utils import quote_identifier

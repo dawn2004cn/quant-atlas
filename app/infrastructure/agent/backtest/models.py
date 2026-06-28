@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shared data models for backtest engines.
 
 Immutable dataclasses for positions, trades, and equity snapshots.

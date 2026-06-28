@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Alpha Entity Contract - Unified Alpha representation."""
 
 

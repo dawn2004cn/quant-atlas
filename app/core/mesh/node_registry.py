@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Mesh node registry — local cache with optional Redis peer discovery."""
 
 import json
@@ -7,7 +8,7 @@ import threading
 from datetime import datetime, timezone
 from typing import Any
 
-from app.core.mesh.protocol import REDIS_NODES_KEY, REDIS_NODE_TTL_SECONDS
+from app.core.mesh.protocol import REDIS_NODE_TTL_SECONDS, REDIS_NODES_KEY
 from app.domain.mesh_schema import MeshNodeDescriptor, MeshRegion
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ class MeshNodeRegistry:
         if self._redis is not None:
             try:
                 self._redis.hdel(REDIS_NODES_KEY, node_id)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("mesh registry hdel: %s", exc)
 
     def list_nodes(self, *, include_remote: bool = True) -> list[MeshNodeDescriptor]:
@@ -59,7 +60,7 @@ class MeshNodeRegistry:
                         nodes[nid] = MeshNodeDescriptor.model_validate(data)
                     except (json.JSONDecodeError, ValueError):
                         continue
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("mesh registry list remote: %s", exc)
         return sorted(nodes.values(), key=lambda n: n.node_id)
 
@@ -74,7 +75,7 @@ class MeshNodeRegistry:
             payload = node.model_dump(mode="json")
             self._redis.hset(REDIS_NODES_KEY, node.node_id, json.dumps(payload, ensure_ascii=False))
             self._redis.expire(REDIS_NODES_KEY, REDIS_NODE_TTL_SECONDS * 10)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("mesh registry persist: %s", exc)
 
 
@@ -102,7 +103,7 @@ def default_local_node(
         from app.core.mesh.agent_discovery import build_local_mesh_capabilities
 
         capabilities = build_local_mesh_capabilities()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("default_local_node capabilities: %s", exc)
     return MeshNodeDescriptor(
         node_id=node_id,

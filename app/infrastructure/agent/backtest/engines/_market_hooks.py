@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Extracted per-bar market hooks as pure functions.
 
 Both the original engines (CryptoEngine, ForexEngine) and CompositeEngine
@@ -8,7 +9,6 @@ call these same functions. Zero duplication — one source of truth.
 
 
 import pandas as pd
-
 from backtest.models import Position
 
 # ── Crypto: OKX tiered maintenance margin table (simplified) ──

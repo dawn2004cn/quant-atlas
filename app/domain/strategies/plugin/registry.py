@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Strategy Registry - 策略注册中心。
 
 提供策略插件的注册、发现、查询功能:

@@ -1,9 +1,9 @@
 from __future__ import annotations
+
 """High-performance serialization using msgspec."""
 
 
 from typing import Any
-
 
 from app.core.logger import get_logger
 

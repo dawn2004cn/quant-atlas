@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """AI Result Repository - caches AI analysis results for reuse.
 
 This implements the result persistence and reuse strategy from midify_plan7.md:
@@ -12,7 +13,6 @@ import json
 import time
 from datetime import datetime, timedelta
 from typing import Any
-
 
 from app.core.logger import get_logger
 

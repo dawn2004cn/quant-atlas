@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.core.logger import get_logger
+
 from .v1_context_groups import (
     AiCtx,
     MarketCtx,
@@ -15,7 +16,6 @@ from .v1_context_groups import (
     UserCtx,
     attach_context_groups,
 )
-
 
 logger = get_logger(__name__)
 

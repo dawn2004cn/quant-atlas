@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Attribution Dashboard - Explain where returns come from."""
 
 
 from dataclasses import dataclass, field
 from datetime import datetime
-
 
 from app.core.logger import get_logger
 
@@ -303,7 +304,7 @@ class WhatIfAnalyzer:
         base_return = sum(p.get("return_pct", 0) for p in self.base_positions) / len(self.base_positions) if self.base_positions else 0
 
         adjustment_impact = 0
-        for factor, change in factor_adjustments.items():
+        for _factor, change in factor_adjustments.items():
             # Simplified impact calculation
             adjustment_impact += change * 0.01  # 1% weight change = 0.01% return change
 

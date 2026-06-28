@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """RD-Agent 异步任务状态（文件落盘，便于无 Redis 时查询进度）。"""
 
 

@@ -1,8 +1,11 @@
 from __future__ import annotations
-from app.domain.dto.service_result import GenericResponseDTO
+
 from typing import Any
+
 from app.core.base_service import BaseApplicationService
-from app.domain.sniper_entities import SniperSelection, MarketRegime
+from app.domain.dto.service_result import GenericResponseDTO
+from app.domain.sniper_entities import MarketRegime, SniperSelection
+
 
 class TenKingsSniperService(BaseApplicationService):
     """天王狙击系统指挥中心：协调 7+1 Agent 与 10 大天王策略。"""

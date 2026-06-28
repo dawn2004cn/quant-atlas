@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """SequenceChainService — EventBus subscriber building evidence-trade lineage."""
 
 from datetime import datetime

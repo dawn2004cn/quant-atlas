@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """WorldQuant 101 Alpha Factors knowledge base for rd-agent guidance.
 
 提供 101 Classic Alphas 作为 rd-agent 生成因子的知识引导。
@@ -7,7 +8,6 @@ from __future__ import annotations
 
 
 from typing import Any
-
 
 ALPHA_CATEGORIES = {
     "momentum": "动量因子",

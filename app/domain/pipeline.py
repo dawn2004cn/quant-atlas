@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 """Pipeline abstraction for data processing flows."""
 
 
-from typing import Any, Generic, TypeVar
 from collections.abc import Callable
-
+from typing import Any, Generic, TypeVar
 
 from app.core.logger import get_logger
 

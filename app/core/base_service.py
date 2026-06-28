@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Base service class for application services."""
 
 
 import functools
 import threading
-from typing import Any
-from collections.abc import Callable, Awaitable
+from collections.abc import Awaitable, Callable
 from functools import wraps
+from typing import Any
 
 from app.core.logger import get_logger
 

@@ -6,13 +6,13 @@ while using UseCases for business logic.
 
 from __future__ import annotations
 
-from app.domain.enums import MarketCode
 from flask import Blueprint, jsonify, request
 from flask_login import login_required
 
 from app.application.errors import ValidationError
 from app.application.use_cases import UseCaseResult
 from app.application.use_cases.comprehensive_factory import UseCaseFactory
+from app.domain.enums import MarketCode
 from app.presentation.api.common import ok_collection, ok_response
 from app.presentation.api.request_parsers import parse_int_param
 

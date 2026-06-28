@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Dynamic Confidence Weighting - Historical Accuracy Weighted Aggregation.
 
 This module implements from midify_plan12.md:
@@ -18,8 +19,9 @@ Usage:
 from dataclasses import dataclass, field
 from typing import Any
 
-from .auto_validator import AutoValidator
 from app.core.logger import get_logger
+
+from .auto_validator import AutoValidator
 
 logger = get_logger(__name__)
 

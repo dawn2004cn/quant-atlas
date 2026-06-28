@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
+
 from ..auth_guard import api_auth_required
 from ..responses import success_response
+
 
 def create_user_blueprint(ctx):
     bp = Blueprint("v2_user", __name__)
@@ -21,8 +23,8 @@ def create_user_blueprint(ctx):
     @bp.post("/watchlist")
     @api_auth_required
     def create_watchlist():
-        from .request_parsers import parse_dto
         from ....application.dto import WatchlistCreateDTO
+        from .request_parsers import parse_dto
         body = request.get_json(silent=True) or {}
         if ctx.enable_dto_validation:
             dto = parse_dto(body, WatchlistCreateDTO)
@@ -48,8 +50,8 @@ def create_user_blueprint(ctx):
     @bp.post("/watchlist/<int:wl_id>/stocks")
     @api_auth_required
     def add_watchlist_stock(wl_id: int):
-        from .request_parsers import parse_dto
         from ....application.dto import WatchlistAddStockDTO
+        from .request_parsers import parse_dto
         body = request.get_json(silent=True) or {}
         if ctx.enable_dto_validation:
             dto = parse_dto(body, WatchlistAddStockDTO)
@@ -80,8 +82,8 @@ def create_user_blueprint(ctx):
     @bp.post("/portfolio")
     @api_auth_required
     def create_portfolio():
-        from .request_parsers import parse_dto
         from ....application.dto.v2_dtos import PortfolioCreateDTO
+        from .request_parsers import parse_dto
         body = request.get_json(silent=True) or {}
         if ctx.enable_dto_validation and ctx.portfolio_service:
             dto = parse_dto(body, PortfolioCreateDTO)
@@ -97,8 +99,8 @@ def create_user_blueprint(ctx):
     @bp.get("/portfolio/<int:pf_id>")
     @api_auth_required
     def get_portfolio(pf_id: int):
-        from .request_parsers import parse_dto
         from ....application.dto.v2_dtos import PortfolioDetailDTO
+        from .request_parsers import parse_dto
         if ctx.portfolio_service:
             parse_dto(request.args.to_dict(), PortfolioDetailDTO, partial=True)
             result = ctx.portfolio_service.get_snapshot(pf_id)
@@ -109,8 +111,8 @@ def create_user_blueprint(ctx):
     @bp.post("/portfolio/<int:pf_id>/rebalance")
     @api_auth_required
     def rebalance_portfolio(pf_id: int):
-        from .request_parsers import parse_dto
         from ....application.dto.v2_dtos import PortfolioRebalanceDTO
+        from .request_parsers import parse_dto
         body = request.get_json(silent=True) or {}
         if ctx.portfolio_service:
             if ctx.enable_dto_validation:

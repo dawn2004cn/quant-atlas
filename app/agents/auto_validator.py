@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Auto-Validator - Automatic accuracy tracking for agent decisions.
 
 This module implements the Closing the Feedback Loop from midify_plan10.md:
@@ -17,10 +18,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
-from .agent_memory import get_agent_memory
-
 from app.core.logger import get_logger
 
+from .agent_memory import get_agent_memory
 
 logger = get_logger(__name__)
 

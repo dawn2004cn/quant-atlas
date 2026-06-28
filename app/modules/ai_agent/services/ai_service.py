@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """AI Services - AI and analysis services."""
 
 
-from app.core.logger import get_logger
 from app.core.base_service import BaseApplicationService
-from app.domain.dto.ai_service_dto import AIAnalysisResultDTO, ResearchReportDTO, DebateResultDTO, CommandResultDTO
+from app.core.logger import get_logger
+from app.domain.dto.ai_service_dto import AIAnalysisResultDTO, CommandResultDTO, DebateResultDTO, ResearchReportDTO
 
 logger = get_logger(__name__)
 

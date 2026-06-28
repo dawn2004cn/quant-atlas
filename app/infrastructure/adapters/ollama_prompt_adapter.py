@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Local Ollama single-shot analysis (no external TradingAgents dependency)."""
 
 
@@ -7,6 +8,7 @@ import logging
 import requests
 
 from app.core.circuit_breaker import CircuitBreakerOpenError, circuit_breaker
+
 from ...core.runtime_config import get_runtime
 
 logger = logging.getLogger(__name__)

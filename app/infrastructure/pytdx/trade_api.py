@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """交易 API（pytdx.trade，需本机 TdxTradeServer）。"""
 
 

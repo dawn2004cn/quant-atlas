@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class TdxSyncStatsDTO(BaseModel):
     codes_total: int
     codes_ok: int

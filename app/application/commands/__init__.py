@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """CQRS Command Handlers.
 
 Commands for modifying domain state.
@@ -10,7 +11,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Optional
-
 
 from app.core.logger import get_logger
 

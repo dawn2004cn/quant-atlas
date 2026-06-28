@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """读取通达信本地自选股/自定义板块文件（`.blk`）。
 
 默认路径约定（通达信常见目录结构）：

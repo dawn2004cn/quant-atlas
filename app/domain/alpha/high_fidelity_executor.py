@@ -8,11 +8,7 @@ This implements Section 2D from the roadmap:
 """
 
 
-from dataclasses import dataclass
-from typing import Any
-
-
-@dataclass
+from dataclasses import dataclassfrom typing import Any@dataclass
 class TransactionCostConfig:
     """交易成本配置."""
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for dynamic configuration loading."""
 
 from typing import Any, Protocol

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Synthesize multi-round debate consensus from EventBus buffer."""
 
 from typing import Any
@@ -96,7 +97,7 @@ class DebateArbiterService:
                     symbol,
                     market,
                 )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("DebateArbiter LLM synthesis failed: %s", exc)
 
         base["mode"] = "heuristic"

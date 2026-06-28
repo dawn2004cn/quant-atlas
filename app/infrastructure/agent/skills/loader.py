@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """SkillsLoader: loads scenario guides from the skills/ directory.
 
 Ported from Vibe-Trading.

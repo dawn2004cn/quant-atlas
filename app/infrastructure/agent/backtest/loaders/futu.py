@@ -1,14 +1,13 @@
 from __future__ import annotations
+
 """Futu OpenAPI-backed loader for HK and China A-share OHLCV data."""
 
 
 import os
 
 import pandas as pd
-
 from backtest.loaders.base import NoAvailableSourceError, validate_date_range
 from backtest.loaders.registry import register
-
 
 from app.core.logger import get_logger
 
@@ -50,7 +49,7 @@ def _to_futu_ktype(interval: str):
     Lazy-imports futu so the module can be imported without futu installed.
     Unknown intervals fall back to K_DAY.
     """
-    from futu import KLType  # noqa: PLC0415
+    from futu import KLType
     return getattr(KLType, _INTERVAL_MAP.get(interval.strip(), "K_DAY"))
 
 
@@ -98,7 +97,7 @@ class FutuLoader:
         if not os.environ.get("FUTU_HOST") or not os.environ.get("FUTU_PORT"):
             return False
         try:
-            import futu  # noqa: PLC0415
+            import futu
             ctx = futu.OpenQuoteContext(host=self._host, port=self._port)
             ctx.close()
             return True
@@ -135,7 +134,7 @@ class FutuLoader:
         validate_date_range(start_date, end_date)
 
         try:
-            import futu  # noqa: PLC0415
+            import futu
             ktype = _to_futu_ktype(interval)
             ctx = futu.OpenQuoteContext(host=self._host, port=self._port)
         except Exception as exc:

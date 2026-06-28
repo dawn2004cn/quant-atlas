@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Enhanced Market Service demonstrating new architecture patterns.
 
 This service shows how to migrate from old dict-based services
@@ -9,17 +11,17 @@ to the new DTO + async + domain model patterns.
 
 from typing import Any
 
-from app.core.logger import get_logger
-from app.domain.enums import MarketCode
 from app.application.dto.complete_dto import (
-    QuoteBatchDTO,
     MarketOverviewDTO,
-    StockAnalysisResultDTO,
+    QuoteBatchDTO,
     SignalDTO,
+    StockAnalysisResultDTO,
 )
+from app.core.logger import get_logger
 from app.domain.dto import QuoteDTO
+from app.domain.enums import MarketCode
 from app.domain.models import RiskMetrics, SignalGenerator
-from app.domain.services import RiskDomainService, SignalDomainService, MarketDomainService
+from app.domain.services import MarketDomainService, RiskDomainService, SignalDomainService
 from app.modules.system.services.helpers.async_market_access import wrap_market_provider_for_async
 
 logger = get_logger(__name__)
@@ -199,12 +201,12 @@ class EnhancedMarketService:
         """
         try:
             domain_signals = SignalDomainService.generate_signals_from_history(code, price_history)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("domain signal generation failed for %s: %s", code, exc)
             domain_signals = []
         try:
             fallback_signals = self._fallback_indicator_signals(code, price_history)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("fallback indicator generation failed for %s: %s", code, exc)
             fallback_signals = []
         drift_items: list[dict[str, Any]] = []

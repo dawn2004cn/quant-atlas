@@ -9,6 +9,7 @@ from app.presentation.api.common import ok_response, parse_market
 from app.presentation.api.request_parsers import parse_float_param, parse_int_param
 from app.presentation.api.v1.retail_assistant.runtime import RetailAssistantRuntime
 from app.presentation.api.v1_context import ApiV1Context
+
 from ...decorators import service_fallback
 
 

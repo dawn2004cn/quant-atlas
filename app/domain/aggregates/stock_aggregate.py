@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Stock Aggregate Root.
 
 Aggregate root for stock with market data and signals.
@@ -8,8 +9,8 @@ Aggregate root for stock with market data and signals.
 from typing import Any
 
 from app.domain.base import AggregateRoot
-from app.domain.repositories.stock import Stock, MarketData
 from app.domain.repositories.signal import Signal, SignalType
+from app.domain.repositories.stock import MarketData, Stock
 
 
 class StockAggregateError(Exception):

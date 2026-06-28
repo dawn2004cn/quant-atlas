@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -27,7 +28,6 @@ warnings.warn(
 
 from collections.abc import Callable
 from typing import Any
-
 
 _store_factory: Callable[[], Any] | None = None
 def bind_task_message_store(factory: Callable[[], Any]) -> None:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for Redis-backed quote cache."""
 
 from typing import Any, Protocol

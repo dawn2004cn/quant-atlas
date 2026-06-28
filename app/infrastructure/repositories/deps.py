@@ -1,1 +1,1 @@
-from app.infrastructure.repositories.common.deps import *  # noqa: F403,F401
+from app.infrastructure.repositories.common.deps import *

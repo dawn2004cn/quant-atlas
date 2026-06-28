@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Compact tool: model-initiated context compression."""
 
 

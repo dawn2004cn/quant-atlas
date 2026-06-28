@@ -32,7 +32,7 @@ def register_sequence_chain_routes(
             try:
                 team_id = int(team_id_raw)
             except ValueError:
-                raise ValidationError("invalid_team_id")
+                raise ValidationError("invalid_team_id") from None
         limit_raw = request.args.get("limit")
         try:
             limit = min(max(int(limit_raw), 1), 100) if limit_raw else 30

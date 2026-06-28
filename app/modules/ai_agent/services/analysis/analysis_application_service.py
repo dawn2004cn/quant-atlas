@@ -1,19 +1,20 @@
 from __future__ import annotations
+
 """Analysis application service using domain models."""
 
 
 from typing import Any
 
+from app.application.events import EventType, publish_event
 from app.core.logger import get_logger
+from app.domain.dto.analysis_dto import FibonacciDTO, SupportResistanceDTO, TrendDTO
+from app.domain.dto.request_dtos import BatchAnalysisRequestDTO
 from app.domain.models.analysis_models import (
-    TechnicalIndicators,
+    AnalysisResult,
     AnalysisService,
     Analyzer,
-    AnalysisResult,
+    TechnicalIndicators,
 )
-from app.application.events import EventType, publish_event
-from app.domain.dto.request_dtos import BatchAnalysisRequestDTO
-from app.domain.dto.analysis_dto import TrendDTO, SupportResistanceDTO, FibonacciDTO
 
 logger = get_logger(__name__)
 

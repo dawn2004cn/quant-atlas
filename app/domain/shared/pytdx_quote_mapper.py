@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Pytdx 实时行情 → 业务层通用 quote dict（domain 纯函数）。"""
 
 from typing import Any

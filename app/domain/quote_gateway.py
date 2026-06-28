@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Quote gateway protocol for external market quote sources."""
 
 

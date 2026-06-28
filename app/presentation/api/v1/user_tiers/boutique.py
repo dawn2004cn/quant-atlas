@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 
 from app.core.registry import register_routes
 from app.presentation.api.v1.user_tiers._http import tier_not_found, tier_success
@@ -13,7 +13,9 @@ _bp = Blueprint("boutique", __name__)
 
 def _get_services():
     from app.modules.strategy.services.boutique_tier_service import (
-        VectorizedBacktestService, AltDataConnectorService, CollaborativeLabService,
+        AltDataConnectorService,
+        CollaborativeLabService,
+        VectorizedBacktestService,
     )
     return VectorizedBacktestService(), AltDataConnectorService(), CollaborativeLabService()
 

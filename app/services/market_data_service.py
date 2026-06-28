@@ -22,8 +22,8 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from flask import Flask, jsonify, request
 
@@ -199,7 +199,7 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Market Data Service (Phase 2A)")
-    parser.add_argument("--host", default="0.0.0.0", help="Bind host")  # noqa: S104  # service entry-point; host is configurable at runtime
+    parser.add_argument("--host", default="0.0.0.0", help="Bind host")  # service entry-point; host is configurable at runtime
     parser.add_argument("--port", type=int, default=5101, help="Bind port")
     parser.add_argument("--debug", action="store_true", help="Enable debug mode")
     args = parser.parse_args()

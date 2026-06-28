@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Distributed Blackboard Persistence - Redis Backend Implementation.
 
 This module implements from midify_plan12.md:
@@ -13,18 +14,19 @@ Usage:
 """
 
 
-import orjson as json
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from .evidence_blackboard import (
-    EvidenceBlackboard,
-    EvidenceType,
-    EvidenceStrength,
-)
+import orjson as json
 
 from app.core.logger import get_logger
+
+from .evidence_blackboard import (
+    EvidenceBlackboard,
+    EvidenceStrength,
+    EvidenceType,
+)
 
 logger = get_logger(__name__)
 

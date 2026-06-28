@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Regime-aware portfolio risk budget manager.
 
 This manager adjusts position limits based on detected market regime.
@@ -8,8 +9,8 @@ In volatile/bear regimes, it reduces exposure; in bull regimes, it increases.
 
 from dataclasses import dataclass
 from enum import Enum
-from app.core.logger import get_logger
 
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

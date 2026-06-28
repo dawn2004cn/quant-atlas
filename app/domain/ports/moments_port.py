@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for social moments feed persistence."""
 
 from abc import ABC, abstractmethod

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Journey catalog API — user-facing journey listing and route index.
 
 Endpoints:
@@ -10,8 +11,8 @@ Endpoints:
 from flask import Blueprint
 from flask_login import login_required
 
-from app.core.registry import registered_route_names, registered_routes_by_context
 from app.core.logger import get_logger
+from app.core.registry import registered_route_names, registered_routes_by_context
 
 from .common import ok_response
 from .journeys import (

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """API v1：投资经理（100 策略一一映射）模拟与排行榜。"""
 
 
@@ -7,17 +8,15 @@ from datetime import datetime
 from flask import Blueprint, Response, request
 from flask_login import login_required
 
+from app.core.logger import get_logger
+from app.core.registry import register_routes
 
 from ...application.errors import NotFoundError
 from ...core.middleware.request_context import require_authenticated_user_id
 from .common import ok_response
-from .route_deps import SocialRouteDeps, build_social_route_deps, require_investment_manager_service
 from .request_parsers import parse_bool_param, parse_int_param
+from .route_deps import SocialRouteDeps, build_social_route_deps, require_investment_manager_service
 from .v1_context import ApiV1Context
-
-
-from app.core.logger import get_logger
-from app.core.registry import register_routes
 
 logger = get_logger(__name__)
 

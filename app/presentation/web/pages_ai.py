@@ -12,6 +12,7 @@ from flask_login import login_required
 from app.config import get_settings
 from app.presentation.strategic_sunset_hooks import require_strategic_feature
 
+
 def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/ai-hedge-fund")
     @login_required

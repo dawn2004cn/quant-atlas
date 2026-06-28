@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Background scanner service with priority queues and health monitoring."""
 
 
@@ -6,11 +7,11 @@ import threading
 import time
 from datetime import datetime
 
-from app.domain.ports import MarketDataProvider
-from app.domain.ports.stock_cache_port import StockCachePort
+from app.application.dto.scanner_dto import ScannerStatusDTO, ScanResultDTO
 from app.core.logger import get_logger
 from app.core.utils.datetime_utils import is_trading_time_cn
-from app.application.dto.scanner_dto import ScannerStatusDTO, ScanResultDTO
+from app.domain.ports import MarketDataProvider
+from app.domain.ports.stock_cache_port import StockCachePort
 
 logger = get_logger(__name__)
 
@@ -141,7 +142,7 @@ class ScannerApplicationService:
 
             # Publish event instead of direct calls
             try:
-                from app.application.events.event_bus import publish_event, EventType
+                from app.application.events.event_bus import EventType, publish_event
                 publish_event(
                     EventType.DATA_SYNCED,
                     payload={"market": "CN", "up": up, "down": down, "flat": flat, "total": len(stocks)},
@@ -154,9 +155,10 @@ class ScannerApplicationService:
 
     def _discover_all_codes(self) -> list[str]:
         try:
-            import akshare as ak
-            import io
             import contextlib
+            import io
+
+            import akshare as ak
             sink = io.StringIO()
             with contextlib.redirect_stdout(sink), contextlib.redirect_stderr(sink):
                 df = ak.stock_zh_a_spot()

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Qlib 数据定时更新：增量 CSV + 增量/自动 qlib.bin。
 
 Celery 任务 ``app.tasks.qlib_data_update.qlib_incremental_pipeline`` 封装 ``update_all_data``（ingest 经
@@ -9,13 +10,11 @@ Celery 任务 ``app.tasks.qlib_data_update.qlib_incremental_pipeline`` 封装 ``
 from pathlib import Path
 from typing import Any
 
-from ..infrastructure.repositories.deps import create_default_qlib_pipeline_service
 from ..application.services.qlib.qlib_pipeline_service import QlibPipelineService
 from ..core.logger import get_logger
 from ..core.runtime_config import get_runtime
 from ..domain.enums import MarketCode
-
-
+from ..infrastructure.repositories.deps import create_default_qlib_pipeline_service
 
 logger = get_logger(__name__)
 
@@ -56,7 +55,7 @@ def update_all_data(
     )
     try:
         meta = svc.ingest_symbols(resolved, market, period=period, merge_existing=True)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("update_all_data: ingest_symbols 失败")
         return {
             "ok": False,
@@ -73,7 +72,7 @@ def update_all_data(
             overwrite=False,
             incremental=dump_incremental,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("update_all_data: dump_to_qlib_bin 异常")
         return {
             "ok": False,
@@ -127,7 +126,7 @@ def full_qlib_kline_cache_and_bin_if_empty(
     logger.info("full_qlib_kline_if_empty: ingest %d symbols period=%s", len(resolved), period)
     try:
         meta = svc.ingest_symbols(resolved, MarketCode.CN, period=period, merge_existing=False)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("full_qlib_kline_if_empty ingest failed")
         return {"ok": False, "error": "ingest_failed", "message": str(exc), "skipped": False}
 
@@ -137,7 +136,7 @@ def full_qlib_kline_cache_and_bin_if_empty(
             overwrite=False,
             incremental=False,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("full_qlib_kline_if_empty dump failed")
         return {
             "ok": False,

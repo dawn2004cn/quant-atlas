@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Black Swan Stress Tester - Macro Stress Testing.
 
 Implements from strategy_plan3.md:
@@ -17,7 +18,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-
 
 from app.core.logger import get_logger
 

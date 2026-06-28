@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """AI 投资委员会 - MySQL 交易记录"""
 
 
@@ -7,12 +8,10 @@ from typing import Any
 
 from pymysql.cursors import DictCursor
 
-from app.core.utils.sql_utils import quote_identifier, validate_identifier
-from app.infrastructure.database.mysql_settings import MysqlSettings
-from app.infrastructure.database.mysql_client import mysql_connect
-
-
 from app.core.logger import get_logger
+from app.core.utils.sql_utils import quote_identifier, validate_identifier
+from app.infrastructure.database.mysql_client import mysql_connect
+from app.infrastructure.database.mysql_settings import MysqlSettings
 
 logger = get_logger(__name__)
 
@@ -236,8 +235,9 @@ class MarketDataProvider:
 
         # 备选：AkShare
         try:
-            from app.infrastructure.providers.cn_akshare_history import fetch_cn_daily_hfq
             from datetime import datetime, timedelta
+
+            from app.infrastructure.providers.cn_akshare_history import fetch_cn_daily_hfq
 
             rows, status = fetch_cn_daily_hfq(
                 index_code[-6:],

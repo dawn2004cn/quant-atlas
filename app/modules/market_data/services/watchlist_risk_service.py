@@ -1,11 +1,13 @@
 """Watchlist Risk Radar - 全站级风险雷达与止盈止损建议."""
 
 from __future__ import annotations
+
 from datetime import datetime
 from typing import Any
+
+from app.domain.dto.risk_dto import RiskAlertDTO, RiskLevel, WatchlistRiskReportDTO
 from app.domain.enums import MarketCode
-from app.domain.ports import MarketDataProvider, IndicatorProvider
-from app.domain.dto.risk_dto import RiskAlertDTO, WatchlistRiskReportDTO, RiskLevel
+from app.domain.ports import IndicatorProvider, MarketDataProvider
 
 
 class SupportResistanceCalculator:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """API v1：信号模拟观察单。"""
 
 
@@ -8,7 +9,7 @@ from flask_login import login_required
 from ...application.errors import ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
-from .common import ok_response, parse_market, ensure_service
+from .common import ensure_service, ok_response, parse_market
 from .request_parsers import parse_float_param
 from .v1_context import ApiV1Context
 

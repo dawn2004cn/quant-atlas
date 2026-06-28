@@ -1,14 +1,16 @@
 from __future__ import annotations
+
 """AI Investment Committee Service - Multi-agent debate engine using BaseAgentWorkflowEngine."""
 
 
 from datetime import datetime
 
 from app.core.logger import get_logger
-from app.domain.enums import MarketCode
 from app.domain.dto.agent_workflow_dto import AgentConfig
+from app.domain.dto.ai_dto import AgentResultDTO, DebateResponseDTO
+from app.domain.enums import MarketCode
+
 from .base_agent_workflow import BaseAgentWorkflowEngine
-from app.domain.dto.ai_dto import DebateResponseDTO, AgentResultDTO
 
 logger = get_logger(__name__)
 

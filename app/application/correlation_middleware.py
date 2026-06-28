@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Correlation ID Middleware for Flask and Celery.
 
 This module provides middleware that automatically:
@@ -10,7 +11,6 @@ This module provides middleware that automatically:
 
 
 from typing import Any
-
 
 from app.core.logger import get_logger
 
@@ -44,7 +44,8 @@ class CorrelationMiddleware:
     async def _before_request(self) -> None:
         """Process request before handling."""
         from flask import request
-        from .correlation import set_correlation_id, generate_correlation_id
+
+        from .correlation import generate_correlation_id, set_correlation_id
 
         correlation_id = request.headers.get("X-Correlation-ID")
         if not correlation_id:
@@ -88,7 +89,7 @@ class CeleryCorrelationTask:
 
         Should be called in task's before_run or as first operation.
         """
-        from .correlation import set_correlation_id, generate_correlation_id
+        from .correlation import generate_correlation_id, set_correlation_id
 
         correlation_id = kwargs.get("_correlation_id")
         if not correlation_id:
@@ -136,6 +137,7 @@ def create_task_with_correlation(coro, *args, **kwargs):
         result = await task
     """
     import asyncio
+
     from .correlation import get_correlation_id
 
     correlation_id = get_correlation_id()

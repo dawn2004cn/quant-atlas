@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Hyper-Simulator — Monte Carlo + Backtest fusion (Quant Atlas 9.0 Step Three)."""
 
 import json
@@ -167,7 +168,7 @@ class HyperSimulatorService:
                     err = raw.get("error")
                     return {"ok": err is None, "result": raw, "note": "strategy_service.backtest"}
                 return {"ok": True, "result": getattr(raw, "__dict__", raw), "note": "strategy_service.backtest"}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("hyper_sim backtest failed: %s", exc)
             return {"ok": False, "error": str(exc)}
         return {"ok": False, "error": "backtest_provider_unavailable"}
@@ -185,7 +186,7 @@ class HyperSimulatorService:
                         closes.append(float(row[key]))
                         break
             return closes
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("hyper_sim fetch_closes: %s", exc)
             return []
 
@@ -214,7 +215,7 @@ class HyperSimulatorService:
         try:
             out = self._war_room.run_war_room(user_id, wr)
             return {"ok": out.get("ok", False), "scenario_id": request.scenario_id, "portfolio": out.get("portfolio")}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("hyper_sim war_room overlay: %s", exc)
             return {"ok": False, "error": str(exc)}
 
@@ -301,7 +302,7 @@ class HyperSimulatorService:
         try:
             with self._store_path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("hyper_sim store append: %s", exc)
 
     def _read_runs(self, *, user_id: int, limit: int) -> list[dict[str, Any]]:
@@ -316,7 +317,7 @@ class HyperSimulatorService:
                 if int(row.get("user_id") or 0) != user_id:
                     continue
                 rows.append(row)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("hyper_sim store read: %s", exc)
             return []
         rows.sort(key=lambda r: r.get("run_id", ""), reverse=True)

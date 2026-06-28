@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Hedge Fund Agents - Factory and Runner.
 
 This module provides:
@@ -11,15 +12,15 @@ Now with Openclaw personality enhancement!
 """
 
 
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
-from collections.abc import Callable
 
 from app.core.llm_config import get_llm as _get_llm
 from app.core.logger import get_logger
 
-from .base import AgentSignal, AgentAnalysisContext
-from .openclaw import get_enhanced_system_prompt, get_communication_style
+from .base import AgentAnalysisContext, AgentSignal
+from .openclaw import get_communication_style, get_enhanced_system_prompt
 
 logger = get_logger(__name__)
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Cross-team meta-learning — anonymous patterns and swarm consensus alerts."""
 
 import hashlib
@@ -238,7 +239,7 @@ class CrossTeamMetaLearningService:
 
             fields = MetaArbiterVerdict.model_validate(out).to_alert_fields()
             return fields
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("meta_arbitration activation failed sym=%s: %s", symbol, exc)
             return None
 
@@ -260,7 +261,7 @@ class CrossTeamMetaLearningService:
                     level=str(alert.get("level") or "info"),
                 )
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("cross_team realtime publish: %s", exc)
 
     def _recent_alert_exists(self, symbol: str, market: str, verdict: str) -> bool:

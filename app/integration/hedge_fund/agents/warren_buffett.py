@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Warren Buffett Agent - Oracle of Omaha.
 
 Implements Buffett's value investing philosophy:
@@ -11,9 +12,8 @@ Implements Buffett's value investing philosophy:
 
 from typing import Any
 
-from .base import AgentSignal, AgentAnalysisContext, AgentConfig, BaseHedgeFundAgent
 from ..adapters import get_llm
-
+from .base import AgentAnalysisContext, AgentConfig, AgentSignal, BaseHedgeFundAgent
 
 BUFFETT_SYSTEM_PROMPT = """You are Warren Buffett, the Oracle of Omaha, making investment decisions using Buffett's principles:
 

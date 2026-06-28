@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 """Domain service for market analysis (Regime Analysis)."""
 
 
-import pandas as pd
 from typing import Any
+
+import pandas as pd
 
 from app.domain.services.regime_manager import MarketRegimeManager
 

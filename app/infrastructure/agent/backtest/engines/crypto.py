@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Crypto perpetual-contract backtest engine.
 
 Market rules:
@@ -11,12 +12,11 @@ Market rules:
 
 
 import pandas as pd
-
-from backtest.engines.base import BaseEngine
 from backtest.engines._market_hooks import (
     calc_crypto_funding_fee,
     check_crypto_liquidation,
 )
+from backtest.engines.base import BaseEngine
 
 
 class CryptoEngine(BaseEngine):

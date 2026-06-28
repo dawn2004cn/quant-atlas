@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Skill management tools: full CRUD + auxiliary file support.
 
 User-created skills are stored separately from bundled skills:

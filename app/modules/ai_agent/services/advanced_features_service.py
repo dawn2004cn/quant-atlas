@@ -6,12 +6,7 @@ from app.domain.dto.service_result import GenericResponseDTO
 全球套利、反向思维实验室、一键调仓、暗池监测"""
 
 
-from datetime import datetime
-from typing import Any
-
-
-import logging
-logger = logging.getLogger(__name__)
+import loggingfrom datetime import datetimefrom typing import Anylogger = logging.getLogger(__name__)
 
 
 def _safe_float(value: object, default: float = 0.0) -> float:

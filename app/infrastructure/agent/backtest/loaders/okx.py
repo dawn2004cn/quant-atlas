@@ -8,10 +8,10 @@ Up to 300 bars per request; paginates with ``after`` for longer history.
 
 import pandas as pd
 import requests
-
-from app.core.logger import get_logger
 from backtest.loaders.base import validate_date_range
 from backtest.loaders.registry import register
+
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -1,14 +1,13 @@
 from __future__ import annotations
+
 """Multimodal Market Intelligence Engine."""
 
-from typing import Any
-from pathlib import Path
 import base64
-
-from app.infrastructure.agent.providers.llm import build_llm
-
+from pathlib import Path
+from typing import Any
 
 from app.core.logger import get_logger
+from app.infrastructure.agent.providers.llm import build_llm
 
 logger = get_logger(__name__)
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 Repository Base Classes with Design Patterns
 
@@ -13,15 +14,13 @@ Design Patterns Applied:
 
 
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any, Generic, TypeVar
 
-from app.core.patterns.creational import Factory
 from app.core.patterns.architectural import Specification, UnitOfWork
-
-
+from app.core.patterns.creational import Factory
 
 T = TypeVar('T')
 TId = TypeVar('TId')

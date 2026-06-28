@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Common type definitions for quant-atlas.
 
 This module provides shared types used across all layers:

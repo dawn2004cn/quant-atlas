@@ -19,7 +19,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
-
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from ..core.runtime_config import get_runtime, get_runtime_float
@@ -461,8 +460,8 @@ def get_llm(config: LLMConfig | None = None) -> BaseChatModel:
 def get_llm_for_user(user_id: int = 0) -> BaseChatModel:
     """获取指定用户的 LLM 实例（优先 ProviderService，回退环境变量）。"""
     try:
-        from app.core.key_encryption import KeyEncryptionService
         from app.application.services.llm_provider_service import LlmProviderService
+        from app.core.key_encryption import KeyEncryptionService
         from app.infrastructure.repositories.llm_config_repository import SqlAlchemyUserLlmConfigRepository
         try:
             from flask import current_app

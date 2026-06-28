@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Memory data store for backtesting to eliminate redundant I/O."""
 
 from collections import OrderedDict

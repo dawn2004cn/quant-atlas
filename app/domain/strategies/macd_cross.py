@@ -1,4 +1,4 @@
-from .base import BaseStrategy, StrategySignal, StrategyResult
+from .base import BaseStrategy, StrategyResult, StrategySignal
 
 
 def _compute_macd(prices: list[float], period: int = 12) -> tuple[float, float, float]:

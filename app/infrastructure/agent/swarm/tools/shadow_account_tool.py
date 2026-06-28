@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shadow Account BaseTool wrappers (auto-discovered by `app.infrastructure.agent.swarm.tools` registry).
 
 Four tools, all thin — business logic lives in `app.infrastructure.agent.shadow_account`:
@@ -14,8 +15,7 @@ from dataclasses import asdict
 from datetime import date, timedelta
 from typing import Any
 
-from app.infrastructure.agent.swarm.tools_base import BaseTool
-from app.infrastructure.agent.swarm.tools.path_utils import safe_user_path
+from app.core.logger import get_logger
 from app.infrastructure.agent.shadow_account import (
     extract_shadow_profile,
     load_profile,
@@ -25,9 +25,8 @@ from app.infrastructure.agent.shadow_account import (
 )
 from app.infrastructure.agent.shadow_account.backtester import load_cached_result
 from app.infrastructure.agent.shadow_account.scanner import scan_today_signals
-
-
-from app.core.logger import get_logger
+from app.infrastructure.agent.swarm.tools.path_utils import safe_user_path
+from app.infrastructure.agent.swarm.tools_base import BaseTool
 
 logger = get_logger(__name__)
 

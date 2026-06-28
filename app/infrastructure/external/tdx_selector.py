@@ -1,11 +1,12 @@
-import time
-from pytdx.hq import TdxHq_API
-from pytdx.exhq import TdxExHq_API
-
 import logging
+import time
+
+from pytdx.exhq import TdxExHq_API
+from pytdx.hq import TdxHq_API
+
 logger = logging.getLogger(__name__)
 
-from app.config.tdx_servers import get_tdx_servers, get_tdx_ex_servers
+from app.config.tdx_servers import get_tdx_ex_servers, get_tdx_servers
 
 TDX_SERVERS = get_tdx_servers()
 TDX_EX_SERVERS = get_tdx_ex_servers()
@@ -54,7 +55,7 @@ class TdxBestServersConnect:
         """返回按延迟排序的服务器列表"""
         self.best_servers = []
         #for name, ip, port in self.server_pool:
-        for idx, s in enumerate(self.server_pool):
+        for _idx, s in enumerate(self.server_pool):
             self.test_server(s['name'], s['ip'], s['port'])
 
         return sorted(self.best_servers, key=lambda x: x['ms'])

@@ -1,6 +1,8 @@
 from __future__ import annotations
-from app.domain.dto.service_result import GenericResponseDTO
+
 from app.core.registry import register_service
+from app.domain.dto.service_result import GenericResponseDTO
+
 """Investment Committee multi-agent service - implements consensus mechanism.
 
 This module implements the multi-agent consensus mechanism from midify_plan7.md:
@@ -14,7 +16,6 @@ This module implements the multi-agent consensus mechanism from midify_plan7.md:
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
-
 
 from app.core.logger import get_logger
 

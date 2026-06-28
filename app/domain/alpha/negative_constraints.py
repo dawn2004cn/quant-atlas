@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Negative constraints library for RD-Agent.
 
 This implements the "Guardrails" from quant_plan.md:

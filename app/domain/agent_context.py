@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 """Standardized AgentContext for consistent data passing between agents."""
 
 
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
-
 
 from app.core.logger import get_logger
 

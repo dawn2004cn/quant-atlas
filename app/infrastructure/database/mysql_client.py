@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """MySQL access helpers backed by SQLAlchemy connection pooling.
 
 This module provides pooled DBAPI connections while maintaining backward
@@ -14,10 +15,10 @@ import pymysql.err
 from pymysql.cursors import DictCursor
 from sqlalchemy.exc import OperationalError as SAOperationalError
 
+from app.core.logger import get_logger
+
 from .mysql_settings import MysqlSettings
 from .orm import create_db_engine, mysql_database_uri, mysql_engine_kwargs
-
-from app.core.logger import get_logger
 
 
 def _mysql_ssl_args() -> dict:

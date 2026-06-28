@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Strategy Engine - 策略引擎。
 
 提供策略的运行管理:
@@ -12,10 +13,10 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
-from collections.abc import Callable
 
 from .protocol import (
     PluginConfig,

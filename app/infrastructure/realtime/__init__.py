@@ -11,7 +11,7 @@ from .stream_processor import StreamProcessor, create_pipeline
 
 try:
     from .quote_aggregator import QuoteAggregator
-except Exception:  # noqa: BLE001
+except Exception:
     QuoteAggregator = None  # type: ignore[misc,assignment]
 
 __all__ = [

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TDX 在线财务快照（pytdx get_finance_info）。"""
 
 

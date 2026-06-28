@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """Celery task: dispatch alert center feed to external channels."""
 
 from typing import Any
 
-from app.modules.system.services.system.alert_notification_service import AlertNotificationService
 from app.core.logger import get_logger
+from app.modules.system.services.system.alert_notification_service import AlertNotificationService
 
 logger = get_logger(__name__)
 

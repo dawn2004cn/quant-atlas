@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """A 股代码 ↔ pytdx market 参数（domain 纯逻辑）。"""
 
 from app.domain.shared.symbol_normalizer import SymbolNormalizer

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Unified Arrow Data Bridge - zero-copy data flow to qlib.
 
 This module provides a bridge from ArrowPool to qlib's data pipeline,
@@ -7,6 +8,7 @@ enabling zero-copy data transfer for real-time factor experiments.
 
 
 from typing import Any
+
 import numpy as np
 
 

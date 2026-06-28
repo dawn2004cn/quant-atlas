@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Statistical validation for backtest results.
 
 Three independent tools:
@@ -16,10 +17,8 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-
 from backtest.models import TradeRecord
 from backtest.stdio_json import write_stdout_json
-
 
 # ─── Monte Carlo Permutation Test ───
 

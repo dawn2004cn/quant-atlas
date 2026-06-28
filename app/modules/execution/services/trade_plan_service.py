@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Trade plan service with typed DTOs."""
 
 
@@ -144,7 +146,7 @@ class TradePlanService:
             quotes = self._market_service.list_quotes(market, [symbol])
             if quotes:
                 return _to_dict(quotes[0])
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("trade plan quote unavailable for %s: %s", symbol, exc)
         return {"code": symbol, "name": symbol}
 
@@ -359,7 +361,7 @@ class TradePlanService:
                 "blocked_rules": result.blocked_rules,
                 "details": result.details,
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("trade plan risk check failed for %s: %s", symbol, exc)
             return {"allowed": True, "reason": f"risk_check_unavailable: {exc}"}
 

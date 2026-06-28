@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Pytdx 能力目录（对照 https://pytdx-docs.readthedocs.io/zh-cn/latest/ ）。"""
 
 

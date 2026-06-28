@@ -28,14 +28,14 @@ from .nodes import (
     decision_dashboard_node,
     fundamental_analyst_node,
     macro_analyst_node,
-    risky_analyst_node,
     risk_manager_node,
+    risky_analyst_node,
     safe_analyst_node,
     sentiment_analyst_node,
     supervisor_node,
     technical_analyst_node,
-    write_macro_evidence,
     write_fundamental_evidence,
+    write_macro_evidence,
 )
 from .routing import ROUTERS
 from .state import ResearchState
@@ -61,8 +61,8 @@ def build_custom_trading_graph(
     # Lazy imports for evidence infrastructure
     from ...agents.evidence_blackboard import get_evidence_blackboard
     from ...agents.evidence_router import create_default_router as get_evidence_router
-    from ...agents.tiered_llm import create_orchestrator as get_tiered_llm_orchestrator
     from ...agents.global_tool_wrapper import get_global_tool_wrapper as get_evidence_aware_wrapper
+    from ...agents.tiered_llm import create_orchestrator as get_tiered_llm_orchestrator
 
     get_evidence_blackboard()
     get_evidence_router()

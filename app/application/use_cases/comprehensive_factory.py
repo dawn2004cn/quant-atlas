@@ -1,32 +1,33 @@
 from __future__ import annotations
+
 """Comprehensive UseCase Factory - All use cases."""
 
 
 from .market_use_cases import (
-    GetStockQuotesUseCase,
-    GetMarketPanoramaUseCase,
     GetMarketMovementsUseCase,
+    GetMarketPanoramaUseCase,
     GetMarketSentimentUseCase,
     GetStockDetailUseCase,
     GetStockHistoryUseCase,
-)
-from .watchlist_use_cases import (
-    GetWatchlistUseCase,
-    AddToWatchlistUseCase,
-    RemoveFromWatchlistUseCase,
-    GetWatchlistGroupsUseCase,
-)
-from .portfolio_use_cases import (
-    GetPortfolioUseCase,
-    GetPortfolioPositionsUseCase,
-    UpdatePortfolioUseCase,
-    GetPortfolioPerformanceUseCase,
+    GetStockQuotesUseCase,
 )
 from .news_use_cases import (
-    GetMarketHeadlinesUseCase,
-    GetStockNewsUseCase,
-    GetStockNewsArchiveUseCase,
     GetIndustryNewsUseCase,
+    GetMarketHeadlinesUseCase,
+    GetStockNewsArchiveUseCase,
+    GetStockNewsUseCase,
+)
+from .portfolio_use_cases import (
+    GetPortfolioPerformanceUseCase,
+    GetPortfolioPositionsUseCase,
+    GetPortfolioUseCase,
+    UpdatePortfolioUseCase,
+)
+from .watchlist_use_cases import (
+    AddToWatchlistUseCase,
+    GetWatchlistGroupsUseCase,
+    GetWatchlistUseCase,
+    RemoveFromWatchlistUseCase,
 )
 
 

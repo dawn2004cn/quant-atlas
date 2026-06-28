@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Serve project-root ``static/`` and ``instance/uploads/`` reliably."""
 
 

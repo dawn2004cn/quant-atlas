@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Stream Processor - 流式数据处理管道。
 
 提供类似 RxPY 的流式处理能力:
@@ -9,11 +10,12 @@ from __future__ import annotations
 
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Generic, TypeVar
-from collections.abc import Callable
 
 from app.core.logger import get_logger
+
 from .market_stream import Quote
 
 logger = get_logger(__name__)

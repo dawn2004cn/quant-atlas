@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """DTO validators using Pydantic."""
 
 
 from datetime import datetime
 
-from pydantic import BaseModel, field_validator, model_validator, ValidationError
+from pydantic import BaseModel, ValidationError, field_validator, model_validator
 
 from app.core.logger import get_logger
 

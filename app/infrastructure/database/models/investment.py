@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 """ORM models for Investment Managers, Portfolios, and User Race."""
 
 
-from sqlalchemy import Index, String, Integer, Double, Text, SmallInteger, BIGINT, PrimaryKeyConstraint
+from sqlalchemy import BIGINT, Double, Index, Integer, PrimaryKeyConstraint, SmallInteger, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..orm import Base

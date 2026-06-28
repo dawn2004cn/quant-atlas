@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Pipeline Tools - 研究pipeline和智能流程相关工具."""
 
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
 from langchain_core.tools import tool
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..core.logger import get_logger
 
@@ -86,6 +87,7 @@ def run_intelligent_pipeline(
 ) -> IntelligentPipelineToolResult:
     """运行智能研究Pipeline."""
     import uuid
+
     from ..modules.ai_agent.services.ai_research_service import get_ai_research_service
 
     try:

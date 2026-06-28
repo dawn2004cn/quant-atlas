@@ -25,7 +25,7 @@ class FileMetaLearningRepository:
             raw = json.loads(self._patterns_path.read_text(encoding="utf-8"))
             items = raw.get("patterns") if isinstance(raw, dict) else raw
             return list(items) if isinstance(items, list) else []
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("file_meta_learning_repository.load_patterns: %s", exc)
             return []
 
@@ -42,7 +42,7 @@ class FileMetaLearningRepository:
         try:
             raw = json.loads(self._state_path.read_text(encoding="utf-8"))
             return raw if isinstance(raw, dict) else {}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("file_meta_learning_repository.load_state: %s", exc)
             return {}
 

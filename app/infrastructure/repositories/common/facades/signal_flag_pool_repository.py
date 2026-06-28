@@ -9,6 +9,7 @@ from ..factory import RepositoryType, create_repository
 
 # Populate RepositoryRegistry on import.
 from ..register import ensure_registered
+
 ensure_registered()
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Alpha Expression Parser - 因子表达式解析器.
 
 解析 WorldQuant Alpha 表达式，验证语法并转换为可执行函数。

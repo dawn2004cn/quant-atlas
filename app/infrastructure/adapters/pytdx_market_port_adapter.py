@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Infrastructure adapter for ``PytdxMarketPort``."""
 
 from typing import Any

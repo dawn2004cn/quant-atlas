@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """将自由文本叙述映射为 ``fingpt_sentiment`` 入库字段（研究 Sentiment 节点 / AI 个股分析等复用）。"""
 
 

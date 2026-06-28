@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Loader registry with market-level fallback chains.
 
 Loaders self-register via the ``@register`` decorator when their module is
@@ -12,7 +13,6 @@ of import order.
 from typing import Any
 
 from backtest.loaders.base import NoAvailableSourceError
-
 
 from app.core.logger import get_logger
 

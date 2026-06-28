@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Monte Carlo engines for Hyper-Simulator — trade permutation + GBM price paths."""
 
 from typing import Any

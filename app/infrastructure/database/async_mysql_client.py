@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Asynchronous MySQL client using SQLAlchemy and asyncmy.
 
 This module provides async database connectivity for Phase 41 migration.
@@ -19,11 +20,10 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import AsyncAdaptedQueuePool
 
+from app.core.logger import get_logger
+
 from ...core.runtime_config import get_runtime_int
 from .mysql_settings import MysqlSettings
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

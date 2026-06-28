@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TopologyGenerator — dynamic agent cloning & topology self-assembly (9.0 Swarm Morphing)."""
 
 import uuid

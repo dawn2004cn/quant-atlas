@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Module auto-discovery scanner.
 
 Uses ``app.core.registry`` for route discovery (replaces legacy ``core.modules``).

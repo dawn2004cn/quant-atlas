@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Startup Diagnostics Service.
 
 Logs and tracks application startup sequence.
@@ -7,7 +8,6 @@ Logs and tracks application startup sequence.
 
 import time
 from dataclasses import dataclass
-
 
 from app.core.logger import get_logger
 

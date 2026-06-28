@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """API v1: Strategy optimization routes."""
 
 
@@ -8,9 +9,9 @@ from flask_login import login_required
 from ...application.errors import ValidationError
 from ...core.registry import register_routes
 from .common import ok_resource
-from .v1_context import ApiV1Context
-from .request_parsers import parse_int_param
 from .decorators import service_fallback
+from .request_parsers import parse_int_param
+from .v1_context import ApiV1Context
 
 
 @register_routes(name="strategy_optimization", context="strategy", description="Strategy optimization routes")

@@ -1,9 +1,9 @@
 from __future__ import annotations
+
 """Async market data provider using aiotdx or httpx."""
 
 
 from typing import Any
-
 
 from app.core.logger import get_logger
 
@@ -87,8 +87,9 @@ class AsyncMarketProvider:
     ) -> list[dict[str, Any]]:
         """Fallback to AkShare for history."""
         try:
-            import akshare as ak
             import asyncio
+
+            import akshare as ak
             loop = asyncio.get_event_loop()
             df = await loop.run_in_executor(
                 None,

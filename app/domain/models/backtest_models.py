@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Minimal backtest domain objects for /api/v1/arch/backtest routes."""
 
 

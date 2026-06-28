@@ -10,6 +10,7 @@ from app.presentation.api.common import ok_response
 from app.presentation.api.v1.swarm_topology._helpers import topology_service, unavailable_response
 from app.presentation.api.v1.swarm_topology.runtime import SwarmTopologyRuntime
 from app.presentation.api.v1_context import ApiV1Context
+
 from ...decorators import require_role
 
 
@@ -119,7 +120,7 @@ def register_swarm_topology_core_routes(
 
         try:
             topo = SwarmTopologyDescriptor.model_validate(body)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             raise ValidationError("invalid_topology", details={"reason": str(exc)}) from exc
         validation = svc.validate_topology(topo)
         return ok_response(

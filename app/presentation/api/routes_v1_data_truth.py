@@ -1,16 +1,18 @@
 from __future__ import annotations
+
 """Data Truth Guardian API — Quant Atlas 9.0 Step Four."""
 
 from flask import Blueprint, request
 from flask_login import login_required
 
-from ...application.errors import ValidationError
+from app.core.registry import register_routes
 from app.domain.data_truth.guardian_schema import GuardianQuorumRequest, GuardianScanRequest
+
+from ...application.errors import ValidationError
 from .common import ok_response
+from .decorators import require_role, service_fallback
 from .request_parsers import parse_int_param
 from .v1_context import ApiV1Context
-from app.core.registry import register_routes
-from .decorators import service_fallback, require_role
 
 
 @register_routes(name="data_truth", context="data", description="Data Truth Guardian API (Quant Atlas 9.0 Step Four)")
@@ -44,7 +46,7 @@ def register_data_truth_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
             raise ValidationError("symbols_required")
         try:
             req = GuardianScanRequest.model_validate({**body, "symbols": symbols})
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             raise ValidationError("invalid_scan_request", details={"reason": str(exc)}) from exc
         payload = svc.scan(req)
         if not payload.get("ok"):
@@ -64,7 +66,7 @@ def register_data_truth_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
             raise ValidationError("symbols_required")
         try:
             req = GuardianQuorumRequest.model_validate({**body, "symbols": symbols})
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             raise ValidationError("invalid_quorum_request", details={"reason": str(exc)}) from exc
         payload = svc.quorum_scan(req)
         if not payload.get("ok"):

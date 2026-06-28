@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Application service for orchestrating AI Agent analyses."""
 
 
-from app.domain.ports import AgentRepository, AgentLLMPort, MarketDataProvider
+from app.core.logger import get_logger
 from app.domain.agent_entities import MarketInsight, ReportInterpretation
 from app.domain.enums import MarketCode
-from app.core.logger import get_logger
+from app.domain.ports import AgentLLMPort, AgentRepository, MarketDataProvider
 
 logger = get_logger(__name__)
 

@@ -40,7 +40,7 @@ class ServiceBootstrap:
             deps = entry.depends or []
             graph[name] = deps
             in_degree[name] = 0
-        for name, deps in graph.items():
+        for _name, deps in graph.items():
             for dep in deps:
                 if dep in in_degree:
                     in_degree[dep] += 1
@@ -109,10 +109,10 @@ def init_watchlist_services(services: Any, repositories: Any | None = None) -> N
     if services.watchlist_service is not None and services.stock_group_service is not None:
         return
     try:
-        from app.modules.market_data.services.watchlist_service import WatchlistApplicationService
         from app.modules.market_data.services.stock_group_service import StockGroupApplicationService
         from app.modules.market_data.services.watchlist_agent_service import WatchlistAgentService
         from app.modules.market_data.services.watchlist_experience_service import WatchlistExperienceService
+        from app.modules.market_data.services.watchlist_service import WatchlistApplicationService
 
         watchlist_repo = getattr(repositories, "watchlist_repository", None) if repositories else None
         stock_group_repo = getattr(repositories, "stock_group_repository", None) if repositories else None
@@ -158,8 +158,8 @@ def init_signal_flag_service(services: Any, settings: Any | None = None) -> None
         return
     try:
         from app.config import get_settings
-        from app.modules.strategy.services.strategy.signal_flag_service import SignalFlagScannerService
         from app.infrastructure.repositories.deps import create_signal_flag_pool_repository
+        from app.modules.strategy.services.strategy.signal_flag_service import SignalFlagScannerService
 
         s = settings or get_settings()
         repo = create_signal_flag_pool_repository(s)

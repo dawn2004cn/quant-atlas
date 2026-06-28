@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """DTO Factory for creating validated DTO instances."""
 
 
 from typing import Any
+
 from pydantic import BaseModel, ValidationError
 
 from app.core.logger import get_logger
@@ -60,13 +62,24 @@ class DTOFactory:
 def register_dtos():
     """Register all DTOs."""
     from app.application.dto.contracts import (
-        BarContract, QuoteContract, StrategySignalContract,
-        PositionContract, PortfolioContract, RiskAssessmentContract,
-        OrderContract, TaskContract, EventContract,
+        BarContract,
+        EventContract,
+        OrderContract,
+        PortfolioContract,
+        PositionContract,
+        QuoteContract,
+        RiskAssessmentContract,
+        StrategySignalContract,
+        TaskContract,
     )
     from app.domain.dto.market_data import (
-        BarData, QuoteData, StockProfile, MarketStats,
-        SignalData, PositionData, RiskAssessmentData,
+        BarData,
+        MarketStats,
+        PositionData,
+        QuoteData,
+        RiskAssessmentData,
+        SignalData,
+        StockProfile,
     )
 
     DTOFactory.register("bar", BarContract)

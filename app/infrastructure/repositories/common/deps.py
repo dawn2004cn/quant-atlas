@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Repository factory helpers for SQLite/MySQL backends.
 
 This module provides both sync and async repository factory functions.
@@ -20,7 +21,7 @@ Async factories (Phase 41):
 from pathlib import Path
 from typing import Any
 
-from ....config import AppSettings, INSTANCE_DIR
+from ....config import INSTANCE_DIR, AppSettings
 from ..mysql.mysql_repositories import (
     MySQLStockGroupRepository,
     MySQLUserRepository,
@@ -39,15 +40,15 @@ try:
 except ImportError as _e:
     _SQLITE_IMPORT_ERROR = _e
 
+from ...database.async_mysql_client import create_async_session_factory
 from ..mysql.async_mysql_repositories import (
+    AsyncMySQLInvestmentManagerRepository,
+    AsyncMySQLSignalFlagPoolRepository,
+    AsyncMySQLStockGroupRepository,
+    AsyncMySQLTradingRepository,
     AsyncMySQLUserRepository,
     AsyncMySQLWatchlistRepository,
-    AsyncMySQLStockGroupRepository,
-    AsyncMySQLSignalFlagPoolRepository,
-    AsyncMySQLTradingRepository,
-    AsyncMySQLInvestmentManagerRepository,
 )
-from ...database.async_mysql_client import create_async_session_factory
 
 
 def create_stock_cache():
@@ -124,10 +125,10 @@ def create_tdx_gpcw_repository(settings: AppSettings):
 
 def create_default_qlib_pipeline_service():
     """Construct Qlib pipeline with the same dependencies as ``create_app``."""
-    from app.modules.data.services.qlib_pipeline_service import QlibPipelineService
-    from app.modules.system.services.tools.tool_facade_service import ToolFacadeService
     from app.config import BASE_DIR, get_settings
     from app.infrastructure.providers.market_data import MultiSourceMarketProvider
+    from app.modules.data.services.qlib_pipeline_service import QlibPipelineService
+    from app.modules.system.services.tools.tool_facade_service import ToolFacadeService
 
     s = get_settings()
     return QlibPipelineService(
@@ -413,8 +414,8 @@ def create_tdx_dayk_sync_service(*, base_dir=None, require_qlib: bool = True):
     """TDX 日 K 同步服务（Celery / API / 脚本统一入口）。"""
     from pathlib import Path
 
-    from app.modules.data.services.tdx_dayk_sync_service import TdxDaykSyncService
     from app.config import BASE_DIR, get_settings
+    from app.modules.data.services.tdx_dayk_sync_service import TdxDaykSyncService
 
     root = Path(base_dir) if base_dir is not None else BASE_DIR
     settings = get_settings()

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Benchmark ticker resolution and fetch for backtest comparison.
 
 Provides a lightweight, zero-dependency way to fetch benchmark reference
@@ -9,9 +10,7 @@ data given a set of strategy codes and a data source.
 from dataclasses import dataclass
 
 import pandas as pd
-
 from backtest.loaders.yfinance_loader import DataLoader as YfinanceLoader
-
 
 # -------------------------------------------------------------------
 # Benchmark map: market type → default ticker

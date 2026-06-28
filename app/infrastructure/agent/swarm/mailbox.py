@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Swarm multi-agent system — file-based Mailbox.
 
 Ported from Vibe-Trading.

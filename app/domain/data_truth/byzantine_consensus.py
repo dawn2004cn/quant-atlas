@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Byzantine-style quorum consensus over multi-source market quotes."""
 
 from dataclasses import dataclass, field

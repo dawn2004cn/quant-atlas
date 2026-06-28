@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Qlib task service stub implementation - placeholder for rd-agent to qlib pipeline.
 
 This is a stub implementation for development/testing.

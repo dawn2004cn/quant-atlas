@@ -7,7 +7,8 @@
 
 from __future__ import annotations
 
-from app.config.settings import get_settings as _get_settings, reset_settings as _reset_settings
+from app.config.settings import get_settings as _get_settings
+from app.config.settings import reset_settings as _reset_settings
 
 
 def get_settings():

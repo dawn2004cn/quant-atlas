@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Jarvis semantic penetration — fuzzy intents + UserKnowledge pattern matching (7.0)."""
 
 import re
@@ -6,11 +7,11 @@ import uuid
 from typing import Any
 from urllib.parse import urlencode
 
-from app.modules.ai_agent.services.command_plan_service import CommandPlanService
 from app.core.logger import get_logger
-from app.domain.dto.decision_context_dto import DecisionContextDTO, EvidenceNoteDTO
 from app.core.middleware.health_aware import append_health_notice
 from app.core.strategic_sunset import feature_enabled
+from app.domain.dto.decision_context_dto import DecisionContextDTO, EvidenceNoteDTO
+from app.modules.ai_agent.services.command_plan_service import CommandPlanService
 
 logger = get_logger(__name__)
 
@@ -350,7 +351,7 @@ class JarvisSemanticRouterService:
             scored.sort(key=lambda x: x[0], reverse=True)
             if scored:
                 return [item for _, item in scored[:5]]
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("pattern pick via strategy failed: %s", exc)
 
         return [

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """统一命令行入口（门户新闻抓取、龙虎榜/研报入库）。"""
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Core bot loop logic (Freqtrade port) — ExecutionGateway only."""
 
 import asyncio
@@ -8,14 +9,14 @@ from typing import Any
 
 import pandas as pd
 
-from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
-from app.modules.system.services.helpers.tracing_access import create_span
 from app.core.logger import get_logger
 from app.domain.enums import MarketCode
 from app.domain.execution.driver_protocol import ExecutionGateway, OrderSide, OrderType, TradeRequest
 from app.domain.ports import TradeRepository
 from app.domain.strategy import BaseStrategy
 from app.domain.trading_entities import Trade
+from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
+from app.modules.system.services.helpers.tracing_access import create_span
 
 logger = get_logger(__name__)
 
@@ -171,7 +172,7 @@ class BotEngine:
         while self._is_running:
             try:
                 self.run_once()
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.error("Error in bot loop: %s", exc)
             time.sleep(self._config.get("loop_interval", 60))
 

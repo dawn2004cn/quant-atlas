@@ -1,16 +1,22 @@
 from __future__ import annotations
+
 """Multi-market data provider with L1/L2 caching and Optimized Sentiment."""
 
 
 import math
-import time
-
-from datetime import date, datetime, timedelta
-from dataclasses import asdict
-from typing import Any
-from collections.abc import Callable
 import threading
+import time
+from collections.abc import Callable
+from dataclasses import asdict
+from datetime import date, datetime, timedelta
+from typing import Any
 
+import yfinance as yf
+
+from app.domain.dto.quote_factory import quote_to_dict
+from app.domain.shared.market_history_utils import filter_sort_history as _filter_sort_history
+
+from ...core.logger import get_logger
 from ...domain.entities import ChipDistribution, StockQuote
 from ...domain.enums import MarketCode
 from ...domain.ports import MarketDataProvider
@@ -18,17 +24,10 @@ from ...domain.quote_gateway import QuoteGateway
 from ...domain.tdx import TdxClient
 from ..adapters.legacy_tdx_adapter import LegacyTdxAdapter
 from ..adapters.tencent_quote_gateway import TencentQuoteGateway
+from ..calendar.cn_sse_calendar import is_cn_equity_trading_day
 from ..database.stock_cache_db import StockCache
 from ..mappers.symbol_normalizer import SymbolNormalizer
 from ..mappers.tencent_quote_mapper import _split_gtimg_fields
-from ..calendar.cn_sse_calendar import is_cn_equity_trading_day
-from ...core.logger import get_logger
-import yfinance as yf
-
-
-
-from app.domain.dto.quote_factory import quote_to_dict
-from app.domain.shared.market_history_utils import filter_sort_history as _filter_sort_history
 
 logger = get_logger(__name__)
 
@@ -284,7 +283,7 @@ class MultiSourceMarketProvider(MarketDataProvider):
                         if sym in sym_set:
                             raw.append(self._akrow_to_quote(dict(row), MarketCode.US))
             elif market == MarketCode.HK:
-                if _hk_until > time.time():  # noqa: F823
+                if _hk_until > time.time():
                     logger.debug("HK circuit breaker open, skip primary")
                     _mark_market_data_degraded("market_hk_circuit")
                 else:

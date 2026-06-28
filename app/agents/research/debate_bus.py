@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Publish LangGraph debate rounds to EventBus (Hybrid Arbiter pattern)."""
 
 import re
@@ -117,7 +118,7 @@ def publish_debate_round(
             payload=record,
             source="research_graph",
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("debate replay snapshot skipped: %s", exc)
     logger.debug(
         "DebateRound published sym=%s role=%s round=%s conf=%.2f",

@@ -3,21 +3,15 @@ from __future__ import annotations
 """Celery task wiring: shared infrastructure bindings and service factories."""
 
 from pathlib import Path
-
 from typing import Any
-from app.core.logger import get_logger
-
-from app.modules.data.services.basic_market_data_service import BasicMarketDataService
-
-from app.modules.system.services.helpers.market_data_ingestor_access import create_longhu_ingestor
-
-from app.modules.market_data.services.stock_service import StockApplicationService
 
 from app.bootstrap_components.infrastructure_binding import bind_application_infrastructure
-
 from app.config import BASE_DIR, get_settings
-
+from app.core.logger import get_logger
 from app.domain.ports.market_ports import MarketDataProvider, NewsProvider
+from app.modules.data.services.basic_market_data_service import BasicMarketDataService
+from app.modules.market_data.services.stock_service import StockApplicationService
+from app.modules.system.services.helpers.market_data_ingestor_access import create_longhu_ingestor
 
 _worker_session_factory: Any | None = None
 
@@ -59,13 +53,9 @@ def get_worker_session_factory() -> Any | None:
         return None
 
     from app.infrastructure.database.orm import (
-
         create_db_engine,
-
         create_session_factory,
-
         mysql_engine_kwargs,
-
     )
 
     engine = create_db_engine(settings.database_uri, **mysql_engine_kwargs())
@@ -378,13 +368,9 @@ def create_swarm_agent_service() -> Any:
     ensure_task_bindings()
 
     from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
-
     from app.modules.system.services.helpers.agent_access import (
-
         create_expert_skill_port,
-
         create_swarm_orchestrator_port,
-
     )
 
     return SwarmAgentService(

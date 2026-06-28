@@ -1,19 +1,18 @@
 from __future__ import annotations
+
 """Global market data API routes."""
 
 
 from flask import Blueprint, request
 from flask_login import login_required
 
+from ...application.errors import ExternalServiceError, ValidationError
 from ...core.logger import get_logger
 from ...core.registry import register_routes
-from ...application.errors import ExternalServiceError, ValidationError
+from ...domain.dto import GlobalHistoryDTO, GlobalQuoteDTO
 from .common import ok_response, parse_market
 from .route_deps import MarketRouteDeps, build_market_route_deps
 from .v1_context import ApiV1Context
-from ...domain.dto import GlobalQuoteDTO, GlobalHistoryDTO
-
-
 
 logger = get_logger(__name__)
 

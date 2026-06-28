@@ -51,11 +51,31 @@ def _register_strategy_routes(blueprint: Blueprint, ctx: Any | None = None) -> N
         ctx = _MinimalContext()
 
     # Import route registration functions (side-effect: registers routes on blueprint)
-    from app.presentation.api.routes_v1_recommendations import (
-        register_recommendation_routes,
+    import logging
+
+    from app.presentation.api.routes_v1_alpha_mining import (
+        register_alpha_mining_routes,
+    )
+    from app.presentation.api.routes_v1_attribution import (
+        register_attribution_routes,
     )
     from app.presentation.api.routes_v1_factor import (
         register_factor_routes,
+    )
+    from app.presentation.api.routes_v1_one_click import (
+        register_one_click_routes,
+    )
+    from app.presentation.api.routes_v1_recommendations import (
+        register_recommendation_routes,
+    )
+    from app.presentation.api.routes_v1_reviews import (
+        register_review_routes,
+    )
+    from app.presentation.api.routes_v1_signal_flag import (
+        register_signal_flag_routes,
+    )
+    from app.presentation.api.routes_v1_strategy_copilot import (
+        register_strategy_copilot_routes,
     )
     from app.presentation.api.routes_v1_strategy_optimization import (
         register_strategy_optimization_routes,
@@ -63,29 +83,11 @@ def _register_strategy_routes(blueprint: Blueprint, ctx: Any | None = None) -> N
     from app.presentation.api.routes_v1_strategy_shadow import (
         register_strategy_shadow_routes,
     )
-    from app.presentation.api.routes_v1_strategy_copilot import (
-        register_strategy_copilot_routes,
-    )
     from app.presentation.api.routes_v1_strategy_snapshots import (
         register_strategy_snapshot_routes,
     )
     from app.presentation.api.routes_v1_strategy_synthesis import (
         register_strategy_synthesis_routes,
-    )
-    from app.presentation.api.routes_v1_signal_flag import (
-        register_signal_flag_routes,
-    )
-    from app.presentation.api.routes_v1_attribution import (
-        register_attribution_routes,
-    )
-    from app.presentation.api.routes_v1_reviews import (
-        register_review_routes,
-    )
-    from app.presentation.api.routes_v1_alpha_mining import (
-        register_alpha_mining_routes,
-    )
-    from app.presentation.api.routes_v1_one_click import (
-        register_one_click_routes,
     )
     from app.presentation.api.routes_v1_strategy_wizard import (
         register_strategy_wizard_routes,
@@ -96,8 +98,6 @@ def _register_strategy_routes(blueprint: Blueprint, ctx: Any | None = None) -> N
     from app.presentation.api.routes_v1_wisdom_mesh import (
         register_wisdom_mesh_routes,
     )
-
-    import logging
     logger = logging.getLogger(__name__)
 
     # Register each route group, skipping if dependencies missing
@@ -211,7 +211,7 @@ def create_strategy_app() -> Any:
 
         return app
     except ImportError:
-        raise RuntimeError("Flask is required for strategy service")
+        raise RuntimeError("Flask is required for strategy service") from None
 
 
 __all__ = [

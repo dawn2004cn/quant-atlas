@@ -72,8 +72,8 @@ def register_system_health_routes(blueprint: Blueprint, ctx: ApiV1Context) -> No
     @require_role("can_manage_users")
     def system_microkernel():
         """Declarative module/service/event manifest for the self-discovery kernel."""
-        from app.core.registry import context_module_manifest, registered_service_names
         from app.core.event_bus import get_event_bus
+        from app.core.registry import context_module_manifest, registered_service_names
 
         manifest = context_module_manifest()
         return ok_response(

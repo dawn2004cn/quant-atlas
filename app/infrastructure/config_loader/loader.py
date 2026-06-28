@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 """Dynamic Configuration Loader for modular business rules."""
 
 
 import json
 from pathlib import Path
 from typing import Any
-
 
 from app.core.logger import get_logger
 

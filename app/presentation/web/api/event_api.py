@@ -1,16 +1,15 @@
 from __future__ import annotations
+
 """Event API Blueprint.
 
 REST endpoints for domain events.
 """
 
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
 
 from app.application.mediator import fetch
 from app.application.queries import GetEventHistoryQuery
-
-
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

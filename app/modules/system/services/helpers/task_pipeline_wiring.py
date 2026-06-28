@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -27,8 +28,8 @@ warnings.warn(
 
 from collections.abc import Callable
 from typing import Any
-from app.domain.ports.task_pipeline_ports import TaskPipelinePort
 
+from app.domain.ports.task_pipeline_ports import TaskPipelinePort
 
 _create_pipeline: Callable[[], TaskPipelinePort] | None = None
 _create_observer: Callable[[TaskPipelinePort], Any] | None = None

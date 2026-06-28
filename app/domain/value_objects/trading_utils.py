@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Pure utility functions for trading domain value objects.
 
 Extracted from psychology_execution_loader to break the

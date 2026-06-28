@@ -5,16 +5,16 @@
 2. GrpcExecutor: 基于 gRPC 的远程执行 (预留)
 """
 
+from .order_manager import OrderManager
 from .protocol import (
+    ExecutionGateway,
+    OrderSide,
+    OrderStatus,
+    OrderType,
     TradeRequest,
     TradeResponse,
-    OrderStatus,
-    OrderSide,
-    OrderType,
-    ExecutionGateway,
 )
 from .redis_executor import RedisStreamExecutor
-from .order_manager import OrderManager
 
 __all__ = [
     "TradeRequest",

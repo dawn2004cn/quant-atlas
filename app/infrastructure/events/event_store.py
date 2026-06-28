@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Event Store - Infrastructure for persisting domain events.
 
 Provides event store with persistence and replay capability.
@@ -6,15 +7,13 @@ Provides event store with persistence and replay capability.
 
 
 import json
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
-
-from app.domain.events.handlers import DomainEvent, EventBus
-
 
 from app.core.logger import get_logger
+from app.domain.events.handlers import DomainEvent, EventBus
 
 logger = get_logger(__name__)
 

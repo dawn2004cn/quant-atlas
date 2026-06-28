@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 """Portfolio Market Service - wraps market provider for portfolio operations."""
 
 
 from typing import Any
 
 from app.core.base_service import BaseApplicationService
-from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 from app.domain.enums import MarketCode
 from app.domain.ports.market_ports import MarketDataProvider
+from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
 
 class PortfolioMarketService(BaseApplicationService):

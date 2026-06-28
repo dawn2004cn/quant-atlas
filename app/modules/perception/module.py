@@ -6,6 +6,7 @@ from app.core.module_registry import register_module
 from app.core.typed_registry import get_registry
 from app.modules.health import module_health_check
 
+
 @register_module(name="perception", description="10.0 perception and resonance")
 class PerceptionContextModule:
     """Perception context: 10.0 manifest and resonance."""

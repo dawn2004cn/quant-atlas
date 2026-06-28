@@ -1,15 +1,14 @@
 from __future__ import annotations
+
 """Adapters for AI Hedge Fund integration."""
 
 
 from typing import Any
 
-from app.integration.hedge_fund.agents.runner import run_agents
-from app.integration.hedge_fund.agents.base import AgentAnalysisContext
-from app.integration.hedge_fund.agents import list_all_agents
-
-
 from app.core.logger import get_logger
+from app.integration.hedge_fund.agents import list_all_agents
+from app.integration.hedge_fund.agents.base import AgentAnalysisContext
+from app.integration.hedge_fund.agents.runner import run_agents
 
 logger = get_logger(__name__)
 

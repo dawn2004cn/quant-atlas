@@ -1,6 +1,7 @@
 import pandas as pd
-from ..core.base_strategy import BaseTradingStrategy
 from ta.momentum import StochasticOscillator
+
+from ..core.base_strategy import BaseTradingStrategy
 from ..core.kdj import tdx_k_d
 
 

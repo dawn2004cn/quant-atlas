@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 """投资经理：Celery 异步任务（历史回/ 单日模拟 / 快速预热）"""
 
 
 from typing import Any
 
-from ..modules.execution.services.investment_manager_service import InvestmentManagerService
 from ..celery_app import celery as _celery
 from ..config import get_settings
 from ..core.logger import get_logger
@@ -13,6 +13,7 @@ from ..infrastructure.repositories.deps import (
     create_signal_flag_pool_repository,
     create_stock_cache,
 )
+from ..modules.execution.services.investment_manager_service import InvestmentManagerService
 from .task_wiring import get_task_message_store
 
 logger = get_logger(__name__)
@@ -38,7 +39,7 @@ def _push_done(task_id: str, payload: dict[str, Any]) -> None:
                 "days": payload.get("days"),
             },
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("investment_managers_backfill message push skipped: %s", exc)
 
 
@@ -61,7 +62,7 @@ def _push_quick_warmup_done(task_id: str, payload: dict[str, Any]) -> None:
                 "universe": sim.get("universe"),
             },
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("investment_managers_quick_warmup message push skipped: %s", exc)
 
 
@@ -83,7 +84,7 @@ def _push_simulate_done(task_id: str, payload: dict[str, Any]) -> None:
                 "universe": payload.get("universe"),
             },
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("investment_managers_simulate_day message push skipped: %s", exc)
 
 
@@ -177,7 +178,7 @@ def _push_pipeline_done(task_id: str, payload: dict[str, Any]) -> None:
                 "signal_flag_codes": sim.get("signal_flag_codes"),
             },
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("post_close_signal_then_managers message push skipped: %s", exc)
 
 

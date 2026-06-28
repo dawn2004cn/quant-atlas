@@ -9,18 +9,11 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 
 import re
-
 from typing import Any
 
-
-
-from app.modules.strategy.services.strategy.strategy_service import StrategyApplicationService
-
-from app.modules.strategy.services.analytics.visual_data_reducer_service import VisualDataReducerService
-
 from app.modules.market_data.services.watchlist_risk_service import RiskAlertService
-
-
+from app.modules.strategy.services.analytics.visual_data_reducer_service import VisualDataReducerService
+from app.modules.strategy.services.strategy.strategy_service import StrategyApplicationService
 
 
 class JarvisIntentParser:

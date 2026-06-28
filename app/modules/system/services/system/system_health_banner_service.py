@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.modules.system.services.system.alert_center_service import AlertCenterService
 from app.core.logger import get_logger
+from app.modules.system.services.system.alert_center_service import AlertCenterService
 
 logger = get_logger(__name__)
 

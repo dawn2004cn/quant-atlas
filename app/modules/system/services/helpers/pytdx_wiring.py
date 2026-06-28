@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound Pytdx market port for application services (configured at bootstrap)."""
 
 from app.domain.ports.pytdx_port import PytdxMarketPort
-
 
 _port: PytdxMarketPort | None = None
 def bind_pytdx_market_port(port: PytdxMarketPort) -> None:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """朋友圈：收盘自动发帖（基金经+ 6 Agent）"""
 
 
@@ -8,10 +9,12 @@ from typing import Any
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
+import matplotlib.pyplot as plt
 
-from ..application.services.trading.investment_manager_service import InvestmentManagerService
+from app.core.logger import get_logger
+
 from ..application.services.research.moments_service import MomentsService
+from ..application.services.trading.investment_manager_service import InvestmentManagerService
 from ..celery_app import celery as _celery
 from ..config import INSTANCE_DIR, get_settings
 from ..core.shanghai_time import today_sh_str
@@ -21,9 +24,6 @@ from ..infrastructure.repositories.deps import (
     create_signal_flag_pool_repository,
     create_stock_cache,
 )
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

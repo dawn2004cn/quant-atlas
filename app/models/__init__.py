@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 Unified strategy registry and accessor.
 Updated to support parameterization via StrategyFactory.
@@ -14,14 +15,29 @@ from ..domain.entities import StrategyConfig
 # 📈 1. 趋势突破与动量成长
 # ==========================================
 from .trend_breakout import (
-    MAStrategy, MultiMAResonanceStrategy, LotusOutWaterStrategy,
-    MASqueezeBreakoutStrategy, EMAMACDContinuationStrategy, MACDZeroCrossStrategy,
-    DMITrendStrategy, VolumeBreakoutStrategy, VolBBBreakoutStrategy,
-    VolMABreakoutStrategy, ThreeWhiteSoldiersStrategy, TAUStrategy,
-    NR7BreakoutStrategy, TTMSqueezeBreakoutStrategy, TurtleTradingStrategy,
-    GuppyMMAStrategy, IchimokuCloudStrategy, BBSqueezeStrategy,
-    ATRExpansionStrategy, ChandelierExitStrategy, AlligatorAwakeningStrategy,
-    CANSLIMModelStrategy, DualMovingAverageStrategy
+    AlligatorAwakeningStrategy,
+    ATRExpansionStrategy,
+    BBSqueezeStrategy,
+    CANSLIMModelStrategy,
+    ChandelierExitStrategy,
+    DMITrendStrategy,
+    DualMovingAverageStrategy,
+    EMAMACDContinuationStrategy,
+    GuppyMMAStrategy,
+    IchimokuCloudStrategy,
+    LotusOutWaterStrategy,
+    MACDZeroCrossStrategy,
+    MASqueezeBreakoutStrategy,
+    MAStrategy,
+    MultiMAResonanceStrategy,
+    NR7BreakoutStrategy,
+    TAUStrategy,
+    ThreeWhiteSoldiersStrategy,
+    TTMSqueezeBreakoutStrategy,
+    TurtleTradingStrategy,
+    VolBBBreakoutStrategy,
+    VolMABreakoutStrategy,
+    VolumeBreakoutStrategy,
 )
 
 # 注册趋势突破类
@@ -40,10 +56,17 @@ _TREND_MAP = {
 # ⚖️ 2. 均值回归与震荡波段
 # ==========================================
 from .mean_reversion import (
-    ChannelPullbackStrategy, SingleBullishHoldStrategy, BollingerRSIReversionStrategy,
-    BBRSIReversionStrategy, RSIStrategy, StochasticSwingStrategy,
-    BIASPanicStrategy, BBLowerSupportStrategy, ConnorsRSI2Strategy,
-    ZScoreMeanReversionStrategy, CCITurningStrategy
+    BBLowerSupportStrategy,
+    BBRSIReversionStrategy,
+    BIASPanicStrategy,
+    BollingerRSIReversionStrategy,
+    CCITurningStrategy,
+    ChannelPullbackStrategy,
+    ConnorsRSI2Strategy,
+    RSIStrategy,
+    SingleBullishHoldStrategy,
+    StochasticSwingStrategy,
+    ZScoreMeanReversionStrategy,
 )
 from .oscillation import KDJSwingStrategy
 
@@ -59,9 +82,14 @@ _MEAN_REV_MAP = {
 # 🩸 3. 恐慌抄底与极值反转
 # ==========================================
 from .panic_bottom import (
-    MACDBottomCrossStrategy, MACDDivergenceStrategy, KDJGoldenPitStrategy,
-    RSIReversalStrategy, TDXPrecisionStrategy, Sperandeo2BReversalStrategy,
-    TDSequentialSetupStrategy, WyckoffSpringStrategy
+    KDJGoldenPitStrategy,
+    MACDBottomCrossStrategy,
+    MACDDivergenceStrategy,
+    RSIReversalStrategy,
+    Sperandeo2BReversalStrategy,
+    TDSequentialSetupStrategy,
+    TDXPrecisionStrategy,
+    WyckoffSpringStrategy,
 )
 
 _PANIC_MAP = {
@@ -74,17 +102,23 @@ _PANIC_MAP = {
 # ==========================================
 # 🏢 4. 机构资金与动量回调
 # ==========================================
+from .extended_28 import build_extended_28_registry
 from .institutional import (
-    OBVAccumulationStrategy, VPTDivergenceStrategy, StrongTrendDipStrategy,
-    MinerviniVCPStrategy, RaschkeHolyGrailStrategy, ElderImpulseStrategy,
-    VWAPPullbackStrategy, ChaikinMoneyFlowStrategy, ChoppinessIndexStrategy
+    ChaikinMoneyFlowStrategy,
+    ChoppinessIndexStrategy,
+    ElderImpulseStrategy,
+    MinerviniVCPStrategy,
+    OBVAccumulationStrategy,
+    RaschkeHolyGrailStrategy,
+    StrongTrendDipStrategy,
+    VPTDivergenceStrategy,
+    VWAPPullbackStrategy,
 )
 
 # ==========================================
 # 🧠 5. Qlib 高胜率（脚本移植，轻量版）
 # ==========================================
 from .qlib_high_win import build_qlib_high_win_registry
-from .extended_28 import build_extended_28_registry
 
 _INSTITUTIONAL_MAP = {
     "OBV": OBVAccumulationStrategy, "VPT": VPTDivergenceStrategy, "StrongDip": StrongTrendDipStrategy,

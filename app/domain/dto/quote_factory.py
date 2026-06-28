@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Convert domain quote entities to canonical API payloads."""
 
 from dataclasses import asdict

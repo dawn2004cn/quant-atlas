@@ -27,7 +27,7 @@ def init_optional(name: str, init_fn):
 
 
 def register_data_sources(app: Any = None, settings: Any = None) -> None:
-    from app.core.data_source_registry import get_data_source_registry, DataSource
+    from app.core.data_source_registry import DataSource, get_data_source_registry
     reg = get_data_source_registry()
     for ds in [
         DataSource(name="tencent_realquote", type="quote", scope="realtime", market="CN", priority=90, description="实时行情（腾讯源）"),
@@ -71,39 +71,32 @@ def start_truth_sentry():
 def _init_side_effects_impl() -> None:
     """Initialize side-effect imports that register themselves."""
     try:
-        import app.tasks.investment_manager_tasks as _im_tasks  # noqa: F401
+        pass
     except Exception as exc:
         logger.debug("investment_manager_tasks skipped: %s", exc)
     try:
-        import app.modules.execution.services.symbiotic_execution_service as _symbiotic_execution_service  # noqa: F401
+        pass
     except Exception as exc:
         logger.debug("symbiotic_execution_service skipped: %s", exc)
     try:
-        import app.application.services.immune.immune_agent_service as _immune_agent_service  # noqa: F401
         logger.debug("Phase 16 execution and immunity services discovered")
     except Exception as exc:
         logger.debug("immune_agent_service skipped: %s", exc)
     try:
-        import app.domain.alpha.auto_hotswap_patch as _auto_hotswap_patch  # noqa: F401
+        import app.domain.alpha.auto_hotswap_patch as _auto_hotswap_patch
         _auto_hotswap_patch.enable_hot_swap_patch()
         logger.debug("Auto hot-swap trigger wired")
     except Exception as exc:
         logger.debug("auto_hotswap_patch skipped: %s", exc)
     try:
-        import app.modules.ai_agent.services.prompt_evolution_service as _prompt_evolution_service  # noqa: F401
-        import app.modules.ai_agent.services.ai.decision_feedback_service as _decision_feedback_service  # noqa: F401
         logger.debug("Prompt <> Decision feedback loop initialized")
     except Exception as exc:
         logger.debug("prompt/decision_feedback skipped: %s", exc)
     try:
-        from app.modules.ai_agent.services.agent_app_runtime import AgentAppRegistry  # noqa: F401
         logger.info("Agent-App Runtime wired (5 built-in apps)")
     except Exception as exc:
         logger.debug("AgentAppRegistry skipped: %s", exc)
     try:
-        from app.modules.system.services.neural_feature_mesh import NeuralFeatureMesh  # noqa: F401
-        from app.modules.system.services.shared_memory_grid import SharedMemoryHyperGrid  # noqa: F401
-        from app.modules.system.services.canvas_predictive_service import CanvasPredictiveService  # noqa: F401
         logger.debug("NeuralMesh + HyperGrid + Canvas services discovered")
     except Exception as exc:
         logger.debug("NeuralMesh/HyperGrid/Canvas skipped: %s", exc)

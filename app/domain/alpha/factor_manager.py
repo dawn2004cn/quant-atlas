@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Factor Lifecycle Management - Alpha Factor Tracking & Auto-Decay.
 
 This module implements from strategy_plan.md:
@@ -15,7 +16,6 @@ Usage:
 
 from dataclasses import dataclass, field
 from datetime import datetime
-
 
 from app.core.logger import get_logger
 

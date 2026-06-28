@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 Architectural Design Patterns
 ==============================
@@ -13,12 +14,11 @@ Architectural Design Patterns
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar, Protocol
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-
+from typing import Any, Generic, Protocol, TypeVar
 
 T = TypeVar('T')
 TEntity = TypeVar('TEntity')

@@ -14,4 +14,4 @@ def wire_module(services: Any, session_factory: Any = None) -> None:
     reg.wire_to(services)
 
 # Re-export module metadata for discover_modules() after import.
-from app.modules.collaboration.module import CollaborationContextModule  # noqa: E402
+from app.modules.collaboration.module import CollaborationContextModule

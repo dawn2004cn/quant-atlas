@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Persistent Agent Memory - Database-backed memory with RAG support.
 
 This module implements from midify_plan13.md optimization:
@@ -13,16 +14,16 @@ Usage:
 """
 
 
-import orjson as json
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from .agent_memory import AgentMemory, MemoryEntry
+import orjson as json
 
 from app.core.logger import get_logger
 
+from .agent_memory import AgentMemory, MemoryEntry
 
 logger = get_logger(__name__)
 

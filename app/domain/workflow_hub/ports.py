@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from .models import WorkflowInstance, WorkflowCheckpoint, WorkflowStatus
+from .models import WorkflowCheckpoint, WorkflowInstance, WorkflowStatus
 
 
 class WorkflowRepository(ABC):

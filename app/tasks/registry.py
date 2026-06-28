@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 """Task registry - Centralized task definitions and metadata."""
 
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 TASK_REGISTRY: dict[str, dict[str, Any]] = {}
 
@@ -61,16 +62,16 @@ def _register_all_tasks() -> None:
     """Auto-register all tasks."""
     from app.tasks import (
         data_backfill_tasks,
-        signal_flag_tasks,
-        tdx_dayk_tasks,
-        qlib_data_update,
         investment_manager_tasks,
         market_history_tasks,
-        moments_tasks,
         market_tasks,
+        moments_tasks,
         news_backfill_tasks,
+        qlib_data_update,
         questdb_sync_tasks,
         scanner_tasks,
+        signal_flag_tasks,
+        tdx_dayk_tasks,
     )
 
     register_task(

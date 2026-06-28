@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Outcome Repository for AI decision feedback loop.
 
 This module implements the outcome tracking from midify_plan8.md:
@@ -11,7 +12,6 @@ This module implements the outcome tracking from midify_plan8.md:
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
-
 
 from app.core.logger import get_logger
 
@@ -112,7 +112,7 @@ class OutcomeRepository:
         correct = 0
         total = 0
 
-        for symbol, records in self._memory_store.items():
+        for _symbol, records in self._memory_store.items():
             for record in records:
                 if record.was_correct:
                     correct += 1
@@ -139,7 +139,7 @@ class OutcomeRepository:
         cutoff = (datetime.now() - timedelta(days=days)).isoformat()
         results = []
 
-        for symbol, records in self._memory_store.items():
+        for _symbol, records in self._memory_store.items():
             for record in records:
                 if record.decision_date >= cutoff:
                     results.append(record)

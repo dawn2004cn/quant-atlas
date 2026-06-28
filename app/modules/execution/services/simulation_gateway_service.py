@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """SimulationGateway — virtual scenario injection and portfolio War Room stress tests."""
 
 import json
@@ -158,7 +159,7 @@ class SimulationGatewayService:
             return []
         try:
             symbols = self._watchlist.list_symbols(user_id)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("war_room watchlist fallback failed: %s", exc)
             return []
         if not symbols:
@@ -185,7 +186,7 @@ class SimulationGatewayService:
                     market=MarketCode.CN,
                 )
                 quote_map = {q.code.lower(): q for q in quotes}
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("war_room quote fetch failed: %s", exc)
 
         rows: list[dict[str, Any]] = []
@@ -301,7 +302,7 @@ class SimulationGatewayService:
     ) -> list[dict[str, Any]]:
         try:
             from app.agents.research.debate_bus import publish_debate_round
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("virtual event injection unavailable: %s", exc)
             return []
 
@@ -343,7 +344,7 @@ class SimulationGatewayService:
                 continue
             try:
                 consensus = self._arbiter.consensus_only(sym, "CN", use_llm=False)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("war_room arbiter sym=%s: %s", sym, exc)
                 consensus = {"ok": False, "error": str(exc)}
             views.append(
@@ -410,7 +411,7 @@ class SimulationGatewayService:
         try:
             with self._store_path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(record, ensure_ascii=False) + "\n")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("war_room persist failed: %s", exc)
 
     def _read_runs(self, user_id: int, *, limit: int) -> list[dict[str, Any]]:
@@ -419,7 +420,7 @@ class SimulationGatewayService:
         rows: list[dict[str, Any]] = []
         try:
             lines = self._store_path.read_text(encoding="utf-8").splitlines()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("war_room read failed: %s", exc)
             return []
         for line in reversed(lines):

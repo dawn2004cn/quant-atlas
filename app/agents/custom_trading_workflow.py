@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """兼容旧 import 路径；实现已迁至 ``app.agents.research``。"""
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """信号旗：全市场多策略买点扫描 + 股票池落盘。"""
 
 
@@ -13,9 +14,8 @@ import pandas as pd
 from app.core.factory import StrategyFactory
 from app.core.risk_controls import RiskControlParams, compute_liquidity_filters
 from app.domain.enums import MarketCode
-from app.domain.ports.stock_cache_port import StockCachePort
 from app.domain.ports.signal_flag_pool_port import SignalFlagPoolRepository
-
+from app.domain.ports.stock_cache_port import StockCachePort
 
 _MAX_WORKERS = max(2, min(os.cpu_count() or 4, 8))
 
@@ -106,7 +106,7 @@ def _scan_chunk_worker(
     strategies = {sid: StrategyFactory.create_instance(sid) for sid, _ in strat_names if sid != "__QLIB__"}
     strategies = {sid: s for sid, s in strategies.items() if s is not None}
     results: dict[str, dict] = {}
-    for code, meta, raw_df in chunk_data:
+    for code, _meta, raw_df in chunk_data:
         df = _prepare_df_from_dict(raw_df)
         if df is None:
             continue
@@ -237,7 +237,7 @@ class SignalFlagScannerService:
 
     def _qlib_strategy_scan(self, stock_dfs: list, *, d0: str, start: str) -> dict:
         code_hits = {}
-        for code_key, meta, df in stock_dfs:
+        for code_key, _meta, df in stock_dfs:
             qb, qs = _qlib_ma_cross_flags(df)
             if not qb and not qs:
                 continue

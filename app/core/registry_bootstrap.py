@@ -38,7 +38,7 @@ def wire_from_registry(services: Any) -> None:
     reg = _get_bootstrap_registry()
     if reg is None:
         return
-    for name in list(reg._config.keys()):  # noqa: SLF001
+    for name in list(reg._config.keys()):
         if getattr(services, name, None) is not None:
             continue
         try:

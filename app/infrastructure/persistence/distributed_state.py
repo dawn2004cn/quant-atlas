@@ -18,11 +18,10 @@ from datetime import datetime
 from typing import Any
 
 import redis
-from app.infrastructure.redis_client import RedisClientPool
 from redis.lock import Lock
 
-
 from app.core.logger import get_logger
+from app.infrastructure.redis_client import RedisClientPool
 
 logger = get_logger(__name__)
 

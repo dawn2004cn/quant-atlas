@@ -1,14 +1,14 @@
 """MySQL implementation for AnalysisReportRepository."""
 
+import logging
 from datetime import datetime
 from typing import Any
+
 from sqlalchemy import select
 
-from ...database.mysql_client import mysql_get_connection
 from ...database.models.advanced import AnalysisReport as DBReport
+from ...database.mysql_client import mysql_get_connection
 
-
-import logging
 logger = logging.getLogger(__name__)
 class MySQLAnalysisReportRepository:
     """MySQL implementation of AnalysisReportRepository."""

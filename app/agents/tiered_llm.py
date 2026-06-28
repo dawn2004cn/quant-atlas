@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Tiered LLM Orchestration - Task-Based Model Selection.
 
 This module implements from midify_plan12.md:
@@ -14,8 +15,8 @@ Usage:
 
 
 from dataclasses import dataclass
-from typing import Any
 from enum import Enum
+from typing import Any
 
 from app.core.logger import get_logger
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,8 +27,8 @@ warnings.warn(
 """Bound longhu market data ingestor factory."""
 
 from collections.abc import Callable
-from app.domain.ports.market_data_ports import IMarketDataIngestor
 
+from app.domain.ports.market_data_ports import IMarketDataIngestor
 
 _factory: Callable[[], IMarketDataIngestor] | None = None
 def bind_longhu_ingestor_factory(factory: Callable[[], IMarketDataIngestor]) -> None:

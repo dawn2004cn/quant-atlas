@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """RD-Agent 运行产物注册：供回测/选股消费的可查询清单（文件注册表，可后续换 SQLite）。"""
 
 
@@ -8,8 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
-from app.core.key_encryption import encrypt, decrypt
+from app.core.key_encryption import decrypt, encrypt
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

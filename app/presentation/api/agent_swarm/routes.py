@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 """Swarm Visualization & Management API."""
 
+
+from pathlib import Path
 
 from flask import Blueprint, request
 from flask_login import login_required
 
 from app.application.errors import NotFoundError, ValidationError
-from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
-from pathlib import Path
 from app.domain.schemas.agent_schemas import SwarmRunRequest
+from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
+
 from ..common import ok_response
 from ..decorators import require_role
 

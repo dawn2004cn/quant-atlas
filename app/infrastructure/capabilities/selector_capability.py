@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Stock selection / screening capability."""
 
 

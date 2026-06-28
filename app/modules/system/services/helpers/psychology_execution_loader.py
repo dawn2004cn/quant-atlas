@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Load execution_feedback rows into psychology guardian event shape."""
 
 import re
@@ -117,6 +118,6 @@ def load_execution_feedback_events(user_id: int, *, limit: int = 20) -> list[dic
         finally:
             session.close()
             Session.remove()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("psychology execution_feedback load: %s", exc)
         return []

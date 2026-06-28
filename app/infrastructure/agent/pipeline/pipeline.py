@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 """Data ingestion pipeline using Chain of Responsibility."""
 
 
 from abc import ABC, abstractmethod
 from typing import Any
+
 
 class PipelineStep(ABC):
     """Abstract step in the data pipeline."""

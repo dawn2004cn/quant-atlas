@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shared backtest metrics, extracted from daily_portfolio.py for reuse.
 
 Provides annualisation helpers, trade statistics, and full metric calculation.
@@ -9,8 +10,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-
-
 from backtest.models import TradeRecord
 from backtest.risk_free_rate import resolve_annual_risk_free_rate
 

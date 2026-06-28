@@ -54,13 +54,16 @@ class CacheInvalidationTransaction:
         if exc_type is not None:
             return  # Don't flush on exception
 
-        from app.infrastructure.database.models.trading import TransactionalOutbox
         import json
 
+        # Import via port abstraction to respect layer dependency direction
+        from app.domain.ports.infrastructure_ports import OutboxPort
+
+        outbox_port = OutboxPort()
         session = self._session_factory()
         try:
             for event in self._events:
-                record = TransactionalOutbox(
+                record = outbox_port.create_outbox_record(
                     aggregate_type=event.aggregate_type,
                     aggregate_id=event.aggregate_id,
                     event_type=event.event_type,

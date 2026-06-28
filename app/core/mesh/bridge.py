@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Bridge local EventBus ↔ DistributedEventBus (Quant Atlas 9.0 Step One)."""
 
 import logging
@@ -98,7 +99,7 @@ def start_mesh_bridge(
 
             redis_client = redis.Redis.from_url(url, decode_responses=True)
             redis_client.ping()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("mesh redis registry unavailable: %s", exc)
             redis_client = None
 

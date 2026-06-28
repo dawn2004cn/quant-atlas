@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Unified Agent Registry - Combining quant-atlas + Openclaw agents.
 
 This module merges:

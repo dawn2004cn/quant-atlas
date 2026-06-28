@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Cluster EventBus facade — local EventBus + optional distributed mesh (Redis/NATS)."""
 
 from typing import Any

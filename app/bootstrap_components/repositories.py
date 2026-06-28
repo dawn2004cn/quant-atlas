@@ -11,11 +11,11 @@ logger = get_logger(__name__)
 
 def create_repositories(settings: Any, session_factory: Any = None, **kwargs) -> Any:
     """Create repositories bundle."""
+    from ..infrastructure.repositories.mysql_stockgroup_repository import MySQLStockGroupRepository
     from ..infrastructure.repositories.mysql_user_repository import MySQLUserRepository
     from ..infrastructure.repositories.mysql_watchlist_repository import MySQLWatchlistRepository
-    from ..infrastructure.repositories.mysql_stockgroup_repository import MySQLStockGroupRepository
-    from ..infrastructure.repositories.stock_repository import MySQLStockRepository, MySQLMarketDataRepository
     from ..infrastructure.repositories.signal_repository import MySQLSignalRepository
+    from ..infrastructure.repositories.stock_repository import MySQLMarketDataRepository, MySQLStockRepository
 
     class Repositories:
         user_repository = None

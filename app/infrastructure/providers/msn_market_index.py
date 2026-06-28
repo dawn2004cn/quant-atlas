@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 """MSN global market index and hot stock provider."""
 
 
-import requests
 from datetime import datetime
 from typing import Any
+
+import requests
 
 from ...core.logger import get_logger
 

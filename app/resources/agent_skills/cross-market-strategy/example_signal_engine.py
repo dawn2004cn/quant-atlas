@@ -8,7 +8,6 @@ import re
 
 import pandas as pd
 
-
 # Per-market indicator parameters
 MARKET_PARAMS = {
     "a_share":    {"ma_fast": 5,  "ma_slow": 20, "vol_lookback": 20},

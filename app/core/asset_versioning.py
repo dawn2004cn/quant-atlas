@@ -1,13 +1,13 @@
 """Static asset versioning for cache busting."""
 
 import hashlib
+import logging
 from pathlib import Path
 
 from flask import Flask, current_app, url_for
 
 from app.config import BASE_DIR
 
-import logging
 logger = logging.getLogger(__name__)
 _STATIC_ROOT = BASE_DIR / "static"
 

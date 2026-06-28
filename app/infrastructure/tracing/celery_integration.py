@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Celery Integration for OpenTelemetry Trace Propagation.
 
 Phase 43: 全链路链路追踪
@@ -11,14 +12,14 @@ This module provides Celery integration to:
 
 
 import logging
-from functools import wraps
 from collections.abc import Callable
+from functools import wraps
 
 from celery import Celery, signals
 from opentelemetry.propagate import extract, inject
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
-from .opentelemetry import get_tracer, get_current_trace_id
+from .opentelemetry import get_current_trace_id, get_tracer
 
 logger = logging.getLogger(__name__)
 

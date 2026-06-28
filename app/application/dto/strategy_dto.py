@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """Application DTOs for strategy optimization."""
 
 
 from enum import Enum
+
 from pydantic import BaseModel, Field
 
 

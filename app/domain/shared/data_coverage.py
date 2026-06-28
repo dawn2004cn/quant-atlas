@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 """Assess K-line session coverage for analysis confidence."""
 
-from datetime import date, timedelta
 from collections.abc import Callable
+from datetime import date, timedelta
 
 TradingDayFn = Callable[[str], bool]
 

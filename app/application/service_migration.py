@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Service Migration Wrapper - Migrates existing services to use domain layer.
 
 This module shows how to migrate existing application services
@@ -7,10 +8,8 @@ to use the domain layer infrastructure.
 
 
 
-from app.application.domain_facade import get_domain_facade
 from app.application.aggregate_registry import get_aggregate_registry
-
-
+from app.application.domain_facade import get_domain_facade
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

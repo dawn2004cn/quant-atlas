@@ -1,13 +1,13 @@
 from __future__ import annotations
+
 """Dependency Injection Container.
 
 Provides simple DI for dependency inversion.
 """
 
 
-from typing import Any, TypeVar
 from collections.abc import Callable
-
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 

@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """Hedge Fund Agent Base Classes."""
 
 
 from dataclasses import dataclass, field
-from typing import Any
 from enum import Enum
+from typing import Any
 
 
 @dataclass

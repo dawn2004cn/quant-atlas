@@ -1,7 +1,8 @@
 import pandas as pd
-from ..core.base_strategy import BaseTradingStrategy
-from ta.trend import ADXIndicator, SMAIndicator, MACD
 from ta.momentum import RSIIndicator, StochasticOscillator
+from ta.trend import MACD, ADXIndicator, SMAIndicator
+
+from ..core.base_strategy import BaseTradingStrategy
 from ..core.kdj import tdx_k_d, tdx_k_d_j
 
 

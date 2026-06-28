@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Infrastructure adapter for ``QlibBinDumperPort``."""
 
 from app.domain.ports.qlib_bin_dumper_port import QlibBinDumperPort

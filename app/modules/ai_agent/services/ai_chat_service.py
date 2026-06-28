@@ -1,17 +1,18 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """TradingAgents 聊天专用：通过 CapabilityRegistry 动态发现工具。"""
 
 
 from typing import Any
 
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from core.llm_config import get_llm_for_user
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from app.agents.research.react_loop import react_with_tools
 from app.core.capability_bridge import get_agent_capabilities
-from core.llm_config import get_llm_for_user
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -67,13 +68,13 @@ async def _resolve_tools() -> list[Any]:
     # Fallback: hardcoded default tools
     logger.info("Using fallback hardcoded tool list")
     from app.tools.quant_tools import (
-        get_market_data,
-        get_kline_chart,
-        stock_selector,
-        probe_ticker,
-        get_user_watchlist,
-        get_stock_news,
         get_cn_financial_statements,
+        get_kline_chart,
+        get_market_data,
+        get_stock_news,
+        get_user_watchlist,
+        probe_ticker,
+        stock_selector,
     )
     return [
         get_market_data,
@@ -108,7 +109,7 @@ async def run_chat_with_tools(
 
     # Add conversation history (last 10 rounds)
     if conversation_history:
-        for i, msg in enumerate(conversation_history[-20:]):
+        for _i, msg in enumerate(conversation_history[-20:]):
             role = msg.get("role", "")
             content = msg.get("content", "")
             if role == "user":

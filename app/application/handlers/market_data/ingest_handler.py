@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 """Handler for market data ingestion commands."""
 
 
 from typing import Any
+
 from app.application.commands.market_data.ingest import IngestMarketDataCommand
+from app.core.logger import get_logger
+from app.domain.ports.market_data_ports import IMarketDataIngestor
+from app.domain.ports.repository_ports import IBasicMarketDataRepository
 from app.modules.system.services.helpers.config_loader_access import get_config_loader_port
 from app.modules.system.services.helpers.longhu_mapping_access import get_longhu_mapping_port
 from app.modules.system.services.helpers.market_data_ingestor_access import create_longhu_ingestor
-from app.domain.ports.market_data_ports import IMarketDataIngestor
-from app.domain.ports.repository_ports import IBasicMarketDataRepository
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

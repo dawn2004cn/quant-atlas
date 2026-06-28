@@ -1,6 +1,6 @@
-from app.core.logger import get_logger
 from typing import Any
 
+from app.core.logger import get_logger
 from app.domain.ports.agent_ports import ExpertSkillPort
 from app.infrastructure.agent.skills.loader import SkillsLoader
 

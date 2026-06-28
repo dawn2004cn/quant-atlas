@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-
 from app.domain.dto.service_result import GenericResponseDTO
-
 
 """Daily recommendation service for retail users."""
 
@@ -14,22 +12,10 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 
 from datetime import datetime
-
-
 from typing import Any
 
-
-
-
-
 from app.core.logger import get_logger
-
-
 from app.domain.enums import MarketCode
-
-
-
-
 
 logger = get_logger(__name__)
 
@@ -193,7 +179,7 @@ class RecommendationService:
                 )
 
 
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
 
 
                 logger.warning("recommendation trade plan failed for %s: %s", code, exc)
@@ -387,7 +373,7 @@ class RecommendationService:
                             "price": item.get("price") or item.get("current_price"),
                         }
                     )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("recommendation signal_flag pool: %s", exc)
 
         if not rows:
@@ -402,7 +388,7 @@ class RecommendationService:
                 rows = list(selected.get("candidates") or [])
                 for row in rows:
                     row.setdefault("source", "selection")
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("recommendation selection fallback unavailable: %s", exc)
 
         rows.sort(
@@ -423,7 +409,7 @@ class RecommendationService:
             return self._ai_evidence.build_bundle(symbol=code, market=market, include_news=True)
 
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
 
 
             logger.warning("recommendation evidence failed for %s: %s", code, exc)
@@ -486,7 +472,7 @@ class RecommendationService:
             }
 
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
 
 
             logger.debug("recommendation agent calibration %s: %s", code, exc)
@@ -652,14 +638,8 @@ class RecommendationService:
 
 
             from app.modules.market_data.services.industry_chain_map_service import (
-
-
                 INDUSTRY_CHAIN_CONFIG,
-
-
                 IndustryChainAnalyzer,
-
-
             )
 
 
@@ -708,7 +688,7 @@ class RecommendationService:
                 position = f" {upstream_hint} -> {chain_name} -> {downstream_hint}"
 
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
 
 
             logger.debug("recommendation industry chain map: %s", exc)

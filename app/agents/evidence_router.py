@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Evidence-Driven Routing - Conditional jumps based on blackboard evidence.
 
 This module implements the Evidence-Driven Routing from midify_plan10.md:
@@ -16,14 +17,13 @@ Usage:
 from dataclasses import dataclass, field
 from typing import Any
 
-from .evidence_blackboard import (
-    EvidenceBlackboard,
-    get_evidence_blackboard,
-    EvidenceType,
-)
-
 from app.core.logger import get_logger
 
+from .evidence_blackboard import (
+    EvidenceBlackboard,
+    EvidenceType,
+    get_evidence_blackboard,
+)
 
 logger = get_logger(__name__)
 

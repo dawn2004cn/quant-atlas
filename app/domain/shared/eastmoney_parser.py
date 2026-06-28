@@ -1,14 +1,14 @@
 from __future__ import annotations
+
 """Parser for Eastmoney-style data (Dataframes and JSONP) — domain 纯逻辑."""
 
 import json
+import logging
 import re
 from typing import Any
 
 import pandas as pd
 
-
-import logging
 logger = logging.getLogger(__name__)
 class EastmoneyParser:
     """Utility class for parsing Eastmoney web/API responses."""

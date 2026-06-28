@@ -1,12 +1,12 @@
 from __future__ import annotations
+
 """Unified L1 (memory) + L2 (Redis) cache facade."""
 
-from typing import Any
 from collections.abc import Callable
-
-from app.infrastructure.cache.coalesce import get_or_set_coalesced
+from typing import Any
 
 from app.core.logger import get_logger
+from app.infrastructure.cache.coalesce import get_or_set_coalesced
 from app.infrastructure.cache.global_cache import get_global_cache
 from app.infrastructure.memory_cache import MemoryCache, get_cache
 

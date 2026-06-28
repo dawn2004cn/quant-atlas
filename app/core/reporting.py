@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 """Backtest reporting and analysis tools."""
 
 
 from typing import Any
+
 from ..domain.entities import BacktestReport
+
 
 class BacktestAnalyzer:
     """Analyze backtest results and generate metrics."""

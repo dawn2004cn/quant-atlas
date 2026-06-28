@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """LLM ReAct 工具循环（LangChain / LangGraph 节点内使用）。"""
 
 
@@ -57,7 +58,7 @@ async def react_with_tools(
                 try:
                     out = await tool.ainvoke(raw_args) if hasattr(tool, "ainvoke") else tool.invoke(raw_args)
                     payload = tool_result_payload(out)
-                except Exception as exc:  # noqa: BLE001
+                except Exception as exc:
                     logger.warning("tool %s failed: %s", name, exc)
                     payload = json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False)
             messages.append(ToolMessage(content=payload, tool_call_id=tid, name=name))

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Walk-forward optimization for strategy parameter tuning."""
 
 
@@ -9,8 +10,8 @@ import pandas as pd
 
 from ...domain.ports.strategy_ports import (
     WalkForwardOptimizerPort,
-    WalkForwardWindow,
     WalkForwardResult,
+    WalkForwardWindow,
 )
 
 
@@ -62,7 +63,7 @@ class DefaultWalkForwardOptimizer(WalkForwardOptimizerPort):
         test_end_idx = train_end_idx + test_window_days
         data_end_idx = len(df)
 
-        for i in range(n_windows):
+        for _i in range(n_windows):
             train_data = df.iloc[:train_end_idx]
             test_data = df.iloc[train_end_idx:test_end_idx]
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Vectorized DTO for high-performance batch data processing.
 
 This module implements the zero-copy DTO optimization from midify_plan8.md:

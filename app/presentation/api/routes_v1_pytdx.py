@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """API v1：Pytdx 全量接口封装（标准/扩展行情、读取、财务、交易、连接池）。"""
 
 
@@ -7,13 +8,13 @@ from typing import Any
 from flask import Blueprint, request
 from flask_login import login_required
 
-from ...application.errors import ValidationError
+from app.core.registry import register_routes
 from app.modules.data.services.pytdx_api_service import PytdxApiService
 from app.modules.data.services.pytdx_market_data_service import get_pytdx_market_data_service
+
+from ...application.errors import ValidationError
 from .common import ok_response
 from .v1_context import ApiV1Context
-from app.core.registry import register_routes
-
 
 _svc = PytdxApiService()
 

@@ -8,6 +8,7 @@ from flask_login import login_required
 from app.presentation.api.common import ok_response
 from app.presentation.api.v1.market_aux.runtime import MarketAuxRuntime
 from app.presentation.api.v1_context import ApiV1Context
+
 from ...decorators import service_fallback
 
 

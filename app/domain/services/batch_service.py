@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 """Batch processing service for handling multiple stocks."""
 
 
 import asyncio
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, TypeVar
-from collections.abc import Callable
 
 from app.core.logger import get_logger
 from app.domain.services.cache_service import get_cache

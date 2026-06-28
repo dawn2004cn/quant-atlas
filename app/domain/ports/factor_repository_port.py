@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Factor repository port for domain layer.
 
 Defines the interface that factor-related operations use to interact

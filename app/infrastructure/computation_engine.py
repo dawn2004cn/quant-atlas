@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 """High-performance computation engine with Rust bridge."""
 
 
 import asyncio
-from typing import Any
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any
+
 import numpy as np
 
 from app.core.logger import get_logger

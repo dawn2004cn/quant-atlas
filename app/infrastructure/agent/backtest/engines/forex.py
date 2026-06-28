@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Forex (FX spot / CFD) backtest engine.
 
 Market rules:
@@ -13,10 +14,8 @@ Market rules:
 
 
 import pandas as pd
-
-from backtest.engines.base import BaseEngine
 from backtest.engines._market_hooks import calc_forex_swap
-
+from backtest.engines.base import BaseEngine
 
 # ── Typical spreads in pips (1 pip = 0.0001 for most pairs, 0.01 for JPY) ──
 

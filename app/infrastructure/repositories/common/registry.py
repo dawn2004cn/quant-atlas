@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Repository Registry - Central registry for all domain repositories.
 
 Provides a unified interface for creating and accessing repositories.
@@ -6,12 +7,10 @@ Provides a unified interface for creating and accessing repositories.
 
 
 
-from app.domain.repositories.stock import IStockRepository, IMarketDataRepository
-from app.domain.repositories.signal import ISignalRepository
-from app.domain.ports.repository_ports import UserRepository, WatchlistRepository
-
-
 from app.core.logger import get_logger
+from app.domain.ports.repository_ports import UserRepository, WatchlistRepository
+from app.domain.repositories.signal import ISignalRepository
+from app.domain.repositories.stock import IMarketDataRepository, IStockRepository
 
 logger = get_logger(__name__)
 
@@ -64,13 +63,17 @@ class RepositoryRegistry:
 
 def create_repositories(session_factory) -> dict:
     """Create all repositories and register them."""
-    from app.infrastructure.repositories.stock_repository import MySQLStockRepository, MySQLMarketDataRepository
-    from app.infrastructure.repositories.signal_repository import MySQLSignalRepository
-    from app.infrastructure.repositories.mysql_repositories import MySQLUserRepository, MySQLWatchlistRepository, MySQLStockGroupRepository
-    from app.infrastructure.repositories.investment_manager_repository import InvestmentManagerRepository
     from app.infrastructure.repositories.basic_market_data_repository import BasicMarketDataRepository
+    from app.infrastructure.repositories.investment_manager_repository import InvestmentManagerRepository
+    from app.infrastructure.repositories.mysql_repositories import (
+        MySQLStockGroupRepository,
+        MySQLUserRepository,
+        MySQLWatchlistRepository,
+    )
     from app.infrastructure.repositories.news_archive_repository import NewsArchiveRepository
     from app.infrastructure.repositories.signal_flag_pool_repository import SignalFlagPoolRepository
+    from app.infrastructure.repositories.signal_repository import MySQLSignalRepository
+    from app.infrastructure.repositories.stock_repository import MySQLMarketDataRepository, MySQLStockRepository
 
     registry = RepositoryRegistry()
 

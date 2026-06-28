@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """News Tools - 新闻和情绪分析工具."""
 
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
 from langchain_core.tools import tool
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..core.logger import get_logger
 
@@ -91,8 +92,9 @@ def _extract_key_metrics(named: dict[str, float]) -> str:
 @tool
 def get_stock_news(ticker: str, max_news: int = 30, days_back: int = 7) -> StockNewsToolResult:
     """获取股票相关新闻."""
-    from ..application.services.tool_facade_service import get_tool_facade_service
     from datetime import datetime, timedelta
+
+    from ..application.services.tool_facade_service import get_tool_facade_service
     from ..core.utils.news_utils import rank_news_items
 
     try:
@@ -126,8 +128,9 @@ def get_stock_news(ticker: str, max_news: int = 30, days_back: int = 7) -> Stock
 def get_news_sentiment(ticker: str, max_news: int = 30, days_back: int = 7) -> SentimentScoreToolResult:
     """对标的最近N条新闻做情感打分."""
     from datetime import datetime, timedelta
-    from ..application.services.tool_facade_service import get_tool_facade_service
+
     from ..application.services.sentiment_filter_service import get_sentiment_service
+    from ..application.services.tool_facade_service import get_tool_facade_service
 
     try:
         service = get_tool_facade_service()

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """SQLAlchemy engine/session bootstrap helpers.
 
 This module provides the canonical DB runtime scaffolding for MySQL-backed
@@ -15,12 +16,12 @@ from urllib.parse import quote_plus
 
 import pymysql
 from sqlalchemy import create_engine, event
-from sqlalchemy.orm import DeclarativeBase, sessionmaker, scoped_session
+from sqlalchemy.orm import DeclarativeBase, scoped_session, sessionmaker
+
+from app.core.logger import get_logger
 
 from ...core.runtime_config import get_runtime_int
 from .mysql_settings import MysqlSettings
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 _ENGINE_CACHE: dict[str, Any] = {}
@@ -137,7 +138,7 @@ def create_db_engine(database_uri: str, **kwargs: Any):
             try:
                 dbapi_connection.ping(reconnect=True)
             except Exception as exc:
-                raise exc.DisconnectionError("Connection checkout failed")
+                raise exc.DisconnectionError("Connection checkout failed") from exc
 
         @event.listens_for(eng, "connect")
         def _configure_connection(dbapi_connection, connection_record):
@@ -161,7 +162,7 @@ def dispose_engine_for_uri(database_uri: str) -> None:
         try:
             eng.dispose()
             logger.info("Disposed SQLAlchemy engine for %s", uri.split("@")[-1])
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("dispose_engine_for_uri: %s", exc)
 
 

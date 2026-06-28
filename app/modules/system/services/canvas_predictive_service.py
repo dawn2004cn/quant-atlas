@@ -3,9 +3,9 @@ Predictive UI + one-click strategy export."""
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Any
-import json
 
 from app.core.logger import get_logger
 from app.domain.strategy.strategy_spec import StrategySpec

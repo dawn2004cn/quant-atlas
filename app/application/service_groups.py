@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Service Grouping - Organize services by domain responsibility.
 
 This module provides a categorization of application services into logical groups,

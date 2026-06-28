@@ -1,7 +1,9 @@
 from typing import Any
-from app.domain.strategies.base import BaseStrategy, StrategySignal
+
 from app.core.event_bus import get_event_bus
+from app.domain.strategies.base import BaseStrategy, StrategySignal
 from app.modules.system.services.helpers.async_market_access import get_standalone_async_market_provider
+
 
 class Engine:
     """Thin engine that drives a strategy via market ticks."""

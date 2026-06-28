@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """HMAC-signed share tokens with expiry for read-only evidence links."""
 
 import hashlib

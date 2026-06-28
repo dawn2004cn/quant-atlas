@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Estimate position weight percentages from quotes (for shadow mirroring)."""
 
 from typing import Any

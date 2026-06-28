@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Resilient HTTP Client with Circuit Breaker and Fallback.
 
 This module implements the external API protection from midify_plan8.md:
@@ -12,19 +13,18 @@ Usage:
 """
 
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from ...core.resilience import CircuitBreaker, CircuitBreakerConfig
-
-
 from app.core.logger import get_logger
+
+from ...core.resilience import CircuitBreaker, CircuitBreakerConfig
 
 logger = get_logger(__name__)
 

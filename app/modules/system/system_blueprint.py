@@ -46,20 +46,20 @@ def _register_system_user_routes(blueprint: Blueprint, ctx: Any | None = None) -
         ctx = _MinimalContext()
 
     # Import route registration functions (side-effect: registers routes on blueprint)
-    from app.presentation.api.routes_v1_system_health import (
-        register_system_health_routes,
-    )
+    import logging
+
     from app.presentation.api.routes_v1_auth_identity import (
         register_auth_identity_routes,
     )
-    from app.presentation.api.routes_v1_user_profile import (
-        register_user_profile_routes,
+    from app.presentation.api.routes_v1_system_health import (
+        register_system_health_routes,
     )
     from app.presentation.api.routes_v1_user_lifecycle import (
         register_user_lifecycle_routes,
     )
-
-    import logging
+    from app.presentation.api.routes_v1_user_profile import (
+        register_user_profile_routes,
+    )
     logger = logging.getLogger(__name__)
 
     # Register each route group, skipping if dependencies missing
@@ -162,7 +162,7 @@ def create_system_user_app() -> Any:
 
         return app
     except ImportError:
-        raise RuntimeError("Flask is required for system/user service")
+        raise RuntimeError("Flask is required for system/user service") from None
 
 
 __all__ = [

@@ -6,8 +6,8 @@ Phase 5 Enhancement: Blacklist support using Redis (primary) or in-memory set
 
 from __future__ import annotations
 
-import time
 import threading
+import time
 
 from app.core.logger import get_logger
 from app.core.runtime_config import get_runtime

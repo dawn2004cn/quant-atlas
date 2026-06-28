@@ -1,32 +1,20 @@
 from __future__ import annotations
 
-
 from app.domain.dto.service_result import GenericResponseDTO
 
 """Hot sector MySQL storage and querying (Eastmoney + Tonghuashun gain ranking snapshots)."""
 
 
 from dataclasses import dataclass
-
 from datetime import datetime, timezone
-
 from typing import Any, Literal
 
-
-
 from app.application.errors import ValidationError
-
-from app.modules.market_data.services.hot_sector_service import get_hot_sector_service
-
 from app.config import AppSettings, get_settings
-
 from app.core.logger import get_logger
-
 from app.core.runtime_config import get_runtime_int
-
 from app.domain.ports.hot_sector_storage_port import HotSectorStoragePort
-
-
+from app.modules.market_data.services.hot_sector_service import get_hot_sector_service
 
 logger = get_logger(__name__)
 

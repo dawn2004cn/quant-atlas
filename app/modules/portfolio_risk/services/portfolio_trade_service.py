@@ -1,17 +1,17 @@
 from __future__ import annotations
+
 """Portfolio trade record service - manage transaction history and calculate holdings."""
 
 
 import json
-from pathlib import Path
 from datetime import date, datetime
+from pathlib import Path
 from typing import Any
 
+from app.application.dto.portfolio_dto import PortfolioPerformanceDTO, TradeRecordDTO
 from app.core.base_service import BaseApplicationService
-from app.application.dto.portfolio_dto import TradeRecordDTO, PortfolioPerformanceDTO
 from app.domain.enums import MarketCode
 from app.domain.ports import IMarketDataProvider
-
 
 DATA_DIR = Path(__file__).parent.parent.parent / "data" / "portfolio"
 DATA_DIR.mkdir(parents=True, exist_ok=True)

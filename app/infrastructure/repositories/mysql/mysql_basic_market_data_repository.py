@@ -3,23 +3,26 @@
 import json
 from datetime import datetime, timezone
 from typing import Any
-from sqlalchemy import select, delete, desc, func
 
 import pymysql
 from pymysql.cursors import DictCursor
+from sqlalchemy import delete, desc, func, select
 
-from ...database.mysql_client import mysql_get_connection
-from ...database.models.market import LonghuDaily as DBLonghu, BasicDataMeta as DBMeta, CNFinancialStash as DBStash
 from ...database.models.advanced import YanbaoItem as DBYanbao
+from ...database.models.market import BasicDataMeta as DBMeta
+from ...database.models.market import CNFinancialStash as DBStash
+from ...database.models.market import LonghuDaily as DBLonghu
+from ...database.mysql_client import mysql_get_connection
 
 
 def _utc_ts() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
 
 
-from app.infrastructure.repositories.factory import register_repo, RepositoryType
-
 import logging
+
+from app.infrastructure.repositories.factory import RepositoryType, register_repo
+
 logger = logging.getLogger(__name__)
 @register_repo(RepositoryType.MYSQL, "basic_market_data")
 class MySQLBasicMarketDataRepository:

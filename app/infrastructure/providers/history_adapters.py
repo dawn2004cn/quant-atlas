@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Market Data Source Adapters - 多数据源适配器."""
 
 
@@ -6,9 +7,9 @@ import time
 from datetime import date
 from typing import Any
 
-from ...domain.enums import MarketCode
-from ...core.logger import get_logger
 from ...config import INSTANCE_DIR
+from ...core.logger import get_logger
+from ...domain.enums import MarketCode
 
 logger = get_logger(__name__)
 
@@ -126,9 +127,9 @@ class SqliteHistoryAdapter:
 
     def get_history(self, symbol: str, market: MarketCode, start_date: date, end_date: date) -> list[dict]:
         try:
+            from ...config import INSTANCE_DIR
             from ...infrastructure.database.adapters import SqliteAdapter
             from ...infrastructure.database.history_repository import HistoryRepository
-            from ...config import INSTANCE_DIR
 
             db_path = INSTANCE_DIR / "stock_cache.db"
             if not db_path.exists():

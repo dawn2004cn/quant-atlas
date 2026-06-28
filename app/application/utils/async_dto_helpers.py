@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Convenience utilities for using new async and DTO patterns.
 
 This module provides easy-to-use helpers for migrating existing code
@@ -6,18 +7,18 @@ to use the new architecture.
 """
 
 
-from typing import Any, TypeVar, Generic
 from collections.abc import Callable
+from typing import Any, Generic, TypeVar
 
 T = TypeVar('T')
 
 from app.domain.dto import (
-    QuoteDTO,
-    SignalDTO,
-    PositionDTO,
-    RiskAssessmentDTO,
     APIResponse,
     MarketSentimentDTO,
+    PositionDTO,
+    QuoteDTO,
+    RiskAssessmentDTO,
+    SignalDTO,
 )
 
 # Type alias for callable that returns dict (old style)
@@ -139,11 +140,11 @@ def add_async_methods(cls):
         async_name = f"{name}_async"
 
         @wraps(method)
-        async def async_wrapper(self, *args, **kwargs):
+        async def async_wrapper(self, *args, _method=method, **kwargs):
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(
                 None,
-                lambda: method(self, *args, **kwargs)
+                lambda _m=_method: _m(self, *args, **kwargs)
             )
 
         setattr(cls, async_name, async_wrapper)
@@ -155,7 +156,7 @@ def add_async_methods(cls):
 
 def emit_signal(code: str, signal_type: str, strength: int, **kwargs):
     """Quick emit a signal event."""
-    from app.application.events import publish_event, EventType
+    from app.application.events import EventType, publish_event
 
     publish_event(
         EventType.SIGNAL_GENERATED,
@@ -171,7 +172,7 @@ def emit_signal(code: str, signal_type: str, strength: int, **kwargs):
 
 def emit_alert(code: str, level: str, message: str, **kwargs):
     """Quick emit a risk alert event."""
-    from app.application.events import publish_event, EventType
+    from app.application.events import EventType, publish_event
 
     publish_event(
         EventType.RISK_ALERT,
@@ -187,7 +188,7 @@ def emit_alert(code: str, level: str, message: str, **kwargs):
 
 def emit_task_status(task_id: str, status: str, **kwargs):
     """Quick emit a task status event."""
-    from app.application.events import publish_event, EventType
+    from app.application.events import EventType, publish_event
 
     event_type = EventType.TASK_COMPLETED if status == 'success' else EventType.TASK_FAILED
     publish_event(

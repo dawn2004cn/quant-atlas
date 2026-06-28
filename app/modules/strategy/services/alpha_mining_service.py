@@ -6,11 +6,11 @@ import json
 import math
 import random
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
 
 from app.core.logger import get_logger
 
@@ -238,7 +238,7 @@ class AutoAlphaMiningService:
         ortho_vectors = []
         result = []
 
-        for i, (f, vec) in enumerate(zip(factors, vectors)):
+        for _i, (f, vec) in enumerate(zip(factors, vectors)):
             proj = [0.0] * vec_length
             for ov in ortho_vectors:
                 dot_ov = sum(v * o for v, o in zip(vec, ov))
@@ -315,7 +315,7 @@ class AutoAlphaMiningService:
         if factor is None:
             return {"error": "factor_not_found", "factor_id": factor_id}
 
-        from app.core.mesh.alpha_governance import get_alpha_governance, ZeroKnowledgePerformanceProof
+        from app.core.mesh.alpha_governance import ZeroKnowledgePerformanceProof, get_alpha_governance
 
         dao = get_alpha_governance()
         metrics = {

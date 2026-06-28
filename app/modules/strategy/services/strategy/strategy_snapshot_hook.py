@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from app.modules.strategy.services.strategy.strategy_snapshot_service import StrategySnapshotService
 from app.core.runtime_config import get_runtime_bool
+from app.modules.strategy.services.strategy.strategy_snapshot_service import StrategySnapshotService
 
 logger = logging.getLogger(__name__)
 

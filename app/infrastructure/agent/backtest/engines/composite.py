@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Composite cross-market backtest engine.
 
 Manages a shared capital pool across multiple market engines.
@@ -11,16 +12,14 @@ All state (capital, positions, trades) lives in CompositeEngine.
 import re
 
 import pandas as pd
-
-from backtest.engines.base import BaseEngine
-from backtest.engines.cn_market_rules import a_share_t1_blocks_sell
 from backtest.engines._market_hooks import (
     calc_crypto_funding_fee,
-    check_crypto_liquidation,
     calc_forex_swap,
+    check_crypto_liquidation,
 )
+from backtest.engines.base import BaseEngine
+from backtest.engines.cn_market_rules import a_share_t1_blocks_sell
 from backtest.engines.survivorship import filter_survivorship
-
 
 # ── Market detection (same patterns as runner.py) ──
 

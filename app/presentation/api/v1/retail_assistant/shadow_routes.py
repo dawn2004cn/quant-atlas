@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from flask import Blueprint, request
 from flask_login import current_user, login_required
 
@@ -12,7 +14,7 @@ from app.modules.system.services.helpers.shadow_portfolio_weights import (
     estimate_position_weights,
     merge_position_weights,
 )
-import logging
+
 logger = logging.getLogger(__name__)
 from app.presentation.api.common import ok_response, parse_market
 from app.presentation.api.v1.retail_assistant.runtime import RetailAssistantRuntime
@@ -42,7 +44,7 @@ def register_retail_assistant_shadow_routes(
         if user_id and getattr(ctx, "watchlist_service", None) is not None:
             try:
                 holding_codes.extend(ctx.watchlist_service.list_symbols(user_id=user_id))
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.warning("Suppressed exception in register_retail_assistant_shadow_routes", exc_info=True)
                 pass
         portfolio_svc = getattr(ctx, "portfolio_service", None) or getattr(
@@ -55,7 +57,7 @@ def register_retail_assistant_shadow_routes(
                     sym = getattr(h, "symbol", None) or (h.get("symbol") if isinstance(h, dict) else None)
                     if sym:
                         holding_codes.append(str(sym))
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.warning("Suppressed exception in register_retail_assistant_shadow_routes", exc_info=True)
                 pass
         holding_codes = list({str(c).strip() for c in holding_codes if str(c).strip()})
@@ -68,7 +70,7 @@ def register_retail_assistant_shadow_routes(
         if symbols and market_svc is not None:
             try:
                 quotes = list(market_svc.list_quotes(market, symbols) or [])
-            except Exception:  # noqa: BLE001
+            except Exception:
                 quotes = []
 
         wl_weights: dict[str, float] = {}
@@ -88,14 +90,14 @@ def register_retail_assistant_shadow_routes(
         if user_id and profile_svc is not None:
             try:
                 investor_profile = profile_svc.get_profile(user_id) or {}
-            except Exception:  # noqa: BLE001
+            except Exception:
                 investor_profile = {}
         cost_basis: dict[str, dict] = {}
         trade_svc = getattr(ctx, "portfolio_trade_service", None)
         if user_id and trade_svc is not None and hasattr(trade_svc, "calculate_holdings"):
             try:
                 cost_basis = build_cost_basis_map(trade_svc.calculate_holdings(user_id))
-            except Exception:  # noqa: BLE001
+            except Exception:
                 cost_basis = {}
         payload = ShadowMirroringService().mirror_with_masters(
             symbols,

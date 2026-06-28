@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Swarm multi-agent system — data models.
 
 Ported from Vibe-Trading.
@@ -6,6 +7,7 @@ Ported from Vibe-Trading.
 
 
 from enum import Enum
+
 from pydantic import BaseModel, Field
 
 

@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 """Market Narrative Service - Convert market data into readable stories."""
 
+import json
 from datetime import datetime
 from typing import Any
+
 import requests
-import json
 from snownlp import SnowNLP
 
 from app.core.logger import get_logger

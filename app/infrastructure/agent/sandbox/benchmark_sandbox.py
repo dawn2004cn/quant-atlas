@@ -1,12 +1,12 @@
 from __future__ import annotations
+
 """Benchmark Sandbox: Strategy validation against golden standards."""
 
 from pathlib import Path
 from typing import Any
-from app.infrastructure.agent.backtest.process_runner import Runner
-
 
 from app.core.logger import get_logger
+from app.infrastructure.agent.backtest.process_runner import Runner
 
 logger = get_logger(__name__)
 

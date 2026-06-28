@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -27,8 +28,8 @@ warnings.warn(
 
 from collections.abc import Callable
 from typing import Any
-from app.domain.ports.research_port import ResearchPort
 
+from app.domain.ports.research_port import ResearchPort
 
 _create_research_port: Callable[..., ResearchPort] | None = None
 def bind_research_infrastructure(*, research_port_factory: Callable[..., ResearchPort]) -> None:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Borderless execution descriptors (Quant Atlas 9.0 Step Two)."""
 
 from typing import Any

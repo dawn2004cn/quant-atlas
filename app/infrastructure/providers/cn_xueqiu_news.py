@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """雪球用户动态 Provider - https://xueqiu.com/u/{user_id}"""
 
 

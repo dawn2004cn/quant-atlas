@@ -37,7 +37,7 @@ def set_fallback_resolver(resolver: ResolverCallable) -> None:
     Call this during application bootstrap (e.g. in bootstrap.py) so that
     the domain layer never imports application code directly.
     """
-    global _fallback_resolver  # noqa: PLW0603
+    global _fallback_resolver
     _fallback_resolver = resolver
 
 
@@ -58,7 +58,7 @@ def resolve_infrastructure_port(port_name: str, **kwargs: Any) -> Any:
     if _fallback_resolver is not None:
         try:
             return _fallback_resolver(port_name)
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.warning("Fallback resolver failed for port '%s'", port_name)
 
     logger.warning("Could not resolve port '%s', returning None", port_name)

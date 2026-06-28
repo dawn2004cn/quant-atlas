@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 """Unit of Work interface."""
 
 
 from abc import ABC, abstractmethod
 from types import TracebackType
+
 
 class IUnitOfWork(ABC):
     """Transaction management contract."""

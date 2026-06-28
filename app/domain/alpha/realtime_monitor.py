@@ -1,17 +1,17 @@
 from __future__ import annotations
+
 """Real-Time Data Push Service - 实时数据推送服务.
 
 将 ArrowPool 数据实时推送到前端和 RD-Agent。
 """
 
 
+import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
-from collections.abc import Callable
 
-
-import logging
 logger = logging.getLogger(__name__)
 @dataclass
 class DataPacket:

@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import re
 from typing import Any
+from urllib.parse import urlencode
+
 from app.core.logger import get_logger
 from app.domain.intent_decomposer import ExecutionPlan
-from urllib.parse import urlencode
 
 logger = get_logger(__name__)
 

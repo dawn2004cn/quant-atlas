@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for A-share fundamentals via AkShare/Tushare."""
 
 from typing import Any, Protocol

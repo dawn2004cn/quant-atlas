@@ -36,7 +36,7 @@ class FileSwarmTopologyRepository:
         try:
             raw = json.loads(path.read_text(encoding="utf-8"))
             return SwarmTopologyDescriptor.model_validate(raw)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("file_swarm_topology_repository.get: %s", exc)
             return None
 
@@ -71,7 +71,7 @@ class FileSwarmTopologyRepository:
         try:
             raw = json.loads(self._index_path.read_text(encoding="utf-8"))
             return raw if isinstance(raw, dict) else {}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("file_swarm_topology_repository._read_index: %s", exc)
             return {}
 

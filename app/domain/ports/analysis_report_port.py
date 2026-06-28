@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for AI analysis report persistence."""
 
 from abc import ABC, abstractmethod

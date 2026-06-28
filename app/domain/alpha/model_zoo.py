@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Model Zoo - Multi-model support for qlib.
 
 实现 Section 2C: 支持多种模型的 ModelZoo。
 """
 
 
-from typing import Any
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 Structural Design Patterns
 ===========================
@@ -13,8 +14,8 @@ Structural Design Patterns
 """
 
 from abc import ABC, abstractmethod
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 
 class Target(ABC):

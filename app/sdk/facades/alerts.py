@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.modules.system.services.system.alert_center_service import AlertCenterService
 from app.domain.dto.alert_dto import AlertCategory, AlertCenterFeedDTO, AlertLevel
+from app.modules.system.services.system.alert_center_service import AlertCenterService
 
 
 class AlertsFacade:

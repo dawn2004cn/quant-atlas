@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """东方财富滚动、同花顺股道等门户快讯（requests + BeautifulSoup），供 NewsProvider 合并。"""
 
 
@@ -10,7 +11,6 @@ from typing import Any
 import requests
 
 from ...core.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -37,7 +37,7 @@ def _cached(key: str, ttl: float, fetch_fn) -> list[dict[str, Any]]:
             return list(hit[1])
     try:
         data = fetch_fn()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("cn_portal_news %s failed: %s", key, exc)
         data = []
     with _CACHE_LOCK:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -27,7 +28,6 @@ warnings.warn(
 
 from collections.abc import Callable
 from typing import Any
-
 
 _get_metrics: Callable[[], bytes] | None = None
 _get_metrics_content_type: Callable[[], str] | None = None

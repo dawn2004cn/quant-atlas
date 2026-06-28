@@ -18,8 +18,8 @@ Engine tiers:
 from __future__ import annotations
 
 import warnings
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from app.core.logger import get_logger
 
@@ -124,10 +124,10 @@ def get_backtest_engine_registry() -> BacktestEngineRegistry:
 
     # Preview: FastBacktestEngine for the strategy wizard.
     def _make_preview(**kwargs: Any) -> Any:
+        from app.modules.data.services.data_lake_manager import DataLakeManager
         from app.modules.strategy.services.strategy.fast_backtest_engine import (
             FastBacktestEngine,
         )
-        from app.modules.data.services.data_lake_manager import DataLakeManager
 
         return FastBacktestEngine(lake_manager=DataLakeManager())
 

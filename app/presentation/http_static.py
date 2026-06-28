@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Helpers for static asset HTTP handling."""
 
 

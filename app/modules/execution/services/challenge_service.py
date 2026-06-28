@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 """Investment Manager Challenge & Leaderboard System."""
 
 
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-
 
 from app.core.logger import get_logger
 

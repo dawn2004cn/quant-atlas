@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Application Service Interfaces.
 
 Defines contracts for application services following clean architecture.
@@ -7,7 +8,6 @@ Defines contracts for application services following clean architecture.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-
 
 # =============================================================================
 # DTOs

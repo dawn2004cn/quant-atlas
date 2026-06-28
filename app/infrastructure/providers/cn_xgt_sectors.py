@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """选股通概念板块（flash-api.xuangubao.cn，与选股宝同源接口）。"""
 
 

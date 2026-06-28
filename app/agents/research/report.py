@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """将 LangGraph 终态整理为 API / 前端可用的 dict。"""
 
 

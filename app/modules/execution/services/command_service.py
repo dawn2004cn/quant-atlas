@@ -1,8 +1,11 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Quant Jarvis - Smart Command Service for Atlas."""
 
 import re
+
 
 class CommandService:
     def __init__(self, ai_adapter: object):

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Cross-node agent discovery protocol for federated mesh (V9 / 分布式集群)."""
 
 from typing import Any
@@ -22,7 +23,7 @@ def research_topology_capabilities() -> list[str]:
             if role and role not in caps:
                 caps.append(role)
         return caps
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("research topology capabilities: %s", exc)
         return []
 
@@ -47,7 +48,7 @@ class AgentDiscoveryProtocol:
             from app.agents.research.topology_loader import TopologyLoader
 
             topo = TopologyLoader.load_default()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("local_agents topology: %s", exc)
             return []
         return [

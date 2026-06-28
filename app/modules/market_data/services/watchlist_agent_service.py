@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Watchlist agent service.
 
 The service turns raw watchlist quotes into an explainable portfolio watch
@@ -12,9 +14,10 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from app.core.event_bus import WatchlistAnomalyDetectedEvent
 from app.core.logger import get_logger
 from app.domain.enums import MarketCode
-from app.core.event_bus import WatchlistAnomalyDetectedEvent
+
 logger = get_logger(__name__)
 
 
@@ -156,7 +159,7 @@ class WatchlistAgentService:
         try:
             raw = list(self._stock_group_service.list_groups(user_id=user_id) or [])
             return [group for group in raw if isinstance(group, dict)]
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("watchlist agent groups unavailable: %s", exc)
             return []
 
@@ -164,12 +167,12 @@ class WatchlistAgentService:
         if group_id is not None:
             try:
                 return [str(s).strip() for s in self._stock_group_service.list_group_symbols(group_id, user_id=user_id) if str(s).strip()]
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("watchlist agent group symbols unavailable: %s", exc)
                 return []
         try:
             return [str(s).strip() for s in self._watchlist_service.list_symbols(user_id=user_id) if str(s).strip()]
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("watchlist agent watchlist symbols unavailable: %s", exc)
             return []
 
@@ -196,7 +199,7 @@ class WatchlistAgentService:
             return []
         try:
             quotes = [_to_dict(q) for q in self._market_service.list_quotes(market, symbols)]
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("watchlist agent quotes unavailable: %s", exc)
             quotes = []
 
@@ -241,7 +244,7 @@ class WatchlistAgentService:
                 "headlines": news,
                 "risk": "has_news" if news else "quiet",
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("watchlist agent news unavailable for %s: %s", symbol, exc)
             return {"count": 0, "headlines": [], "risk": "unavailable"}
 

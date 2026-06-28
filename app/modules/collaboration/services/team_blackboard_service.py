@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Team blackboard — shared evidence notes with arbiter consensus."""
 
 from typing import Any
@@ -59,7 +60,7 @@ class TeamBlackboardService:
         if self._realtime is not None:
             try:
                 push_meta = self._realtime.push_team_blackboard_entry(team_id, row)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("team blackboard socket push: %s", exc)
         return {"ok": True, "entry": row, "realtime": push_meta}
 
@@ -110,7 +111,7 @@ class TeamBlackboardService:
         if self._arbiter is not None and symbol:
             try:
                 arbiter_extra = self._arbiter.synthesize(symbol, "CN", min_rounds=1)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("team blackboard arbiter: %s", exc)
 
         result = {
@@ -139,11 +140,11 @@ class TeamBlackboardService:
                 )
                 if cross.get("site_alert") and cross["site_alert"].get("created"):
                     result["site_alert"] = cross["site_alert"]["alert"]
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("team blackboard cross_team: %s", exc)
         if self._realtime is not None:
             try:
                 result["realtime"] = self._realtime.push_team_blackboard_consensus(team_id, result)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("team blackboard consensus push: %s", exc)
         return result

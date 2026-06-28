@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound longhu mapping port for application services."""
 
 from app.domain.ports.longhu_mapping_port import LonghuMappingPort
-
 
 _port: LonghuMappingPort | None = None
 def bind_longhu_mapping_port(port: LonghuMappingPort) -> None:

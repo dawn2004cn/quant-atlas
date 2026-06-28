@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 
 from app.core.logger import get_logger
 from app.core.registry import register_routes
@@ -17,7 +17,10 @@ _bp = Blueprint("retail", __name__)
 
 def _get_services():
     from app.modules.user.services.retail_tier_service import (
-        NLToStrategyService, AiMentorService, CopyTradingService, PsychologyTrackerService,
+        AiMentorService,
+        CopyTradingService,
+        NLToStrategyService,
+        PsychologyTrackerService,
     )
     return NLToStrategyService(), AiMentorService(), CopyTradingService(), PsychologyTrackerService()
 
@@ -36,8 +39,9 @@ def retail_nl_to_strategy():
     }
     if data.get("preview_backtest", True):
         try:
-            from app.modules.strategy.services.boutique_tier_service import VectorizedBacktestService
             import random
+
+            from app.modules.strategy.services.boutique_tier_service import VectorizedBacktestService
             bt = VectorizedBacktestService()
             n = 120
             returns = [random.gauss(0.0005, 0.015) for _ in range(n)]

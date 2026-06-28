@@ -1,14 +1,16 @@
 from __future__ import annotations
+
 """Kronos implementation of KronosPredictorPort."""
 
 
 import os
 import sys
-import pandas as pd
 from typing import Any
 
-from app.domain.ports import KronosPredictorPort
+import pandas as pd
+
 from app.config import BASE_DIR
+from app.domain.ports import KronosPredictorPort
 
 # Add Kronos root to sys.path to allow importing its modules
 KRONOS_ROOT = os.path.join(BASE_DIR, "Kronos")
@@ -27,9 +29,9 @@ class KronosPredictorAdapter(KronosPredictorPort):
 
         # Dynamic import to avoid heavy dependency loading if not used
         try:
-            from model import Kronos, KronosTokenizer, KronosPredictor
+            from model import Kronos, KronosPredictor, KronosTokenizer
         except ImportError:
-            raise RuntimeError("Kronos modules not found. Ensure Kronos directory is correctly placed.")
+            raise RuntimeError("Kronos modules not found. Ensure Kronos directory is correctly placed.") from None
 
         # In a real scenario, we'd look up model_id to get hf_path or local_path
         # For this port, we assume model_id refers to a HF path or we use a default

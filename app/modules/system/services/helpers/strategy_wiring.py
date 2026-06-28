@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,8 +27,8 @@ warnings.warn(
 """Bound strategy optimization infrastructure for application services."""
 
 from collections.abc import Callable
-from app.domain.ports.strategy_ports import WalkForwardOptimizerPort
 
+from app.domain.ports.strategy_ports import WalkForwardOptimizerPort
 
 _create_walk_forward: Callable[[], WalkForwardOptimizerPort] | None = None
 def bind_strategy_infrastructure(*, walk_forward_factory: Callable[[], WalkForwardOptimizerPort]) -> None:

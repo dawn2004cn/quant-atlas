@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Strategy Pool Manager - 策略池管理器。
 
 管理多租户策略实例:
@@ -15,7 +16,7 @@ from datetime import datetime
 from typing import Any
 
 from app.core.logger import get_logger
-from app.domain.strategies.plugin import StrategyPlugin, PluginConfig, PluginState
+from app.domain.strategies.plugin import PluginConfig, PluginState, StrategyPlugin
 
 logger = get_logger(__name__)
 

@@ -16,10 +16,10 @@ from typing import Any
 
 from app.modules.portfolio_risk.ports import (
     PortfolioPort,
-    RiskMetricsPort,
-    TradePlanPort,
-    SignalObservationPort,
     RiskCompanionPort,
+    RiskMetricsPort,
+    SignalObservationPort,
+    TradePlanPort,
 )
 
 

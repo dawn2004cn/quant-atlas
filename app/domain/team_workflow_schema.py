@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Human + Agent hybrid team workflow descriptors (Quant Atlas 8.0 P1)."""
 
 from enum import Enum

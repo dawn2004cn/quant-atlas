@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Meta-Learning Loop - Prompt Auto Evolution from Failure Cases.
 
 This module implements from midify_plan11.md:
@@ -16,9 +17,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
-from .auto_validator import AutoValidator
 from app.core.logger import get_logger
 
+from .auto_validator import AutoValidator
 
 logger = get_logger(__name__)
 

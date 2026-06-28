@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Plugin infrastructure with explicit load reporting."""
 
 import importlib

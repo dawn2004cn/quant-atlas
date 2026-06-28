@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """MySQL repository for TDX gpcw financial data."""
 
 
@@ -6,13 +7,12 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
+from app.core.logger import get_logger
+from app.domain.ports.tdx_gpcw_port import TdxGpcwRepository
+
 from ....config import get_settings
 from ...database.mysql_client import mysql_get_connection
 from ...database.mysql_settings import MysqlSettings
-
-
-from app.core.logger import get_logger
-from app.domain.ports.tdx_gpcw_port import TdxGpcwRepository
 
 logger = get_logger(__name__)
 

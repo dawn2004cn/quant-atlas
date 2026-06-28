@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """SQLAlchemy implementation of TradeRepository."""
 
 
 from sqlalchemy import select
 
 from app.domain.ports import TradeRepository
-from app.domain.trading_entities import Trade, Order
-from app.infrastructure.database.models.trading import FTTrade, FTOrder
+from app.domain.trading_entities import Order, Trade
+from app.infrastructure.database.models.trading import FTOrder, FTTrade
 
 
 class MySQLTradingRepository(TradeRepository):

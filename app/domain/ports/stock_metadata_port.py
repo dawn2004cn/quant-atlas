@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for ``base_stock_reference`` fundamental metadata."""
 
 from abc import ABC, abstractmethod

@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Failure Memory Service - 自动分析错误并存储修复策略."""
 
 

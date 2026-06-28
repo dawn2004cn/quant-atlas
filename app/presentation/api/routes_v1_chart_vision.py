@@ -8,9 +8,9 @@ from flask_login import login_required
 from ...application.errors import ValidationError
 from ...core.registry import register_routes
 from .common import ok_response
+from .decorators import service_fallback
 from .request_parsers import parse_int_param
 from .v1_context import ApiV1Context
-from .decorators import service_fallback
 
 
 @register_routes(name="chart_vision", context="vision", description="Chart Vision API (10.0)")

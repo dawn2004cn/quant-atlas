@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 """Trading Session Aggregate Root.
 
 Aggregate root for trading session with orders and executions.
 """
 
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -12,8 +14,6 @@ from typing import Any
 
 from app.domain.base import AggregateRoot
 
-
-import logging
 logger = logging.getLogger(__name__)
 class OrderStatus(str, Enum):
     """Order status."""

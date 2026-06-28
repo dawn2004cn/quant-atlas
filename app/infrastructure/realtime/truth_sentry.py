@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TruthSentry — real-time multi-source data reconciliation on EventBus."""
 
 
@@ -93,7 +94,7 @@ class TruthSentry:
                 },
                 source="TruthSentry",
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("truth replay snapshot skipped: %s", exc)
         bus.publish(
             AnalysisStaleEvent(
@@ -116,7 +117,7 @@ def start_truth_sentry(data_quality: DataQualityPort | None = None) -> TruthSent
             )
 
             data_quality = DataQualityPortAdapter()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("TruthSentry skipped: %s", exc)
             return None
     sentry = TruthSentry(data_quality)

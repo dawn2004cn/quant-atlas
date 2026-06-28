@@ -1,8 +1,8 @@
 """Example pipeline for market data processing."""
 
 from app.application.pipeline import (
-    PipelineBuilder,
     DataQualityGate,
+    PipelineBuilder,
     PipelineResult,
 )
 from app.core.logger import get_logger

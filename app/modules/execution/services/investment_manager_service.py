@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Investment Manager Service.
 Handles portfolio performance tracking, manager leaderboards, and daily simulation.
 """
@@ -7,16 +9,15 @@ Handles portfolio performance tracking, manager leaderboards, and daily simulati
 import csv
 import io
 import random
-from typing import Any
 from datetime import date, timedelta
-from app.domain.ports.investment_manager_port import InvestmentManagerRepository, ManagerRow
-from app.domain.ports.stock_cache_port import StockCachePort
-from app.domain.ports.signal_flag_pool_port import SignalFlagPoolRepository
-from app.domain.dto.investment_dto import ManagerStatsDTO, StrategyPerformanceDTO
-from app.modules.strategy.services.strategy.strategy_snapshot_hook import capture_on_deploy
-
+from typing import Any
 
 from app.core.logger import get_logger
+from app.domain.dto.investment_dto import ManagerStatsDTO, StrategyPerformanceDTO
+from app.domain.ports.investment_manager_port import InvestmentManagerRepository, ManagerRow
+from app.domain.ports.signal_flag_pool_port import SignalFlagPoolRepository
+from app.domain.ports.stock_cache_port import StockCachePort
+from app.modules.strategy.services.strategy.strategy_snapshot_hook import capture_on_deploy
 
 logger = get_logger(__name__)
 

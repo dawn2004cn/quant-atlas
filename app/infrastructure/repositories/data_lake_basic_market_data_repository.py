@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-import pandas as pd
-from typing import Any
 from datetime import datetime
+from typing import Any
 
-from app.domain.ports.repository_ports import IBasicMarketDataRepository
+import pandas as pd
+
 from app.core.mesh.unified_data_lake import DataQuery, DataScope
+from app.domain.ports.repository_ports import IBasicMarketDataRepository
 from app.modules.data.services.data_lake_manager import DataLakeManager
+
 
 class DataLakeBasicMarketDataRepository(IBasicMarketDataRepository):
     """
@@ -68,8 +70,9 @@ class DataLakeBasicMarketDataRepository(IBasicMarketDataRepository):
             return self._meta_cache[key]
 
         # Fetch from lake
-        from app.core.mesh.unified_data_lake import DataQuery
         from datetime import datetime, timedelta
+
+        from app.core.mesh.unified_data_lake import DataQuery
 
         query = DataQuery(
             symbol="SYSTEM_META",
@@ -112,8 +115,9 @@ class DataLakeBasicMarketDataRepository(IBasicMarketDataRepository):
 
     def list_longhu_for_code(self, code: str, *, limit: int = 20) -> list[dict[str, Any]]:
         """List longhu data for a symbol."""
-        from app.core.mesh.unified_data_lake import DataQuery
         from datetime import datetime, timedelta
+
+        from app.core.mesh.unified_data_lake import DataQuery
 
         query = DataQuery(
             symbol=code,

@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Admin Stock Service - wraps StockCache for admin operations."""
 
 
 from typing import Any
 
-from app.domain.ports.stock_cache_port import StockCachePort
 from app.core.base_service import BaseApplicationService
+from app.domain.ports.stock_cache_port import StockCachePort
 
 
 class AdminStockService(BaseApplicationService):

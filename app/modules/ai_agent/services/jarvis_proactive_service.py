@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Jarvis 5.0 — proactive opportunity scan from watchlist + user knowledge."""
 
 from typing import Any
@@ -126,7 +127,7 @@ class JarvisProactiveService:
             return []
         try:
             return list(self._watchlist.list_symbols(user_id) or [])
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("jarvis proactive watchlist: %s", exc)
             return []
 
@@ -142,7 +143,7 @@ class JarvisProactiveService:
                 elif isinstance(row, dict):
                     out.append(row)
             return out
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("jarvis proactive quotes: %s", exc)
             return []
 
@@ -159,6 +160,6 @@ class JarvisProactiveService:
                 return plan.model_dump()
             if isinstance(plan, dict):
                 return plan
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("jarvis proactive trade plan: %s", exc)
         return None

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.infrastructure.messaging.task_progress_store import TaskProgressStore
 from app.modules.system.services.helpers.task_message_access import get_task_message_store
 from app.modules.system.services.helpers.task_ops_access import get_celery_task_status
 from app.modules.system.services.system.task_phase_plan_service import TaskPhasePlanService
-from app.infrastructure.messaging.task_progress_store import TaskProgressStore
 
 _TERMINAL_STATES = frozenset({"SUCCESS", "FAILURE", "REVOKED"})
 

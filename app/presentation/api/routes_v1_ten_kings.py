@@ -3,11 +3,12 @@ from __future__ import annotations
 from flask import Blueprint
 from flask_login import login_required
 
-from ...application.errors import NotFoundError
-from .common import ok_response
-from ...application.request_executor import run_async
-from .v1_context import ApiV1Context
 from app.core.registry import register_routes
+
+from ...application.errors import NotFoundError
+from ...application.request_executor import run_async
+from .common import ok_response
+from .v1_context import ApiV1Context
 
 
 @register_routes(name="ten_kings", context="strategy", description="天王狙击系统仪表盘")

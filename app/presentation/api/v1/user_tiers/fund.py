@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 
 from app.core.logger import get_logger
 from app.core.rbac_guard import require_rbac
@@ -17,7 +17,10 @@ _bp = Blueprint("fund", __name__)
 
 def _get_services():
     from app.modules.portfolio_risk.services.fund_tier_service import (
-        InstitutionalAttributionService, ComplianceGuardrailService, AuditTrailService, MasterSlaveService,
+        AuditTrailService,
+        ComplianceGuardrailService,
+        InstitutionalAttributionService,
+        MasterSlaveService,
     )
     return InstitutionalAttributionService(), ComplianceGuardrailService(), AuditTrailService(), MasterSlaveService()
 

@@ -6,14 +6,13 @@ Supports multi-table history storage per market.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from sqlalchemy import select, text
 
 from ..mappers.symbol_normalizer import SymbolNormalizer
 from ..models.market import StockHistory
-
-import logging
 
 logger = logging.getLogger(__name__)
 

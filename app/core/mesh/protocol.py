@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Mesh topic naming and federated event protocol constants."""
 
 MESH_SCHEMA_VERSION = "v1"

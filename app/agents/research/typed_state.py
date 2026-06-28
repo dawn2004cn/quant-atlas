@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Typed Research State - Pydantic-based state for LangGraph.
 
 This module implements the LangGraph & DTO Integration from midify_plan10.md:
@@ -171,7 +172,7 @@ def create_report_from_agent_response(
     response,
 ) -> AgentReportDTO:
     """Create AgentReportDTO from AgentResponseDTO."""
-    from ..base import AgentResponseDTO, AgentConclusion
+    from ..base import AgentConclusion, AgentResponseDTO
 
     if isinstance(response, AgentResponseDTO):
         conclusion_str = response.conclusion.value if isinstance(response.conclusion, AgentConclusion) else str(response.conclusion)

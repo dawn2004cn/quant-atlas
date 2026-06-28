@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """User investment profile API routes."""
 
 
@@ -6,10 +7,10 @@ from flask import Blueprint, request
 from flask_login import current_user, login_required
 
 from ...application.errors import ValidationError
-from ...core.registry import register_routes
-from .common import ok_response, ensure_service
-from .v1_context import ApiV1Context
 from ...core.middleware.request_context import require_authenticated_user_id
+from ...core.registry import register_routes
+from .common import ensure_service, ok_response
+from .v1_context import ApiV1Context
 
 
 def _uid() -> int:

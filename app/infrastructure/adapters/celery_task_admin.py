@@ -1,12 +1,11 @@
 from __future__ import annotations
+
 """Celery inspect / AsyncResult / revoke，供消息中心与运维 API 使用。"""
 
 
 from typing import Any
 
-
 from ...core.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -58,7 +57,7 @@ def inspect_snapshot(*, timeout: float = 2.0) -> dict[str, Any]:
     ping: dict[str, Any] = {}
     try:
         ping = app.control.ping(timeout=min(timeout, 1.0)) or {}
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("celery ping skipped: %s", exc)
 
     flat: list[dict[str, Any]] = []
@@ -137,7 +136,7 @@ def task_status(task_id: str) -> dict[str, Any]:
             tb = getattr(r, "traceback", None)
             if tb:
                 out["traceback"] = str(tb)[-8000:]
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             out["result_error"] = str(exc)[:500]
     return out
 
@@ -155,7 +154,7 @@ def revoke_task(task_id: str, *, terminate: bool = False) -> dict[str, Any]:
             app.control.revoke(tid, terminate=True)
         else:
             app.control.revoke(tid, terminate=False)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("celery revoke failed: %s", exc)
         return {"ok": False, "error": str(exc)[:800], "task_id": tid}
     return {"ok": True, "task_id": tid, "terminate": bool(terminate)}

@@ -2,8 +2,8 @@
 """加密货币行情数据获取示例脚本。"""
 
 
-import requests
 import pandas as pd
+import requests
 
 BASE_URL = "https://www.okx.com/api/v5"
 

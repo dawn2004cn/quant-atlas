@@ -5,8 +5,6 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from app.modules.strategy.services.analytics.attribution_service import AttributionAnalyzer
-from app.modules.system.services.helpers.portfolio_access import create_default_attribution_analysis
 from app.domain.dto.analytics_dto import (
     AttributionReportDTO,
     FactorContributionDTO,
@@ -16,6 +14,8 @@ from app.domain.dto.analytics_dto import (
     StockContributionDTO,
     StyleContributionDTO,
 )
+from app.modules.strategy.services.analytics.attribution_service import AttributionAnalyzer
+from app.modules.system.services.helpers.portfolio_access import create_default_attribution_analysis
 
 
 class UnifiedAttributionService:

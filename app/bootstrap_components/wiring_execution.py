@@ -11,9 +11,13 @@ logger = logging.getLogger(__name__)
 
 
 def _make_investment_manager_service(reg: Any) -> Any:
-    from app.modules.execution.services.investment_manager_service import InvestmentManagerService
-    from app.infrastructure.repositories.deps import create_investment_manager_repository, create_stock_cache, create_signal_flag_pool_repository
     from app.config import get_settings
+    from app.infrastructure.repositories.deps import (
+        create_investment_manager_repository,
+        create_signal_flag_pool_repository,
+        create_stock_cache,
+    )
+    from app.modules.execution.services.investment_manager_service import InvestmentManagerService
     settings = get_settings()
     sf = getattr(reg, "_session_factory", None)
     repo = create_investment_manager_repository(settings, session_factory=sf)

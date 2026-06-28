@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """读取通达信 ``vipdoc/*/lday/*.day`` 未除权日线（与 ``stock-analysis.func.day2csv`` 同一 32 字节结构）。"""
 
 
@@ -95,7 +96,7 @@ def apply_qfq(rows: list[dict[str, Any]], market: str, code: str) -> list[dict[s
     df_xdxr = fetch_xdxr_data(market, code)
     if df_xdxr.empty:
         return rows
-    from .qfq_calculator import compute_qfq_factors_from_xdxr, apply_qfq_to_rows
+    from .qfq_calculator import apply_qfq_to_rows, compute_qfq_factors_from_xdxr
     factors = compute_qfq_factors_from_xdxr(rows, df_xdxr)
     return apply_qfq_to_rows(rows, factors)
 

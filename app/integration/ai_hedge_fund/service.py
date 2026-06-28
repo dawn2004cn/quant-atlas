@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Main integration service for AI Hedge Fund.
 
 Orchestrates the flow:
@@ -13,20 +14,19 @@ Orchestrates the flow:
 from datetime import datetime
 from typing import Any
 
-from .dto import (
-    HedgeFundAnalysisRequest,
-    HedgeFundAnalysisResult,
-    AgentSignal,
-    ValidationResult,
-)
+from app.core.logger import get_logger
+
 from .adapters import (
     HedgeFundAgentAdapter,
-    RDAgentValidationAdapter,
     QlibValidationAdapter,
+    RDAgentValidationAdapter,
 )
-
-
-from app.core.logger import get_logger
+from .dto import (
+    AgentSignal,
+    HedgeFundAnalysisRequest,
+    HedgeFundAnalysisResult,
+    ValidationResult,
+)
 
 logger = get_logger(__name__)
 

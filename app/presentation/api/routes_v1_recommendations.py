@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 """Recommendation API routes."""
 
 
 from flask import request
 from flask_login import login_required
 
-from .common import ok_response, parse_market
-from .route_deps import RecommendationRouteDeps
-from .request_parsers import parse_float_param, parse_int_param
-from .v1_context import ApiV1Context
 from app.core.registry import register_routes
+
+from .common import ok_response, parse_market
+from .request_parsers import parse_float_param, parse_int_param
+from .route_deps import RecommendationRouteDeps
+from .v1_context import ApiV1Context
 
 
 @register_routes(name="recommendation", context="strategy", description="Daily stock recommendations")

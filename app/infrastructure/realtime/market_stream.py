@@ -1,14 +1,6 @@
 from __future__ import annotations
 
-
-
-
-
 from app.core.runtime_config import get_runtime
-
-
-
-
 
 """Market Stream Processor - 实时行情流处理器。
 
@@ -35,39 +27,15 @@ from app.core.runtime_config import get_runtime
 
 
 import asyncio
-
-
 import json
-
-
-
-
 import time
-
-
-from dataclasses import dataclass, field
-
-
 from collections.abc import Callable
-
-
-
-
+from dataclasses import dataclass, field
 
 import redis
 
-
-from app.infrastructure.redis_client import RedisClientPool
-
-
-
-
-
 from app.core.logger import get_logger
-
-
-
-
+from app.infrastructure.redis_client import RedisClientPool
 
 logger = get_logger(__name__)
 
@@ -576,7 +544,7 @@ class MarketStreamProcessor:
 
 
 
-                for stream, msgs in messages:
+                for _stream, msgs in messages:
 
 
                     for msg_id, msg_data in msgs:

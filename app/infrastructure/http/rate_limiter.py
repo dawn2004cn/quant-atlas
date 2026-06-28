@@ -11,12 +11,12 @@ import hashlib
 import logging
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import wraps
 from typing import Any
-from collections.abc import Callable
 
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 
 logger = logging.getLogger(__name__)
 

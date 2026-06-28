@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Universal document reader: dispatches by file extension.
 
 Supported formats:
@@ -16,9 +17,9 @@ truncated, text. PDF/Excel add format-specific metadata (pages, sheets, ...).
 
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
 
 from app.infrastructure.agent.swarm.tools_base import BaseTool
 

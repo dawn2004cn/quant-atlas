@@ -10,7 +10,7 @@ applies them to the cache layer, and marks them processed.
 
 import json
 import logging
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 
 from app.domain.ports.cache_port import CachePort

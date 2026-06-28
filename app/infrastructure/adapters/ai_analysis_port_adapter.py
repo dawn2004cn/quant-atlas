@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Infrastructure adapter for ``AiAnalysisPort`` (default: Ollama prompt)."""
 
 from typing import Any

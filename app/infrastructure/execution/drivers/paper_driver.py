@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Paper execution driver — immediate simulated fills for all markets."""
 
 import uuid

@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """MySQL repository for tenants, teams and tenant-scoped user settings."""
 
 import json
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
-from collections.abc import Callable
 
 from sqlalchemy import select
 
@@ -13,11 +14,17 @@ from app.core.query_limits import MAX_USER_TEAMS
 from app.domain.entities import Team, TeamMembership, Tenant
 from app.infrastructure.database.models.collaboration import (
     Team as DBTeam,
+)
+from app.infrastructure.database.models.collaboration import (
     TeamBlackboardEntry,
-    TeamMembership as DBMembership,
-    Tenant as DBTenant,
     UserKnowledgeProfile,
     UserLifecycleSettings,
+)
+from app.infrastructure.database.models.collaboration import (
+    TeamMembership as DBMembership,
+)
+from app.infrastructure.database.models.collaboration import (
+    Tenant as DBTenant,
 )
 
 logger = get_logger(__name__)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Web search tool: search the web via DuckDuckGo (free, no API key)."""
 
 
@@ -18,9 +19,9 @@ class WebSearchTool(BaseTool):
         """Available only if ddgs or duckduckgo_search is installed."""
         try:
             try:
-                import ddgs  # noqa: F401
+                import ddgs
             except ImportError:
-                import duckduckgo_search  # noqa: F401
+                import duckduckgo_search
             return True
         except ImportError:
             return False

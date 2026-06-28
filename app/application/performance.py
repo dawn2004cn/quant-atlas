@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """Performance helpers — domain cache delegates to canonical MemoryCache."""
 
-from functools import wraps
 import time
-from typing import Any
 from collections.abc import Callable
+from functools import wraps
+from typing import Any
 
 from app.core.logger import get_logger
 from app.infrastructure.memory_cache import CacheEntry, MemoryCache, get_cache

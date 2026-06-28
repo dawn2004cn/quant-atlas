@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 """API Response Envelopes and DTOs."""
 
 from typing import Any, Generic, TypeVar
+
 from pydantic import BaseModel, Field
 
 T = TypeVar("T")

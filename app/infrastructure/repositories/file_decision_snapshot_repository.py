@@ -31,7 +31,7 @@ class FileDecisionSnapshotRepository:
         try:
             raw = json.loads(path.read_text(encoding="utf-8"))
             return DecisionResearchSnapshotDTO.model_validate(raw)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("file_decision_snapshot_repository.get: %s", exc)
             return None
 
@@ -45,7 +45,7 @@ class FileDecisionSnapshotRepository:
                 dto = DecisionResearchSnapshotDTO.model_validate(raw)
                 if dto.share_token == token:
                     return dto
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("get_by_share_token %s: %s", path.name, exc)
         return None
 
@@ -58,7 +58,7 @@ class FileDecisionSnapshotRepository:
                 if symbol and dto.symbol.upper() != symbol.upper():
                     continue
                 rows.append((dto.created_at.isoformat() if hasattr(dto.created_at, "isoformat") else str(dto.created_at), dto))
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("skip snapshot %s: %s", path.name, exc)
         rows.sort(key=lambda x: x[0], reverse=True)
         return [dto for _, dto in rows[: max(1, limit)]]

@@ -1,13 +1,15 @@
 from __future__ import annotations
+
 """Decision Theater API — immersive research pipeline scene (Quant Atlas 9.0 Step Five)."""
 
 from flask import Blueprint
 from flask_login import current_user, login_required
 
-from .common import ok_response
-from .v1_context import ApiV1Context
 from app.core.registry import register_routes
+
+from .common import ok_response
 from .decorators import service_fallback
+from .v1_context import ApiV1Context
 
 
 @register_routes(name="decision_theater", context="research", description="Decision Theater API (Quant Atlas 9.0 Step Five)")

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Agent 团队拓扑：基于 30 日归因与市场状态动态调权。"""
 
 import json
@@ -61,7 +62,7 @@ class AgentTopologyService:
                 return {}
             try:
                 data = json.loads(_STATE_PATH.read_text(encoding="utf-8"))
-            except Exception:  # noqa: BLE001
+            except Exception:
                 return {}
         if symbol:
             return data.get(symbol.upper()) or {}
@@ -93,7 +94,7 @@ class AgentTopologyService:
             return self._stock_service.get_history(
                 symbol, market, start_d.isoformat(), end_d.isoformat()
             ) or []
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("agent_topology history fetch failed: %s", exc)
             return []
 
@@ -120,7 +121,7 @@ class AgentTopologyService:
                 "top_factor": top_factor,
                 "factor_count": len(report.factors),
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("agent_topology attribution: %s", exc)
             return {"total_return_pct": 0.0, "alpha": 0.0, "top_factor": "", "factor_count": 0}
 
@@ -162,7 +163,7 @@ class AgentTopologyService:
             if _STATE_PATH.is_file():
                 try:
                     all_rows = json.loads(_STATE_PATH.read_text(encoding="utf-8"))
-                except Exception:  # noqa: BLE001
+                except Exception:
                     all_rows = {}
             all_rows[sym] = payload
             _STATE_PATH.parent.mkdir(parents=True, exist_ok=True)

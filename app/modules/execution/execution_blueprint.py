@@ -44,14 +44,14 @@ def _register_execution_routes(blueprint: Blueprint, ctx: Any | None = None) -> 
         ctx = _MinimalContext()
 
     # Import route registration functions (side-effect: registers routes on blueprint)
+    import logging
+
     from app.presentation.api.routes_v1_execution import (
         register_execution_routes,
     )
     from app.presentation.api.routes_v1_self_healing_execution import (
         register_self_healing_execution_routes,
     )
-
-    import logging
     logger = logging.getLogger(__name__)
 
     # Register each route group, skipping if dependencies missing
@@ -152,7 +152,7 @@ def create_execution_app() -> Any:
 
         return app
     except ImportError:
-        raise RuntimeError("Flask is required for execution service")
+        raise RuntimeError("Flask is required for execution service") from None
 
 
 __all__ = [

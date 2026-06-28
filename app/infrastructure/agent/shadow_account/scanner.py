@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shadow Account — today signals scanner.
 
 Deterministic, data-free MVP: for each rule in a profile, pick up to N

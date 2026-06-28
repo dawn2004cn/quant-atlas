@@ -109,7 +109,7 @@ def register_signal_flag_scan_routes(
                         enable_legacy_alias=legacy,
                     )
                 raise RuntimeError("celery_not_available")
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("signal_flag scan celery enqueue failed, sync fallback: %s", exc)
 
         summary = runtime.require_service().run_scan(

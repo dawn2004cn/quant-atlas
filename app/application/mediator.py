@@ -1,43 +1,42 @@
 from __future__ import annotations
+
 """CQRS Mediator - Dispatches commands and queries.
 
 Mediator pattern for CQRS command/query dispatching.
 """
 
 
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from app.application.commands import (
     Command,
     CommandHandler,
     CreateStockCommand,
-    UpdatePositionCommand,
-    SubmitOrderCommand,
-    ScreenStocksCommand,
-    GenerateSignalCommand,
     CreateStockHandler,
-    UpdatePositionHandler,
-    SubmitOrderHandler,
-    ScreenStocksHandler,
+    GenerateSignalCommand,
     GenerateSignalHandler,
+    ScreenStocksCommand,
+    ScreenStocksHandler,
+    SubmitOrderCommand,
+    SubmitOrderHandler,
+    UpdatePositionCommand,
+    UpdatePositionHandler,
 )
 from app.application.queries import (
+    GetEventHistoryHandler,
+    GetEventHistoryQuery,
+    GetOrdersHandler,
+    GetOrdersQuery,
+    GetPortfolioHandler,
+    GetPortfolioQuery,
+    GetSignalsHandler,
+    GetSignalsQuery,
+    GetStockHandler,
+    GetStockQuery,
     Query,
     QueryHandler,
-    GetStockQuery,
-    GetPortfolioQuery,
-    GetOrdersQuery,
-    GetSignalsQuery,
-    GetEventHistoryQuery,
-    GetStockHandler,
-    GetPortfolioHandler,
-    GetOrdersHandler,
-    GetSignalsHandler,
-    GetEventHistoryHandler,
 )
-
-
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

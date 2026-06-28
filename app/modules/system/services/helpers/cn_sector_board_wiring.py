@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound CN sector board port for application services."""
 
 from app.domain.ports.cn_sector_board_port import CnSectorBoardPort
-
 
 _port: CnSectorBoardPort | None = None
 def bind_cn_sector_board_port(port: CnSectorBoardPort) -> None:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shadow Account — 8-section report rendering (HTML + optional PDF).
 
 The pipeline:
@@ -25,12 +26,10 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from app.core.logger import get_logger
 from app.infrastructure.agent.shadow_account.fonts import apply_matplotlib_cjk_font, cjk_css_font_face
 from app.infrastructure.agent.shadow_account.models import ShadowBacktestResult, ShadowProfile
 from app.infrastructure.agent.shadow_account.storage import reports_dir
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

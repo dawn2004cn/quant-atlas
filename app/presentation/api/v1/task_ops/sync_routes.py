@@ -138,7 +138,7 @@ def register_task_ops_sync_routes(
                         legacy_alias_key=None,
                         enable_legacy_alias=legacy,
                     )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("timeseries backfill async enqueue failed, sync fallback: %s", exc)
 
         out = run_full_market_timeseries_backfill(**common)

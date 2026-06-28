@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """SQLite FTS5 session search index for cross-session full-text search.
 
 Stores an inverted index of all conversation messages. The primary data
@@ -15,7 +16,6 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-
 
 from app.core.logger import get_logger
 

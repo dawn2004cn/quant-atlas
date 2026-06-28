@@ -1,21 +1,23 @@
 from __future__ import annotations
+
 """Global API error handlers."""
 
 
 import uuid
 from urllib.parse import urlparse
-from flask import Flask, has_request_context, jsonify, request, redirect, url_for
-from flask_login import LoginManager
-from werkzeug.exceptions import HTTPException, NotFound, Forbidden, BadRequest, Unauthorized, UnprocessableEntity
 
-from ...application.errors import ApplicationError, ValidationError, AuthorizationError, NotFoundError
+from flask import Flask, has_request_context, jsonify, redirect, request, url_for
+from flask_login import LoginManager
+from werkzeug.exceptions import BadRequest, Forbidden, HTTPException, NotFound, Unauthorized, UnprocessableEntity
+
 from app.core.exceptions import CoreError
+from app.core.logger import get_logger
 from app.domain.exceptions import AppError
 from app.presentation.api_errors import APIException
-from .actionable_error_catalog import enrich_error_payload
-from ..http_static import is_static_asset_request
 
-from app.core.logger import get_logger
+from ...application.errors import ApplicationError, AuthorizationError, NotFoundError, ValidationError
+from ..http_static import is_static_asset_request
+from .actionable_error_catalog import enrich_error_payload
 
 logger = get_logger(__name__)
 

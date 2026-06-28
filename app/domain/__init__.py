@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+
 from .entities import *
 
 _DOMAIN_SUBMODULES = {

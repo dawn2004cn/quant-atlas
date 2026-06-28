@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound monitoring helpers for presentation monitoring routes."""
 
 from collections.abc import Callable
-
 
 _check_table_freshness: Callable[[str, int], bool] | None = None
 def bind_monitoring_infrastructure(

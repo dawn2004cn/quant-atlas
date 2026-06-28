@@ -1,12 +1,12 @@
 from __future__ import annotations
+
 """Rate Limiter for API protection."""
 
 
 import threading
 import time
-from dataclasses import dataclass
 from collections.abc import Callable
-
+from dataclasses import dataclass
 
 from app.core.logger import get_logger
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Borderless execution router — multi-market ExecutionGateway facade."""
 
 import logging
@@ -113,7 +114,7 @@ class BorderlessExecutionRouter:
             try:
                 chunk = await gateway.get_positions(symbol)
                 results.extend(chunk or [])
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("borderless get_positions: %s", exc)
         return results
 
@@ -124,7 +125,7 @@ class BorderlessExecutionRouter:
                 bal = await gateway.get_balance(asset)
                 if isinstance(bal, dict):
                     merged.update(bal)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("borderless get_balance: %s", exc)
         return merged
 
@@ -135,7 +136,7 @@ class BorderlessExecutionRouter:
             try:
                 if not await gateway.health_check():
                     return False
-            except Exception:  # noqa: BLE001
+            except Exception:
                 return False
         return True
 

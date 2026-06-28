@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Event-Driven Strategy Pipeline - Asymmetric Event Triggering.
 
 This module implements from strategy_plan1.md:
@@ -14,12 +15,11 @@ Usage:
 
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
-
 
 from app.core.logger import get_logger
 

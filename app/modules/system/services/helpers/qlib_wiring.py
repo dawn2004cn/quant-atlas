@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -27,9 +28,9 @@ warnings.warn(
 
 from collections.abc import Callable
 from typing import Any
+
 from app.domain.ports.qlib_bin_dumper_port import QlibBinDumperPort
 from app.domain.ports.qlib_task_ports import QlibTaskService
-
 
 _create_data_adapter: Callable[..., Any] | None = None
 _bin_dumper: QlibBinDumperPort | None = None

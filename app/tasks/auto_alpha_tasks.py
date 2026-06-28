@@ -1,10 +1,10 @@
 """Auto-Alpha: 因子自动发掘任务"""
 
-from celery import shared_task
 from datetime import datetime
 
-from app.core.logger import get_logger
+from celery import shared_task
 
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -40,7 +40,7 @@ def run_auto_alpha_mining(self):
 
     except Exception as exc:
         logger.error(f"自动因子挖掘失败: {exc}")
-        raise self.retry(exc=exc, countdown=300)
+        raise self.retry(exc=exc, countdown=300) from exc
 
 
 @shared_task

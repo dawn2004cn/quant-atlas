@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """API v1：朋友圈（Moments）信息流与发帖/上传。"""
 
 
@@ -9,8 +10,8 @@ from ...application.errors import ValidationError
 from ...core.logger import get_logger
 from ...core.registry import register_routes
 from .common import ok_response
-from .route_deps import SocialRouteDeps, build_social_route_deps, require_moments_service
 from .request_parsers import parse_int_param
+from .route_deps import SocialRouteDeps, build_social_route_deps, require_moments_service
 from .v1_context import ApiV1Context
 
 logger = get_logger(__name__)

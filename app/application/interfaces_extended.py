@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Extended Application Service Interfaces.
 
 Additional interfaces for grouped services.

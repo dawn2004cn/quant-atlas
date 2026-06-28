@@ -6,7 +6,6 @@ import from ``app.infrastructure.repositories.factory``.
 
 from .factory import RepositoryRegistry, RepositoryType
 
-
 _REGISTERED = False
 
 
@@ -15,33 +14,31 @@ def _register_all():
     global _REGISTERED
     if _REGISTERED:
         return
-    from ..mysql.mysql_investment_manager_repository import MySQLInvestmentManagerRepository
-    from ..mysql.mysql_basic_market_data_repository import MySQLBasicMarketDataRepository
-    from ..mysql.mysql_news_archive_repository import MySQLNewsArchiveRepository
-    from ..mysql.mysql_signal_flag_pool_repository import MySQLSignalFlagPoolRepository
-    from ..mysql.mysql_moments_repository import MySQLMomentsRepository
-    from ..mysql.mysql_analysis_report_repository import MySQLAnalysisReportRepository
     from ..mysql.mysql_agent_repository import MySQLAgentRepository
-    from ..mysql.mysql_trading_repository import MySQLTradingRepository
-    from ..mysql.mysql_payment_repository import MySQLPaymentRepository
+    from ..mysql.mysql_analysis_report_repository import MySQLAnalysisReportRepository
+    from ..mysql.mysql_basic_market_data_repository import MySQLBasicMarketDataRepository
+    from ..mysql.mysql_investment_manager_repository import MySQLInvestmentManagerRepository
     from ..mysql.mysql_kronos_repository import MySQLKronosRepository
+    from ..mysql.mysql_moments_repository import MySQLMomentsRepository
+    from ..mysql.mysql_news_archive_repository import MySQLNewsArchiveRepository
     from ..mysql.mysql_openbb_repository import MySQLOpenBBRepository
+    from ..mysql.mysql_payment_repository import MySQLPaymentRepository
     from ..mysql.mysql_quantml_repository import MySQLQuantMLFactorRepository
-
-    from ..sqlite.sqlite_investment_manager_repository import SQLiteInvestmentManagerRepository
-    from ..sqlite.sqlite_basic_market_data_repository import SQLiteBasicMarketDataRepository
-    from ..sqlite.sqlite_news_archive_repository import SQLiteNewsArchiveRepository
-    from ..sqlite.sqlite_signal_flag_pool_repository import SQLiteSignalFlagPoolRepository
-    from ..sqlite.sqlite_moments_repository import SQLiteMomentsRepository
-    from ..sqlite.sqlite_analysis_report_repository import SQLiteAnalysisReportRepository
-    from ..sqlite.sqlite_agent_repository import SQLiteAgentRepository
-    from ..sqlite.sqlite_trading_repository import SQLiteTradingRepository
-    from ..sqlite.sqlite_payment_repository import SQLitePaymentRepository
-    from ..sqlite.sqlite_kronos_repository import SQLiteKronosRepository
-    from ..sqlite.sqlite_openbb_repository import SQLiteOpenBBRepository
-    from ..sqlite.sqlite_quantml_repository import SQLiteQuantMLFactorRepository
-
+    from ..mysql.mysql_signal_flag_pool_repository import MySQLSignalFlagPoolRepository
+    from ..mysql.mysql_trading_repository import MySQLTradingRepository
     from ..postgres.postgres_timescale_bar_repository import PostgresTimescaleBarRepository
+    from ..sqlite.sqlite_agent_repository import SQLiteAgentRepository
+    from ..sqlite.sqlite_analysis_report_repository import SQLiteAnalysisReportRepository
+    from ..sqlite.sqlite_basic_market_data_repository import SQLiteBasicMarketDataRepository
+    from ..sqlite.sqlite_investment_manager_repository import SQLiteInvestmentManagerRepository
+    from ..sqlite.sqlite_kronos_repository import SQLiteKronosRepository
+    from ..sqlite.sqlite_moments_repository import SQLiteMomentsRepository
+    from ..sqlite.sqlite_news_archive_repository import SQLiteNewsArchiveRepository
+    from ..sqlite.sqlite_openbb_repository import SQLiteOpenBBRepository
+    from ..sqlite.sqlite_payment_repository import SQLitePaymentRepository
+    from ..sqlite.sqlite_quantml_repository import SQLiteQuantMLFactorRepository
+    from ..sqlite.sqlite_signal_flag_pool_repository import SQLiteSignalFlagPoolRepository
+    from ..sqlite.sqlite_trading_repository import SQLiteTradingRepository
 
     RepositoryRegistry.register(RepositoryType.MYSQL, "investment_manager", MySQLInvestmentManagerRepository)
     RepositoryRegistry.register(RepositoryType.MYSQL, "basic_market_data", MySQLBasicMarketDataRepository)

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
+
+from app.core.composite_rate_limiter import LimitRule, require_rate_limit
+
 from ..auth_guard import api_auth_required
 from ..responses import success_response
-from app.core.composite_rate_limiter import LimitRule, require_rate_limit
+
 
 def create_ai_blueprint(ctx):
     bp = Blueprint("v2_ai", __name__)
@@ -14,8 +17,8 @@ def create_ai_blueprint(ctx):
         LimitRule(max_calls=10, window_seconds=60, key_prefix="ai_prediction"),
     )
     def run_prediction():
-        from .request_parsers import parse_dto
         from ....application.dto.v2_dtos import PredictionRequestDTO
+        from .request_parsers import parse_dto
         body = request.get_json(silent=True) or {}
         if ctx.enable_dto_validation:
             dto = parse_dto(body, PredictionRequestDTO)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain entities for global market data (OpenBB port)."""
 
 

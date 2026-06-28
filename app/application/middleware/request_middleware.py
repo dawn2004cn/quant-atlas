@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Request/Response middleware for async services."""
 
 
 import time
-from typing import Any
 from collections.abc import Callable
 from functools import wraps
+from typing import Any
 
 from app.core.logger import get_logger
 from app.infrastructure.memory_cache import get_cache
@@ -119,6 +120,7 @@ class RetryPolicy:
 
 # For backwards compatibility
 import asyncio
+
 
 def with_retry(
     max_attempts: int = 3,

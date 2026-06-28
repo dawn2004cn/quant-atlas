@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
+
 from ..auth_guard import api_auth_required
 from ..responses import success_response
+
 
 def create_trading_blueprint(ctx):
     bp = Blueprint("v2_trading", __name__)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Knowledge Intermediary - Evidence-Aware Cache for Tool Calls.
 
 This module implements the Agent-Knowledge Intermediary from midify_plan10.md:
@@ -13,19 +14,18 @@ Usage:
 """
 
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
-from collections.abc import Callable
-
-from .evidence_blackboard import (
-    get_evidence_blackboard,
-    EvidenceType,
-    EvidenceStrength,
-)
-
 
 from app.core.logger import get_logger
+
+from .evidence_blackboard import (
+    EvidenceStrength,
+    EvidenceType,
+    get_evidence_blackboard,
+)
 
 logger = get_logger(__name__)
 
@@ -62,6 +62,7 @@ class EvidenceAwareCache:
     def _make_key(self, tool_name: str, arguments: dict[str, Any]) -> str:
         """Generate cache key from tool name and arguments."""
         import hashlib
+
         import orjson as json
 
         arg_str = json.dumps(arguments, sort_keys=True)

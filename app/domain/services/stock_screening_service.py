@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Stock Screening Domain Service.
 
 Pure domain logic for stock filtering and screening.

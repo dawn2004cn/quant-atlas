@@ -8,18 +8,9 @@ from __future__ import annotations
 """
 
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
-from typing import Any
+import loggingfrom dataclasses import dataclass, fieldfrom datetime import datetimefrom enum import Enumfrom typing import Anylogger = logging.getLogger(__name__)
 
-import logging
-logger = logging.getLogger(__name__)
-
-from app.core.event_bus import get_event_bus, MarketRegimeChangedEvent
-
-
-class MarketRegime(Enum):
+from app.core.event_bus import MarketRegimeChangedEvent, get_event_busclass MarketRegime(Enum):
     """市场状态."""
 
     BULL_STRONG = "bull_strong"

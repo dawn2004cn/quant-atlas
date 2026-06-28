@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-
-from sqlalchemy import Double, Integer, String, Text, Index
+from sqlalchemy import Double, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..orm import Base

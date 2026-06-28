@@ -85,8 +85,9 @@ register_factory("decision_review_queue", _make_decision_review_queue)
 
 
 def _make_rdagent_job_store(reg: Any) -> Any:
-    from app.modules.system.services.helpers.rdagent_access import create_rdagent_job_store
     import tempfile
+
+    from app.modules.system.services.helpers.rdagent_access import create_rdagent_job_store
     return create_rdagent_job_store(tempfile.gettempdir())
 
 register_factory("rdagent_job_store", _make_rdagent_job_store)

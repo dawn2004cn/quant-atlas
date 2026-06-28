@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Circuit Breaker & Error Handling - Agent Resilience Framework.
 
 This module implements from midify_plan13.md optimization:
@@ -13,14 +14,13 @@ Usage:
 
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
 
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

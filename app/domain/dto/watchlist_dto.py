@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class QuoteItem(BaseModel):
     code: str
     name: str

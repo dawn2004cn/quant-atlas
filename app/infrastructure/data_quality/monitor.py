@@ -1,9 +1,9 @@
 from __future__ import annotations
+
 """Data quality monitoring infrastructure."""
 
 
 from typing import Any
-
 
 from ...domain.ports.data_quality_ports import (
     DataQualityAlert,

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Web reader tool: fetch a URL as Markdown text via the Jina Reader API."""
 
 

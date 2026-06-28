@@ -218,7 +218,7 @@ class MySQLTdxBaseDataRepository:
                                 ),
                             )
                             counts["finance_upserted"] += 1
-                    except Exception as exc:  # noqa: BLE001
+                    except Exception as exc:
                         counts["finance_failed"] += 1
                         logger.warning("tdx_finance_ingest failed for %s: %s", sym, exc)
                     dt = time.time() - t0

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Arrow Flight Client - 零拷贝计算客户端。
 
 基于 Apache Arrow Flight 协议与 Rust 计算引擎通信。

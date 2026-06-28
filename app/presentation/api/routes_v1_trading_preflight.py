@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 """Trading preflight API for UI order confirmation."""
 
 from flask import Blueprint, request
 from flask_login import login_required
 
 from app.application.errors import ValidationError
+from app.core.registry import register_routes
 from app.modules.execution.services.pre_trade_preflight_service import PreTradePreflightService
+
 from .common import ok_response
 from .request_parsers import parse_float_param, parse_int_param
 from .v1_context import ApiV1Context
-from app.core.registry import register_routes
 
 
 @register_routes

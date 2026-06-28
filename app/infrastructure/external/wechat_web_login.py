@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """微信开放平台网站应用扫码登录（OAuth2 snsapi_login）。
 
 需在开放平台创建「网站应用」并配置授权回调域；环境变量见 ``AppSettings``。

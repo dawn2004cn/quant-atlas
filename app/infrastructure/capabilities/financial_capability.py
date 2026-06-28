@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """A-share financial & research report capabilities."""
 
 

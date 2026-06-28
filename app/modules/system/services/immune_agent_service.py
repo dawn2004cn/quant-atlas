@@ -11,9 +11,9 @@ from typing import Any, Literal
 
 from app.core.event_bus import EventBus, get_event_bus
 from app.core.logger import get_logger
+from app.domain.data_truth.guardian_schema import MarketRegime
 from app.domain.strategy.strategy_spec import StrategySpec
 from app.modules.strategy.services.analytics.stress_tester import StressTestService
-from app.domain.data_truth.guardian_schema import MarketRegime
 
 logger = get_logger(__name__)
 

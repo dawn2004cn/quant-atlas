@@ -5,9 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from alembic import command
 from alembic.config import Config
 
+from alembic import command
 from app.core.logger import get_logger
 from app.core.runtime_config import get_runtime_bool
 
@@ -40,7 +40,6 @@ def bootstrap_schema(engine: Any) -> None:
     - MySQL + default: ``alembic upgrade head``, fallback to ``create_all`` on failure.
     - ``DB_SCHEMA_CREATE_ALL=1``: always ``create_all``.
     """
-    from app.infrastructure.database import models  # noqa: F401
     from app.infrastructure.database.orm import Base
 
     dialect = (engine.dialect.name or "").lower()

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """API Error Handling.
 
 Unified error responses and exception handlers.
@@ -10,8 +11,6 @@ from datetime import datetime
 from enum import Enum
 
 from flask import jsonify
-
-
 
 from app.core.logger import get_logger
 

@@ -1,4 +1,5 @@
 ﻿from __future__ import annotations
+
 """Flask-SocketIO real-time market data adapter.
 
 Supports two modes:

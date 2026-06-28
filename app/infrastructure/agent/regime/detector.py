@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 """Market Regime Detection Engine.
 
 Uses statistical methods to identify current market state (Bull, Bear, Volatile).
 """
 
 
-import pandas as pd
 from typing import Any
 
+import pandas as pd
 
 from app.core.logger import get_logger
 

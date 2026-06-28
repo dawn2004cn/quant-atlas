@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """SQLAlchemy implementation of User, Watchlist, and StockGroup repositories."""
 
 
@@ -9,22 +10,21 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import select, delete, update, func, and_, desc
+import pymysql.err
+from sqlalchemy import and_, delete, desc, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import OperationalError as SAOperationalError
-import pymysql.err
+
+from app.core.logger import get_logger
+from app.infrastructure.database.orm import bootstrap_schema
 
 from ....core.password_hash import hash_password
 from ....domain.entities import UserAccount
 from ....domain.ports import StockGroupRepository, UserRepository, WatchlistRepository
-from app.infrastructure.database.orm import bootstrap_schema
 from ....domain.role_catalog import PROTECTED_DEMO_USERNAMES
-from ...database.models.auth import User, Role
-from ...database.models.market import Watchlist, StockGroup, StockGroupItem
+from ...database.models.auth import Role, User
+from ...database.models.market import StockGroup, StockGroupItem, Watchlist
 from ..common.user_mapper import user_row_to_account
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

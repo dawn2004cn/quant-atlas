@@ -48,7 +48,7 @@ class EvolutionArbiterService:
             elif "volatil" in verdict_text:
                 regime = Regime.VOLATILE
             return RegimeSnapshot(regime=regime, confidence=confidence, source="meta_arbiter")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("regime detection failed: %s", exc)
             return RegimeSnapshot(regime=Regime.UNKNOWN, confidence=0.0, source="error")
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 Creational Design Patterns
 ===========================
@@ -10,13 +11,12 @@ Creational Design Patterns
 5. Prototype - Clone existing objects
 """
 
-from abc import ABC, abstractmethod
-from typing import Any, TypeVar, Generic
-from collections.abc import Callable
-from dataclasses import dataclass
 import copy
 import threading
-
+from abc import ABC, abstractmethod
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any, Generic, TypeVar
 
 T = TypeVar('T')
 

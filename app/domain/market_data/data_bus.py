@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Market Data Bus - 行情数据总线。
 
 实现 Observer 模式，提供:
@@ -11,10 +12,10 @@ from __future__ import annotations
 import threading
 import time
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
-from collections.abc import Callable
 
 from app.core.logger import get_logger
 

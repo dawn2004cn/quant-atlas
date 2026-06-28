@@ -88,8 +88,9 @@ class ComplianceQueryService:
 
     def count_by_user(self, user_id: int, days: int = 7) -> int:
         """Count violations for a user in the last N days."""
-        from app.infrastructure.database.models import ComplianceViolationLog
         from datetime import timedelta
+
+        from app.infrastructure.database.models import ComplianceViolationLog
 
         session = self._session
         if session is None:

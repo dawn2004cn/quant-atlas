@@ -41,8 +41,8 @@ _V0_HEX_LEN = 64       # SHA-256 hex digest length
 
 def _hash_v1(password: str) -> str:
     """PBKDF2-HMAC-SHA256 with 16-byte salt, 600k iterations."""
-    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
     from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
     salt = secrets.token_bytes(16)
     kdf = PBKDF2HMAC(
@@ -97,8 +97,8 @@ def verify_password(password: str, stored_hash: str) -> bool | str:
         except Exception:
             return False
 
-        from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
         from cryptography.hazmat.primitives import hashes
+        from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -121,8 +121,8 @@ def verify_password(password: str, stored_hash: str) -> bool | str:
         except Exception:
             return False
 
-        from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
         from cryptography.hazmat.primitives import hashes
+        from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),

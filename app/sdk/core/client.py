@@ -2,10 +2,9 @@ from __future__ import annotations
 
 """Quant Atlas SDK: high-level client and strategy helpers."""
 
-from typing import Any
 from collections.abc import Callable
-
 from dataclasses import dataclass
+from typing import Any
 
 from app.modules.strategy.services.analytics.unified_attribution_service import UnifiedAttributionService
 from app.modules.strategy.services.strategy.strategy_snapshot_service import StrategySnapshotService

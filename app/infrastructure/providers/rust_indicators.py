@@ -1,17 +1,19 @@
 from __future__ import annotations
+
 """High-performance technical indicator provider using Rust."""
 
 
+import logging
 import math
+import time
 from typing import Any
 
 import quant_core
 
+from app.core.metrics import INDICATOR_ERRORS, RUST_INDICATOR_LATENCY
+
 from ...domain.ports import IndicatorProvider
 
-import time
-import logging
-from app.core.metrics import RUST_INDICATOR_LATENCY, INDICATOR_ERRORS
 
 class RustIndicatorProvider(IndicatorProvider):
     """Use the Rust 'quant_core' library for ultra-fast indicator calculation."""

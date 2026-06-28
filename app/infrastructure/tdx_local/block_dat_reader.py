@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 """读取通达信 hq_cache 下的 block_*.dat（指数/概念/风格板块）。"""
 
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
-
-import re
 
 from app.core.logger import get_logger
 
@@ -39,8 +39,8 @@ def _cn_symbol_from_code6(code6: str) -> str:
 def read_block_dat(path: Path, *, block_kind: str) -> list[TdxBlockItem]:
     """解析单个 block_*.dat 为 (板块→成分股) 扁平列表。"""
     try:
-        from pytdx.reader import BlockReader  # noqa: PLC0415
-        from pytdx.reader.block_reader import BlockReader_TYPE_GROUP  # noqa: PLC0415
+        from pytdx.reader import BlockReader
+        from pytdx.reader.block_reader import BlockReader_TYPE_GROUP
     except Exception:
         return []
     fp = Path(path)
@@ -51,7 +51,7 @@ def read_block_dat(path: Path, *, block_kind: str) -> list[TdxBlockItem]:
         kind = "zs"
     try:
         df = BlockReader().get_df(str(fp), result_type=BlockReader_TYPE_GROUP)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("read block dat failed: %s err=%s", fp, exc)
         return []
     if df is None or df.empty:
@@ -75,7 +75,7 @@ def read_block_dat(path: Path, *, block_kind: str) -> list[TdxBlockItem]:
         else:
             try:
                 codes_list = list(codes)  # type: ignore[arg-type]
-            except Exception:  # noqa: BLE001
+            except Exception:
                 codes_list = []
         for c in codes_list:
             code6 = _norm_code6(c)

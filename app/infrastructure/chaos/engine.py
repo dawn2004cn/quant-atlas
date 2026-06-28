@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Chaos Engineering Framework for Quant Atlas.
 
 This module provides infrastructure for running chaos experiments to verify
@@ -22,12 +23,11 @@ Usage:
 import asyncio
 import random
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
-
 
 from app.core.logger import get_logger
 

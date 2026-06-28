@@ -9,7 +9,7 @@
 
 from .data_bus import MarketDataBus, Observable, Subscriber
 from .stream_processor import MarketStreamProcessor, TickHandler
-from .tick_handler import TickValidator, TickNormalizer, TickAnomalyDetector
+from .tick_handler import TickAnomalyDetector, TickNormalizer, TickValidator
 
 __all__ = [
     "MarketDataBus",

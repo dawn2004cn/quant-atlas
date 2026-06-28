@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Trading and strategy ports."""
 
 
 from abc import ABC, abstractmethod
 from typing import Any
 
-from ..trading_entities import Trade, Order
+from ..trading_entities import Order, Trade
 
 
 class StrategyProvider(ABC):

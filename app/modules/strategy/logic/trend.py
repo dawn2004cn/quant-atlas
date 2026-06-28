@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from typing import Any
+
 import pandas as pd
+
 from app.modules.strategy.logic.base import IStrategyLogic
+
 
 class MovingAverageCrossStrategy(IStrategyLogic):
     """Classic MA Crossover logic: Fast MA > Slow MA = Long."""

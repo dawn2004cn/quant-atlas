@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 """Polars-based compute utilities for high-performance data processing."""
 
 
-from typing import Any
 from collections.abc import Callable
-
+from typing import Any
 
 from app.core.logger import get_logger
 

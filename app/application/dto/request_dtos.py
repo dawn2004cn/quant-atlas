@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Example DTOs for API request validation."""
 
 

@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 """Read user notification preferences for retail psychology pushes."""
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
 from app.modules.user.services.user.user_lifecycle_service import DEFAULT_NOTIFICATION_PREFS
-import logging
+
 logger = logging.getLogger(__name__)
 
 

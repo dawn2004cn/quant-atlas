@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Execution Feedback Repository and Analysis Service.
 
 Phase 42: 交易反馈环与滑点分析
@@ -13,12 +14,12 @@ This module provides:
 import logging
 from typing import Any
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import select, func
 
 from app.infrastructure.database.models.execution_feedback import (
-    ExecutionRecord,
     BacktestAdjustment,
+    ExecutionRecord,
 )
 
 logger = logging.getLogger(__name__)

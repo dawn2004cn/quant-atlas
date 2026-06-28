@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Weekly Meeting Scheduler - 投研周会自动化调度.
 
 实现 Section 3, 第三步：每周五闭市后自动化执行。

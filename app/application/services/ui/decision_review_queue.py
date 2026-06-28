@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 from app.modules.system.services.ui.decision_review_queue import (
+    DecisionReviewQueue,
     PendingDecision,
     ReviewCorrection,
     ReviewStatus,
-    DecisionReviewQueue,
 )
 
 __all__ = [

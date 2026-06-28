@@ -3,11 +3,11 @@ Packages each vertical strategy tool as an installable Agent-App with kernel pri
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum, auto
 from typing import Any
-from collections.abc import Callable
 from uuid import uuid4
 
 from app.core.logger import get_logger

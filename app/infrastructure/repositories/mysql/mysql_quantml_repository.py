@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 """SQLAlchemy implementation of QuantMLFactorRepository."""
 
 
 import json
 from typing import Any
-from sqlalchemy import select, delete
+
+from sqlalchemy import delete, select
 
 from app.domain.ports import QuantMLFactorRepository
 from app.domain.quantml_entities import QuantMLFactor

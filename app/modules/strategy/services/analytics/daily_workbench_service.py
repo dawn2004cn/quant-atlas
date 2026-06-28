@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Daily trading workbench application service.
 
 Aggregates market, watchlist, signal flag, observations, reviews, recommendations,
@@ -10,13 +12,13 @@ task messages, integration stack and headlines into one snapshot for the home pa
 from datetime import datetime
 from typing import Any
 
+from app.core.logger import get_logger
+from app.domain.dto.daily_workbench_dto import DailyWorkbenchSnapshotDTO
+from app.domain.enums import MarketCode
+from app.domain.services.market_regime_service import MarketRegimeService
 from app.modules.strategy.services.analytics.headline_signal_enrichment_service import (
     HeadlineSignalEnrichmentService,
 )
-from app.core.logger import get_logger
-from app.domain.services.market_regime_service import MarketRegimeService
-from app.domain.dto.daily_workbench_dto import DailyWorkbenchSnapshotDTO
-from app.domain.enums import MarketCode
 
 logger = get_logger(__name__)
 

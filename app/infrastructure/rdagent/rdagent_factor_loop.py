@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 RD-Agent(Q) 因子挖掘循环封装：对齐本地 Qlib 数据路径（cn_data / csi300 等），限制 loop 次数以控制成本。
 
@@ -16,7 +17,6 @@ from typing import Any
 
 from ...config import BASE_DIR
 from ...core.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -91,6 +91,7 @@ def _patched_qlib_factor_experiment(template_folder: Path):
 def _patch_data_folder_intro() -> None:
     """Patch ``generate_data_folder_from_qlib`` to skip Docker + create empty data folders."""
     import os
+
     from rdagent.scenarios.qlib.experiment.utils import FACTOR_COSTEER_SETTINGS
     for attr in ("data_folder", "data_folder_debug"):
         folder = getattr(FACTOR_COSTEER_SETTINGS, attr, None)
@@ -111,19 +112,18 @@ def _patch_qlibfb_workspace_execute() -> None:
     import sys
 
     import pandas as pd
-
     import rdagent.scenarios.qlib.experiment.workspace as _ws_mod
 
     def _local_execute(self, qlib_config_name: str = "conf.yaml", run_env: dict | None = None, *args: Any, **kwargs: Any) -> tuple:
-        import os as _os
         import logging as _log
+        import os as _os
         _logger = _log.getLogger("QlibFBWorkspace.local_execute")
         env = dict(_os.environ)
         if run_env:
             env.update(run_env)
         ws_path = str(self.workspace_path)
 
-        qrun_result = subprocess.run(  # noqa: S603  # qrun from local PATH; qlib_config_name defaults to conf.yaml
+        qrun_result = subprocess.run(  # qrun from local PATH; qlib_config_name defaults to conf.yaml
             ["qrun", qlib_config_name],
             cwd=ws_path,
             env={**env, "PYTHONPATH": "./"},
@@ -142,7 +142,7 @@ def _patch_qlibfb_workspace_execute() -> None:
         ret_path = self.workspace_path / "ret.pkl"
         if ret_path.exists():
             try:
-                pd.read_pickle(ret_path)  # noqa: S301  # reads from locally-generated workspace file (controlled path)
+                pd.read_pickle(ret_path)  # reads from locally-generated workspace file (controlled path)
             except Exception:
                 logger.debug("Failed to read ret.pkl from path=%s", ret_path)
 
@@ -286,7 +286,7 @@ def run_factor_mining_loop(
             benchmark=benchmark,
             dest_root=dest_path,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.exception("prepare_patched_factor_template failed")
         return {"ok": False, "error": "template_prepare_failed", "message": str(exc)}
 
@@ -314,7 +314,7 @@ def run_factor_mining_loop(
         loop = FactorRDLoop(FACTOR_PROP_SETTING)
         try:
             asyncio.run(loop.run(loop_n=loop_n))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("FactorRDLoop.run failed")
             summary = _summarize_loop(loop)
             return {

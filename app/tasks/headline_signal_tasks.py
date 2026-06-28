@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 """Celery task: offline batch headline signal tagging + cache."""
 
 from typing import Any
 
+from app.core.logger import get_logger
+from app.domain.enums import MarketCode
 from app.modules.strategy.services.analytics.headline_signal_enrichment_service import (
     HeadlineSignalEnrichmentService,
 )
-from app.core.logger import get_logger
-from app.domain.enums import MarketCode
 
 logger = get_logger(__name__)
 

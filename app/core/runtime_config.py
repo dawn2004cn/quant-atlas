@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """非敏感运行时配置：优先读 ``config/config.cfg``，环境变量非空时覆盖文件。
 
 密钥、数据库 URI、Webhook 等仍仅从环境变量读取（不参与 cfg 回退）。

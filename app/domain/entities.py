@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain entities.
 
 Mappings to infra ORM models (P2-21):
@@ -19,7 +20,6 @@ from datetime import datetime
 from typing import Any
 
 from .enums import MarketCode
-from .shared.value_objects import StockQuote, UserAccount  # noqa: F401 — re-exports
 
 
 @dataclass(frozen=True)

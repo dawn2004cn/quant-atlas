@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """WebSocket port for real-time market data."""
 
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from collections.abc import Callable
+from dataclasses import dataclass, field
 
 
 @dataclass

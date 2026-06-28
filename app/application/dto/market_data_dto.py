@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """DTOs for Market Data services."""
 
 
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -96,7 +98,7 @@ class SelectionRequestDTO(BaseModel):
 
 
 # Re-export from domain to preserve backward-compat imports
-from app.domain.dto.market_data_dto import LonghuEntry  # noqa: F401 — re-export only
+from app.domain.dto.market_data_dto import LonghuEntry
 
 __all__ = ["LonghuEntry"]  # keep module importable
 

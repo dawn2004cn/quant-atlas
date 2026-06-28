@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """High-performance computing module - moves Pandas calculations to Infrastructure layer.
 
 This module implements the performance optimization from midify_plan7.md:
@@ -13,7 +14,6 @@ Following the principle: "Complex matrix operations in Infrastructure, not Appli
 from typing import Any
 
 import numpy as np
-
 
 from app.core.logger import get_logger
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Strategy Reaper - Automated Strategy Cleanup.
 
 Implements from strategy_plan2.md:
@@ -17,7 +18,6 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

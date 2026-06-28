@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Pytdx 封装层异常。"""
 
 

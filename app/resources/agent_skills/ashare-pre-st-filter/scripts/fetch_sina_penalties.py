@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 #!/usr/bin/env python3
 """新浪财经 A 股监管处罚记录抓取脚本（独立 stdlib 实现）。
 
@@ -260,7 +261,7 @@ def _http_get_gbk(url: str, *, timeout: int = DEFAULT_TIMEOUT) -> str:
                     "Accept-Language": "zh-CN,zh;q=0.9",
                 },
             )
-            with urlopen(req, timeout=timeout) as resp:  # noqa: S310 — host is whitelisted
+            with urlopen(req, timeout=timeout) as resp:
                 raw = resp.read()
                 if resp.headers.get("Content-Encoding", "").lower() == "gzip":
                     raw = gzip.decompress(raw)
@@ -371,7 +372,7 @@ class _RecordParser(HTMLParser):
         if self._mode in ("thead", "tr_key", "tr_val"):
             self._buf.append(data)
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:  # noqa: ARG002
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag == "thead":
             self._flush()
             self._mode = "thead"
@@ -518,7 +519,7 @@ def fetch_penalty_list(
     url = URL_TEMPLATE.format(code6=code6)
     try:
         html = _http_get_gbk(url, timeout=timeout)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return {
             "source": "unavailable",
             "ts_code": ts_code,
@@ -528,7 +529,7 @@ def fetch_penalty_list(
         }
     try:
         records = _parse_penalty_list(html)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return {
             "source": "unavailable",
             "ts_code": ts_code,

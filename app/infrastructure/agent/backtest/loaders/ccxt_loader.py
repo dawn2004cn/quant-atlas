@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """CCXT loader: unified crypto exchange data (100+ exchanges).
 
 Uses the CCXT library to fetch OHLCV candles from any supported exchange.
@@ -10,10 +11,8 @@ No API key required for public market data.
 import os
 
 import pandas as pd
-
 from backtest.loaders.base import validate_date_range
 from backtest.loaders.registry import register
-
 
 from app.core.logger import get_logger
 
@@ -36,7 +35,7 @@ class DataLoader:
     def is_available(self) -> bool:
         """Available if ccxt is installed."""
         try:
-            import ccxt  # noqa: F401
+            import ccxt
             return True
         except ImportError:
             return False

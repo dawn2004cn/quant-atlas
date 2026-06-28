@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 """ORM models for Moments / Friend-circle posts and interactions."""
 
 
-from sqlalchemy import String, BIGINT, ForeignKey, Text
+from sqlalchemy import BIGINT, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..orm import Base

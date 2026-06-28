@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Signal Netting & Global Risk Control.
 
 Implements from strategy_plan2.md:
@@ -17,8 +18,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from app.core.logger import get_logger
 
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

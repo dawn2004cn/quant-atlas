@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 """API v1: Task pipeline DAG visualization routes."""
 
 
 from flask import Blueprint, request
 from flask_login import login_required
 
+from app.core.registry import register_routes
+
 from ...application.errors import NotFoundError, ValidationError
 from .common import ok_resource
 from .route_deps import TaskPipelineRouteDeps, build_task_pipeline_route_deps
 from .v1_context import ApiV1Context
-from app.core.registry import register_routes
 
 
 @register_routes(name="task_pipeline", context="data", description="Task pipeline DAG visualization")

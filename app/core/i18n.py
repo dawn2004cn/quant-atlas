@@ -6,13 +6,7 @@ from __future__ import annotations
 """
 
 
-import json
-
-
-from pathlib import Path
-from typing import Any
-
-DEFAULT_LOCALE = "zh"
+import jsonfrom pathlib import Pathfrom typing import AnyDEFAULT_LOCALE = "zh"
 SUPPORTED_LOCALES = ["zh", "en"]
 
 
@@ -112,7 +106,7 @@ def get_all_translations() -> dict[str, Any]:
 
 def create_jinja2_env(locale: str = DEFAULT_LOCALE):
     """Create Jinja2 environment with t() function."""
-    from jinja2 import Environment, DictLoader
+    from jinja2 import DictLoader, Environment
 
     i18n = get_i18n(locale)
 

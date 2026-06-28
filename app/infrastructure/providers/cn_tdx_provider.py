@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TDX 数据 Provider - 实时行情 + 历史数据"""
 
 
@@ -11,7 +12,7 @@ from ...core.logger import get_logger
 from ...domain.enums import MarketCode
 from ...domain.ports import HistoryPort
 from ..external.tdx_manager import TdxConnectionManager
-from ..tdx_local.lday_reader import read_lday_file, read_lday_file_with_qfq, _get_tdx_market_code
+from ..tdx_local.lday_reader import _get_tdx_market_code, read_lday_file, read_lday_file_with_qfq
 from ..tdx_local.paths import TdxLocalPaths, resolve_tdx_root
 
 logger = get_logger(__name__)

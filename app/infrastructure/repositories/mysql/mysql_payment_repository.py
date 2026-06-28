@@ -1,14 +1,18 @@
 from __future__ import annotations
+
 """SQLAlchemy payment repository implementation."""
 
 
 import json
 from typing import Any
-from sqlalchemy import select, desc
 
+from sqlalchemy import desc, select
+
+from app.domain.payment_entities import GatewayConfig, PaymentIntent, PaymentStatus, Refund
 from app.domain.ports import PaymentRepository
-from app.domain.payment_entities import PaymentIntent, Refund, GatewayConfig, PaymentStatus
-from app.infrastructure.database.models.trading import GatewayConfig as DBGatewayConfig, PaymentIntent as DBPaymentIntent, PaymentRefund as DBPaymentRefund
+from app.infrastructure.database.models.trading import GatewayConfig as DBGatewayConfig
+from app.infrastructure.database.models.trading import PaymentIntent as DBPaymentIntent
+from app.infrastructure.database.models.trading import PaymentRefund as DBPaymentRefund
 
 
 class MySQLPaymentRepository(PaymentRepository):

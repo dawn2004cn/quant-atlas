@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """MySQL 连接参数（与 SQLite 二选一，由 ``DATABASE_BACKEND=mysql`` 启用）。"""
 
 

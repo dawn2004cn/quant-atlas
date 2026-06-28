@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
 from dataclasses import dataclass
-from enum import Enum
-import pandas as pd
 from datetime import datetime
+from enum import Enum
+from typing import Any
+
+import pandas as pd
+
 
 class DataScope(Enum):
     REALTIME = "realtime"

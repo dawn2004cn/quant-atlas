@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """PostgreSQL / TimescaleDB client helpers."""
 
 from typing import Any
@@ -40,6 +41,6 @@ def ping_postgres(settings: PostgresSettings) -> bool:
             return True
         finally:
             conn.close()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("TimescaleDB ping failed: %s", exc)
         return False

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Chaos Engineering Integration with Resilience Components.
 
 This module integrates chaos engineering with:
@@ -21,7 +22,6 @@ Usage:
 import asyncio
 from dataclasses import dataclass
 from typing import Any
-
 
 from app.core.logger import get_logger
 
@@ -206,7 +206,7 @@ class ChaosCircuitBreakerIntegration:
         try:
             if self._breaker:
                 for i in range(failure_count):
-                    await self._breaker.call(lambda: (_ for _ in ()).throw(Exception(f"Failure {i}")))
+                    await self._breaker.call(lambda _i=i: (_ for _ in ()).throw(Exception(f"Failure {_i}")))
 
                 is_open = self._breaker.state == "open"
 
@@ -247,7 +247,7 @@ class ChaosCircuitBreakerIntegration:
             if self._breaker:
                 for i in range(failure_count):
                     try:
-                        await self._breaker.call(lambda: (_ for _ in ()).throw(Exception(f"Failure {i}")))
+                        await self._breaker.call(lambda _i=i: (_ for _ in ()).throw(Exception(f"Failure {_i}")))
                     except Exception as e:
                         logger.warning("resilience_integration.py.test_circuit_half_open: %s", e)
 
@@ -289,7 +289,7 @@ class ChaosCircuitBreakerIntegration:
 
         try:
             if self._breaker:
-                for i in range(success_count):
+                for _i in range(success_count):
                     try:
                         await self._breaker.call(lambda: "success")
                     except Exception as e:

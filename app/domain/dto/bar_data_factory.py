@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Pure helpers to build ``BarData`` from history payloads."""
 
 from typing import Any

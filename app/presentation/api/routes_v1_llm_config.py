@@ -9,12 +9,11 @@ from ...core.logger import get_logger
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
 
-
 logger = get_logger(__name__)
 from ...presentation.api.common import ok_resource, ok_response
+from ...presentation.api.decorators import require_role
 from ...presentation.api.route_deps import AiRouteDeps
 from ...presentation.api.v1_context import ApiV1Context
-from ...presentation.api.decorators import require_role
 
 
 @register_routes(name="llm_config", context="ai_agent", description="User LLM config management endpoints")
@@ -35,11 +34,11 @@ def register_llm_config_routes(blueprint, ctx: ApiV1Context | None = None, *, de
         except Exception:
             logger.warning("Suppressed exception", exc_info=True)
             pass
-        from app.modules.system.services.llm_provider_service import LlmProviderService
         from app.config import get_settings
         from app.core.key_encryption import KeyEncryptionService
         from app.infrastructure.database.orm import create_db_engine, create_session_factory, mysql_engine_kwargs
         from app.infrastructure.repositories.llm_config_repository import SqlAlchemyUserLlmConfigRepository
+        from app.modules.system.services.llm_provider_service import LlmProviderService
         settings = get_settings()
         engine = create_db_engine(settings.database_uri, **mysql_engine_kwargs())
         session = create_session_factory(engine)()

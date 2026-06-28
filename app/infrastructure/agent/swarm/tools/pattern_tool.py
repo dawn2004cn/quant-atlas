@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Chart pattern recognition tool: detect technical patterns in price series.
 
 Reads OHLCV data from run_dir/artifacts/ohlcv_*.csv.
@@ -14,7 +15,6 @@ import numpy as np
 import pandas as pd
 
 from app.infrastructure.agent.swarm.tools_base import BaseTool
-
 
 # ---------------------------------------------------------------------------
 # Pattern detection functions

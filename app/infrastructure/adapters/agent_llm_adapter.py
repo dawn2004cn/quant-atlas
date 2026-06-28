@@ -1,15 +1,15 @@
 from __future__ import annotations
+
 """LLM implementation for AI Agent operations."""
 
 
 import json
 from typing import Any
-from app.domain.ports import AgentLLMPort
-from app.domain.agent_entities import MarketInsight, ReportInterpretation
-from app.infrastructure.adapters.ollama_prompt_adapter import OllamaPromptAdapter
-
 
 from app.core.logger import get_logger
+from app.domain.agent_entities import MarketInsight, ReportInterpretation
+from app.domain.ports import AgentLLMPort
+from app.infrastructure.adapters.ollama_prompt_adapter import OllamaPromptAdapter
 
 logger = get_logger(__name__)
 

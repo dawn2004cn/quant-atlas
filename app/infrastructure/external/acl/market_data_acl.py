@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """Anti-Corruption Layer (ACL) for market data providers."""
 
 from abc import ABC, abstractmethod
 from typing import Any
+
 
 class IMarketDataACL(ABC):
     """ACL interface to translate external market data into Domain DTOs."""

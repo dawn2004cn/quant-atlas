@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Industry Chain Map - 产业链机会地图服务."""
 
 
@@ -7,7 +9,6 @@ from app.domain.dto.service_result import GenericResponseDTO
 from app.core.registry import register_service
 from app.domain.enums import MarketCode
 from app.domain.ports import MarketDataProvider
-
 
 # 产业链映射配置
 INDUSTRY_CHAIN_CONFIG = {

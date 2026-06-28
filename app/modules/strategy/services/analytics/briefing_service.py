@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 """Personalized Morning/Evening Briefing Service."""
 
 
 from dataclasses import dataclass, field
 from datetime import datetime
-
 
 from app.core.logger import get_logger
 

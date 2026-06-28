@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Agent Tool Result DTO - Standardized Tool Output Format.
 
 This module implements from midify_plan11.md:

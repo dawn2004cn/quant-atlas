@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 class TaskNodeDTO(BaseModel):
     task_id: str
     task_name: str

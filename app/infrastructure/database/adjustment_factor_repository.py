@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Adjustment Factor Repository - 复权因子数据操作."""
 
 
 from typing import Any
 
-from .adapters import DatabaseAdapter
 from ..mappers.symbol_normalizer import SymbolNormalizer
+from .adapters import DatabaseAdapter
 
 
 class AdjustmentFactorRepository:
@@ -29,13 +30,13 @@ class AdjustmentFactorRepository:
 
         ph = self._ph
         if self._ph == "?":
-            sql = f"""
+            sql = f"""  # noqa: S608 — table name is a safe literal
                 INSERT INTO {table} (stock_code, date, factor)
                 VALUES ({ph},{ph},{ph})
                 ON CONFLICT(stock_code, date) DO UPDATE SET factor=excluded.factor
             """
         else:
-            sql = f"""
+            sql = f"""  # noqa: S608 — table name is a safe literal
                 INSERT INTO {table} (stock_code, date, factor)
                 VALUES (%s,%s,%s)
                 ON DUPLICATE KEY UPDATE factor=VALUES(factor)
@@ -49,7 +50,7 @@ class AdjustmentFactorRepository:
         ph = self._ph
 
         if start_date and end_date:
-            sql = f"""
+            sql = f"""  # noqa: S608 — table name is a safe literal, values use parameterized placeholders
                 SELECT stock_code, date, factor
                 FROM {table}
                 WHERE stock_code = {ph} AND date >= {ph} AND date <= {ph}
@@ -57,7 +58,7 @@ class AdjustmentFactorRepository:
             """
             params = (normalized, start_date, end_date)
         else:
-            sql = f"""
+            sql = f"""  # noqa: S608 — table name is a safe literal, values use parameterized placeholders
                 SELECT stock_code, date, factor
                 FROM {table}
                 WHERE stock_code = {ph}
@@ -72,7 +73,7 @@ class AdjustmentFactorRepository:
         normalized = SymbolNormalizer.to_db_code(stock_code)
         table = "stock_adjustment_factor"
         ph = self._ph
-        sql = f"""
+        sql = f"""  # noqa: S608 — table name is a safe literal, values use parameterized placeholders
             SELECT factor FROM {table}
             WHERE stock_code = {ph}
             ORDER BY date DESC LIMIT 1
@@ -87,7 +88,7 @@ class AdjustmentFactorRepository:
         normalized = SymbolNormalizer.to_db_code(stock_code)
         table = "stock_adjustment_factor"
         ph = self._ph
-        sql = f"""
+        sql = f"""  # noqa: S608 — table name is a safe literal, values use parameterized placeholders
             SELECT factor FROM {table}
             WHERE stock_code = {ph} AND date <= {ph}
             ORDER BY date DESC LIMIT 1
@@ -102,5 +103,5 @@ class AdjustmentFactorRepository:
         normalized = SymbolNormalizer.to_db_code(stock_code)
         table = "stock_adjustment_factor"
         ph = self._ph
-        sql = f"DELETE FROM {table} WHERE stock_code = {ph} AND date < {ph}"
+        sql = f"DELETE FROM {table} WHERE stock_code = {ph} AND date < {ph}"  # noqa: S608 — table name is a safe literal, values use parameterized placeholders
         return self._adapter.execute_update(sql, (normalized, date))

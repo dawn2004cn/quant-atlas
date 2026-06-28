@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """API v1：AI 可信证据链。"""
 
 
@@ -7,8 +8,8 @@ from flask_login import current_user, login_required
 
 from ...application.errors import ValidationError
 from ...core.registry import register_routes
-from .decorators import service_fallback
 from .common import ok_response, parse_market
+from .decorators import service_fallback
 from .request_parsers import parse_bool_param
 from .v1_context import ApiV1Context
 

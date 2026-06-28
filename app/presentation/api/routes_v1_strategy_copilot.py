@@ -58,7 +58,7 @@ def _attach_suggested_trade_plan(
                 profile = getattr(detail, "profile", None) or {}
                 realtime = profile.get("realtime", {}) if isinstance(profile, dict) else {}
             entry_price = _safe_float((realtime or {}).get("price"))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("copilot trade plan entry price: %s", exc)
     try:
         plan = svc.build_plan(
@@ -88,7 +88,7 @@ def _attach_suggested_trade_plan(
             },
             "preview_href": f"/api/v1/trade-plan?symbol={symbol}&market={market.value}",
         }
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("copilot suggested_trade_plan: %s", exc)
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Integration Service Group.
 
 Services for external integrations and data sources.
@@ -6,7 +7,6 @@ Services for external integrations and data sources.
 
 
 import logging
-
 
 from app.core.logger import get_logger
 

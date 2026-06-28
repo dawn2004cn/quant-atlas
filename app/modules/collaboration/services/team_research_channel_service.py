@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Team research moments feed — publish evidence chains and logic challenges."""
 
 import json

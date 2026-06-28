@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Strategy Plugin Protocol - 策略插件接口定义。
 
 定义策略插件的标准接口，包括:

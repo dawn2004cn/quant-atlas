@@ -4,7 +4,7 @@ import logging
 from typing import Any
 
 from app.core.base_service import BaseApplicationService
-from app.core.event_bus import EventBus, Event
+from app.core.event_bus import Event, EventBus
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class FastPathTriggerService(BaseApplicationService):
         self._param_store = parameter_store
 
         # Subscribe to high‑frequency events
-        from app.core.event_bus import MarketDataUpdatedEvent, AnalysisStaleEvent
+        from app.core.event_bus import AnalysisStaleEvent, MarketDataUpdatedEvent
         self._event_bus.subscribe(MarketDataUpdatedEvent, self._on_market_tick)
         # Placeholder for alpha signals – using AnalysisStaleEvent as a proxy
         self._event_bus.subscribe(AnalysisStaleEvent, self._on_alpha_signal)

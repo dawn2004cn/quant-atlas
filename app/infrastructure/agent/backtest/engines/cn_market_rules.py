@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shared A-share market rule helpers for backtest engines."""
 
 from datetime import date

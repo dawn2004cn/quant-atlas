@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,9 +27,9 @@ warnings.warn(
 """Bound trading/risk infrastructure defaults for application services."""
 
 from collections.abc import Callable
+
 from app.domain.ports.pre_trade_validation_port import PreTradeValidationPort
 from app.domain.ports.risk_ports import PositionSizingPort, RiskPreFlightPort
-
 
 _create_pre_trade_validator: Callable[[], PreTradeValidationPort] | None = None
 _create_risk_preflight: Callable[[], RiskPreFlightPort] | None = None

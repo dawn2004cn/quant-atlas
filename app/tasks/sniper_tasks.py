@@ -1,11 +1,13 @@
 from __future__ import annotations
+
 from ..celery_app import celery as _celery
 
 if _celery is not None:
 
-    from ..bootstrap import create_app
-    from app.core.logger import get_logger
     from app.application.request_executor import run_async
+    from app.core.logger import get_logger
+
+    from ..bootstrap import create_app
 
     logger = get_logger(__name__)
 

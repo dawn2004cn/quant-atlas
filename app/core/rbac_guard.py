@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import wraps
 from typing import Literal
-from collections.abc import Callable
 
 from flask import jsonify
 

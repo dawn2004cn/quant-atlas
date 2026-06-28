@@ -33,8 +33,15 @@ from typing import Any
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from app.config.database_settings import AppEnvironment, DatabaseBackend, DatabaseConfig, MysqlSettings, PostgresSettings
-from app.config.infra_settings import CeleryConfig, TdxConfig, FrontendConfig, WechatConfig, QmtConfig, ThsConfig
+
+from app.config.database_settings import (
+    AppEnvironment,
+    DatabaseBackend,
+    DatabaseConfig,
+    MysqlSettings,
+    PostgresSettings,
+)
+from app.config.infra_settings import CeleryConfig, FrontendConfig, QmtConfig, TdxConfig, ThsConfig, WechatConfig
 
 # ── Path constants ────────────────────────────────────────────────────
 
@@ -414,8 +421,6 @@ DEFAULT_MODEL_REGISTRY_PATH = _DEFAULT_MODEL_REGISTRY_PATH
 # This shim will be removed once all callers migrate.
 
 import functools
-
-
 
 # Build a fast lookup: field path → setting attribute
 _FIELD_CACHE: dict[str, Any] = {}

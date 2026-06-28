@@ -5,12 +5,7 @@ from app.domain.dto.service_result import GenericResponseDTO
 分析用户操作记录，指出逻辑缺陷，培养有纪律的交易习惯。"""
 
 
-from collections import defaultdict
-from datetime import datetime
-
-
-
-class TradingPatternAnalyzer:
+from collections import defaultdictfrom datetime import datetimeclass TradingPatternAnalyzer:
     """交易模式分析器."""
 
     @staticmethod

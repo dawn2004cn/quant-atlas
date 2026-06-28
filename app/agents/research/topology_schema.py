@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Research LangGraph topology descriptor (data-driven, 7.0)."""
 
 

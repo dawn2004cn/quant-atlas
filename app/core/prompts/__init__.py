@@ -63,9 +63,9 @@ def get_prompt(domain: str, **kwargs: Any) -> PromptTemplate | None:
 
 
 def _register_defaults(reg: PromptRegistry) -> None:
-    from .kline import KLINE_TEMPLATE, KLINE_IMAGE_TEMPLATE
-    from .market import MARKET_TEMPLATE
     from .chart import CHART_ANALYSIS_TEMPLATE
+    from .kline import KLINE_IMAGE_TEMPLATE, KLINE_TEMPLATE
+    from .market import MARKET_TEMPLATE
     reg.register(KLINE_TEMPLATE)
     reg.register(KLINE_IMAGE_TEMPLATE)
     reg.register(MARKET_TEMPLATE)

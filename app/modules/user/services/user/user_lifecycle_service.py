@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class UserLifecycleService:
                 row = self._collab.get_lifecycle_row(uid)
                 if isinstance(row, dict):
                     settings.update(row)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.warning("Suppressed exception in get_settings", exc_info=True)
                 pass  # Fall back to JSON data
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """API v1：FinGPT 只读状态与轻量样本。"""
 
 
@@ -7,8 +8,8 @@ from flask_login import login_required
 
 from ...core.registry import register_routes
 from .common import ok_response, require_data_ingestion_role
-from .route_deps import FinGptRouteDeps, build_fingpt_route_deps
 from .request_parsers import parse_int_param
+from .route_deps import FinGptRouteDeps, build_fingpt_route_deps
 from .v1_context import ApiV1Context
 
 

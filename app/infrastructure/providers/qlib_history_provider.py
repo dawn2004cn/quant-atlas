@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Qlib history data provider."""
 
 
@@ -6,9 +7,9 @@ from typing import Any
 
 import pandas as pd
 
+from ...core.logger import get_logger
 from ...domain.enums import MarketCode
 from ...domain.ports.market_ports import HistoryPort
-from ...core.logger import get_logger
 
 logger = get_logger(__name__)
 

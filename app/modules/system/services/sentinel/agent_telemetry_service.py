@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Telemetry service for tracking asynchronous Swarm and Agent tasks.
 
 Provides a unified interface for the message store system.
@@ -6,6 +7,7 @@ Provides a unified interface for the message store system.
 
 
 from typing import Any
+
 
 class AgentTelemetryService:
     """Service for reporting agent task progress."""

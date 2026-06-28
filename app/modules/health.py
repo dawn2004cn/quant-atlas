@@ -1,6 +1,7 @@
 """Centralized health check implementations for all context modules."""
 
 from __future__ import annotations
+
 from typing import Any
 
 
@@ -32,6 +33,7 @@ def module_health_check(module_name: str, required_infra: list[str] | None = Non
     if required_infra and "redis" in required_infra:
         try:
             import redis
+
             from app.config.settings import get_settings
 
             s = get_settings()

@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Hook watchlist mutations into psychology guardian + message center."""
 
 from typing import Any
 
-from app.modules.user.services.user.psychology_guardian_service import PsychologyGuardianService
 from app.core.logger import get_logger
 from app.domain.enums import MarketCode
+from app.modules.user.services.user.psychology_guardian_service import PsychologyGuardianService
 
 logger = get_logger(__name__)
 
@@ -31,7 +32,7 @@ def on_watchlist_mutation(
             quotes = market_service.list_quotes(MarketCode.CN, [sym])
             if quotes:
                 change_pct = float(quotes[0].get("change_pct", 0) or 0)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("psychology_watchlist_hooks quote: %s", exc)
 
     store = psychology_store

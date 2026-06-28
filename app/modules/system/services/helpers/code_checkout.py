@@ -76,7 +76,7 @@ def checkout_code_revision(repo_root: Path, code_revision: dict[str, str]) -> tu
         return False, f"unsupported_vcs:{vcs}"
 
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120, check=False)  # noqa: S603  # revision validated by _validate_git_revision / _validate_svn_revision before reaching this point
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120, check=False)  # revision validated by _validate_git_revision / _validate_svn_revision before reaching this point
         if proc.returncode == 0:
             return True, revision
         detail = (proc.stderr or proc.stdout or "checkout_failed")[:300]

@@ -1,31 +1,19 @@
 from __future__ import annotations
 
-
-
 import logging
 import os
-
 import re
-
 import time
-
 from typing import Any
 
 import pymysql
 import pymysql.err
 
-
-
 from app.core.runtime_config import get_runtime_bool, get_runtime_int
-
 from app.core.utils.sql_utils import validate_identifier
 from app.domain.shared.symbol_normalizer import SymbolNormalizer
-
 from app.infrastructure.database.mysql_connection_adapter import MySQLConnectionAdapter
-
 from app.infrastructure.database.mysql_settings import MysqlSettings
-
-
 
 logger = logging.getLogger(__name__)
 

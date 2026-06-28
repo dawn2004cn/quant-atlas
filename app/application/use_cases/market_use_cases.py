@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 """Market-related UseCases - abstracts business logic from API routes."""
 
 
 
 from app.domain.enums import MarketCode
+
 from ..use_cases import UseCase, UseCaseResult
 
 

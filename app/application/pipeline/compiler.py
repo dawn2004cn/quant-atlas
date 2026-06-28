@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Pipeline DSL compiler for automated quant research."""
 
 from typing import Any
+
 import yaml
-from app.application.factor.registry import factor_registry
+
 from app.application.factor.miner import FactorMiner
-
-
+from app.application.factor.registry import factor_registry
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

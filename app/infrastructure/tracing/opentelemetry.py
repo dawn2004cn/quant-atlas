@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """OpenTelemetry Integration for Quant Atlas.
 
 Phase 43: 全链路链路追踪 (Distributed Tracing)

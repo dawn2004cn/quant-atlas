@@ -8,7 +8,8 @@ from flask_login import login_required
 from app.application.errors import ValidationError
 from app.presentation.api.common import ok_resource
 from app.presentation.api.v1_context import ApiV1Context
-from ...decorators import service_fallback, require_role
+
+from ...decorators import require_role, service_fallback
 
 
 def register_factor_self_correction_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:

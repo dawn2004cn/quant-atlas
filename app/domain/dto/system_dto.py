@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class TableInfoDTO(BaseModel):
     name: str
     rows: int

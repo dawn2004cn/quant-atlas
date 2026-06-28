@@ -1,9 +1,12 @@
 """Phase 8.3 Quant-Panorama God-View: full-trace aggregation API."""
 from __future__ import annotations
+
 from datetime import datetime, timezone
 from typing import Any
+
 from flask import Blueprint, request
 from flask_login import login_required
+
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
 from ..api.common import ok_response, require_ctx_service

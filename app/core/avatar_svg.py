@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """确定性 SVG 头像（渐变 + 首字），不依赖外网图床。"""
 
 

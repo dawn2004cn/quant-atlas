@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Portfolio and position domain models."""
 
 

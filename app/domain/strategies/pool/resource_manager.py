@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Resource Manager - 资源管理器。
 
 管理策略实例的资源使用:

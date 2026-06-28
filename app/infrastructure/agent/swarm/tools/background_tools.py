@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Background tasks: thread execution + notification queue."""
 
 

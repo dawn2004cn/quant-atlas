@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from flask import Blueprint, Response, abort, send_from_directory
 
 from app.config import BASE_DIR

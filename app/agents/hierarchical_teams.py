@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Hierarchical Teams - Supervisor-sub-supervisor architecture.
 
 This module implements the Hierarchical Teams pattern from midify_plan9.md:
@@ -15,13 +16,13 @@ import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
 from typing import Any
 
-from .base import AgentResponseDTO, AgentConclusion
-from .evidence_blackboard import get_evidence_blackboard
-from enum import Enum
-
 from app.core.logger import get_logger
+
+from .base import AgentConclusion, AgentResponseDTO
+from .evidence_blackboard import get_evidence_blackboard
 
 logger = get_logger(__name__)
 

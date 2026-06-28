@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Pytdx 运行时检测与懒加载。"""
 
 
@@ -11,7 +12,7 @@ from app.infrastructure.pytdx.exceptions import PytdxNotAvailableError
 @lru_cache(maxsize=1)
 def pytdx_available() -> bool:
     try:
-        import pytdx  # noqa: F401
+        import pytdx
 
         return True
     except ImportError:

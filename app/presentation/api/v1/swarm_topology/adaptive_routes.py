@@ -9,6 +9,7 @@ from app.presentation.api.common import ok_response
 from app.presentation.api.v1.swarm_topology._helpers import adaptive_service, unavailable_response
 from app.presentation.api.v1.swarm_topology.runtime import SwarmTopologyRuntime
 from app.presentation.api.v1_context import ApiV1Context
+
 from ...decorators import require_role
 
 

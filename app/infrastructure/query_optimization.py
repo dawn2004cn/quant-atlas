@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Query Optimization for Batch Operations.
 
 Supports efficient batch queries with connection reuse.
@@ -7,7 +8,6 @@ Supports efficient batch queries with connection reuse.
 
 from dataclasses import dataclass
 from typing import TypeVar
-
 
 from app.core.logger import get_logger
 

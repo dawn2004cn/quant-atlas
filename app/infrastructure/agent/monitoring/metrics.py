@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Agent Metrics Collector.
 
 Exports agent performance, latency, and success rates for Prometheus integration.

@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 """Celery: sync TDX lday daily bars into QuestDB + ClickHouse."""
 
 from typing import Any
 
+from app.core.logger import get_logger
 from app.modules.data.services.timeseries_ohlcv_sync_service import (
     run_timeseries_ohlcv_backfill,
     run_timeseries_ohlcv_sync,
 )
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -26,12 +27,13 @@ def run_scheduled_questdb_sync() -> dict[str, Any]:
         from app.infrastructure.timeseries.sync_snapshot import record_timeseries_sync_snapshot
 
         record_timeseries_sync_snapshot(result, source="celery_beat")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("celery sync snapshot skipped: %s", exc)
     return result
 
 
 from app.celery_app import celery as _celery
+
 
 def run_full_market_timeseries_backfill(
     *,

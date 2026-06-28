@@ -6,14 +6,17 @@ Preserves semantic type + payload via ApplicationEventForwardedEvent.
 
 from __future__ import annotations
 
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
-from app.application.events.event_bus import Event, EventType, get_event_bus as get_app_event_bus
+from app.application.events.event_bus import Event, EventType
+from app.application.events.event_bus import get_event_bus as get_app_event_bus
 from app.core.event_bus import (
     ApplicationEventForwardedEvent,
     MarketDataUpdatedEvent,
     MarketRegimeChangedEvent,
+)
+from app.core.event_bus import (
     get_event_bus as get_core_event_bus,
 )
 from app.core.logger import get_logger

@@ -79,7 +79,7 @@ class QuestDBAdapter(TimeSeriesDBPort):
                 self._open_pg_conn()
                 self._connected = True
                 return True
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("QuestDBAdapter.connect pg %s:%s: %s", self._host, self._pg_port, exc)
                 self._connected = False
                 return False
@@ -96,7 +96,7 @@ class QuestDBAdapter(TimeSeriesDBPort):
             )
             self._connected = resp.status_code == 200
             return self._connected
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("QuestDBAdapter.connect http %s:%s: %s", self._host, self._http_port, exc)
             self._connected = False
             return False
@@ -105,7 +105,7 @@ class QuestDBAdapter(TimeSeriesDBPort):
         if self._pg_conn is not None:
             try:
                 self._pg_conn.close()
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("QuestDBAdapter.disconnect pg: %s", exc)
         self._pg_conn = None
         self._connected = False
@@ -165,7 +165,7 @@ class QuestDBAdapter(TimeSeriesDBPort):
                     fetched = cur.fetchall()
                     conn.commit()
                     return [dict(zip(names, row, strict=False)) for row in fetched]
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("QuestDBAdapter.execute_raw_query pg: %s", exc)
                 self._pg_conn = None
                 self._connected = False
@@ -190,7 +190,7 @@ class QuestDBAdapter(TimeSeriesDBPort):
                 if isinstance(row, list) and columns:
                     rows.append(dict(zip(columns, row, strict=False)))
             return rows
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("QuestDBAdapter.execute_raw_query: %s", exc)
             return []
 
@@ -241,7 +241,7 @@ class ClickHouseAdapter(TimeSeriesDBPort):
                     (resp.text or "")[:300],
                 )
             return self._connected
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("ClickHouseAdapter.connect: %s", exc)
             self._connected = False
             return False
@@ -300,7 +300,7 @@ class ClickHouseAdapter(TimeSeriesDBPort):
 
                 rows.append(json.loads(line))
             return rows
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("ClickHouseAdapter.execute_raw_query: %s", exc)
             return []
 
@@ -318,7 +318,7 @@ class ClickHouseAdapter(TimeSeriesDBPort):
                 )
                 return False
             return True
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("ClickHouseAdapter.execute_dml: %s", exc)
             return False
 

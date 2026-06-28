@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Input sanitization and validation for Agent tools.
 
 This implements tool contract validation from quant_plan.md:

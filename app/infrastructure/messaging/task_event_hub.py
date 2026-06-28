@@ -2,11 +2,12 @@ from __future__ import annotations
 
 """In-process pub/sub for Celery task lifecycle events (SSE push)."""
 
+import logging
 import queue
 import threading
 from collections import defaultdict
 from typing import Any
-import logging
+
 logger = logging.getLogger(__name__)
 
 

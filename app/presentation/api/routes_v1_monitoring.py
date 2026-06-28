@@ -6,12 +6,13 @@ from pathlib import Path
 
 from flask import Blueprint, current_app
 
-from app.modules.system.services.helpers.monitoring_access import check_table_freshness
-from app.modules.system.services.monitoring.trace_query_service import TraceQueryService
 from app.config import get_settings
 from app.core.circuit_breaker import CircuitBreakerRegistry
 from app.core.registry import register_routes
+from app.modules.system.services.helpers.monitoring_access import check_table_freshness
+from app.modules.system.services.monitoring.trace_query_service import TraceQueryService
 from app.presentation.api.responses import success_response
+
 from .common import ok_response
 
 monitoring_bp = Blueprint("monitoring", __name__, url_prefix="/system")

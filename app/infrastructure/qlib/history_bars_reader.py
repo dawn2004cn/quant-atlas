@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """从 ``instance/qlib_bin`` 读取 A 股日 K（仅读本地 bin，不访问公网）。"""
 
 
@@ -11,7 +12,6 @@ from ...config import BASE_DIR
 from ...core.logger import get_logger
 from ...domain.enums import MarketCode
 from .symbol_map import to_qlib_instrument
-
 
 logger = get_logger(__name__)
 
@@ -41,9 +41,9 @@ def load_cn_daily_ohlcv_from_qlib_bin(
     if not qlib_bin_calendar_ready(base_dir=root):
         return []
     try:
-        import qlib  # noqa: PLC0415
-        from qlib.constant import REG_CN  # noqa: PLC0415
-        from qlib.data import D  # noqa: PLC0415
+        import qlib
+        from qlib.constant import REG_CN
+        from qlib.data import D
     except Exception:
         return []
 
@@ -54,7 +54,7 @@ def load_cn_daily_ohlcv_from_qlib_bin(
     try:
         qlib.init(provider_uri=uri, region=REG_CN)
         df = D.features([inst], fields, start_time=s0, end_time=e0, freq="day")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("qlib D.features history read failed sym=%s: %s", symbol, exc)
         return []
     if df is None or len(df) == 0:
@@ -63,13 +63,13 @@ def load_cn_daily_ohlcv_from_qlib_bin(
         if inst not in df.index.get_level_values(0):
             return []
         sub = df.loc[inst]
-    except Exception:  # noqa: BLE001
+    except Exception:
         return []
 
     def _row_to_bar(ts: Any, row: Any) -> dict[str, Any] | None:
         try:
             ds = pd.Timestamp(ts).strftime("%Y-%m-%d")
-        except Exception:  # noqa: BLE001
+        except Exception:
             ds = str(ts)[:10]
         try:
             o = float(row["$open"])

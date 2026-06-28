@@ -1,19 +1,24 @@
 from __future__ import annotations
+
 """Resilience infrastructure: Context tracking and circuit breaker."""
 
 
 import contextvars
 import time
 import uuid
+from collections.abc import Callable
 from functools import wraps
 from typing import Any
-from collections.abc import Callable
 
 from app.core.circuit_breaker import (
     CircuitBreaker as _CircuitBreaker,
+)
+from app.core.circuit_breaker import (
     CircuitBreakerConfig,
-    CircuitBreakerOpenError as _CircuitBreakerOpenError,
     CircuitState,
+)
+from app.core.circuit_breaker import (
+    CircuitBreakerOpenError as _CircuitBreakerOpenError,
 )
 from app.core.logger import get_logger
 

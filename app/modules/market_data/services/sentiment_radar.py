@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Market Sentiment Radar & Pulse Alert System."""
 
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-
 
 from app.core.logger import get_logger
 

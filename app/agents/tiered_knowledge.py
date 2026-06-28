@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Tiered Knowledge System - Cold-Hot Data Separation.
 
 This module implements Multi-level Knowledge Tiering from midify_plan11.md:
@@ -13,13 +14,14 @@ Usage:
 """
 
 
-import orjson as json
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
-from collections.abc import Callable
-from app.core.logger import get_logger
 
+import orjson as json
+
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -50,13 +50,13 @@ class CanvasEventBridge:
     def _setup_resonance_handlers(self) -> None:
         """Subscribe to 10.0 resonance events for canvas streaming."""
         try:
-            from app.modules.system.services.mesh.perception_resonance_service import (
-                ResonanceActionEvent,
-                ResonanceTriggeredResearchEvent,
-            )
             from app.modules.execution.services.self_healing_execution_service import (
                 ExecutionFailoverEvent,
                 ExecutionRecoveryEvent,
+            )
+            from app.modules.system.services.mesh.perception_resonance_service import (
+                ResonanceActionEvent,
+                ResonanceTriggeredResearchEvent,
             )
 
             self._event_bus.subscribe(ResonanceActionEvent, self._on_resonance_action)

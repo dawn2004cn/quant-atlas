@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Swarm multi-agent system — Task persistence and DAG algorithms.
 
 Ported from Vibe-Trading.

@@ -1,13 +1,15 @@
 from __future__ import annotations
+
 from flask import Blueprint
-from app.core.registry import register_routes
-from ...v1_context import ApiV1Context
+
 from app.core.logger import get_logger
-from app.domain.enums import MarketCode
+from app.core.registry import register_routes
 from app.domain.dto.stock_request_dto import StockHistoryRequest
+from app.domain.enums import MarketCode
 
 from ...common import ok_collection, parse_market
 from ...dto_validation import validate_request
+from ...v1_context import ApiV1Context
 
 logger = get_logger(__name__)
 

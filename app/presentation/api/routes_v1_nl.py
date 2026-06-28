@@ -5,9 +5,10 @@ from dataclasses import asdict
 from flask import Blueprint, request
 
 from app.application.errors import ExternalServiceError, ValidationError
-from app.modules.ai_agent.services.nl_parser import AdvancedNLParser
-from .common import ok_response
 from app.core.registry import register_routes
+from app.modules.ai_agent.services.nl_parser import AdvancedNLParser
+
+from .common import ok_response
 
 # Parent blueprint already uses url_prefix ``/api/v1``; nest only the NL segment.
 nl_bp = Blueprint("nl", __name__, url_prefix="/nl")

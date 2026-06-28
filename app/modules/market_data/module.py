@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import logging
+
 logger = logging.getLogger(__name__)
 from typing import Any
 
 from app.core.module_registry import register_module
 from app.core.typed_registry import get_registry
 from app.modules.health import module_health_check
+
 
 @register_module(name="market_data", description="Market data access and analysis")
 class MarketDataContextModule:
@@ -57,9 +59,9 @@ def _init_market_service(services: Any) -> None:
         return
     try:
         from app.infrastructure.providers.cn_industry_provider import CnIndustryProvider
-        from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
         from app.modules.market_data.services.cn_quote_snapshot import configure_cn_quote_snapshot
         from app.modules.market_data.services.market_service import MarketApplicationService
+        from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
         market_provider = get_market_data_provider()
         industry_provider = CnIndustryProvider()
@@ -97,8 +99,8 @@ def _init_global_market_service(services: Any) -> None:
     if getattr(services, "global_market_service", None) is not None:
         return
     try:
-        from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
         from app.modules.market_data.services.global_market_service import GlobalMarketService
+        from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
         market_provider = get_market_data_provider()
         repository = None

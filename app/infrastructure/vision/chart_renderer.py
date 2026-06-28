@@ -47,8 +47,8 @@ class ChartRenderer:
         try:
             import matplotlib
             matplotlib.use("Agg")
-            import matplotlib.pyplot as plt
             import matplotlib.dates as mdates
+            import matplotlib.pyplot as plt
             import mplfinance as mpf
             import pandas as pd
         except ImportError as exc:

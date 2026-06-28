@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """LTTB downsampling for OHLCV history rows."""
 
 import math

@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """DTOs for Signal Flag services."""
 
 
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 

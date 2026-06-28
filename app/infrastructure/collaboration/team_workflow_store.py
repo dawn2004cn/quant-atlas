@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """File store for team workflows and run history."""
 
 import json
@@ -40,7 +41,7 @@ class TeamWorkflowStore:
         try:
             raw = json.loads(path.read_text(encoding="utf-8"))
             return TeamWorkflowDescriptor.model_validate(raw)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("team_workflow_store.get: %s", exc)
             return None
 
@@ -113,7 +114,7 @@ class TeamWorkflowStore:
                     rows.append(json.loads(line))
                 except json.JSONDecodeError:
                     continue
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("team_workflow_store.list_runs: %s", exc)
             return []
         rows.sort(key=lambda r: str(r.get("created_at") or ""), reverse=True)

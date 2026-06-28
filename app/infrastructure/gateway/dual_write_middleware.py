@@ -24,11 +24,11 @@ import time
 import urllib.parse
 import urllib.request
 from collections import deque
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Protocol
-from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 

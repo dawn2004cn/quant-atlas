@@ -1,14 +1,14 @@
 from __future__ import annotations
+
 """Local LLM provider using Ollama for high-performance, private inference."""
 
 
 from typing import Any
+
 import requests
 
-from app.infrastructure.agent.providers.chat import LLMResponse
-
-
 from app.core.logger import get_logger
+from app.infrastructure.agent.providers.chat import LLMResponse
 
 logger = get_logger(__name__)
 

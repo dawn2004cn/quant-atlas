@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Frozen configuration slices injected into services (subset of AppSettings).
 
 .. deprecated::

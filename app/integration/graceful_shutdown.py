@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Graceful Shutdown Service.
 
 Handles application shutdown signals and resource cleanup.
@@ -8,10 +9,9 @@ Handles application shutdown signals and resource cleanup.
 import asyncio
 import signal
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from collections.abc import Callable
-
 
 from app.core.logger import get_logger
 

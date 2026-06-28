@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -28,7 +29,6 @@ warnings.warn(
 from collections.abc import Callable
 from contextlib import AbstractContextManager
 from typing import Any
-
 
 _create_span: Callable[..., AbstractContextManager[Any]] | None = None
 def bind_tracing(*, create_span: Callable[..., AbstractContextManager[Any]]) -> None:

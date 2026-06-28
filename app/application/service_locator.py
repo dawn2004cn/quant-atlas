@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Service Locator - Simple DI for optional services with lazy loading.
 
 This module provides a simple service locator pattern for services
@@ -10,7 +11,6 @@ for heavy-weight services.
 
 from collections.abc import Callable
 from typing import Any, ClassVar
-
 
 from app.core.logger import get_logger
 

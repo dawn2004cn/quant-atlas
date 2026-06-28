@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Core exception hierarchy for quant-atlas.
 
 This module unifies exception handling across all layers:

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import String, Integer, Float, SmallInteger, DateTime, Text
-from sqlalchemy.orm import Mapped, mapped_column, MappedAsDataclass
+from sqlalchemy import DateTime, Float, Integer, SmallInteger, String, Text
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
 
 from app.infrastructure.database.orm import Base
 

@@ -8,8 +8,8 @@ from flask_login import login_required
 from ...application.errors import ValidationError
 from ...core.registry import register_routes
 from .common import ok_response
-from .v1_context import ApiV1Context
 from .decorators import service_fallback
+from .v1_context import ApiV1Context
 
 
 @register_routes(name="arbiter", context="system", description="Arbiter consensus and review")

@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
-from ..auth_guard import api_auth_required
-from ....domain.enums import MarketCode
-from ..responses import success_response
+
 from app.core.composite_rate_limiter import LimitRule, require_rate_limit
+
+from ....domain.enums import MarketCode
+from ..auth_guard import api_auth_required
+from ..responses import success_response
+
 
 def create_strategy_blueprint(ctx):
     bp = Blueprint("v2_strategy", __name__)
@@ -15,8 +18,8 @@ def create_strategy_blueprint(ctx):
         LimitRule(max_calls=5, window_seconds=60, key_prefix="backtest"),
     )
     def run_backtest():
-        from .request_parsers import parse_dto
         from ....application.dto import BacktestRequestDTO
+        from .request_parsers import parse_dto
         body = request.get_json(silent=True) or {}
         if ctx.enable_dto_validation:
             dto = parse_dto(body, BacktestRequestDTO)
@@ -57,8 +60,8 @@ def create_strategy_blueprint(ctx):
     @bp.post("/backtest/compare")
     @api_auth_required
     def compare_backtests():
-        from .request_parsers import parse_dto
         from ....application.dto import BacktestCompareRequestDTO
+        from .request_parsers import parse_dto
 
         body = request.get_json(silent=True) or {}
         if ctx.enable_dto_validation:
@@ -92,8 +95,8 @@ def create_strategy_blueprint(ctx):
     @bp.get("/select")
     @api_auth_required
     def select_stocks():
-        from .request_parsers import parse_dto
         from ....application.dto import SelectionRequestDTO
+        from .request_parsers import parse_dto
         if ctx.enable_dto_validation:
             dto = parse_dto(request.args.to_dict(), SelectionRequestDTO, partial=True)
             market = MarketCode(dto.market)
@@ -106,7 +109,7 @@ def create_strategy_blueprint(ctx):
                 market = MarketCode(market_str)
             except ValueError:
                 from ....application.errors import ValidationError
-                raise ValidationError(f"Invalid market: {market_str}")
+                raise ValidationError(f"Invalid market: {market_str}") from None
             top_n = int(request.args.get("top_n", 20))
 
         if ctx.backtest_facade is not None:

@@ -8,7 +8,6 @@ from typing import Any
 from app.core.registry import register_service
 from app.core.runtime_config import get_runtime
 
-
 ROLE_PRESETS: dict[str, dict[str, Any]] = {
     "researcher": {
         "role": "researcher",

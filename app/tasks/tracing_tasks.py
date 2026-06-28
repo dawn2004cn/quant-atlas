@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Celery Tasks for OpenTelemetry Tracing.
 
 Phase 43: 全链路链路追踪

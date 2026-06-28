@@ -1,5 +1,6 @@
 from app.core.typed_registry import get_registry
 
+
 def _make_market_regime_service(reg, **kwargs):
     # Try to locate an existing regime service; fallback to dummy.
     try:

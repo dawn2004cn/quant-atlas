@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 """Task queue with priority support."""
 
 
+import threading
 import uuid
-from enum import Enum
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
-from collections.abc import Callable
+from enum import Enum
 from queue import PriorityQueue
-import threading
+from typing import Any
 
 from app.core.logger import get_logger
 
@@ -77,7 +78,7 @@ class PriorityTaskQueue:
 
         self._running = True
 
-        for i in range(self._max_workers):
+        for _i in range(self._max_workers):
             worker = threading.Thread(target=self._worker, daemon=True)
             worker.start()
             self._workers.append(worker)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain Event Publisher - Publishes domain events from application layer.
 
 Wires domain events to Flask and external systems.
@@ -7,20 +8,18 @@ Wires domain events to Flask and external systems.
 
 from typing import Any
 
+from app.core.logger import get_logger
 from app.domain.events.handlers import (
     DomainEvent,
-    StockCreatedEvent,
-    SignalGeneratedEvent,
-    PositionOpenedEvent,
-    PositionClosedEvent,
-    OrderSubmittedEvent,
     OrderFilledEvent,
+    OrderSubmittedEvent,
+    PositionClosedEvent,
+    PositionOpenedEvent,
+    SignalGeneratedEvent,
+    StockCreatedEvent,
     get_event_bus,
     publish_event,
 )
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Market Services - Market data services.
 
 This module provides market-related services:
@@ -7,16 +9,18 @@ This module provides market-related services:
 """
 
 from datetime import datetime, timedelta
-from app.core.logger import get_logger
-from app.modules.system.services.helpers.quote_cache_wiring import get_quote_cache_port
-from app.domain.enums import MarketCode
+
+from app.application.dto.market_data_dto import StockQuoteDTO as MarketQuoteDTO
 from app.core.base_service import BaseApplicationService
-from app.modules.system.services.async_mixin import AsyncServiceMixin
+from app.core.logger import get_logger
 from app.domain.dto.market_data_dto import PanoramaDTO
 from app.domain.dto.quote_factory import canonical_quote_payload, panorama_row_to_quote_dto
-from app.domain.ports.stock_cache_port import StockCachePort
+from app.domain.enums import MarketCode
 from app.domain.ports.cache_port import CachePort
-from app.application.dto.market_data_dto import StockQuoteDTO as MarketQuoteDTO
+from app.domain.ports.stock_cache_port import StockCachePort
+from app.modules.system.services.async_mixin import AsyncServiceMixin
+from app.modules.system.services.helpers.quote_cache_wiring import get_quote_cache_port
+
 logger = get_logger(__name__)
 
 # A-share full-market snapshot should contain thousands of symbols; partial cache must refresh.

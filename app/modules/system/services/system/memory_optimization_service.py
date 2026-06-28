@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 """Memory optimization service for high-frequency data."""
 
 
-from app.modules.system.services.helpers.memory_access import get_shared_memory_manager
 from app.core.registry import register_service
 from app.domain.dto.system_dto import MemoryStatsDTO, OptimizationResultDTO, TableInfoDTO
+from app.modules.system.services.helpers.memory_access import get_shared_memory_manager
+
 
 @register_service(name="memory_optimization_service")
 class MemoryOptimizationService:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Borderless execution orchestration (Quant Atlas 9.0 Step Two)."""
 
 import asyncio
@@ -69,7 +70,7 @@ class BorderlessExecutionService:
     def submit_order(self, body: dict[str, Any]) -> dict[str, Any]:
         try:
             req = BorderlessOrderRequest.model_validate(body)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return {"ok": False, "error": f"invalid_request:{exc}"}
 
         if not str(req.provenance_id or "").strip():
@@ -99,7 +100,7 @@ class BorderlessExecutionService:
             response = asyncio.run(self._router.submit_order(trade_req))
         except KeyError as exc:
             return {"ok": False, "error": str(exc), "route": route.model_dump(mode="json")}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("borderless submit failed: %s", exc)
             return {"ok": False, "error": str(exc)}
 
@@ -116,7 +117,7 @@ class BorderlessExecutionService:
         sym = symbol or "600519"
         try:
             response = asyncio.run(self._router.get_order_status(order_id, sym))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return {"ok": False, "error": str(exc)}
         return {"ok": True, "response": response.to_dict()}
 
@@ -166,7 +167,7 @@ class BorderlessExecutionService:
                 market=route.market.value,
                 source="borderless_execution",
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("borderless emit_trade_executed: %s", exc)
 
         mesh = get_distributed_event_bus()

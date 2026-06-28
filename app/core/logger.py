@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Centralized logging configuration with structured logging support.
 
 Environment variables (see ``.env.example``):
@@ -44,6 +45,8 @@ try:
     from app.core import structlogger
     from app.core.structlogger import (
         get_logger as _sl_get_logger,
+    )
+    from app.core.structlogger import (
         setup_logging as _sl_setup,
     )
 

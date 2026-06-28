@@ -1,19 +1,20 @@
 from __future__ import annotations
+
 """Async Repository pattern for database operations.
 
 Following Phase 6: Reactive Architecture - adding async support to data layer.
 """
 
 
-from typing import Any, Generic, TypeVar
 from dataclasses import dataclass
+from typing import Any, Generic, TypeVar
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-from app.core.logger import get_logger
 from app.config import AppSettings
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

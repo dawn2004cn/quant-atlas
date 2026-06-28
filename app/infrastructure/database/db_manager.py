@@ -1,16 +1,19 @@
 from __future__ import annotations
+
 """Database connection manager with SQLAlchemy connection pooling."""
 
 import re
+import time
 from typing import Any
-from .mysql_settings import MysqlSettings
-from .orm import create_db_engine, create_session_factory, mysql_database_uri, mysql_engine_kwargs
 
 from sqlalchemy import event
-from app.core.logging_config import SQL_LOGGER_NAME
-from app.core.tracing.tracer import get_trace_id, get_context_snapshot, restore_context
-import time
+
 from app.core.logger import get_logger
+from app.core.logging_config import SQL_LOGGER_NAME
+from app.core.tracing.tracer import get_context_snapshot, get_trace_id, restore_context
+
+from .mysql_settings import MysqlSettings
+from .orm import create_db_engine, create_session_factory, mysql_database_uri, mysql_engine_kwargs
 
 logger = get_logger(__name__)
 sql_logger = get_logger(SQL_LOGGER_NAME)

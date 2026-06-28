@@ -1,12 +1,12 @@
 """Sentinel for monitoring market data freshness."""
 
 from datetime import datetime, timedelta
+
 import pymysql
+
 from app.config import AppSettings
-from app.core.metrics import SYNC_LATENCY
-
-
 from app.core.logger import get_logger
+from app.core.metrics import SYNC_LATENCY
 
 logger = get_logger(__name__)
 

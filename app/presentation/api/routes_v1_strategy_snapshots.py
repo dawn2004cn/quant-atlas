@@ -3,14 +3,16 @@ from __future__ import annotations
 """API v1: strategy deploy snapshots and rollback."""
 
 import logging
+
 from flask import Blueprint, request
 from flask_login import current_user, login_required
 
 from app.application.errors import ValidationError
-from app.modules.strategy.services.strategy.strategy_snapshot_service import StrategySnapshotService
-from app.modules.system.services.ui.decision_snapshot_service import DecisionSnapshotService
 from app.core.middleware.request_context import require_authenticated_user_id
 from app.core.registry import register_routes
+from app.modules.strategy.services.strategy.strategy_snapshot_service import StrategySnapshotService
+from app.modules.system.services.ui.decision_snapshot_service import DecisionSnapshotService
+
 from .common import ok_resource, ok_response
 from .request_parsers import parse_int_param
 from .v1_context import ApiV1Context

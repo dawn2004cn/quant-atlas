@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """A-share (China mainland) backtest engine.
 
 Market rules:
@@ -12,8 +13,9 @@ Market rules:
 """
 
 
-import pandas as pd
+import logging
 
+import pandas as pd
 from backtest.engines.base import BaseEngine
 from backtest.engines.cn_market_rules import (
     a_share_t1_blocks_sell,
@@ -21,8 +23,6 @@ from backtest.engines.cn_market_rules import (
     cn_stamp_tax_rate_for_date,
 )
 
-
-import logging
 logger = logging.getLogger(__name__)
 
 

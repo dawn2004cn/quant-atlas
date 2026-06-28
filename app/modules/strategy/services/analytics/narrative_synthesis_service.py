@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Narrative Synthesis Layer — generative, personalized research briefings (7.0)."""
 
 import json
@@ -44,7 +45,7 @@ class NarrativeSynthesisService:
                 if patterns and not knowledge.get("related_decision_patterns"):
                     knowledge["related_decision_patterns"] = patterns[-10:]
                 knowledge["behavior_topology"] = self._knowledge.analyze_topology(user_id)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("narrative knowledge enrichment: %s", exc)
 
         decision_ctx: dict[str, Any] = {}
@@ -56,7 +57,7 @@ class NarrativeSynthesisService:
                     investment_profile=investment_profile,
                     page="smart_briefing",
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("narrative decision context: %s", exc)
 
         evidence_nodes = self._collect_evidence_nodes(briefing)
@@ -121,7 +122,7 @@ class NarrativeSynthesisService:
         if self._knowledge is not None:
             try:
                 knowledge = self._knowledge.build_context_enrichment(user_id)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("causal report knowledge: %s", exc)
 
         decision_ctx: dict[str, Any] = {}
@@ -133,7 +134,7 @@ class NarrativeSynthesisService:
                     investment_profile=investment_profile,
                     page="causal_report",
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("causal report decision ctx: %s", exc)
 
         chain_context = self._collect_full_chain_context(symbols)
@@ -178,7 +179,7 @@ class NarrativeSynthesisService:
         for sym in symbols[:5]:
             try:
                 chains = self._sequence_chain.list_chains(symbol=sym, limit=3)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("causal chain list: %s", exc)
                 continue
             for chain in chains:
@@ -401,7 +402,7 @@ class NarrativeSynthesisService:
         for sym in symbols[:5]:
             try:
                 chains = self._sequence_chain.list_chains(symbol=sym, limit=2)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("narrative sequence chain list: %s", exc)
                 continue
             for chain in chains:
@@ -463,7 +464,7 @@ class NarrativeSynthesisService:
             parsed = self._parse_json_block(text)
             if parsed:
                 return parsed
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("narrative LLM synthesis failed: %s", exc)
         return None
 
@@ -602,7 +603,7 @@ class NarrativeSynthesisService:
             from app.core.llm_config import get_llm_for_user
 
             llm = get_llm_for_user(int(user_id))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("causal report llm unavailable: %s", exc)
             return None
         prompt = self._build_causal_report_prompt(
@@ -625,7 +626,7 @@ class NarrativeSynthesisService:
                     "sections": {"full": text},
                     "confidence": 0.75,
                 }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("causal report LLM failed: %s", exc)
         return None
 

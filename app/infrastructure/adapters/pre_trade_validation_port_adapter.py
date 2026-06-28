@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Infrastructure adapter for ``PreTradeValidationPort``."""
 
 from app.domain.dto.trade_signal_dto import TradeSignalDTO

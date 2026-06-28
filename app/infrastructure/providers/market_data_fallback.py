@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Market data fallback strategy - implements Chain of Responsibility pattern.
 
 This module provides resilient data fetching with automatic fallbacks:
@@ -15,9 +16,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from ...domain.enums import MarketCode
-
 from app.core.logger import get_logger
+
+from ...domain.enums import MarketCode
 
 logger = get_logger(__name__)
 

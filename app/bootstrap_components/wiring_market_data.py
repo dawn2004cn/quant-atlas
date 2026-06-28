@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 def _make_stock_service(reg: Any) -> Any:
-    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
     from app.modules.market_data.services.stock_service import StockApplicationService
+    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
     mp = get_market_data_provider()
     return StockApplicationService(
         market_provider=mp,
@@ -42,11 +42,11 @@ register_factory("market_facade", _make_market_facade)
 
 
 def _make_watchlist_service(reg: Any) -> Any:
-    from app.config import get_settings, CONFIG_DIR
+    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
+    from app.config import CONFIG_DIR, get_settings
     from app.infrastructure.repositories.deps import create_stock_group_repository, create_watchlist_repository
     from app.modules.market_data.services.watchlist_service import WatchlistApplicationService
     from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
-    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
 
     settings = get_settings()
     sf = resolve_registry_session_factory(reg)
@@ -76,10 +76,10 @@ register_factory("watchlist_service", _make_watchlist_service)
 
 
 def _make_stock_group_service(reg: Any) -> Any:
-    from app.config import get_settings, CONFIG_DIR
+    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
+    from app.config import CONFIG_DIR, get_settings
     from app.infrastructure.repositories.deps import create_stock_group_repository
     from app.modules.market_data.services.stock_group_service import StockGroupApplicationService
-    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
 
     settings = get_settings()
     sf = resolve_registry_session_factory(reg)
@@ -104,10 +104,10 @@ register_factory("stock_group_service", _make_stock_group_service)
 
 
 def _make_signal_flag_service(reg: Any) -> Any:
+    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
     from app.config import get_settings
     from app.infrastructure.repositories.deps import create_signal_flag_pool_repository, create_stock_cache
     from app.modules.strategy.services.strategy.signal_flag_service import SignalFlagScannerService
-    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
     settings = get_settings()
     sf = resolve_registry_session_factory(reg)
     stock_svc = reg.get_or_none("stock_service")

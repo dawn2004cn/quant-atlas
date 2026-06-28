@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shared QFQ (前复权) factor calculation from xdxr corporate action data."""
 
 

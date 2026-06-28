@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 AI 投资委员会 - 核心架构
 
@@ -15,17 +16,17 @@ Design Patterns Applied:
 
 
 from abc import abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
 
 from app.core.llm_config import get_llm
-from app.core.patterns.behavioral import (
-    Command, Strategy as PatternStrategy,
-    Observer as PatternObserver, Visitor as PatternVisitor
-)
+from app.core.patterns.behavioral import Command
+from app.core.patterns.behavioral import Observer as PatternObserver
+from app.core.patterns.behavioral import Strategy as PatternStrategy
+from app.core.patterns.behavioral import Visitor as PatternVisitor
 from app.core.patterns.structural import Composite
 
 

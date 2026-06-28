@@ -1,12 +1,15 @@
 from __future__ import annotations
+
 from flask import Blueprint
 from flask_login import login_required
 from pydantic import BaseModel, Field
+
 from app.core.registry import register_routes
-from ...v1_context import ApiV1Context
+
 from ...common import ok_response, parse_market
 from ...decorators import service_fallback
 from ...dto_validation import validate_request
+from ...v1_context import ApiV1Context
 
 
 class StockSearchRequest(BaseModel):

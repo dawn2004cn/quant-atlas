@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Alpha Correlation Audit - Detect Alpha Crowding.
 
 Implements from strategy_plan2.md:
@@ -19,7 +20,6 @@ from datetime import datetime
 from typing import Any
 
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

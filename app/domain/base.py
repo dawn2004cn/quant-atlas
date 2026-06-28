@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain Layer Base - Entities and Value Objects.
 
 This module provides the foundational domain layer components:
@@ -14,7 +15,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Generic, TypeVar
 from uuid import UUID, uuid4
-
 
 # =============================================================================
 # Entity Base

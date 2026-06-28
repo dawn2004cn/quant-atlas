@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """投资委员会 API 路由.
 
 Replaces direct infrastructure imports with application-level service calls
@@ -10,8 +11,8 @@ from flask_login import login_required
 
 from ...core.registry import register_routes
 from .common import ok_resource, require_ctx_service
-from .v1_context import ApiV1Context
 from .decorators import require_role
+from .v1_context import ApiV1Context
 
 
 @register_routes(name="investment_committee", context="ai_agent", description="投资委员会 API")

@@ -1,9 +1,9 @@
 from __future__ import annotations
+
 """Architectural Compliance Agent: Guards system layer boundaries."""
 
 import ast
 from pathlib import Path
-
 
 from app.core.logger import get_logger
 

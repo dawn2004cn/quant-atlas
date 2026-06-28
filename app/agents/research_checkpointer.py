@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """LangGraph checkpointer factory: in-memory default, optional Postgres."""
 
 
@@ -9,9 +10,9 @@ from typing import Any
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
-from ..core.runtime_config import get_runtime
-from ..core.logger import get_logger
 
+from ..core.logger import get_logger
+from ..core.runtime_config import get_runtime
 
 logger = get_logger(__name__)
 
@@ -26,7 +27,7 @@ class CheckpointerHandle:
         if self._cm is not None:
             try:
                 self._cm.__exit__(None, None, None)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("checkpointer context exit: %s", exc)
             finally:
                 self._cm = None
@@ -46,7 +47,7 @@ def create_checkpointer_handle_from_env() -> CheckpointerHandle:
     if mode == "postgres" and uri:
         try:
             from langgraph.checkpoint.postgres import PostgresSaver
-        except Exception as exc:  # noqa: BLE001 — 含 psycopg / libpq 未就绪
+        except Exception as exc:
             logger.warning("无法加载 PostgresSaver（将使用 MemorySaver）: %s", exc)
             return CheckpointerHandle(saver=MemorySaver(), _cm=None)
 
@@ -56,7 +57,7 @@ def create_checkpointer_handle_from_env() -> CheckpointerHandle:
             saver.setup()
             logger.info("LangGraph Postgres checkpointer 已初始化并完成 setup()")
             return CheckpointerHandle(saver=saver, _cm=cm)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("Postgres checkpointer 初始化失败，回退 MemorySaver: %s", exc)
             return CheckpointerHandle(saver=MemorySaver(), _cm=None)
 

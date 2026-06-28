@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from app.domain.ports import OpenBBRepository
 from app.domain.market_entities import ProviderConfig
+from app.domain.ports import OpenBBRepository
 
 
 class SQLiteOpenBBRepository(OpenBBRepository):

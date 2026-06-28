@@ -1,17 +1,16 @@
 from __future__ import annotations
+
 """Application service for global market data (OpenBB port)."""
 
 
 from datetime import datetime, timedelta
 from typing import Any
 
-from app.domain.ports import MarketDataProvider, OpenBBRepository
-from app.domain.market_entities import ProviderConfig
-from app.domain.enums import MarketCode
-from app.domain.dto import GlobalQuoteDTO, GlobalHistoryDTO, GlobalMarketConfigDTO
-
-
 from app.core.logger import get_logger
+from app.domain.dto import GlobalHistoryDTO, GlobalMarketConfigDTO, GlobalQuoteDTO
+from app.domain.enums import MarketCode
+from app.domain.market_entities import ProviderConfig
+from app.domain.ports import MarketDataProvider, OpenBBRepository
 
 logger = get_logger(__name__)
 

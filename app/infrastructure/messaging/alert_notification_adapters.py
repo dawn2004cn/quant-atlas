@@ -38,7 +38,7 @@ def _post_json(
         method="POST",
     )
     try:
-        with urlrequest.urlopen(req, timeout=timeout) as resp:  # noqa: S310
+        with urlrequest.urlopen(req, timeout=timeout) as resp:
             return 200 <= int(resp.status) < 300
     except (urlerror.URLError, TimeoutError, ValueError) as exc:
         logger.warning("alert notification POST failed [%s]: %s", base_url, exc)
@@ -55,7 +55,7 @@ def _get_json(
     if query:
         url = f"{base_url}?{urlparse.urlencode(query)}"
     try:
-        with urlrequest.urlopen(url, timeout=timeout) as resp:  # noqa: S310
+        with urlrequest.urlopen(url, timeout=timeout) as resp:
             raw = resp.read().decode("utf-8")
             data = json.loads(raw)
             return data if isinstance(data, dict) else {}

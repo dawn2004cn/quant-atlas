@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Service for querying execution trace logs.
 
 Note: This is a lightweight fallback for the UI "观测台" page. It scans the

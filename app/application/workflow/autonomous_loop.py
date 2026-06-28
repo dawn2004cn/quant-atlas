@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Autonomous Loop Controller - Self-Driving Pipeline for Alpha Factory."""
 
 
@@ -7,23 +8,25 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from app.core.logger import get_logger
+from app.domain.alpha.dynamic_search import get_decay_analyzer
 from app.domain.alpha.dynamic_strategy_synthesis import (
     MarketRegime,
     get_strategy_synthesizer,
 )
-from app.domain.alpha.dynamic_search import get_decay_analyzer
-from app.domain.alpha.postmortem_analysis import get_postmortem_analyzer
 from app.domain.alpha.high_fidelity_research import (
     get_production_research_bridge,
 )
-
-from app.domain.events_core import DomainEvent, EventType, EventPriority, publish_event_async
-from app.domain.events_core import FactorDecayDetectedEvent, MarketRegimeChangedEvent
-
+from app.domain.alpha.postmortem_analysis import get_postmortem_analyzer
+from app.domain.events_core import (
+    DomainEvent,
+    EventPriority,
+    EventType,
+    FactorDecayDetectedEvent,
+    MarketRegimeChangedEvent,
+    publish_event_async,
+)
 from app.modules.data.services.rdagent_run_service import RDAgentRunService
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """Backtest engine domain interfaces."""
 
 from abc import ABC, abstractmethod
 from typing import Any
+
 
 class IBacktestEngine(ABC):
     """Abstraction for a pluggable backtesting engine."""

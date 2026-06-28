@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Async Operations Support.
 
 Background task execution and async repository methods.
@@ -7,12 +8,11 @@ Background task execution and async repository methods.
 
 import threading
 from collections import deque
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
-from collections.abc import Callable
-
 
 from app.core.logger import get_logger
 

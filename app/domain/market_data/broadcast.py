@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Centralized Market Data Broadcast.
 
 Implements from strategy_plan2.md:
@@ -17,7 +18,6 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 from uuid import uuid4
-
 
 from app.core.logger import get_logger
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """读取通达信市场股票列表 `.tnf`（hq_cache/shm.tnf, szm.tnf, bjm.tnf）。"""
 
 
@@ -33,7 +34,7 @@ def read_tnf_file(path: Path, *, market: str) -> list[TnfStockBasic]:
             break
         try:
             code = rec[0:6].decode("utf-8", errors="ignore").strip("\x00").strip()
-        except Exception:  # noqa: BLE001
+        except Exception:
             continue
         if not code or not code.isdigit() or len(code) != 6:
             continue

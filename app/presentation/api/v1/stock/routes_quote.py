@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 from flask import Blueprint
 from flask_login import login_required
 from pydantic import BaseModel, Field, field_validator
+
 from app.application.errors import ValidationError
 from app.core.registry import register_routes
-from ...v1_context import ApiV1Context
+
 from ...common import ok_resource, parse_market
 from ...decorators import service_fallback
 from ...dto_validation import validate_request
 from ...stock_route_helpers import enrich_quote_resource
+from ...v1_context import ApiV1Context
 
 
 class StockQuoteRequest(BaseModel):
@@ -328,4 +331,4 @@ def register_stock_quote(blueprint: Blueprint, ctx: ApiV1Context) -> None:
 
 
 
-            raise ValidationError(f"Failed to get quote: {str(e)}")
+            raise ValidationError(f"Failed to get quote: {str(e)}") from e

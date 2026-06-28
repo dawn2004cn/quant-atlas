@@ -5,6 +5,7 @@ import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any
+
 logger = logging.getLogger(__name__)
 GATEWAY_PORT = 9091
 PING_INTERVAL = 30
@@ -13,7 +14,7 @@ class GatewayClient:
     websocket: Any
     symbols: set[str] = field(default_factory=set)
 class GatewayBridge:
-    def __init__(self, host='0.0.0.0', port=GATEWAY_PORT):  # noqa: S104  # internal WebSocket gateway, intentional all-interfaces bind
+    def __init__(self, host='0.0.0.0', port=GATEWAY_PORT):  # internal WebSocket gateway, intentional all-interfaces bind
         self.host = host; self.port = port
         self._clients = set(); self._lock = asyncio.Lock()
         self._server = None; self._running = False
@@ -80,7 +81,7 @@ class GatewayBridge:
         except Exception: pass
 _gateway_instance = None
 _gateway_thread = None
-def launch_gateway(host='0.0.0.0', port=GATEWAY_PORT):  # noqa: S104  # internal WebSocket gateway, intentional all-interfaces bind
+def launch_gateway(host='0.0.0.0', port=GATEWAY_PORT):  # internal WebSocket gateway, intentional all-interfaces bind
     global _gateway_instance, _gateway_thread
     if _gateway_instance and _gateway_thread:
         logger.info('[gateway_bridge] already running')

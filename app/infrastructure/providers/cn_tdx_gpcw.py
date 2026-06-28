@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TDX 本地专业财务数据文件 (gpcw*.dat) 读取器与 Provider。
 
 文件格式（pytdx 标准格式）：
@@ -14,14 +15,15 @@ from __future__ import annotations
 
 
 from pathlib import Path
+from struct import calcsize, unpack
 from typing import Any
 
 import pandas as pd
-from struct import unpack, calcsize
-from .cn_tdx_gpcw_fields import GPCW_FIELD_NAMES
-from ..tdx_local.paths import TdxLocalPaths, resolve_tdx_root
 
 from app.core.logger import get_logger
+
+from ..tdx_local.paths import TdxLocalPaths, resolve_tdx_root
+from .cn_tdx_gpcw_fields import GPCW_FIELD_NAMES
 
 logger = get_logger(__name__)
 
@@ -158,7 +160,7 @@ class CnTdxGpcwProvider:
         code6 = symbol.strip()[-6:].lstrip("0")
 
         results = []
-        for fpath, report_date, max_count in files:
+        for fpath, _report_date, max_count in files:
             if max_count < 500:
                 continue
             try:

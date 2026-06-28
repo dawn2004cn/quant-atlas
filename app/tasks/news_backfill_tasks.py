@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """个股新闻归档：批量强制刷新（Celery）
 
 对给定代码列表逐只调用 ``ToolFacadeService.news_bundle(..., force_refresh=True)``，写``news_archive.db``
@@ -97,7 +98,7 @@ def run_news_archive_force_refresh_for_codes(
                     "remote_refreshed": r.get("remote_refreshed"),
                 },
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             errors.append({"symbol": sym, "error": str(exc)[:500]})
         time.sleep(delay)
     return {

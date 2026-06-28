@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound CN fundamentals port for application services."""
 
 from app.domain.ports.cn_fundamentals_port import CnFundamentalsPort
-
 
 _port: CnFundamentalsPort | None = None
 def bind_cn_fundamentals_port(port: CnFundamentalsPort) -> None:

@@ -21,7 +21,7 @@ class VectorBTBacktestAdapter:
 
     def is_available(self) -> bool:
         try:
-            import vectorbt  # noqa: F401
+            import vectorbt
 
             return True
         except ImportError:

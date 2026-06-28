@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Cache warming service for preloading high-frequency data.
 
 This module implements the cache warming from midify_plan8.md:
@@ -13,7 +14,6 @@ Usage:
 
 from datetime import datetime, time
 from typing import Any
-
 
 from app.core.logger import get_logger
 

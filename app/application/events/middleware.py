@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 """Event middleware for cross-cutting concerns."""
 
 
-from datetime import datetime
 import time
+from datetime import datetime
 
 from app.application.events.event_bus import Event
 from app.core.logger import get_logger

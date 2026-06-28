@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Inline Risk Middleware - Execution Interceptor.
 
 This module implements from strategy_plan1.md:
@@ -17,7 +18,6 @@ from datetime import datetime
 from typing import Any
 
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

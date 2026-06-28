@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """AI Hedge Fund Integration - bridges ai-hedge-fund multi-agent system into Quant Atlas.
 
 This module integrates the ai-hedge-fund agents as Quant Atlas's "Intelligent Research Team":
@@ -11,18 +12,18 @@ Architecture:
 """
 
 
-from .service import AIHedgeFundIntegrationService
 from .adapters import (
     HedgeFundAgentAdapter,
-    RDAgentValidationAdapter,
     QlibValidationAdapter,
+    RDAgentValidationAdapter,
 )
 from .dto import (
+    AgentSignal,
     HedgeFundAnalysisRequest,
     HedgeFundAnalysisResult,
-    AgentSignal,
     ValidationResult,
 )
+from .service import AIHedgeFundIntegrationService
 
 __all__ = [
     "AIHedgeFundIntegrationService",

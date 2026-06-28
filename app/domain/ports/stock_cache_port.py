@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for local quote/history cache (stock_cache.db / MySQL adapter)."""
 
 from typing import Any, Protocol

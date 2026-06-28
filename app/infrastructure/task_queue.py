@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 """Async task queue for heavy computations (Rust indicators, ML models, etc.)."""
 
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
-from collections.abc import Callable, Awaitable
 from enum import Enum
+from typing import Any
 
 from app.core.logger import get_logger
 
@@ -140,7 +141,7 @@ class AsyncTaskQueue:
         try:
             return await asyncio.wait_for(future, timeout=timeout)
         except asyncio.TimeoutError:
-            raise TimeoutError(f"Task {task_id} timed out after {timeout}s")
+            raise TimeoutError(f"Task {task_id} timed out after {timeout}s") from None
         finally:
             self._tasks.pop(task_id, None)
 

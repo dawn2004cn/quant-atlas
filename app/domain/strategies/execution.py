@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Strategy execution engine."""
 
 
@@ -9,9 +10,9 @@ from typing import Any
 from app.core.logger import get_logger
 from app.domain.strategies.base import (
     BaseStrategy,
-    StrategySignal,
-    StrategyResult,
     StrategyRegistry,
+    StrategyResult,
+    StrategySignal,
 )
 
 logger = get_logger(__name__)

@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Hot-reloadable configuration with Redis backend."""
 
 
 import json
 import threading
+from collections.abc import Callable
 from datetime import datetime
 from typing import Any
-from collections.abc import Callable
-
 
 from app.core.logger import get_logger
 from app.core.runtime_config import get_runtime

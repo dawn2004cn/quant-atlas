@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Trading Policy Domain Service.
 
 Pure domain logic for trading rules enforcement.
@@ -98,7 +99,7 @@ class TradingPolicyService:
         if position_pct + single_trade_pct > self._policy.max_position_size:
             violations.append(PolicyViolation.POSITION_LIMIT_EXCEEDED)
 
-        for sector, alloc in sector_allocation.items():
+        for _sector, alloc in sector_allocation.items():
             if alloc > self._policy.max_sectors_concentration:
                 violations.append(PolicyViolation.POSITION_LIMIT_EXCEEDED)
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Base class for all futures engines.
 
 Adds contract-multiplier awareness on top of BaseEngine.

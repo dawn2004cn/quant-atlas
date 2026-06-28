@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Stock Repository - MySQL Implementation.
 
 Implements IStockRepository using SQLAlchemy.
@@ -9,12 +10,10 @@ Implements IStockRepository using SQLAlchemy.
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.domain.base import Entity
-from app.domain.repositories.stock import IStockRepository, MarketData, IMarketDataRepository
-from app.domain.repositories.stock import Stock as StockEntity
-
-
 from app.core.logger import get_logger
+from app.domain.base import Entity
+from app.domain.repositories.stock import IMarketDataRepository, IStockRepository, MarketData
+from app.domain.repositories.stock import Stock as StockEntity
 
 logger = get_logger(__name__)
 

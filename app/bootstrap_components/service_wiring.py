@@ -21,15 +21,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-# wire_* re-exports from dedicated wiring modules (context modules import from here)
-from . import wiring_optimization  # noqa: F401 — registers optimization factories
-
-
-
-
 from app.core.typed_registry import TypedServiceRegistry, get_registry
 
-
+# wire_* re-exports from dedicated wiring modules (context modules import from here)
 
 logger = logging.getLogger(__name__)
 
@@ -93,15 +87,11 @@ def resolve_registry_session_factory(reg: Any) -> Any:
 
 def _make_stock_service(reg):
 
-    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
-
-    from app.modules.market_data.services.stock_service import StockApplicationService
-
     from app.infrastructure.providers.news import AkshareNewsProvider
-
     from app.infrastructure.providers.rust_indicators import RustIndicatorProvider
-
     from app.infrastructure.repositories.deps import create_stock_cache
+    from app.modules.market_data.services.stock_service import StockApplicationService
+    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
 
 
@@ -127,15 +117,11 @@ get_registry().register_factory("stock_service", _make_stock_service)
 
 def _make_market_service(reg):
 
-    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
-
-    from app.modules.market_data.services.market_service import MarketApplicationService
-
-    from app.infrastructure.providers.cn_industry_provider import CnIndustryProvider
-
-    from app.infrastructure.repositories.deps import create_stock_cache
-
     from app.bootstrap_components.providers import create_cache_port
+    from app.infrastructure.providers.cn_industry_provider import CnIndustryProvider
+    from app.infrastructure.repositories.deps import create_stock_cache
+    from app.modules.market_data.services.market_service import MarketApplicationService
+    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
 
 
@@ -158,8 +144,8 @@ get_registry().register_factory("market_service", _make_market_service)
 
 def _make_market_facade(reg):
     from app.application.facade import MarketFacade
-    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
     from app.infrastructure.providers.rust_indicators import RustIndicatorProvider
+    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
     indicator_provider = None
     try:
@@ -219,9 +205,8 @@ get_registry().register_factory("basic_market_data_service", _make_basic_market_
 
 def _make_global_market_service(reg):
 
-    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
-
     from app.modules.market_data.services.global_market_service import GlobalMarketService
+    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
 
 
@@ -231,11 +216,10 @@ def _make_global_market_service(reg):
 
     try:
 
-        from app.infrastructure.repositories.sqlite.sqlite_openbb_repository import SQLiteOpenBBRepository
-
         import os
 
         from app.config import BASE_DIR
+        from app.infrastructure.repositories.sqlite.sqlite_openbb_repository import SQLiteOpenBBRepository
 
         db_path = os.path.join(str(BASE_DIR), "instance")
 
@@ -257,9 +241,8 @@ get_registry().register_factory("global_market_service", _make_global_market_ser
 
 def _make_ai_analysis_service(reg):
 
-    from app.modules.ai_agent.services.ai_analysis_service import AiAnalysisService
-
     from app.infrastructure.adapters.ai_analysis_port_adapter import AiAnalysisPortAdapter
+    from app.modules.ai_agent.services.ai_analysis_service import AiAnalysisService
 
 
 
@@ -344,9 +327,8 @@ get_registry().register_factory("gpcw_service", _make_gpcw_service)
 
 def _make_industry_chain_service(reg):
 
-    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
-
     from app.modules.market_data.services.industry_chain_map_service import IndustryChainMapService
+    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
 
 
@@ -371,7 +353,6 @@ def _make_data_infrastructure_service(reg):
     try:
 
         from app.core.runtime_config import get_runtime_bool
-
         from app.infrastructure.realtime.socketio_websocket_adapter import SocketIOWebSocketAdapter
 
 
@@ -396,9 +377,8 @@ get_registry().register_factory("data_infrastructure_service", _make_data_infras
 
 def _make_tdx_base_read_service(reg):
 
-    from app.modules.data.services.tdx_base_read_service import TdxBaseReadService
-
     from app.config import get_settings
+    from app.modules.data.services.tdx_base_read_service import TdxBaseReadService
 
 
 
@@ -462,15 +442,6 @@ def _wire_from_registry(services: Any) -> None:
 
 
 # Load factory registrations from domain wiring modules (side-effect imports).
-from . import wiring_ai  # noqa: E402, F401
-from . import wiring_market  # noqa: E402, F401
-from . import wiring_market_data  # noqa: E402, F401
-from . import wiring_strategy  # noqa: E402, F401
-from . import wiring_data  # noqa: E402, F401
-from . import wiring_system_helpers  # noqa: E402, F401
-from . import wiring_execution  # noqa: E402, F401
-from . import wiring_system  # noqa: E402, F401
-from . import wiring_trading  # noqa: E402, F401
 
 
 def wire_recommendation_service(services: Any) -> None:

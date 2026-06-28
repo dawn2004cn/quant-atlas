@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Persistence mappers - Entity to DBModel mapping layer."""
 
 

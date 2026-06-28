@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """War Room virtual scenario descriptors (Quant Atlas 7.0 Step Three)."""
 
 from enum import Enum

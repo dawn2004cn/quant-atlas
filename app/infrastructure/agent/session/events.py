@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """SSE event bus with support for last_event_id recovery and buffering.
 
 V5: Fixes the thread-safety issue caused by calling queue.put_nowait() on asyncio.Queue from a background thread.
@@ -11,13 +12,12 @@ import threading
 import time
 import uuid
 
-
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from typing import Any
-from collections.abc import AsyncIterator
 
 
 @dataclass

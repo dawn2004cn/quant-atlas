@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Arbiter Service: Synthesizes swarm intelligence + EventBus debate consensus."""
 
 from typing import Any
 
-from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
-from app.modules.system.services.debate_arbiter_service import DebateArbiterService
 from app.core.logger import get_logger
 from app.domain.dto.service_result import GenericResponseDTO
+from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
+from app.modules.system.services.debate_arbiter_service import DebateArbiterService
 
 logger = get_logger(__name__)
 

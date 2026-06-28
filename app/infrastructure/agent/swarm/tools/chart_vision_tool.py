@@ -1,15 +1,14 @@
 from __future__ import annotations
+
 """Chart Vision Tool: Allows agents to analyze market charts visually."""
 
 
 import base64
 from typing import Any
 
-from app.infrastructure.agent.swarm.tools_base import BaseTool
-from app.infrastructure.agent.providers.llm import build_llm
-
-
 from app.core.logger import get_logger
+from app.infrastructure.agent.providers.llm import build_llm
+from app.infrastructure.agent.swarm.tools_base import BaseTool
 
 logger = get_logger(__name__)
 

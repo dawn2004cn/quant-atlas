@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request, session
 
 from app.application.errors import ValidationError
 from app.core.i18n import get_all_translations, get_i18n
+
 from .common import ok_response
 
 bp = Blueprint("i18n", __name__, url_prefix="/api/i18n")

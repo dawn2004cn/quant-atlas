@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """API v2 routes - DTO-validated endpoints with standardized response format.
 
 This module provides the v2 REST API surface:
@@ -97,14 +98,14 @@ def create_api_v2_blueprint(
     # ------------------------------------------------------------------ #
     # Modular Route Registration (V2 Gateway)
     # ------------------------------------------------------------------ #
+    from .v2.ai import create_ai_blueprint
     from .v2.auth_routes import create_auth_blueprint
-    from .v2.system import create_system_blueprint
+    from .v2.data import create_data_blueprint
     from .v2.market import create_market_blueprint
     from .v2.strategy import create_strategy_blueprint
-    from .v2.ai import create_ai_blueprint
-    from .v2.user import create_user_blueprint
-    from .v2.data import create_data_blueprint
+    from .v2.system import create_system_blueprint
     from .v2.trading import create_trading_blueprint
+    from .v2.user import create_user_blueprint
 
     blueprint.register_blueprint(create_auth_blueprint(ctx), url_prefix="")
     blueprint.register_blueprint(create_system_blueprint(ctx), url_prefix="/system")

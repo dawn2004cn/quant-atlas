@@ -5,7 +5,7 @@ must adhere to, enabling hexagonal architecture and loose coupling.
 """
 
 from .alpha import AlphaEntity, AlphaSource, AlphaStatus
-from .signal import Signal, SignalType, SignalStrength
+from .signal import Signal, SignalStrength, SignalType
 
 __all__ = [
     "AlphaEntity",

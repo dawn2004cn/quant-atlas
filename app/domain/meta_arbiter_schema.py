@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Cross-team meta-arbitration verdict models (Quant Atlas 8.0 P0)."""
 
 from typing import Any

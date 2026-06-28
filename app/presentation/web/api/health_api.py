@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 """Health Check API Blueprint.
 
 REST endpoints for system health checks.
 """
 
 
-from flask import Blueprint, jsonify
 from datetime import datetime
 
+from flask import Blueprint, jsonify
 
 from app.core.logger import get_logger
 
@@ -29,8 +30,8 @@ def health_check():
 def domain_health_check():
     """Domain layer health check."""
     try:
-        from app.application.domain_facade import get_domain_facade
         from app.application.aggregate_registry import get_aggregate_registry
+        from app.application.domain_facade import get_domain_facade
         from app.domain.events.handlers import get_event_bus
 
         get_domain_facade()

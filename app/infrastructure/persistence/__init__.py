@@ -2,13 +2,13 @@
 
 from .mappers import (
     EntityMapper,
-    StockMapper,
+    MapperRegistry,
+    PositionMapper,
     QuoteMapper,
+    SignalMapper,
+    StockMapper,
     UserMapper,
     WatchlistMapper,
-    PositionMapper,
-    SignalMapper,
-    MapperRegistry,
 )
 
 __all__ = [

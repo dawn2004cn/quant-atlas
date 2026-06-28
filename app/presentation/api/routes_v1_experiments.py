@@ -20,8 +20,8 @@ def _register_experiment_routes(blueprint: Blueprint, ctx=None) -> None:
     def list_experiments():
         """List all experiments."""
         try:
-            from app.infrastructure.repositories.deps import create_experiment_repository
             from app.config import get_settings
+            from app.infrastructure.repositories.deps import create_experiment_repository
 
             repo = create_experiment_repository(get_settings())
             experiments = repo.list_all()[:50]
@@ -36,8 +36,8 @@ def _register_experiment_routes(blueprint: Blueprint, ctx=None) -> None:
     @exp_bp.route("/<exp_id>", methods=["GET"])
     def get_experiment(exp_id: str):
         """Get experiment details."""
-        from app.infrastructure.repositories.deps import create_experiment_repository
         from app.config import get_settings
+        from app.infrastructure.repositories.deps import create_experiment_repository
 
         repo = create_experiment_repository(get_settings())
         exp = repo.get(exp_id)

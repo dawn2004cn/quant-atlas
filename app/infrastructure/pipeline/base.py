@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """Pipeline architecture for data processing."""
 
 from abc import ABC, abstractmethod
 from typing import Any
+
 
 class DataProcessor(ABC):
     """Abstract base class for a pipeline processing step."""

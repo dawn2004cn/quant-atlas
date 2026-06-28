@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Auto-healing — configurable retry policy with backoff and circuit breaker.
 
 Sits at the ``BaseWorkflow`` level, wrapping step handlers with
@@ -9,10 +10,10 @@ threshold is breached.
 
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import Any
-from collections.abc import Callable
 
 from app.core.logger import get_logger
 

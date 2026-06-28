@@ -1,16 +1,16 @@
 from __future__ import annotations
+
 """MySQL Watchlist Repository."""
 
 
 
-from ....domain.ports import WatchlistRepository
-from ...database.models.market import Watchlist
-from app.infrastructure.mappers.symbol_normalizer import SymbolNormalizer
-from .mysql_repositories import MySQLRepositoryBase
-
-
 from app.core.logger import get_logger
 from app.core.query_limits import MAX_WATCHLIST_SYMBOLS
+from app.infrastructure.mappers.symbol_normalizer import SymbolNormalizer
+
+from ....domain.ports import WatchlistRepository
+from ...database.models.market import Watchlist
+from .mysql_repositories import MySQLRepositoryBase
 
 logger = get_logger(__name__)
 

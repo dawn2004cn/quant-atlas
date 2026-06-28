@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Swarm Worker: standalone worker execution engine with a lightweight ReAct loop.
 
 Ported from Vibe-Trading.
@@ -8,12 +9,13 @@ Ported from Vibe-Trading.
 import json
 import os
 import time
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
-from collections.abc import Callable
 
-from app.infrastructure.agent.skills.loader import SkillsLoader
+from app.core.logger import get_logger
 from app.infrastructure.agent.providers.chat import ChatLLM
+from app.infrastructure.agent.skills.loader import SkillsLoader
 from app.infrastructure.agent.swarm.models import (
     SwarmAgentSpec,
     SwarmEvent,
@@ -21,9 +23,6 @@ from app.infrastructure.agent.swarm.models import (
     WorkerResult,
 )
 from app.infrastructure.agent.swarm.tools.discovery import build_filtered_registry
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -228,9 +227,9 @@ def run_worker(
         try:
             remaining_timeout = max(10, int(timeout - elapsed))
 
-            def _on_text_chunk(delta: str) -> None:
+            def _on_text_chunk(delta: str, _iteration=iteration) -> None:
                 _emit(event_callback, "worker_text", agent_id, task_id,
-                      {"content": delta, "iteration": iteration})
+                      {"content": delta, "iteration": _iteration})
 
             response = llm.stream_chat(
                 messages, tools=tool_defs, timeout=remaining_timeout, on_text_chunk=_on_text_chunk

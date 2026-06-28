@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Memory optimization using Apache Arrow for zero-copy data sharing.
 
 This implements the "Data Mesh" from quant_plan.md:
@@ -9,12 +10,11 @@ This implements the "Data Mesh" from quant_plan.md:
 
 
 import json
-from typing import Any
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Any
 
-
-import logging
 logger = logging.getLogger(__name__)
 class ArrowMemoryPool:
     """Memory pool using Apache Arrow for zero-copy data sharing."""

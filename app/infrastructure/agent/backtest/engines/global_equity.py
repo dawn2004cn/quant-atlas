@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Global equity (US / HK) backtest engine.
 
 Market rules:
@@ -16,7 +17,6 @@ Market rules:
 
 
 import pandas as pd
-
 from backtest.engines.base import BaseEngine
 
 

@@ -44,11 +44,11 @@ def ensure_timescale_bar_port() -> None:
     if _port_ready:
         return
     from app.config import get_settings
+    from app.infrastructure.repositories.deps import create_timescale_bar_repository
     from app.infrastructure.repositories.postgres.postgres_timescale_bar_repository import (
         NullPostgresTimescaleBarRepository,
         PostgresTimescaleBarRepository,
     )
-    from app.infrastructure.repositories.deps import create_timescale_bar_repository
 
     settings = get_settings()
     if not settings.use_timescaledb:

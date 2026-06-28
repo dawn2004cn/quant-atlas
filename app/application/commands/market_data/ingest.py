@@ -1,8 +1,11 @@
 from __future__ import annotations
+
 """Command objects for market data operations."""
 
-from pydantic import BaseModel
 from datetime import datetime
+
+from pydantic import BaseModel
+
 
 class IngestMarketDataCommand(BaseModel):
     """Command to ingest market data."""

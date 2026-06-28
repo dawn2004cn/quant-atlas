@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """连接池（pytdx.pool.TdxHqPool_API）。"""
 
 

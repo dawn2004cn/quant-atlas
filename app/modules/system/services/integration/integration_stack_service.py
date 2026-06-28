@@ -96,7 +96,7 @@ class IntegrationStackService:
 
     def _probe_celery(self) -> dict[str, Any]:
         try:
-            from app.config import get_runtime_bool, get_runtime
+            from app.config import get_runtime, get_runtime_bool
 
             enabled = get_runtime_bool("ENABLE_CELERY", False)
             if not enabled:

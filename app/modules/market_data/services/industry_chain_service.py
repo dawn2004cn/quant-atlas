@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Industry chain service for stock diagnosis."""
 
 
@@ -66,7 +68,7 @@ class IndustryChainService:
                 return dict(detail.profile or {})
             if isinstance(detail, dict):
                 return dict(detail.get("profile") or detail)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("industry chain profile unavailable for %s: %s", symbol, exc)
         if self._market_service is not None:
             try:
@@ -74,6 +76,6 @@ class IndustryChainService:
                 if rows:
                     quote = rows[0].model_dump() if hasattr(rows[0], "model_dump") else dict(rows[0])
                     return quote
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("industry chain quote unavailable for %s: %s", symbol, exc)
         return {"code": symbol, "name": symbol}

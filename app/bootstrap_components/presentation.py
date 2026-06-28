@@ -167,8 +167,8 @@ def register_blueprints(app: Flask, settings: Any = None, api_bundle: Any = None
 
     # Register Web blueprints using factory functions
     try:
-        from app.presentation.web.pages import create_pages_blueprint
         from app.presentation.strategic_sunset_hooks import register_strategic_sunset
+        from app.presentation.web.pages import create_pages_blueprint
 
         register_strategic_sunset(app)
         pages_bp = create_pages_blueprint()

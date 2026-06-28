@@ -2,13 +2,13 @@ from __future__ import annotations
 
 """Aggregate operational alerts from task messages, health probes, and data freshness."""
 
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
+from app.domain.dto.alert_dto import AlertCategory, AlertCenterFeedDTO, AlertEventDTO, AlertLevel
 from app.modules.system.services.helpers.monitoring_access import check_table_freshness
 from app.modules.system.services.helpers.task_message_access import get_task_message_store
 from app.modules.system.services.system.system_health_probe_service import SystemHealthProbeService
-from app.domain.dto.alert_dto import AlertCenterFeedDTO, AlertEventDTO, AlertCategory, AlertLevel
 
 _LEVEL_RANK = {"info": 0, "warning": 1, "critical": 2}
 

@@ -375,7 +375,7 @@ class SelfHealingExecutionService:
                 venue_scores[venue_id]["total_latency"] += latency
 
             # Calculate average latency and sort by score
-            for venue_id, stats in venue_scores.items():
+            for _venue_id, stats in venue_scores.items():
                 if stats["count"] > 0:
                     stats["avg_latency"] = stats["total_latency"] / stats["count"]
 

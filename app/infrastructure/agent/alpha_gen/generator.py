@@ -1,12 +1,12 @@
 from __future__ import annotations
+
 """Alpha Generator Agent: Autonomous discovery of new factors."""
 
 from typing import Any
-from app.infrastructure.agent.analysis.causal_engine import CausalAttributionEngine
-from app.infrastructure.agent.swarm.tools.skill_writer_tool import SkillWriterTool
-
 
 from app.core.logger import get_logger
+from app.infrastructure.agent.analysis.causal_engine import CausalAttributionEngine
+from app.infrastructure.agent.swarm.tools.skill_writer_tool import SkillWriterTool
 
 logger = get_logger(__name__)
 

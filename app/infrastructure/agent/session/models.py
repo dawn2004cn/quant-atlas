@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 """Session data models for the core Session, Message, and Attempt entities."""
 
 
 import uuid
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any

@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-
-
-
-
 """Application factory for the redesigned Flask quant platform.
 
 
@@ -28,20 +24,10 @@ from __future__ import annotations
 
 
 
+import logging
 from typing import TYPE_CHECKING, Any
 
-
-
-
-
 from .core.logger import get_logger
-
-
-
-
-
-import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +39,6 @@ if TYPE_CHECKING:
 
 
     from flask import Flask
-
 
     from .config import AppSettings
 
@@ -197,7 +182,6 @@ def warm_runtime_extensions(app: Flask, settings: AppSettings) -> dict[str, Any]
 
 
             from app.modules.data.services.qlib_service import QlibService
-
 
             from .config import BASE_DIR
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -25,7 +26,6 @@ warnings.warn(
 
 
 from app.domain.ports.tdx_block_read_port import TdxBlockReadPort
-
 
 _port: TdxBlockReadPort | None = None
 def bind_tdx_block_read_port(port: TdxBlockReadPort | None) -> None:

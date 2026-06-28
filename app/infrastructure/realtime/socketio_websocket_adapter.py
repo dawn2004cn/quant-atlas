@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """WebSocketPort backed by Flask-SocketIO server rooms."""
 
 from app.domain.ports.websocket_ports import Subscription, WebSocketPort

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from typing import Any
+
 import pandas as pd
+
 from app.modules.strategy.logic.base import IStrategyLogic
+
 
 class MomentumAlphaStrategy(IStrategyLogic):
     """Momentum Alpha: Price breakout combined with volume surge."""

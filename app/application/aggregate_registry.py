@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Aggregate Registry - Manages domain aggregates in application layer.
 
 Provides registry for stock and portfolio aggregates.
@@ -6,12 +7,10 @@ Provides registry for stock and portfolio aggregates.
 
 
 
-from app.domain.aggregates.stock_aggregate import StockAggregate
-from app.domain.aggregates.portfolio_aggregate import PortfolioAggregate
-from app.domain.aggregates.trading_session_aggregate import TradingSessionAggregate
-
-
 from app.core.logger import get_logger
+from app.domain.aggregates.portfolio_aggregate import PortfolioAggregate
+from app.domain.aggregates.stock_aggregate import StockAggregate
+from app.domain.aggregates.trading_session_aggregate import TradingSessionAggregate
 
 logger = get_logger(__name__)
 

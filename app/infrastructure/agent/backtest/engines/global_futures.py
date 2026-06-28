@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Global futures backtest engine (CME / ICE / Eurex).
 
 Market rules:
@@ -15,9 +16,7 @@ Market rules:
 import re
 
 import pandas as pd
-
 from backtest.engines.futures_base import FuturesBaseEngine
-
 
 # ── Contract multiplier (USD per point / per unit) ──
 

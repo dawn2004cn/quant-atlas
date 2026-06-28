@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """High-Performance Computation - Vectorized Factor Calculation.
 
 This module implements from strategy_plan1.md:
@@ -17,7 +18,6 @@ from datetime import datetime
 from typing import Any
 
 import numpy as np
-
 
 from app.core.logger import get_logger
 

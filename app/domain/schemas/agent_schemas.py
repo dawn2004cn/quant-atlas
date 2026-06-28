@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 """Pydantic v2 schemas for Agent services."""
 
 
 from typing import Any
+
 from pydantic import BaseModel, Field
+
 
 class SwarmRunRequest(BaseModel):
     preset: str = Field(default="investment_committee")

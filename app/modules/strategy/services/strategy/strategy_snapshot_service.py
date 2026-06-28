@@ -5,14 +5,12 @@ from __future__ import annotations
 import json
 import shutil
 import uuid
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
 
 from app.application.errors import NotFoundError, ValidationError
-from app.modules.system.services.helpers.code_checkout import checkout_code_revision, is_code_checkout_allowed
-from app.modules.system.services.helpers.code_revision import resolve_code_revision
 from app.bootstrap_components.runtime_config_validator import resolve_deploy_profile
 from app.config.settings import BASE_DIR, CONFIG_DIR, INSTANCE_DIR
 from app.domain.dto.strategy_snapshot_dto import (
@@ -23,6 +21,8 @@ from app.domain.ports.strategy_snapshot_port import StrategySnapshotPort
 from app.infrastructure.repositories.file_strategy_snapshot_repository import (
     FileStrategySnapshotRepository,
 )
+from app.modules.system.services.helpers.code_checkout import checkout_code_revision, is_code_checkout_allowed
+from app.modules.system.services.helpers.code_revision import resolve_code_revision
 
 
 class StrategySnapshotService:

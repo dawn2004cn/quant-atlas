@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Module-local memory — namespace-isolated lesson store per context module.
 
 Each ``ContextModule`` gets a ``ModuleLocalMemory`` that persists rebalancing
@@ -8,7 +9,7 @@ lessons, failure patterns, and successful strategies as compact JSONL records.
 
 import json
 import threading
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any

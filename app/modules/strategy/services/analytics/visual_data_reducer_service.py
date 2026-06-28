@@ -6,15 +6,7 @@ from app.domain.dto.service_result import GenericResponseDTO
 并提供技术指标共振计功能."""
 
 
-from datetime import datetime
-from typing import Any
-
-from app.domain.enums import MarketCode
-from app.domain.ports import MarketDataProvider, IndicatorProvider
-
-
-import logging
-logger = logging.getLogger(__name__)
+import loggingfrom datetime import datetimefrom typing import Anyfrom app.domain.enums import MarketCodefrom app.domain.ports import IndicatorProvider, MarketDataProviderlogger = logging.getLogger(__name__)
 class FinancialTrafficLight:
     """财务三色灯 - 将关键财务指标转换为红黄绿颜色."""
 

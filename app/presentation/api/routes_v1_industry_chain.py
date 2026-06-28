@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 """Industry chain API routes."""
 
 
 from flask import Blueprint, request
 from flask_login import login_required
 
+from app.core.registry import register_routes
+
 from ...application.errors import ValidationError
 from .common import ok_response, parse_market
-from .v1_context import ApiV1Context
-from app.core.registry import register_routes
 from .decorators import service_fallback
+from .v1_context import ApiV1Context
 
 
 @register_routes(name="industry_chain", context="market_data", description="Industry chain API routes")

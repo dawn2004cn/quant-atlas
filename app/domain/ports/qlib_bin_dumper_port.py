@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for dumping qlib_export CSV into qlib_bin."""
 
 from typing import Protocol

@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Real-time market data subscription and freshness monitoring."""
 
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
-from collections.abc import Callable
 from enum import Enum
+from typing import Any
 
 from app.core.logger import get_logger
 

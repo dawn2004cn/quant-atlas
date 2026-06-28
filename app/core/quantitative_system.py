@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Comprehensive quantitative trading system components."""
 
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
 from enum import Enum
+from typing import Any
 
 from app.core.logger import get_logger
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """本地通达信数据文件读取（pytdx.reader）。"""
 
 

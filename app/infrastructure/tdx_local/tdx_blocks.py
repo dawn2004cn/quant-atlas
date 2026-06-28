@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """通达信 ``hq_cache`` 板块文件（pytdx BlockReader）。"""
 
 
@@ -19,7 +20,7 @@ def list_blocks_for_code(
 ) -> tuple[list[str], str]:
     """返回标的所属板块名称列表（扫描常见板块配置文件）。"""
     try:
-        from pytdx.reader.block_reader import BlockReader  # noqa: PLC0415
+        from pytdx.reader.block_reader import BlockReader
     except ImportError:
         return [], "pytdx_not_installed"
 
@@ -34,7 +35,7 @@ def list_blocks_for_code(
             continue
         try:
             df = BlockReader().get_df(str(fp))
-        except Exception:  # noqa: BLE001
+        except Exception:
             continue
         if df is None or df.empty:
             continue

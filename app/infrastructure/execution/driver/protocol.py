@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Execution Driver Protocol - re-export domain types for infrastructure."""
 
 from app.domain.execution.driver_protocol import (

@@ -7,11 +7,11 @@ import math
 import random
 import statistics
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
 
 from app.core.logger import get_logger
 
@@ -209,9 +209,9 @@ class AltDataPoint:
 
     def parallel_grid_search(self, strategy_id, returns, param_grid, signal_fn, max_workers=4):
         """Run grid search with parallel workers and return heatmap-ready data."""
+        import concurrent.futures
         import itertools
         import time
-        import concurrent.futures
         start = time.perf_counter()
 
         keys = list(param_grid.keys())

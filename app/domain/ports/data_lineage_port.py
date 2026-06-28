@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for recording and querying data fetch lineage."""
 
 from typing import Any, Protocol

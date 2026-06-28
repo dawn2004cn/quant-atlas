@@ -1,19 +1,19 @@
 from __future__ import annotations
+
 """通达信股本变迁 ``hq_cache/gbbq``（pytdx GbbqReader）。"""
 
 
+import logging
 import re
 from pathlib import Path
 from typing import Any
 
-
-import logging
 logger = logging.getLogger(__name__)
 def gbbq_rows_for_code(gbbq_path: Path, code6: str, *, tail: int = 15) -> tuple[list[dict[str, Any]], str]:
     if not gbbq_path.is_file():
         return [], "gbbq_missing"
     try:
-        from pytdx.reader.gbbq_reader import GbbqReader  # noqa: PLC0415
+        from pytdx.reader.gbbq_reader import GbbqReader
     except ImportError:
         return [], "pytdx_not_installed"
 
@@ -23,7 +23,7 @@ def gbbq_rows_for_code(gbbq_path: Path, code6: str, *, tail: int = 15) -> tuple[
 
     try:
         df = GbbqReader().get_df(str(gbbq_path))
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return [], f"read_failed:{exc!s}"
 
     if df is None or df.empty or "code" not in df.columns:
@@ -47,7 +47,7 @@ def gbbq_rows_for_code(gbbq_path: Path, code6: str, *, tail: int = 15) -> tuple[
             if hasattr(v, "item"):
                 try:
                     v = v.item()
-                except Exception as e:  # noqa: BLE001
+                except Exception as e:
                     logger.warning("tdx_gbbq.py.gbbq_rows_for_code: %s", e)
             rec[str(col)] = float(v) if isinstance(v, (int, float)) else str(v)
         out.append(rec)

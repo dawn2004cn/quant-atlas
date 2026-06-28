@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Reactive Evidence Processing - Evidence Listeners with Interrupt Mechanism.
 
 This module implements from midify_plan12.md:
@@ -14,14 +15,13 @@ Usage:
 
 
 import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any
-from collections.abc import Callable
 from enum import Enum
+from typing import Any
 
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Unified Agent Contract - Base classes and DTOs for all agents.
 
 This module implements the Unified Agent Contract from midify_plan9.md:
@@ -17,13 +18,14 @@ from enum import Enum
 from typing import Any
 
 from ..core.logger import get_logger
+
 logger = get_logger(__name__)
 
 # Import blackboard utilities once at module load to avoid repeated imports
 from .evidence_blackboard import (
-    get_evidence_blackboard,
-    EvidenceType,
     EvidenceStrength,
+    EvidenceType,
+    get_evidence_blackboard,
 )
 
 

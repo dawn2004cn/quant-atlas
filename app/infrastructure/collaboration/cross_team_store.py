@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """File-backed store for cross-team consensus and anonymous pattern pool."""
 
 import json
@@ -57,7 +58,7 @@ class CrossTeamStore:
         try:
             raw = json.loads(self._patterns_path.read_text(encoding="utf-8"))
             return raw if isinstance(raw, dict) else {"patterns": []}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("cross_team_store.load_patterns: %s", exc)
             return {"patterns": []}
 
@@ -83,6 +84,6 @@ class CrossTeamStore:
                         rows.append(json.loads(raw))
                     except json.JSONDecodeError:
                         continue
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("cross_team_store._read_jsonl %s: %s", path.name, exc)
         return rows[-limit:]

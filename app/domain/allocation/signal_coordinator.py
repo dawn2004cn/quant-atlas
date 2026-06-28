@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Signal Coordinator - Signal De-duplication & Cross-Validation.
 
 This module implements from strategy_plan1.md:
@@ -15,8 +16,6 @@ Usage:
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
-
-
 
 from app.core.logger import get_logger
 

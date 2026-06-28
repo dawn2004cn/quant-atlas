@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 """UseCase Factory - Dependency injection for UseCases."""
 
 
 from .market_use_cases import (
-    GetStockQuotesUseCase,
-    GetStockQuotesByStockServiceUseCase,
-    GetMarketPanoramaUseCase,
     GetMarketMovementsUseCase,
+    GetMarketPanoramaUseCase,
     GetMarketSentimentUseCase,
     GetStockDetailUseCase,
     GetStockHistoryUseCase,
+    GetStockQuotesByStockServiceUseCase,
+    GetStockQuotesUseCase,
 )
 
 

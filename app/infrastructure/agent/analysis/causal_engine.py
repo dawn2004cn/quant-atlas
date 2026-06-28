@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Causal Attribution Engine for Strategy Performance Analysis.
 
 Uses causal inference logic to attribute trading returns to specific alpha factors.
@@ -13,6 +14,7 @@ from app.core.logger import get_logger
 logger = get_logger(__name__)
 
 from functools import lru_cache
+
 
 class CausalAttributionEngine:
     """Attributes returns to strategy components using causal frameworks."""

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """SwarmTool: tool for the main agent to invoke a swarm multi-agent team.
 
 The user provides a natural-language prompt; the tool auto-selects the best preset and extracts variables.
@@ -13,10 +14,8 @@ import time
 from pathlib import Path
 from typing import Any
 
-from app.infrastructure.agent.swarm.tools_base import BaseTool
-
-
 from app.core.logger import get_logger
+from app.infrastructure.agent.swarm.tools_base import BaseTool
 
 logger = get_logger(__name__)
 

@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Async service mixin for converting sync services to async."""
 
 
 import asyncio
+from collections.abc import Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
 from typing import Any, TypeVar
-from collections.abc import Callable, Awaitable
 
 from app.core.logger import get_logger
 

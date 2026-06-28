@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Context-Aware Personalities - Market Regime-Based Agent Personalities.
 
 This module implements Dynamic Agent Personalities from midify_plan11.md:
@@ -20,7 +21,6 @@ from enum import Enum
 from typing import Any
 
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

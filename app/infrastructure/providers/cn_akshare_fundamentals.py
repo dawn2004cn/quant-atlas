@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """A 股财务摘要、三表（东财按报告期）与研报列表 —— AkShare 封装（数据基础层）。"""
 
 
@@ -51,7 +52,8 @@ class CnAkShareFundamentalsProvider:
     def _check_tushare(self) -> bool:
         try:
             import os
-            import tushare as ts  # noqa: PLC0415
+
+            import tushare as ts
             token = os.getenv("TUSHARE_TOKEN", "")
             if not token:
                 return False
@@ -65,8 +67,9 @@ class CnAkShareFundamentalsProvider:
         self, code: str, fields_map: dict[str, list[str]]
     ) -> dict[str, list[dict[str, Any]]]:
         """通过 Tushare 按表类型拉取财务数据。返回 {table_name: [rows]}。"""
-        import tushare as ts  # noqa: PLC0415
         import os
+
+        import tushare as ts
 
         results: dict[str, list[dict[str, Any]]] = {}
         try:
@@ -74,7 +77,7 @@ class CnAkShareFundamentalsProvider:
             ts.set_token(token)
             pro = ts.pro_api()
             code6 = SymbolNormalizer.normalize_code(code)
-            for table_name, (api_name, fields) in fields_map.items():
+            for table_name, (_api_name, fields) in fields_map.items():
                 try:
                     if table_name == "balance_sheet":
                         df = pro.balancesheet(ts_code=f"{code6}.SH", fields=",".join(fields))
@@ -92,7 +95,7 @@ class CnAkShareFundamentalsProvider:
         return results
 
     def fetch_financial_bundle(self, symbol_input: str) -> dict[str, Any]:
-        import akshare as ak  # noqa: PLC0415 延迟加载，避免进程冷启动过慢
+        import akshare as ak
 
         code = SymbolNormalizer.normalize_code(symbol_input)
         em_sym = _em_exchange_symbol(code)
@@ -103,7 +106,7 @@ class CnAkShareFundamentalsProvider:
             try:
                 df = fn()
                 return _df_to_jsonable_records(df, mr)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("cn_akshare_fundamentals %s failed for %s: %s", key, code, exc)
                 errors[key] = f"{type(exc).__name__}: {exc}"
                 return []
@@ -149,7 +152,7 @@ class CnAkShareFundamentalsProvider:
     def fetch_research_reports(
         self, symbol_input: str, *, limit: int = 10
     ) -> tuple[list[dict[str, Any]], str | None]:
-        import akshare as ak  # noqa: PLC0415
+        import akshare as ak
 
         code = SymbolNormalizer.normalize_code(symbol_input)
         cap = max(1, min(int(limit), 100))
@@ -162,7 +165,7 @@ class CnAkShareFundamentalsProvider:
 
             rows = df.head(cap).to_dict("records")
             return rows, None
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("cn_akshare research reports failed for %s: %s", code, exc)
             return [], f"{type(exc).__name__}: {exc}"
 

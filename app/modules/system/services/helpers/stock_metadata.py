@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Global Stock Metadata Accessor — delegates to ``StockMetadataRepository`` Port."""
 
 
@@ -32,7 +33,7 @@ class StockMetadataProvider:
     def get_basic_info(code: str) -> GenericResponseDTO[str, object]:
         try:
             return _repository().get_basic_info(code)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("Metadata lookup failed for %s: %s", code, exc)
             return {}
 
@@ -42,7 +43,7 @@ def enrich_stock_list(stocks: list[dict]) -> list[dict]:
         return stocks
     try:
         return _repository().enrich_stock_list(stocks)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("Batch enrich failed: %s", exc)
         return stocks
 
@@ -52,6 +53,6 @@ def get_stock_metadata_batch(codes: list[str]) -> GenericResponseDTO[str, dict]:
         return {}
     try:
         return _repository().get_batch(codes)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("get_stock_metadata_batch failed: %s", exc)
         return {}

@@ -1,7 +1,8 @@
 from __future__ import annotations
+
 """Data Mapper for converting ORM Models to Domain Entities."""
 
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
 
 T_Entity = TypeVar("T_Entity")
 T_Model = TypeVar("T_Model")

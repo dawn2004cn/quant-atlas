@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain entities for Kronos foundation model integration."""
 
 

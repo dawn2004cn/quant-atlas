@@ -7,9 +7,10 @@ The defaults work for most users. Override via TDX_SERVERS_JSON env var.
 """
 
 import json
+import logging
 import os
 from typing import Any
-import logging
+
 logger = logging.getLogger(__name__)
 
 

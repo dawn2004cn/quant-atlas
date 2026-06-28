@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Pytdx 模块调用基类。"""
 
 

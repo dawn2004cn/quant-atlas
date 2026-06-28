@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Multi-level cache abstraction with Redis backend and Pydantic model serialization."""
 
 
@@ -8,10 +9,9 @@ from typing import Any, Generic, TypeVar
 
 import redis
 
-from app.infrastructure.cache.coalesce import get_or_set_coalesced
 from app.core.logger import get_logger
 from app.core.runtime_config import get_runtime
-
+from app.infrastructure.cache.coalesce import get_or_set_coalesced
 from app.infrastructure.memory_cache import get_cache
 from app.infrastructure.redis_client import RedisClientPool, delete_keys_by_pattern
 

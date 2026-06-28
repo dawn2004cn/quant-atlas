@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from app.domain.dto.quote_factory import canonical_quote_payload
+from app.domain.enums import MarketCode
 from app.modules.system.services.ui.data_freshness_service import enrich_market_payload
 from app.modules.system.services.ui.sector_context_service import SectorContextService
-from app.domain.enums import MarketCode
 
 
 def build_sector_context(

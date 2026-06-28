@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """信号旗股票池扫描：支持分布式并发执行"""
 
 
@@ -17,7 +18,6 @@ from .task_wiring import (
     create_stock_application_service,
     get_task_message_store,
 )
-
 
 logger = get_logger(__name__)
 
@@ -47,7 +47,7 @@ def _push_done(task_id: str, summary_dict: dict[str, Any]) -> None:
                 "persisted": summary_dict.get("persisted"),
             },
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("signal_flag task message push skipped: %s", exc)
 
 
@@ -126,7 +126,7 @@ if _celery is not None:
                 svc.finalize_pool(ds, hits)
                 scanned_total += len(universe)
                 hit_total += len(hits)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 errors.append(f"{ds}: {exc}")
             day_count += 1
             if day_count % 20 == 0:

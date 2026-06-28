@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 """CCXT implementation of ExchangePort."""
 
 
-from typing import Any
-import ccxt
 from datetime import datetime
+from typing import Any
 
-from app.core.circuit_breaker import CircuitBreakerOpenError, CircuitBreakerRegistry, CircuitBreakerConfig
+import ccxt
+
+from app.core.circuit_breaker import CircuitBreakerConfig, CircuitBreakerOpenError, CircuitBreakerRegistry
 from app.core.logger import get_logger
 from app.domain.ports import ExchangePort
 from app.domain.trading_entities import Order

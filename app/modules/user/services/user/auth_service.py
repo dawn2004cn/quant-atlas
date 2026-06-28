@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from app.core.password_hash import needs_rehash, hash_password, get_hash_info
+from app.core.password_hash import get_hash_info, hash_password, needs_rehash
 from app.domain.entities import UserAccount
 
 if TYPE_CHECKING:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Scanner Service: Automated strategy signal scanner."""
 
 

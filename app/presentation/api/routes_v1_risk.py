@@ -1,22 +1,24 @@
 from __future__ import annotations
+
 """API v1: Risk management routes."""
 
 
 from flask import Blueprint, request
 from flask_login import login_required
 
+from app.domain.dto.risk_request_dto import (
+    RiskCheckBatchRequest,
+    RiskCheckOrderRequest,
+    RiskKellyRequest,
+    RiskVolatilityTargetRequest,
+)
+
 from ...application.errors import ValidationError
 from ...core.registry import register_routes
 from .common import ok_resource
+from .dto_validation import validate_request
 from .route_deps import RiskRouteDeps, build_risk_route_deps
 from .v1_context import ApiV1Context
-from .dto_validation import validate_request
-from app.domain.dto.risk_request_dto import (
-    RiskCheckOrderRequest,
-    RiskCheckBatchRequest,
-    RiskVolatilityTargetRequest,
-    RiskKellyRequest,
-)
 
 
 @register_routes(name="risk", context="portfolio_risk", description="Risk management routes")

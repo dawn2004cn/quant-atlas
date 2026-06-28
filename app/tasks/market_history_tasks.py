@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 """Celery tasks for fetching full market history data."""
 
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Any
+
+from app.core.logger import get_logger
 
 from ..celery_app import celery as _celery
 from ..domain.enums import MarketCode
@@ -15,8 +18,6 @@ from .task_wiring import (
     get_stock_cache,
     to_db_code,
 )
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

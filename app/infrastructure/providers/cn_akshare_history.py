@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """A 股日 K 东财前复权（AkShare），作通达信/缓存失败时的行情兜底。"""
 
 
@@ -8,7 +9,6 @@ from typing import Any
 import pandas as pd
 
 from ...core.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -82,7 +82,7 @@ def fetch_cn_daily_adjust(
         adj = "qfq"
     ak_adjust = "" if adj in {"none", ""} else adj
     try:
-        import akshare as ak  # noqa: PLC0415
+        import akshare as ak
     except ImportError:
         return [], "akshare_missing"
     try:
@@ -93,7 +93,7 @@ def fetch_cn_daily_adjust(
             end_date=e8,
             adjust=ak_adjust,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("fetch_cn_daily_adjust akshare failed %s: %s", code, exc)
         return [], f"akshare_error:{exc!s}"
     bars = _ak_hist_to_bars(df)

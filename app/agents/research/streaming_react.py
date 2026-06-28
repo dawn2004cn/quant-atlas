@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Streaming React Loop - Token-level streaming for LangGraph.
 
 This module implements from midify_plan13.md optimization:
@@ -12,19 +13,18 @@ Usage:
 """
 
 
-import orjson as json
-from typing import Any
 from collections.abc import AsyncGenerator
+from typing import Any
 
+import orjson as json
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.outputs import ChatGenerationChunk
 from langchain_core.tools import BaseTool
 
-from .react_loop import tool_result_payload
-
 from app.core.logger import get_logger
 
+from .react_loop import tool_result_payload
 
 logger = get_logger(__name__)
 
@@ -52,7 +52,7 @@ async def streaming_react_with_tools(
     messages: list[BaseMessage] = [SystemMessage(content=system), HumanMessage(content=user)]
     name_to_tool = {t.name: t for t in tools}
 
-    for round_idx in range(max_rounds):
+    for _round_idx in range(max_rounds):
         is_first_chunk = True
 
         async for chunk in bound.astream(messages):

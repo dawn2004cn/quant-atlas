@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """ORM models for Factor Management and Metadata.
 
 This module provides the data model for storing factor information
@@ -13,7 +14,8 @@ Factor Metadata includes:
 
 
 from datetime import datetime
-from sqlalchemy import String, Integer, Double, DateTime, Text, UniqueConstraint, Index
+
+from sqlalchemy import DateTime, Double, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..orm import Base

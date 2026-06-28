@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """ChatLLM: raw LLM message interface with function calling support.
 
 Ported from Vibe-Trading.

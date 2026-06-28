@@ -1,6 +1,9 @@
 from __future__ import annotations
+
 from typing import Any
+
 from app.domain.strategies.base import BaseStrategy, StrategyResult, StrategySignal
+
 
 class RiskAnalysisStrategy(BaseStrategy):
     """

@@ -69,6 +69,6 @@ def evaluate_expression(expression: str, local_dict: dict[str, Any]) -> Any:
     tree = parse_expression(expression)
     try:
         code = compile(tree, "<expression>", "eval")
-        return eval(code, {"__builtins__": {}}, local_dict)  # noqa: S307 - AST-validated
+        return eval(code, {"__builtins__": {}}, local_dict)
     except Exception as exc:
         raise ExpressionSecurityError(f"Expression evaluation failed: {exc}") from exc

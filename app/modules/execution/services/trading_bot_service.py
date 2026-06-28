@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Application service for managing trading bots via ExecutionGateway drivers."""
 
 import threading
 from collections.abc import Callable
 from typing import Any
 
-from app.core.base_service import BaseApplicationService
 from app.application.trading.bot_engine import BotEngine
+from app.core.base_service import BaseApplicationService
 from app.domain.dto.trading_dto import BotActionResponseDTO, BotDetailDTO, BotStatusDTO
 from app.domain.execution.driver_protocol import ExecutionGateway
 from app.domain.ports import TradeRepository, TradingBotProvider

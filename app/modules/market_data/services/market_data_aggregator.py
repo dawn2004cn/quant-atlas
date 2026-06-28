@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Market data aggregator using domain models and events."""
 
 
-from typing import Any
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
 
-from app.core.logger import get_logger
 from app.application.dto.complete_dto import QuoteDTO
 from app.application.events import EventType, publish_event
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

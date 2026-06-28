@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Borderless execution API — Quant Atlas 9.0 Step Two."""
 
 from flask import Blueprint, request
@@ -7,9 +8,9 @@ from flask_login import current_user, login_required
 from ...application.errors import ValidationError
 from ...core.registry import register_routes
 from .common import ok_response
+from .decorators import service_fallback
 from .request_parsers import parse_int_param
 from .v1_context import ApiV1Context
-from .decorators import service_fallback
 
 
 @register_routes(name="execution", context="execution", description="Borderless execution API (9.0)")

@@ -3,16 +3,16 @@
 This module exports all repository interfaces for the domain layer.
 """
 
+from app.domain.repositories.signal import (
+    ISignalRepository,
+    Signal,
+    SignalType,
+)
 from app.domain.repositories.stock import (
-    Stock,
+    IMarketDataRepository,
     IStockRepository,
     MarketData,
-    IMarketDataRepository,
-)
-from app.domain.repositories.signal import (
-    SignalType,
-    Signal,
-    ISignalRepository,
+    Stock,
 )
 
 __all__ = [

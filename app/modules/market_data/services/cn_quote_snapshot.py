@@ -3,14 +3,7 @@ from app.domain.dto.service_result import GenericResponseDTO
 """A 股全市场行情快照（与市场全景 /markets/CN/quotes 同源，内存索引供板块等复用）。"""
 
 
-import threading
-import time
-from typing import Any
-
-from app.core.logger import get_logger
-from app.domain.enums import MarketCode
-
-logger = get_logger(__name__)
+import threadingimport timefrom typing import Anyfrom app.core.logger import get_loggerfrom app.domain.enums import MarketCodelogger = get_logger(__name__)
 
 _DEFAULT_TTL_SEC = 45
 

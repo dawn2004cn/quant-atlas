@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """SequenceChain — causal provenance linking evidence, arbitration and trades."""
 
 from datetime import datetime

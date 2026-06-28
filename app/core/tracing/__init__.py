@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Distributed tracing integration for quant-atlas.
 
 Lightweight context-var based trace ID propagation is always available.
@@ -8,7 +9,7 @@ and the opentelemetry SDK is installed.
 
 import contextvars
 import uuid
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 # ---------------------------------------------------------------------------
 # Lightweight trace ID propagation (contextvars) — always available
@@ -52,6 +53,8 @@ try:
     from opentelemetry.sdk.trace import TracerProvider as _OtelProvider
     from opentelemetry.sdk.trace.export import (
         BatchSpanProcessor as _BatchSpanProcessor,
+    )
+    from opentelemetry.sdk.trace.export import (
         ConsoleSpanExporter as _ConsoleSpanExporter,
     )
 

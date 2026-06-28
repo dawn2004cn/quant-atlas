@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shadow Account — font handling for PDF rendering.
 
 Tries to guarantee that Chinese characters render; falls back to DejaVu Sans
@@ -11,7 +12,6 @@ name via ``apply_matplotlib_cjk_font``.
 import os
 import shutil
 from pathlib import Path
-
 
 from app.core.logger import get_logger
 
@@ -103,8 +103,8 @@ def apply_matplotlib_cjk_font() -> str:
     try:
         import matplotlib
         matplotlib.use("Agg")  # safe for headless rendering
-        from matplotlib import font_manager as fm
         import matplotlib.pyplot as plt
+        from matplotlib import font_manager as fm
     except Exception as exc:  # pragma: no cover — matplotlib optional
         logger.warning("matplotlib unavailable: %s", exc)
         return _FALLBACK_FAMILY

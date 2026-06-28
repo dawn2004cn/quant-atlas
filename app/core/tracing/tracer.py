@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 """Distributed tracing integration using OpenTelemetry concepts."""
 
-import uuid
 import contextvars
+import uuid
 from typing import Any
 
 # Context variable to hold the current TraceID

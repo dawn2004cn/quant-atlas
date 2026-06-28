@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound data quality port for application services."""
 
 from app.domain.ports.data_quality_port import DataQualityPort
-
 
 _port: DataQualityPort | None = None
 def bind_data_quality_port(port: DataQualityPort) -> None:

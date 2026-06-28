@@ -6,17 +6,17 @@ import secrets
 import time
 from typing import TYPE_CHECKING
 
-from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for, current_app
+from flask import Blueprint, current_app, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
+from ...core.hybrid_rate_limiter import HybridRateLimiter
+from ...core.runtime_config import get_runtime
+from ...infrastructure.auth.oauth_provider import extract_subject_from_token_response
 from ...infrastructure.external.wechat_web_login import (
     build_qrconnect_url,
     exchange_code,
     fetch_sns_userinfo,
 )
-from ...infrastructure.auth.oauth_provider import extract_subject_from_token_response
-from ...core.runtime_config import get_runtime
-from ...core.hybrid_rate_limiter import HybridRateLimiter
 from .models import SessionUser
 
 if TYPE_CHECKING:

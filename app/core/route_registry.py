@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Route registration and discovery.
 
 Exposes ``register_routes``, ``discover_routes``, and route registry helpers.
 """
 
 import logging
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 

@@ -8,8 +8,8 @@ from flask_login import login_required
 from ...core.registry import register_routes
 from .common import ok_response
 from .decorators import demo_endpoint
-from .validation import bounded_float, bounded_int, whitelist_str
 from .v1_context import ApiV1Context
+from .validation import bounded_float, bounded_int, whitelist_str
 
 
 def _get_svc():

@@ -63,11 +63,13 @@ def _register_ai_agent_routes(blueprint: Blueprint, ctx: Any | None = None) -> N
         ctx = _MinimalContext()
 
     # Import route registration functions (side-effect: registers routes on blueprint)
+    import logging
+
     from app.presentation.api.routes_v1_ai_agent import (
         register_ai_agent_routes,
     )
-    from app.presentation.api.routes_v1_fingpt import (
-        register_fingpt_routes,
+    from app.presentation.api.routes_v1_ai_committee_selection import (
+        register_ai_committee_selection_routes,
     )
     from app.presentation.api.routes_v1_ai_evidence import (
         register_ai_evidence_routes,
@@ -75,20 +77,17 @@ def _register_ai_agent_routes(blueprint: Blueprint, ctx: Any | None = None) -> N
     from app.presentation.api.routes_v1_ai_hedge_fund import (
         register_ai_hedge_fund_routes,
     )
-    from app.presentation.api.routes_v1_ai_committee_selection import (
-        register_ai_committee_selection_routes,
+    from app.presentation.api.routes_v1_chart_vision import (
+        register_chart_vision_routes,
+    )
+    from app.presentation.api.routes_v1_cognitive_mesh import (
+        register_cognitive_mesh_routes,
+    )
+    from app.presentation.api.routes_v1_fingpt import (
+        register_fingpt_routes,
     )
     from app.presentation.api.routes_v1_investment_committee import (
         register_investment_committee_routes,
-    )
-    from app.presentation.api.routes_v1_quant_ai import (
-        register_quant_ai_routes,
-    )
-    from app.presentation.api.routes_v1_smart_briefing import (
-        register_smart_briefing_routes,
-    )
-    from app.presentation.api.routes_v1_chart_vision import (
-        register_chart_vision_routes,
     )
     from app.presentation.api.routes_v1_jarvis import (
         register_jarvis_routes,
@@ -102,11 +101,12 @@ def _register_ai_agent_routes(blueprint: Blueprint, ctx: Any | None = None) -> N
     from app.presentation.api.routes_v1_nl import (
         register_nl_routes,
     )
-    from app.presentation.api.routes_v1_cognitive_mesh import (
-        register_cognitive_mesh_routes,
+    from app.presentation.api.routes_v1_quant_ai import (
+        register_quant_ai_routes,
     )
-
-    import logging
+    from app.presentation.api.routes_v1_smart_briefing import (
+        register_smart_briefing_routes,
+    )
     logger = logging.getLogger(__name__)
 
     # Register each route group, skipping if dependencies missing
@@ -219,7 +219,7 @@ def create_ai_agent_app() -> Any:
 
         return app
     except ImportError:
-        raise RuntimeError("Flask is required for AI agent service")
+        raise RuntimeError("Flask is required for AI agent service") from None
 
 
 __all__ = [

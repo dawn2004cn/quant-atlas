@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Pipeline design pattern for data processing.
 
 Implements Reader -> Validator -> Transformer -> Writer pattern
@@ -7,10 +8,10 @@ for standardized data processing workflows.
 
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Generic, TypeVar
-from collections.abc import Callable
 
 from app.core.logger import get_logger
 

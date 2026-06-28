@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """Data quality gate for backtesting data streams."""
 
 
 from typing import Protocol, runtime_checkable
-import pandas as pd
 
+import pandas as pd
 
 from app.core.logger import get_logger
 

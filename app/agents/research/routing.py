@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from ...agents.constants import BlackboardKey
 from ...agents.evidence_blackboard import (
     get_evidence_blackboard,
 )
-from ...agents.constants import BlackboardKey
 from .state import INVESTMENT_DEBATE_ROUNDS, RISK_DEBATE_ROUNDS, ResearchState
 
 

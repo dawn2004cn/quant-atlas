@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Symbol → market → execution driver routing."""
 
 import re

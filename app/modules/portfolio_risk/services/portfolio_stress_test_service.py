@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Portfolio Stress Test - 组合压力测试服务."""
 
 
@@ -89,7 +91,7 @@ class PortfolioStressTestService(BaseApplicationService):
         scenarios_results = []
         all_scenarios = self._scenarios.SCENARIOS
 
-        for key, scenario in all_scenarios.items():
+        for _key, scenario in all_scenarios.items():
             result = self._calculate_scenario_impact(
                 holdings=holdings,
                 total_value=total_value,

@@ -9,9 +9,9 @@ Provides:
 """
 
 from app.application.workflows.base_workflow import BaseWorkflow
+from app.application.workflows.data_pipeline_workflow import DataPipelineWorkflow
 from app.application.workflows.research_workflow import ResearchWorkflow
 from app.application.workflows.trading_workflow import TradingWorkflow
-from app.application.workflows.data_pipeline_workflow import DataPipelineWorkflow
 from app.application.workflows.workflow_service import WorkflowService
 
 __all__ = [

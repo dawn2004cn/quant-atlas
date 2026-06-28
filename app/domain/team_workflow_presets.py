@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Built-in team workflow presets for Pipeline Designer."""
 
 from app.domain.team_workflow_schema import (

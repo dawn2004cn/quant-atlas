@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain Event Handlers.
 
 In-memory event bus for domain events.
@@ -6,11 +7,10 @@ In-memory event bus for domain events.
 
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from collections.abc import Callable
-
 
 from app.core.logger import get_logger
 

@@ -13,13 +13,12 @@ Enhanced QMTExecutor to:
 from datetime import datetime
 from typing import Any
 
-from app.core.runtime_config import get_runtime_bool
-from app.domain.ports.execution_ports import ITradeExecutor
-from app.domain.dto.trade_signal_dto import TradeSignalDTO, SignalDirection
-from app.infrastructure.repositories.execution_feedback import ExecutionFeedbackRepository
-from app.infrastructure.tracing import create_span, trace_order_execution, get_current_trace_id
-
 from app.core.logger import get_logger
+from app.core.runtime_config import get_runtime_bool
+from app.domain.dto.trade_signal_dto import SignalDirection, TradeSignalDTO
+from app.domain.ports.execution_ports import ITradeExecutor
+from app.infrastructure.repositories.execution_feedback import ExecutionFeedbackRepository
+from app.infrastructure.tracing import create_span, get_current_trace_id, trace_order_execution
 
 logger = get_logger(__name__)
 
@@ -155,7 +154,7 @@ class QMTExecutor(ITradeExecutor):
                 return order_id
 
             try:
-                from xtquant import xttrader, xtconstant  # noqa: F401
+                from xtquant import xtconstant, xttrader
 
                 _direction = 23 if signal.direction == SignalDirection.BUY else 24
                 logger.info(

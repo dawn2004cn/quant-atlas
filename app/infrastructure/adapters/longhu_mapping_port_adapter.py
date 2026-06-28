@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Infrastructure adapter for ``LonghuMappingPort``."""
 
 from typing import Any

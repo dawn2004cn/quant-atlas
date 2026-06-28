@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for CN sector board data (THS / KPL / XGT)."""
 
 from typing import Any, Literal, Protocol

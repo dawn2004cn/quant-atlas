@@ -1,11 +1,11 @@
 """Adapter for fetching Longhu Bang data."""
 
 import asyncio
-import pandas as pd
-from app.domain.ports.market_data_ports import IMarketDataIngestor
 
+import pandas as pd
 
 from app.core.logger import get_logger
+from app.domain.ports.market_data_ports import IMarketDataIngestor
 
 logger = get_logger(__name__)
 

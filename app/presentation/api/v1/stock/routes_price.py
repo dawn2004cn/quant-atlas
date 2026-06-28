@@ -7,6 +7,7 @@ from flask_login import login_required
 
 from app.core.logger import get_logger
 from app.core.registry import register_routes
+
 from ...common import ok_response, parse_market
 from ...decorators import service_fallback
 
@@ -51,7 +52,7 @@ def register_stock_price(blueprint: Blueprint, ctx) -> None:
 
             items = history if isinstance(history, list) else (history or {}).get("history", [])
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
 
             logger.warning("stock_resonance history error %s: %s", symbol, exc)
 

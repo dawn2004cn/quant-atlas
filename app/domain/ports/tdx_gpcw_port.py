@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for TDX gpcw professional financial data (MySQL ``tdx_gpcw_financial``)."""
 
 from abc import ABC, abstractmethod

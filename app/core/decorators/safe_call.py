@@ -18,9 +18,9 @@ This decorator is preferred over bare ``except Exception`` blocks for:
 from __future__ import annotations
 
 import functools
+from collections.abc import Callable
 from logging import Logger, getLogger
 from typing import Any, TypeVar
-from collections.abc import Callable
 
 _T = TypeVar("_T")
 
@@ -46,7 +46,7 @@ def safe_call(
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return func(*args, **kwargs)  # type: ignore[return-value]
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 _log = logger or getLogger(func.__module__)
                 _log.log(log_level, "%s failed in %s: %s", label, func.__qualname__, exc)
                 return default

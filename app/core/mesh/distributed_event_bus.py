@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Distributed Event Bus — Redis/memory transport for federated agent mesh."""
 
 import logging
@@ -6,9 +7,9 @@ import threading
 import time
 import uuid
 from collections import deque
+from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Any
-from collections.abc import Callable
 
 from app.core.mesh.node_registry import MeshNodeRegistry, default_local_node
 from app.core.mesh.protocol import (
@@ -196,7 +197,7 @@ class DistributedEventBus:
 
         try:
             envelope = MeshEventEnvelope.model_validate(data)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("mesh envelope parse skip: %s", exc)
             return
         if envelope.origin_node_id == self.node_id:
@@ -213,7 +214,7 @@ class DistributedEventBus:
         for handler in handlers:
             try:
                 handler(envelope)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 self._metrics["handler_errors"] += 1
                 logger.warning("mesh remote handler: %s", exc)
 

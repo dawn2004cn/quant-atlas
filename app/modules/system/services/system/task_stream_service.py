@@ -8,8 +8,8 @@ import time
 from collections.abc import Iterator
 from typing import Any
 
-from app.modules.system.services.system.task_feedback_service import TaskFeedbackService
 from app.infrastructure.messaging.task_event_hub import get_task_event_hub
+from app.modules.system.services.system.task_feedback_service import TaskFeedbackService
 
 _TERMINAL_EVENTS = frozenset({"task_succeeded", "task_failed", "task_revoked"})
 

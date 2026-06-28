@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Event Impact Estimator - 突发事件冲击波计算器.
 
 一键模拟突发事件对持仓的影?"""
@@ -71,7 +73,7 @@ class EventImpactEstimatorService:
         # 原油涨价对航空是利空，对新能源车可能有影
         if event.get("material") == "原油":
             # 航空等受
-            for ind in affected_industries:
+            for _ind in affected_industries:
                 for sym in watchlist_symbols:
                     # 简化判断逻辑
                     if sym in beneficiaries:

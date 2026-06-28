@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Multi-market history data fetcher using AkShare."""
 
 
@@ -6,7 +7,6 @@ from __future__ import annotations
 from typing import Any
 
 import pandas as pd
-
 
 from app.core.logger import get_logger
 

@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 """Concrete State Machine for RDAgent workflow."""
 
 import json
 from pathlib import Path
 from typing import Any
+
 from app.domain.state.machine import IStateMachine, IStatePersistence
+
 
 class RDStatePersistence(IStatePersistence):
     """File-based state persistence for RDAgent runs."""
@@ -25,6 +28,7 @@ class RDStatePersistence(IStatePersistence):
             return json.load(f)
 
 from app.domain.state.observer import ObservableStateMachine
+
 
 class RDStateMachine(IStateMachine[str, dict[str, Any]], ObservableStateMachine):
     """Concrete FSM for RDAgent Run cycles with Observability."""

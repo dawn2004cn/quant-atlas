@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Abstract repository layer using domain models."""
 
 

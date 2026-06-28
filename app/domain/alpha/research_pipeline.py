@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Physical Research Pipeline - Drift to Alpha Bridge.
 
 Implements from strategy_plan3.md Phase 2:
@@ -13,11 +14,11 @@ Usage:
 """
 
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
 from uuid import uuid4
 
 from app.core.logger import get_logger

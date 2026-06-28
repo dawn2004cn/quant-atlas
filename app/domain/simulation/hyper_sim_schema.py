@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Hyper-Simulator request/response models (Quant Atlas 9.0 Step Three)."""
 
 from typing import Any, Literal

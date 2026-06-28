@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 """News bundle capability with archive-backed caching."""
 
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from app.domain.capabilities.base import BaseCapability

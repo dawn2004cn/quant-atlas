@@ -45,7 +45,7 @@ SOLID Principles:
 - D: Dependency Inversion
 """
 
+from .architectural import *
+from .behavioral import *
 from .creational import *
 from .structural import *
-from .behavioral import *
-from .architectural import *

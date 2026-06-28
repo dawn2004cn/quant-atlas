@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """ContextBuilder: builds LLM message context for the ReAct AgentLoop.
 
 Ported from Vibe-Trading.
@@ -9,14 +10,12 @@ import json
 from datetime import datetime
 from typing import Any
 
-from app.infrastructure.agent.swarm.workspace_memory import WorkspaceMemory
-from app.infrastructure.agent.skills.loader import SkillsLoader
-from app.infrastructure.agent.swarm.tools_base import ToolRegistry
+from app.core.logger import get_logger
 from app.infrastructure.agent.memory.persistent import PersistentMemory
 from app.infrastructure.agent.memory.vector.store import VectorMemoryStore
-
-
-from app.core.logger import get_logger
+from app.infrastructure.agent.skills.loader import SkillsLoader
+from app.infrastructure.agent.swarm.tools_base import ToolRegistry
+from app.infrastructure.agent.swarm.workspace_memory import WorkspaceMemory
 
 logger = get_logger(__name__)
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Path safety helpers used by file-access tools.
 
 Two helpers, two threat models:

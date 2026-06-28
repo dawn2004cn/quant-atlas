@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 """API v1：今日操盘台聚合快照。"""
 
 
 from flask import Blueprint, request
 from flask_login import login_required
+
+from app.core.registry import register_routes
 
 from ...core.middleware.request_context import require_authenticated_user_id
 from .common import ok_response, parse_market
@@ -14,7 +17,6 @@ from .route_deps import (
     require_daily_workbench_service,
 )
 from .v1_context import ApiV1Context
-from app.core.registry import register_routes
 
 
 def _uid() -> int:

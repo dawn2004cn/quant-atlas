@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound TDX local file port for application services (configured at bootstrap)."""
 
 from app.domain.ports.tdx_local_port import TdxLocalFilePort
-
 
 _port: TdxLocalFilePort | None = None
 def bind_tdx_local_file_port(port: TdxLocalFilePort) -> None:

@@ -5,10 +5,10 @@ from __future__ import annotations
 from flask import Blueprint, request
 from flask_login import login_required
 
-from ...domain.enums import MarketCode
 from ...application.errors import ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
+from ...domain.enums import MarketCode
 from .common import ok_response
 from .decorators import require_role
 from .v1_context import ApiV1Context
@@ -179,6 +179,7 @@ def register_user_knowledge_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
     def focus_context():
         """Shareable focus context + cross-page navigation links."""
         from app.modules.system.services.ui.focus_context_service import FocusContextService
+
         from .common import parse_market
 
         symbol = (request.args.get("symbol") or "").strip()
@@ -197,6 +198,7 @@ def register_user_knowledge_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
         from app.modules.system.services.ui.decision_flow_contract_service import (
             DecisionFlowContractService,
         )
+
         from .common import parse_market
 
         market = parse_market(request.args.get("market", "CN")).value

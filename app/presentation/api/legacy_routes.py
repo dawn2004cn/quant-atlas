@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Legacy API compatibility layer for non-migrated clients.
 
 Primary application flows now use ``/api/v1/*``. This module keeps only a
@@ -7,12 +8,12 @@ small deprecated route surface during the migration period.
 
 
 from flask import Blueprint, request
-from .common import ok_response
 from flask_login import login_required
 
 from ...core.middleware.request_context import require_authenticated_user_id
+from ...domain.dto.quote_factory import canonical_panorama_dict, canonical_quote_payload
 from ...domain.enums import MarketCode
-from ...domain.dto.quote_factory import canonical_quote_payload, canonical_panorama_dict
+from .common import ok_response
 
 
 def _uid() -> int:

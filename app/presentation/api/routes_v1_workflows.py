@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """API v1: Workflow status & lifecycle routes."""
 
 
 import uuid
+
 from flask import Blueprint, request
 from flask_login import login_required
 
@@ -11,12 +13,11 @@ from ...application.workflows import WorkflowService
 from ...core.logger import get_logger
 from ...core.registry import register_routes
 
-
 logger = get_logger(__name__)
 from ...domain.enums import MarketCode
 from .common import ok_resource, ok_response
-from .v1_context import ApiV1Context
 from .decorators import require_role
+from .v1_context import ApiV1Context
 
 
 @register_routes(name="workflow", context="research", description="Workflow status & lifecycle routes")
@@ -59,7 +60,7 @@ def register_workflow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
         try:
             market = MarketCode(market_raw)
         except ValueError:
-            raise ValidationError(f"invalid_market: {market_raw}")
+            raise ValidationError(f"invalid_market: {market_raw}") from None
 
         wf_id = f"research_{uuid.uuid4().hex[:12]}"
         wf = wf_service.create_research(workflow_id=wf_id, symbol=symbol, market=market)
@@ -83,7 +84,7 @@ def register_workflow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
         try:
             market = MarketCode(market_raw)
         except ValueError:
-            raise ValidationError(f"invalid_market: {market_raw}")
+            raise ValidationError(f"invalid_market: {market_raw}") from None
 
         wf_id = f"trade_{uuid.uuid4().hex[:12]}"
         wf = wf_service.create_trading(workflow_id=wf_id, symbol=symbol, market=market, strategy_name=strategy)
@@ -150,7 +151,7 @@ def register_workflow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     @blueprint.get("/workflows/<workflow_id>/stream")
     @login_required
     def workflow_stream(workflow_id: str):
-        from flask import stream_with_context, Response
+        from flask import Response, stream_with_context
 
 
         def _yield_refresh_evoke_id():

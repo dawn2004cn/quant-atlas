@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Celery application bootstrap for Quant Atlas."""
 
 
@@ -7,10 +8,10 @@ from typing import Any
 # Ensure .env is loaded BEFORE any get_runtime() calls so that
 # CELERY_BROKER_URL / CELERY_RESULT_BACKEND / REDIS_URL etc. are available.
 from .core.runtime_config import _load_dotenv_if_present
+
 _load_dotenv_if_present()
 
 from .core.logger import get_logger
-
 from .core.runtime_config import get_runtime, get_runtime_bool, get_runtime_int
 
 logger = get_logger(__name__)
@@ -275,7 +276,7 @@ def discover_task_modules() -> None:
         module_name = f"{tasks_pkg.__name__}.{name}"
         try:
             importlib.import_module(module_name)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("celery task module skipped (%s): %s", module_name, exc)
 
 if Celery is None:
@@ -295,7 +296,7 @@ else:
     celery_app = celery
     try:
         import pymysql.err as _pymysql_err
-    except Exception:  # noqa: BLE001
+    except Exception:
         _pymysql_err = None
 
     _retry_for: tuple[type[BaseException], ...] = (
@@ -352,7 +353,7 @@ else:
             from app.tasks.task_wiring import get_task_message_store
 
             get_task_message_store().push(**kwargs)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("task message push skipped: %s", exc)
 
     def _cleanup_worker_db_safely() -> None:
@@ -360,20 +361,20 @@ else:
             from app.tasks.worker_db_cleanup import cleanup_worker_db_resources
 
             cleanup_worker_db_resources()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("worker db cleanup skipped: %s", exc)
 
     @worker_process_init.connect
     def _on_worker_process_init(**_: Any) -> None:
         try:
             discover_task_modules()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("celery discover_task_modules skipped: %s", exc)
         try:
             from app.tasks.task_wiring import ensure_task_bindings
 
             ensure_task_bindings()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("worker infrastructure bind skipped: %s", exc)
         try:
             from app.bootstrap_components.runtime_config_validator import (
@@ -381,7 +382,7 @@ else:
             )
 
             validate_worker_runtime_config()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.error("worker runtime config validation failed: %s", exc)
             raise
 
@@ -408,11 +409,11 @@ else:
             from app.tasks.task_wiring import report_task_progress
 
             report_task_progress(task_id, step_index=1, message="Worker 已开始执行")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("task progress prerun skipped: %s", exc)
         try:
-            from app.infrastructure.workflow_hub.factory import get_workflow_repository
             from app.domain.workflow_hub.models import WorkflowInstance, WorkflowStatus, WorkflowType
+            from app.infrastructure.workflow_hub.factory import get_workflow_repository
 
             wf = WorkflowInstance(
                 workflow_id=task_id,
@@ -421,7 +422,7 @@ else:
                 params={"task_name": name},
             )
             get_workflow_repository().save(wf)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("workflow hub prerun skipped: %s", exc)
 
     @task_postrun.connect
@@ -454,11 +455,11 @@ else:
 
             successful = not (isinstance(retval, dict) and retval.get("ok") is False)
             finalize_task_progress(task_id, successful=successful, message=detail[:500])
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("task progress postrun skipped: %s", exc)
         try:
-            from app.infrastructure.workflow_hub.factory import get_workflow_repository
             from app.domain.workflow_hub.models import WorkflowStatus
+            from app.infrastructure.workflow_hub.factory import get_workflow_repository
 
             repo = get_workflow_repository()
             wf = repo.get(task_id)
@@ -468,7 +469,7 @@ else:
                     WorkflowStatus.COMPLETED,
                     progress=100,
                 )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("workflow hub postrun skipped: %s", exc)
 
     @task_failure.connect
@@ -498,11 +499,11 @@ else:
                 successful=False,
                 message=str(exception)[:500] if exception else "任务失败",
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("task progress failure skipped: %s", exc)
         try:
-            from app.infrastructure.workflow_hub.factory import get_workflow_repository
             from app.domain.workflow_hub.models import WorkflowStatus
+            from app.infrastructure.workflow_hub.factory import get_workflow_repository
 
             repo = get_workflow_repository()
             wf = repo.get(task_id)
@@ -512,7 +513,7 @@ else:
                     WorkflowStatus.FAILED,
                     error=str(exception)[:500] if exception else "failed",
                 )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("workflow hub failure skipped: %s", exc)
 
 # discover_task_modules() is module-level; called from worker_process_init and warm_runtime_extensions.

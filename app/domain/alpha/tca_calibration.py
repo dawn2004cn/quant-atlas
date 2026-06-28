@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TCA Auto-Calibration - Transaction Cost Analysis Feedback.
 
 Implements from strategy_plan3.md:
@@ -13,10 +14,10 @@ Usage:
 """
 
 
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
-from collections import deque
 
 from app.core.logger import get_logger
 

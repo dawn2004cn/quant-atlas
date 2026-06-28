@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound TDX finance snapshot port for application services."""
 
 from app.domain.ports.tdx_finance_port import TdxFinancePort, TdxFinanceSnapshot
-
 
 _port: TdxFinancePort | None = None
 def bind_tdx_finance_port(port: TdxFinancePort) -> None:

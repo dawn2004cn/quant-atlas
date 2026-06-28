@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 """ORM models for Market data, Stocks, and Watchlists."""
 
 
 from datetime import datetime
-from sqlalchemy import String, Integer, Double, DateTime, ForeignKey, PrimaryKeyConstraint, JSON, Text, UniqueConstraint
+
+from sqlalchemy import JSON, DateTime, Double, ForeignKey, Integer, PrimaryKeyConstraint, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..orm import Base

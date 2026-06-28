@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Regime-Adaptive Strategy Switching - Market State Based Parameter Tuning.
 
 This module implements from strategy_plan.md:
@@ -14,7 +15,6 @@ Usage:
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
 
 # NOTE: Previously imported MarketRegime from app.agents.dynamic_personality,
 # which created a circular import chain:
@@ -22,7 +22,7 @@ from typing import Any
 #   market_data module → application services → core.factory
 # MarketRegime was never actually used in this file. If needed later, use
 # TYPE_CHECKING guard or resolve the agent dependency properly.
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     pass

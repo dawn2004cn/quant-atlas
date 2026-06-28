@@ -105,7 +105,7 @@ def register_signal_flag_backfill_routes(
                         enable_legacy_alias=legacy,
                     )
                 raise RuntimeError("celery_not_available")
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("signal_flag backfill celery enqueue failed, sync fallback: %s", exc)
 
         raise ValidationError(

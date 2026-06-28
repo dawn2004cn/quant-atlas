@@ -1,20 +1,22 @@
 from __future__ import annotations
+
 """API v1: Data infrastructure routes - WebSocket and Data Quality."""
 
 
 import logging
+
 from flask import Blueprint, request
 from flask_login import login_required
 
+from app.core.registry import register_routes
+from app.core.runtime_config import get_runtime
+
 from ...application.errors import ExternalServiceError, NotFoundError, ValidationError
 from .common import ok_resource, ok_response
+from .decorators import require_role
+from .request_parsers import parse_int_param
 from .route_deps import DataInfrastructureRouteDeps, build_data_infrastructure_route_deps
 from .v1_context import ApiV1Context
-from .request_parsers import parse_int_param
-from .decorators import require_role
-
-from app.core.runtime_config import get_runtime
-from app.core.registry import register_routes
 
 logger = logging.getLogger(__name__)
 
@@ -450,8 +452,9 @@ def register_data_infrastructure_routes(
         enable_celery = get_runtime("ENABLE_CELERY", False)
 
         if enable_celery and not sync:
-            from ...tasks.data_backfill_tasks import backfill_all_history_tdx
             from app.celery_app import celery as _c
+
+            from ...tasks.data_backfill_tasks import backfill_all_history_tdx
             if _c is not None and backfill_all_history_tdx is not None and hasattr(backfill_all_history_tdx, "delay"):
                 _, task_id, enqueued = task_dispatcher.dispatch(
                     backfill_all_history_tdx,
@@ -484,8 +487,9 @@ def register_data_infrastructure_routes(
         enable_celery = get_runtime("ENABLE_CELERY", False)
 
         if enable_celery and not sync:
-            from ...tasks.data_backfill_tasks import sync_incremental_tdx
             from app.celery_app import celery as _c
+
+            from ...tasks.data_backfill_tasks import sync_incremental_tdx
             if _c is not None and sync_incremental_tdx is not None and hasattr(sync_incremental_tdx, "delay"):
                 _, task_id, enqueued = task_dispatcher.dispatch(
                     sync_incremental_tdx,

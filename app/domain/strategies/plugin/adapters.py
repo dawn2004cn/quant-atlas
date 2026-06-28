@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Strategy Adapter - 现有策略适配器。
 
 将现有 BaseStrategy 转换为插件模式:
@@ -9,13 +10,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..base import BaseStrategy
 from .protocol import (
     BaseStrategyPlugin,
     PluginConfig,
     PluginMetadata,
     StrategyResult,
 )
-from ..base import BaseStrategy
 
 
 class StrategyAdapter(BaseStrategyPlugin):

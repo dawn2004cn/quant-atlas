@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Technical trend analysis - pure domain logic."""
 
 
@@ -8,8 +9,6 @@ import pandas as pd
 from ...core.logger import get_logger
 from ...domain.entities import TrendAnalysisResult
 from ...domain.enums import TrendStatus
-
-
 
 logger = get_logger(__name__)
 

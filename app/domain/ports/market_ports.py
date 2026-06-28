@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Market data ports - interfaces for data access layer."""
 
 
@@ -8,8 +9,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     pass
 
-from ..enums import MarketCode
 from ..entities import ChipDistribution, StockQuote
+from ..enums import MarketCode
 
 
 class MarketOverviewPort(ABC):

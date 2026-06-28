@@ -1,13 +1,13 @@
 from __future__ import annotations
+
 """Agent Workflow State Machine for complex task orchestration."""
 
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
-
 
 from app.core.logger import get_logger
 

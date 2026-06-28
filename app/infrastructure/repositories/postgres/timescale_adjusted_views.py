@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """前/后复权物化视图（由 ``market_bars`` + ``market_adjustment_factors`` 派生）。"""
 
 from typing import Any

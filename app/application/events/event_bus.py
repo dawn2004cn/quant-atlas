@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 """Event Bus for decoupled service communication."""
 
 
-from typing import Any
+from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from collections import defaultdict
+from typing import Any
 
 from app.core.logger import get_logger
 

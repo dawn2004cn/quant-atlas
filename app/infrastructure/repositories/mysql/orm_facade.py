@@ -10,15 +10,15 @@
 5. MySQLSignalObservationRepository (高频信号记录)
 """
 from __future__ import annotations
+
 from datetime import datetime
-from sqlalchemy import select, and_, desc, delete
+
+from sqlalchemy import and_, delete, desc, select
 from sqlalchemy.orm import joinedload
 
 from app.core.logger import get_logger
-from app.infrastructure.database.models.auth import User, Role
-from app.infrastructure.database.models.market import (
-    Watchlist, StockGroup, StockGroupItem, StockHistory
-)
+from app.infrastructure.database.models.auth import Role, User
+from app.infrastructure.database.models.market import StockGroup, StockGroupItem, StockHistory, Watchlist
 
 logger = get_logger(__name__)
 

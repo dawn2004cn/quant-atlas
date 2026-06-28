@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -27,7 +28,6 @@ warnings.warn(
 
 from collections.abc import Callable
 from typing import Any
-
 
 _inspect_snapshot: Callable[..., dict[str, Any]] | None = None
 _task_status: Callable[[str], dict[str, Any]] | None = None

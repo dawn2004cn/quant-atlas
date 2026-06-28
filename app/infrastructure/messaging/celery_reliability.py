@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 """Celery reliability helpers: retry baseline + idempotent enqueue."""
 
 
 import hashlib
 import json
+import logging
 import threading
 import time
 from collections.abc import Mapping, Sequence
@@ -11,7 +13,6 @@ from typing import Any
 
 from ...core.runtime_config import get_runtime, get_runtime_int
 
-import logging
 logger = logging.getLogger(__name__)
 _MEMORY_KEYS: dict[str, float] = {}
 _MEMORY_LOCK = threading.Lock()

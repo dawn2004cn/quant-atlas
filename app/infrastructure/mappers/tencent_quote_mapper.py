@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Mapper for Tencent quote payload to domain entities.
 
 ``qt.gtimg.cn`` text fields are delimited by ``~``; amount ``f37`` is in **10k yuan**, total market cap ``f45`` is in **100M yuan**,

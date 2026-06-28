@@ -1,18 +1,20 @@
 from __future__ import annotations
+
 """War Room simulation API — virtual scenario stress tests (Quant Atlas 7.0)."""
 
 from flask import Blueprint, request
 from flask_login import login_required
 
+from app.domain.simulation.hyper_sim_schema import HyperSimRunRequest
+from app.domain.simulation_scenario import WarRoomRunRequest
+
 from ...application.errors import ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
-from app.domain.simulation.hyper_sim_schema import HyperSimRunRequest
-from app.domain.simulation_scenario import WarRoomRunRequest
 from .common import ok_response
+from .decorators import service_fallback
 from .request_parsers import parse_int_param
 from .v1_context import ApiV1Context
-from .decorators import service_fallback
 
 
 def _uid() -> int:
@@ -48,7 +50,7 @@ def register_simulation_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
         body = request.get_json(silent=True) or {}
         try:
             req = WarRoomRunRequest.from_payload(body)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             raise ValidationError("invalid_war_room_request", details={"reason": str(exc)}) from exc
         payload = svc.run_war_room(_uid(), req)
         if not payload.get("ok"):
@@ -83,7 +85,7 @@ def register_simulation_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
         body = request.get_json(silent=True) or {}
         try:
             req = HyperSimRunRequest.model_validate(body)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             raise ValidationError("invalid_hyper_sim_request", details={"reason": str(exc)}) from exc
         payload = svc.run(_uid(), req)
         if not payload.get("ok"):

@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any
-from app.core.registry import ServiceRegistry
+
 from app.core.event_bus import publish_event
+from app.core.logger import get_logger
+from app.core.registry import ServiceRegistry
 from app.domain.services.market_regime_service import MarketRegimeService
 from app.modules.strategy.services.strategy.strategy_service import StrategyApplicationService
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

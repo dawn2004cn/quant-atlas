@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Celery tasks for automated analysis and validation."""
 
 
 from celery import shared_task
-from app.core.logger import get_logger
-from app.config import AppSettings, get_settings
 
+from app.config import AppSettings, get_settings
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -23,10 +24,12 @@ def scheduled_daily_analysis(user_id: int):
 
     settings = get_settings()
 
+    from app.agents.trading_agents_service import TradingAgentsService
     from app.bootstrap_components.repositories import create_repositories
     from app.modules.ai_agent.services.fingpt_application_service import FinGPTApplicationService
-    from app.agents.trading_agents_service import TradingAgentsService
-    from app.modules.strategy.services.analytics.daily_analysis_application_service import DailyAnalysisApplicationService
+    from app.modules.strategy.services.analytics.daily_analysis_application_service import (
+        DailyAnalysisApplicationService,
+    )
 
     repositories = create_repositories(settings)
     fingpt_app = FinGPTApplicationService(
@@ -52,8 +55,8 @@ def validate_ai_predictions():
 
     settings = get_settings()
 
-    from app.modules.ai_agent.services.analysis.analysis_prediction_service import AnalysisPredictionService
     from app.bootstrap_components.providers import create_providers
+    from app.modules.ai_agent.services.analysis.analysis_prediction_service import AnalysisPredictionService
 
     repo = _get_analysis_repo(settings)
     providers = create_providers()

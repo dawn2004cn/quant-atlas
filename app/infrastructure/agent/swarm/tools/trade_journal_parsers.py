@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Trade journal format adapters.
 
 Each parser normalizes one broker export format into a list of TradeRecord.
@@ -9,13 +10,13 @@ Excel (.xlsx/.xls) always opens as utf-8 internally via openpyxl/xlrd.
 """
 
 
+import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 
-import logging
 logger = logging.getLogger(__name__)
 FormatName = str  # "tonghuashun" | "eastmoney" | "futu" | "generic" | "unknown"
 

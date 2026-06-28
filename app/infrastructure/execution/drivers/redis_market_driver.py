@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Per-market Redis Stream execution driver with paper fallback."""
 
 import logging
@@ -62,7 +63,7 @@ class RedisMarketExecutionDriver:
             return False
         try:
             return executor.client.ping()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("redis market driver ping %s: %s", self._market, exc)
             return False
 
@@ -75,7 +76,7 @@ class RedisMarketExecutionDriver:
                     return response
                 if not self._fallback_enabled:
                     return response
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("redis submit %s failed: %s", self._market, exc)
 
         if self._fallback_enabled:
@@ -92,7 +93,7 @@ class RedisMarketExecutionDriver:
         if executor is not None and self._redis_available():
             try:
                 return await executor.cancel_order(order_id, symbol)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("redis cancel %s: %s", self._market, exc)
         return await self._paper.cancel_order(order_id, symbol)
 
@@ -101,7 +102,7 @@ class RedisMarketExecutionDriver:
         if executor is not None and self._redis_available():
             try:
                 return await executor.get_order_status(order_id, symbol)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("redis status %s: %s", self._market, exc)
         return await self._paper.get_order_status(order_id, symbol)
 
@@ -110,7 +111,7 @@ class RedisMarketExecutionDriver:
         if executor is not None and self._redis_available():
             try:
                 return await executor.get_positions(symbol)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("redis positions %s: %s", self._market, exc)
         return await self._paper.get_positions(symbol)
 
@@ -119,7 +120,7 @@ class RedisMarketExecutionDriver:
         if executor is not None and self._redis_available():
             try:
                 return await executor.get_balance(asset)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("redis balance %s: %s", self._market, exc)
         return await self._paper.get_balance(asset)
 

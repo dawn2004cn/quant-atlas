@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Flask Middleware for OpenTelemetry Trace Propagation.
 
 Phase 43: 全链路链路追踪
@@ -14,11 +15,11 @@ This module provides Flask middleware to:
 import logging
 from typing import Any
 
-from flask import Flask, request, g
+from flask import Flask, g, request
 from opentelemetry.propagate import extract, inject
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
-from .opentelemetry import get_tracer, get_current_trace_id
+from .opentelemetry import get_current_trace_id, get_tracer
 
 logger = logging.getLogger(__name__)
 

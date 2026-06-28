@@ -1,10 +1,9 @@
 """Concrete pipeline processors."""
 
-from app.infrastructure.pipeline.base import DataProcessor
 from typing import Any
 
-
 from app.core.logger import get_logger
+from app.infrastructure.pipeline.base import DataProcessor
 
 logger = get_logger(__name__)
 

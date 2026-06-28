@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """MySQL Factor Vault - 因子仓库持久化到 MySQL."""
 
 
@@ -13,7 +14,6 @@ from app.domain.alpha.factor_vault import FactorVaultStorage
 from app.infrastructure.database.db_manager import get_session
 
 from ....core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

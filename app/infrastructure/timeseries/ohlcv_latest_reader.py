@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Latest trade_date per symbol from QuestDB / ClickHouse / Timescale."""
 
 import re
@@ -75,7 +76,7 @@ def fetch_latest_trade_date_questdb(stock_code: str) -> date | None:
         if raw is None:
             return None
         return date.fromisoformat(str(raw)[:10])
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("fetch_latest_trade_date_questdb %s: %s", code, exc)
         return None
     finally:
@@ -104,7 +105,7 @@ def fetch_latest_trade_date_clickhouse(stock_code: str) -> date | None:
         if raw is None:
             return None
         return date.fromisoformat(str(raw)[:10])
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("fetch_latest_trade_date_clickhouse %s: %s", code, exc)
         return None
     finally:
@@ -184,6 +185,6 @@ def batch_get_latest_dates_timescale(stock_codes: list[str]) -> dict[str, str | 
                 if latest is not None:
                     out[str(sym)] = latest.isoformat() if hasattr(latest, "isoformat") else str(latest)[:10]
         conn.close()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("batch_get_latest_dates_timescale: %s", exc)
     return out

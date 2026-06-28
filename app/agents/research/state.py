@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """多智能体研究图状态：六分析师 + 辩论 + Risk Manager（本仓库自有实现）。"""
 
 
@@ -66,7 +67,7 @@ def _default_graph_nodes() -> tuple[str, ...]:
         from app.agents.research.topology_loader import get_research_graph_node_ids
 
         return get_research_graph_node_ids()
-    except Exception:  # noqa: BLE001
+    except Exception:
         return (
             "supervisor",
             "macro_analyst",

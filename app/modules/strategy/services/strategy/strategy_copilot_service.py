@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """StrategyCoPilotService — shadow strategy evaluation and live handover suggestions."""
 
 from datetime import datetime, timedelta
@@ -177,7 +178,7 @@ class StrategyCoPilotService:
         try:
             result = self._arbiter.synthesize(symbol, market)
             return result if isinstance(result, dict) else {}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("copilot arbiter consensus failed: %s", exc)
             return {"ok": False, "confidence": 0.0}
 
@@ -200,7 +201,7 @@ class StrategyCoPilotService:
                 return raw
             if isinstance(raw, dict):
                 return list(raw.get("history") or [])
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("copilot bars load failed: %s", exc)
         return []
 

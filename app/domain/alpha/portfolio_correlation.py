@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Portfolio Correlation Analyzer - 组合相关性分析.
 
 实现多目标优化：寻找与当前组合互补而非共振的因子。
@@ -218,8 +219,8 @@ class PortfolioOptimizer:
         factors = list(weights.keys())
         variance = 0.0
 
-        for i, fa in enumerate(factors):
-            for j, fb in enumerate(factors):
+        for _i, fa in enumerate(factors):
+            for _j, fb in enumerate(factors):
                 wi = weights[fa]
                 wj = weights[fb]
                 corr = corr_matrix.get(fa, {}).get(fb, 0)

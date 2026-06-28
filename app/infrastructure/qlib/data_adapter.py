@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 """从平台行情 +（A 股）东财前复权与本地通达信 lday 合并，对齐 Qlib 日频最小契约。"""
 
 
+import logging
 from typing import Any
 
 import pandas as pd
@@ -9,8 +11,6 @@ import pandas as pd
 from ...domain.enums import MarketCode
 from ...domain.ports import ToolFacadePort
 
-
-import logging
 logger = logging.getLogger(__name__)
 class QlibDataAdapter:
     """Normalized bar provider for Qlib pipelines, backed by a ToolFacadePort."""
@@ -102,7 +102,7 @@ class QlibDataAdapter:
                     },
                 )
             self._stock_cache.save_stock_history(key, rows)
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             logger.warning("data_adapter.py._persist_cn_cache: %s", e)
 
     def bars_to_dataframe(self, bars: list[dict[str, Any]]) -> pd.DataFrame:

@@ -9,7 +9,7 @@ the library is not installed.
 from __future__ import annotations
 
 try:
-    from prometheus_client import Counter, Histogram, Gauge
+    from prometheus_client import Counter, Gauge, Histogram
 
     HAS_PROMETHEUS = True
 except ImportError:

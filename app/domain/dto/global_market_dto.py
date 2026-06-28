@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Global market DTOs for standardized data transfer."""
 
 

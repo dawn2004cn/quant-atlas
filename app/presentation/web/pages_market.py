@@ -9,12 +9,13 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
+from app.config import get_settings
+from app.models import STRATEGY_REGISTRY_GROUPS
 from app.modules.system.services.integration.integration_hub_service import (
     build_integration_hub_context,
 )
-from app.config import get_settings
-from app.models import STRATEGY_REGISTRY_GROUPS
 from app.presentation.web.page_shell import ux_env_hints as _ux_env_hints
+
 
 def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/")

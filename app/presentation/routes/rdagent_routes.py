@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """RD-Agent 兼容路由：``/api/rdagent/*``（推荐新客户端改用 ``/api/v1/rd-agent/*``）。"""
 
 

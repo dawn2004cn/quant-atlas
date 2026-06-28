@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Self-Healing & Auto-Tuning - Walk-Forward & Bayesian Optimization.
 
 This module implements from strategy_plan.md:
@@ -12,10 +13,10 @@ Usage:
 """
 
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
-from collections.abc import Callable
 
 from app.core.logger import get_logger
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Regime-Aware Prompting - Market Sentiment Anchoring.
 
 This module implements from midify_plan12.md:
@@ -18,10 +19,9 @@ Usage:
 from dataclasses import dataclass
 from typing import Any
 
-from .dynamic_personality import MarketRegime, MarketRegimeManager
-
 from app.core.logger import get_logger
 
+from .dynamic_personality import MarketRegime, MarketRegimeManager
 
 logger = get_logger(__name__)
 

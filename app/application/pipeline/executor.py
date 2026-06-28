@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 """Quant pipeline execution and orchestration."""
 
 from typing import Any
-from app.core.events import market_data_synced
 
+from app.core.events import market_data_synced
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -13,7 +14,7 @@ def handle_market_data_sync(sender: Any, stats: dict[str, Any]) -> None:
     """Event listener: Triggers subsequent analysis after data sync."""
     logger.info("Received market-data-synced event. Sync Stats: %s", stats)
     try:
-        from flask import has_app_context, current_app
+        from flask import current_app, has_app_context
 
         ai_service = None
         if has_app_context():

@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Stock Services - Stock data services with typed DTOs."""
 
 
 from typing import Any
 
+from app.core.base_service import BaseApplicationService
 from app.core.logger import get_logger
 from app.domain.dto import BarData
 from app.domain.enums import MarketCode
 from app.domain.shared.symbol_normalizer import SymbolNormalizer
-from app.core.base_service import BaseApplicationService
 
 logger = get_logger(__name__)
 

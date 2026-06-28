@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Mappers for Entity -> Domain Model -> DTO transformation.
 
 This module implements the Mapper pattern to separate concerns between:

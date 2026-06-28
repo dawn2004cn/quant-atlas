@@ -28,7 +28,7 @@ class MySQLIntegrationProbeRepository:
                         cur.execute(f"SELECT COUNT(*) AS c FROM `{table}`")
                         row = cur.fetchone() or {}
                         result[key] = int(row.get("c") or 0)
-                    except Exception as exc:  # noqa: BLE001
+                    except Exception as exc:
                         result[key] = f"error:{type(exc).__name__}:{exc}"
         finally:
             conn.close()

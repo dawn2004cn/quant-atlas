@@ -1,14 +1,12 @@
 """Signal Dispatcher for trade execution."""
 
 from typing import Any
-from app.core.events import risk_alert_triggered
-from app.domain.dto.trade_signal_dto import TradeSignalDTO
 
+from app.core.events import risk_alert_triggered
+from app.core.logger import get_logger
+from app.domain.dto.trade_signal_dto import TradeSignalDTO
 from app.domain.ports.execution_ports import ITradeExecutor
 from app.domain.ports.pre_trade_validation_port import PreTradeValidationPort
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

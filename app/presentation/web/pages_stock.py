@@ -12,7 +12,9 @@ from flask import (
 from flask_login import login_required
 
 from app.config import get_settings
-from app.presentation.web.page_shell import render_page_shell, ux_env_hints as _ux_env_hints
+from app.presentation.web.page_shell import render_page_shell
+from app.presentation.web.page_shell import ux_env_hints as _ux_env_hints
+
 
 def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/stock/<symbol>")

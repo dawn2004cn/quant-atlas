@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Smart import service for stock code parsing."""
 
 
@@ -10,7 +11,6 @@ import pandas as pd
 
 from ...core.logger import get_logger
 from ...infrastructure.mappers.symbol_normalizer import SymbolNormalizer
-
 
 logger = get_logger(__name__)
 

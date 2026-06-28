@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
+
 from app.domain.dto.trade_signal_dto import TradeSignalDTO
+
 
 class ITradeExecutor(ABC):
     @abstractmethod

@@ -1,13 +1,10 @@
 from __future__ import annotations
+
 """Task pipeline application service for DAG visualization."""
 
 
 from app.core.base_service import BaseApplicationService
 from app.core.registry import register_service
-from app.modules.system.services.helpers.task_pipeline_access import (
-    create_default_task_pipeline,
-    create_task_observer,
-)
 from app.domain.dto.pipeline_dto import (
     DagEdgeDTO,
     DagGraphDTO,
@@ -17,6 +14,10 @@ from app.domain.dto.pipeline_dto import (
     TaskNodeDTO,
 )
 from app.domain.ports.task_pipeline_ports import TaskNode, TaskPipeline, TaskPipelinePort
+from app.modules.system.services.helpers.task_pipeline_access import (
+    create_default_task_pipeline,
+    create_task_observer,
+)
 
 
 @register_service(name="task_pipeline_service")

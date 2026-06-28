@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shared infrastructure helper bindings for Flask bootstrap and Celery workers."""
 
 import logging
@@ -74,49 +75,6 @@ def bind_application_infrastructure(settings: Any = None, *, force: bool = False
     # Register domain port adapters (idempotent via registry)
     _register_port_adapters()
 
-    from app.modules.data.services.gpcw_service import bind_tdx_gpcw_repository
-    from app.modules.data.services.mysql_access import bind_mysql_connection_port
-    from app.modules.system.services.helpers import stock_metadata
-    from app.modules.system.services.helpers.agent_access import bind_agent_infrastructure
-    from app.modules.system.services.helpers.ai_adapter_access import bind_ai_analysis_infrastructure
-    from app.modules.system.services.helpers.async_market_access import bind_async_market_helpers
-    from app.modules.system.services.helpers.backtest_engine_access import bind_backtest_engine_factory
-    from app.modules.system.services.helpers.cn_fundamentals_access import bind_cn_fundamentals_port
-    from app.modules.system.services.helpers.cn_sector_board_access import bind_cn_sector_board_port
-    from app.modules.system.services.helpers.config_loader_access import bind_config_loader_port
-    from app.modules.system.services.helpers.data_infrastructure_access import bind_data_infrastructure
-    from app.modules.system.services.helpers.data_quality_access import bind_data_quality_port
-    from app.modules.system.services.helpers.events_access import bind_event_infrastructure
-    from app.modules.system.services.helpers.longhu_mapping_access import bind_longhu_mapping_port
-    from app.modules.system.services.helpers.market_data_ingestor_access import bind_longhu_ingestor_factory
-    from app.modules.system.services.helpers.market_data_provider import bind_market_data_provider
-    from app.modules.system.services.helpers.memory_access import bind_memory_infrastructure
-    from app.modules.system.services.helpers.metrics_access import bind_metrics_infrastructure
-    from app.modules.system.services.helpers.monitoring_access import bind_monitoring_infrastructure
-    from app.modules.system.services.helpers.news_provider_access import bind_news_provider
-    from app.modules.system.services.helpers.portfolio_access import bind_portfolio_infrastructure
-    from app.modules.system.services.helpers.pytdx_access import bind_pytdx_market_port
-    from app.modules.system.services.helpers.qlib_access import bind_qlib_infrastructure
-    from app.modules.system.services.helpers.quote_cache_access import bind_quote_cache_port
-    from app.modules.system.services.helpers.rdagent_access import bind_rdagent_infrastructure
-    from app.modules.system.services.helpers.research_access import bind_research_infrastructure
-    from app.modules.system.services.helpers.service_resolver_access import bind_service_resolver
-    from app.modules.system.services.helpers.strategy_access import bind_strategy_infrastructure
-    from app.modules.system.services.helpers.strategy_providers_access import bind_strategy_provider_factories
-    from app.modules.system.services.helpers.task_message_access import bind_task_message_store
-    from app.modules.system.services.helpers.task_ops_access import bind_task_ops_infrastructure
-    from app.modules.system.services.helpers.task_pipeline_access import bind_task_pipeline_infrastructure
-    from app.modules.system.services.helpers.tdx_finance_access import bind_tdx_finance_port
-    from app.modules.system.services.helpers.tdx_block_repository_access import bind_tdx_block_read_port
-    from app.modules.system.services.helpers.integration_probe_access import bind_integration_probe_port
-    from app.modules.system.services.helpers.tdx_data_repository_access import (
-        bind_tdx_base_data_write_port,
-        bind_tdx_dayk_write_port,
-    )
-    from app.modules.system.services.helpers.timescale_bar_access import bind_timescale_bar_port
-    from app.modules.system.services.helpers.tdx_local_access import bind_tdx_local_file_port
-    from app.modules.system.services.helpers.tracing_access import bind_tracing
-    from app.modules.system.services.helpers.trading_risk_access import bind_trading_risk_defaults
     from app.bootstrap_components.providers import (
         bind_async_market_helpers_impl,
         create_ai_analysis_adapter,
@@ -165,17 +123,60 @@ def bind_application_infrastructure(settings: Any = None, *, force: bool = False
     from app.config import get_settings
     from app.infrastructure.di.container import resolve_optional_service as _resolve_optional_service
     from app.infrastructure.repositories.deps import (
+        create_integration_probe_repository,
         create_mysql_connection_port,
         create_stock_cache,
         create_stock_metadata_repository,
-        create_tdx_gpcw_repository,
+        create_tdx_base_data_repository,
         create_tdx_block_repository,
         create_tdx_dayk_repository,
-        create_tdx_base_data_repository,
-        create_integration_probe_repository,
+        create_tdx_gpcw_repository,
         create_timescale_bar_repository,
     )
     from app.infrastructure.tracing import create_span as _create_span
+    from app.modules.data.services.gpcw_service import bind_tdx_gpcw_repository
+    from app.modules.data.services.mysql_access import bind_mysql_connection_port
+    from app.modules.system.services.helpers import stock_metadata
+    from app.modules.system.services.helpers.agent_access import bind_agent_infrastructure
+    from app.modules.system.services.helpers.ai_adapter_access import bind_ai_analysis_infrastructure
+    from app.modules.system.services.helpers.async_market_access import bind_async_market_helpers
+    from app.modules.system.services.helpers.backtest_engine_access import bind_backtest_engine_factory
+    from app.modules.system.services.helpers.cn_fundamentals_access import bind_cn_fundamentals_port
+    from app.modules.system.services.helpers.cn_sector_board_access import bind_cn_sector_board_port
+    from app.modules.system.services.helpers.config_loader_access import bind_config_loader_port
+    from app.modules.system.services.helpers.data_infrastructure_access import bind_data_infrastructure
+    from app.modules.system.services.helpers.data_quality_access import bind_data_quality_port
+    from app.modules.system.services.helpers.events_access import bind_event_infrastructure
+    from app.modules.system.services.helpers.integration_probe_access import bind_integration_probe_port
+    from app.modules.system.services.helpers.longhu_mapping_access import bind_longhu_mapping_port
+    from app.modules.system.services.helpers.market_data_ingestor_access import bind_longhu_ingestor_factory
+    from app.modules.system.services.helpers.market_data_provider import bind_market_data_provider
+    from app.modules.system.services.helpers.memory_access import bind_memory_infrastructure
+    from app.modules.system.services.helpers.metrics_access import bind_metrics_infrastructure
+    from app.modules.system.services.helpers.monitoring_access import bind_monitoring_infrastructure
+    from app.modules.system.services.helpers.news_provider_access import bind_news_provider
+    from app.modules.system.services.helpers.portfolio_access import bind_portfolio_infrastructure
+    from app.modules.system.services.helpers.pytdx_access import bind_pytdx_market_port
+    from app.modules.system.services.helpers.qlib_access import bind_qlib_infrastructure
+    from app.modules.system.services.helpers.quote_cache_access import bind_quote_cache_port
+    from app.modules.system.services.helpers.rdagent_access import bind_rdagent_infrastructure
+    from app.modules.system.services.helpers.research_access import bind_research_infrastructure
+    from app.modules.system.services.helpers.service_resolver_access import bind_service_resolver
+    from app.modules.system.services.helpers.strategy_access import bind_strategy_infrastructure
+    from app.modules.system.services.helpers.strategy_providers_access import bind_strategy_provider_factories
+    from app.modules.system.services.helpers.task_message_access import bind_task_message_store
+    from app.modules.system.services.helpers.task_ops_access import bind_task_ops_infrastructure
+    from app.modules.system.services.helpers.task_pipeline_access import bind_task_pipeline_infrastructure
+    from app.modules.system.services.helpers.tdx_block_repository_access import bind_tdx_block_read_port
+    from app.modules.system.services.helpers.tdx_data_repository_access import (
+        bind_tdx_base_data_write_port,
+        bind_tdx_dayk_write_port,
+    )
+    from app.modules.system.services.helpers.tdx_finance_access import bind_tdx_finance_port
+    from app.modules.system.services.helpers.tdx_local_access import bind_tdx_local_file_port
+    from app.modules.system.services.helpers.timescale_bar_access import bind_timescale_bar_port
+    from app.modules.system.services.helpers.tracing_access import bind_tracing
+    from app.modules.system.services.helpers.trading_risk_access import bind_trading_risk_defaults
 
     s = settings or get_settings()
     stock_metadata.bind_stock_metadata_repository(create_stock_metadata_repository(s))

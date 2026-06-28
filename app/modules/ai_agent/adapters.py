@@ -15,6 +15,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.modules.ai_agent.ports import (
+    AnalysisPort,
     BriefingPort,
     ChartVisionPort,
     ChatPort,
@@ -25,7 +26,6 @@ from app.modules.ai_agent.ports import (
     JarvisPort,
     PromptEvolutionPort,
     ResearchPort,
-    AnalysisPort,
 )
 
 

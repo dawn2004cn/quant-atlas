@@ -18,13 +18,13 @@ from app.infrastructure.agent.shadow_account.codegen import (
     write_run_dir,
 )
 from app.infrastructure.agent.shadow_account.extractor import extract_shadow_profile
-from app.infrastructure.agent.shadow_account.reporter import render_shadow_report
 from app.infrastructure.agent.shadow_account.models import (
     AttributionBreakdown,
     ShadowBacktestResult,
     ShadowProfile,
     ShadowRule,
 )
+from app.infrastructure.agent.shadow_account.reporter import render_shadow_report
 from app.infrastructure.agent.shadow_account.storage import (
     find_by_journal_hash,
     load_profile,

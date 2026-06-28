@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shadow Account data contracts (frozen dataclasses).
 
 See `docs/shadow-account-spec.md` for the full contract. These types are the

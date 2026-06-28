@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Session search tool: FTS5 cross-session search for past conversations."""
 
 

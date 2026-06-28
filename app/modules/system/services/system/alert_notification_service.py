@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.modules.system.services.system.alert_center_service import AlertCenterService
 from app.core.runtime_config import get_runtime_int
 from app.domain.dto.alert_dispatch_dto import AlertDispatchChannelResultDTO, AlertDispatchResultDTO
 from app.domain.dto.alert_dto import AlertEventDTO, AlertLevel
 from app.infrastructure.messaging.alert_dispatch_state_store import AlertDispatchStateStore
 from app.infrastructure.messaging.alert_notification_adapters import build_default_alert_channels
+from app.modules.system.services.system.alert_center_service import AlertCenterService
 
 
 class AlertNotificationService:

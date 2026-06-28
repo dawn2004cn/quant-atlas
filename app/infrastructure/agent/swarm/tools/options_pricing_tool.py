@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Options pricing tool: Black-Scholes theoretical price and Greeks."""
 
 

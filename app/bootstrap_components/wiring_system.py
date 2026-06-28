@@ -80,8 +80,8 @@ register_factory(
 )
 
 def _make_integration_stack_service(reg: Any) -> Any:
-    from app.modules.system.services.integration.integration_stack_service import IntegrationStackService
     from app.config import get_settings
+    from app.modules.system.services.integration.integration_stack_service import IntegrationStackService
     settings = get_settings()
     return IntegrationStackService(
         settings=settings,
@@ -147,18 +147,18 @@ register_factory(
 
 
 def _make_auth_service(reg: Any) -> Any:
-    from app.modules.user.services.user.auth_service import AuthService
-    from app.infrastructure.repositories.common.json_repositories import JsonUserRepository
     from app.config import CONFIG_DIR
+    from app.infrastructure.repositories.common.json_repositories import JsonUserRepository
+    from app.modules.user.services.user.auth_service import AuthService
 
     repo = JsonUserRepository(CONFIG_DIR / "users.json")
     return AuthService(user_repository=repo)
 
 
 def _make_user_application_service(reg: Any) -> Any:
-    from app.modules.user.services.user.user_service import UserApplicationService
-    from app.infrastructure.repositories.common.json_repositories import JsonUserRepository
     from app.config import CONFIG_DIR
+    from app.infrastructure.repositories.common.json_repositories import JsonUserRepository
+    from app.modules.user.services.user.user_service import UserApplicationService
 
     repo = JsonUserRepository(CONFIG_DIR / "users.json")
     auth_svc = reg.get("auth_service") if hasattr(reg, "get") else None
@@ -276,7 +276,6 @@ register_factory(
 def _make_collaboration_service(reg: Any) -> Any:
     from app.config import get_settings
     from app.infrastructure.repositories.deps import create_collaboration_repository
-
     from app.modules.user.services.user.collaboration_service import CollaborationService
 
     repo = create_collaboration_repository(

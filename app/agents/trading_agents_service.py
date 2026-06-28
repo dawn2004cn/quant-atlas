@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TradingAgents-style orchestration service (6 analysts + debates + quant_tools)."""
 
 
@@ -7,17 +8,14 @@ from typing import TYPE_CHECKING, Any
 
 from langchain_core.language_models.chat_models import BaseChatModel
 
-from ..core.runtime_config import get_runtime
-
 from ..core.llm_config import get_llm
+from ..core.runtime_config import get_runtime
 
 if TYPE_CHECKING:
     from ..modules.ai_agent.services.fingpt_application_service import FinGPTApplicationService
+from ..core.logger import get_logger
 from .research import build_custom_trading_graph, package_full_report
 from .research_checkpointer import CheckpointerHandle, create_checkpointer_handle_from_env
-
-from ..core.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -144,7 +142,7 @@ class TradingAgentsService:
                 raw = snap.values.get("conversation_log")
                 if isinstance(raw, list):
                     prev_log = [str(x) for x in raw]
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("aget_state (no prior checkpoint?): %s", exc)
 
         stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -158,7 +156,7 @@ class TradingAgentsService:
 
         try:
             final_state = await self._graph.ainvoke(init, config)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("TradingAgents run_research failed")
             return {
                 "ok": False,

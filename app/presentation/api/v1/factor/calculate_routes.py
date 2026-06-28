@@ -6,16 +6,15 @@ from historical bar data on the fly.
 
 from __future__ import annotations
 
+import numpy as np
+import pandas as pd
 from flask import Blueprint, request
 from flask_login import login_required
 
-import numpy as np
-import pandas as pd
-
 from app.application.errors import ValidationError
 from app.presentation.api.common import ok_resource
+from app.presentation.api.decorators import require_role, service_fallback
 from app.presentation.api.v1_context import ApiV1Context
-from app.presentation.api.decorators import service_fallback, require_role
 
 
 def _sma(series: pd.Series, window: int) -> pd.Series:
@@ -86,8 +85,9 @@ def register_factor_calculate_routes(blueprint: Blueprint, ctx: ApiV1Context) ->
 
         market_service = getattr(ctx, "market_service", None)
         if market_service is None:
-            from app.infrastructure.database.history_repository import HistoryRepository
             from app.infrastructure.database.adapter import get_adapter
+
+            from app.infrastructure.database.history_repository import HistoryRepository
 
             adapter = get_adapter()
             repo = HistoryRepository(adapter)

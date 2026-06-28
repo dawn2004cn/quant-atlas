@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 """Watchlist deep experience API routes."""
 
 
 from flask import Blueprint, request
 from flask_login import login_required
 
+from app.core.registry import register_routes
+
 from ...core.middleware.request_context import require_authenticated_user_id
-from .common import ok_response, parse_market, ensure_service
+from .common import ensure_service, ok_response, parse_market
 from .request_parsers import parse_optional_bool_param
 from .v1_context import ApiV1Context
-from app.core.registry import register_routes
 
 
 def _uid() -> int:

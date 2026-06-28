@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shadow Account — strategy extraction from profitable roundtrips.
 
 Pipeline:
@@ -24,13 +25,11 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from app.core.logger import get_logger
 from app.infrastructure.agent.shadow_account.models import ShadowProfile, ShadowRule
 from app.infrastructure.agent.shadow_account.storage import hash_journal, new_shadow_id, now_iso
 from app.infrastructure.agent.swarm.tools.trade_journal_parsers import parse_file, records_to_dataframe
 from app.infrastructure.agent.swarm.tools.trade_journal_tool import pair_trades_fifo
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

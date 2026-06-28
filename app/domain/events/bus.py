@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """Domain Events and Event Bus."""
 
-from dataclasses import dataclass
 from collections.abc import Callable
+from dataclasses import dataclass
+
 
 @dataclass
 class DomainEvent:

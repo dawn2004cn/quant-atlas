@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """AI 投资委员会 - Agent 服务层"""
 
 
@@ -12,7 +13,7 @@ from app.infrastructure.agent.investment_committee import (
     StockSignal,
     StrategyLibrary,
 )
-from app.infrastructure.agent.investment_committee_db import TradeRecorder, MarketDataProvider
+from app.infrastructure.agent.investment_committee_db import MarketDataProvider, TradeRecorder
 
 logger = get_logger(__name__)
 
@@ -223,7 +224,7 @@ class InvestmentCommitteeService:
             market_analysis.overall_regime.value
         )
 
-        for name, agent in self.agents.items():
+        for _name, agent in self.agents.items():
             opinion = agent.analyze({
                 "market_analysis": {
                     "overall_regime": market_analysis.overall_regime.value,

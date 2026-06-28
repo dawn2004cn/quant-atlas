@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Live-Backtest Digital Twin - Shadow Strategy & Drift Detection.
 
 This module implements from strategy_plan1.md:
@@ -19,7 +20,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
-
 
 from app.core.logger import get_logger
 

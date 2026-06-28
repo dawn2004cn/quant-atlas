@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """OpenBB implementation of MarketDataProvider."""
 
 
@@ -7,13 +8,12 @@ from typing import Any
 
 from openbb import obb
 
-from app.domain.ports import MarketDataProvider
-from app.domain.entities import StockQuote, ChipDistribution
-from app.domain.enums import MarketCode
-
 from app.core.circuit_breaker import CircuitBreakerOpenError, circuit_breaker
 from app.core.logger import get_logger
 from app.core.middleware.degraded_context import mark_system_degraded
+from app.domain.entities import ChipDistribution, StockQuote
+from app.domain.enums import MarketCode
+from app.domain.ports import MarketDataProvider
 
 logger = get_logger(__name__)
 

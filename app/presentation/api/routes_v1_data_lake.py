@@ -10,9 +10,9 @@ from app.core.logger import get_logger
 from app.core.mesh.unified_data_lake import DataQuery, DataScope
 from app.core.registry import ServiceRegistry, register_routes
 from app.modules.data.services.data_lake_manager import DataLakeManager
+from app.presentation.api.decorators import require_role
 from app.presentation.api.error_codes import ErrorCode, error_payload
 from app.presentation.api.responses import success_response
-from app.presentation.api.decorators import require_role
 
 logger = get_logger(__name__)
 

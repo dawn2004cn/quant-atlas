@@ -7,8 +7,8 @@ logger = logging.getLogger(__name__)
 def init_signal_flag_service(services, settings):
     """Initialize SignalFlagScannerService with repository from settings."""
     from app.config import get_settings
-    from app.modules.strategy.services.strategy.signal_flag_service import SignalFlagScannerService
     from app.infrastructure.repositories.deps import create_signal_flag_pool_repository
+    from app.modules.strategy.services.strategy.signal_flag_service import SignalFlagScannerService
 
     s = settings or get_settings()
     repo = create_signal_flag_pool_repository(s)

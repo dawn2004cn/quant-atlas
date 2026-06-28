@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound quote cache port for application services."""
 
 from app.domain.ports.quote_cache_port import QuoteCachePort
-
 
 _port: QuoteCachePort | None = None
 def bind_quote_cache_port(port: QuoteCachePort) -> None:

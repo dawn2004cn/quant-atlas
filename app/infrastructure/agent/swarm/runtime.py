@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Swarm DAG orchestration runtime.
 
 Ported from Vibe-Trading.
@@ -7,16 +8,22 @@ Ported from Vibe-Trading.
 
 import threading
 import time
+from collections.abc import Callable
 from concurrent.futures import (
     Future,
     ThreadPoolExecutor,
-    TimeoutError as FuturesTimeoutError,
     as_completed,
+)
+from concurrent.futures import (
+    TimeoutError as FuturesTimeoutError,
 )
 from datetime import datetime, timezone
 from pathlib import Path
-from collections.abc import Callable
 
+# Note: run_worker will be ported later
+# from app.infrastructure.agent.swarm.worker import run_worker
+from app.core.logger import get_logger
+from app.infrastructure.agent.monitoring.metrics import record_swarm_start, record_task_result
 from app.infrastructure.agent.swarm.models import (
     RunStatus,
     SwarmAgentSpec,
@@ -27,18 +34,12 @@ from app.infrastructure.agent.swarm.models import (
     WorkerResult,
 )
 from app.infrastructure.agent.swarm.store import SwarmStore
-from app.infrastructure.agent.monitoring.metrics import record_swarm_start, record_task_result
 from app.infrastructure.agent.swarm.task_store import (
     TaskStore,
     resolve_dependencies,
     topological_layers,
     validate_dag,
 )
-# Note: run_worker will be ported later
-# from app.infrastructure.agent.swarm.worker import run_worker
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

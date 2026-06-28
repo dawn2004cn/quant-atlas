@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Transactional Outbox Repository.
 
 This module implements the Transactional Outbox Pattern for reliable
@@ -14,8 +15,9 @@ Key benefits:
 import json
 from datetime import datetime
 from typing import Any
+
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import select, update, delete
 
 from app.infrastructure.database.models.trading import TransactionalOutbox
 

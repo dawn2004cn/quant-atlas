@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Signal-to-Noise Filter - 舆情信噪比过滤服务.
 
 利用LLM自动识别新闻质量，过滤无效信息."""

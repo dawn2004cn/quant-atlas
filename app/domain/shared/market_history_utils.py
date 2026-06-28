@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Pure helpers for OHLCV history rows."""
 
 from typing import Any

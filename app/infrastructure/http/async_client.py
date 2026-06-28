@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Async HTTP client wrapper with connection pooling."""
 
 from typing import Any

@@ -1,20 +1,18 @@
 """MySQL implementation for MomentsRepository."""
 
 import json
-
 import logging
+
 logger = logging.getLogger(__name__)
 from typing import Any
-from sqlalchemy import select, desc, func, and_
+
+from sqlalchemy import and_, desc, func, select
 
 from ....core.shanghai_time import now_sh_str
+from ...database.models.moments import MomentAttachment as DBAttachment
+from ...database.models.moments import MomentLike as DBLike
+from ...database.models.moments import MomentPost as DBPost
 from ...database.mysql_client import mysql_get_connection
-from ...database.models.moments import (
-
-    MomentPost as DBPost,
-    MomentAttachment as DBAttachment,
-    MomentLike as DBLike
-)
 
 
 class MySQLMomentsRepository:

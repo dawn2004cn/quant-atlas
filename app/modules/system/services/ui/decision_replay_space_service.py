@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Decision Replay Space — 2.5D/3D scene from behavior topology + evidence timeline (8.0 P2)."""
 
 import math
@@ -81,7 +82,7 @@ class DecisionReplaySpaceService:
 
             svc = EvidenceReplayService(ai_evidence_service=self._ai_evidence)
             return svc.build_timeline(symbol, market=market, minutes_back=minutes_back)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("decision_replay_space timeline: %s", exc)
             return {"nodes": []}
 

@@ -7,16 +7,15 @@
 import abc
 import shutil
 import traceback
-from pathlib import Path
 from collections.abc import Iterable
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from functools import partial
-from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from qlib.utils import code_to_fname, fname_to_code
 from tqdm import tqdm
-from qlib.utils import fname_to_code, code_to_fname
-
 
 from app.core.logger import get_logger
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """China futures backtest engine.
 
 Market rules (exchange-level, CFFEX / SHFE / DCE / ZCE / INE / GFEX):
@@ -15,9 +16,7 @@ Market rules (exchange-level, CFFEX / SHFE / DCE / ZCE / INE / GFEX):
 import re
 
 import pandas as pd
-
 from backtest.engines.futures_base import FuturesBaseEngine
-
 
 # ── Contract multiplier lookup ──
 

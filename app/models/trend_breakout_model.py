@@ -5,11 +5,12 @@ Each strategy inherits from BaseTradingStrategy and implements
 pure pandas/numpy computation with zero infrastructure dependencies.
 """
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+from ta.trend import MACD, ADXIndicator, EMAIndicator, IchimokuIndicator, SMAIndicator
+from ta.volatility import AverageTrueRange, BollingerBands, DonchianChannel, KeltnerChannel
+
 from ..core.base_strategy import BaseTradingStrategy
-from ta.trend import SMAIndicator, EMAIndicator, MACD, IchimokuIndicator, ADXIndicator
-from ta.volatility import BollingerBands, KeltnerChannel, DonchianChannel, AverageTrueRange
 
 
 class MAStrategy(BaseTradingStrategy):

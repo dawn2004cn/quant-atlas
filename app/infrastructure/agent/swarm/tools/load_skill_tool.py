@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Load skill tool: load full skill documentation by name."""
 
 

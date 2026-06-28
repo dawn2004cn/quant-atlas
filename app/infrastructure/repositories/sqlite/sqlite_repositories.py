@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 """SQLite-backed repositories."""
 
 
 import json
+import logging
 import sqlite3
 from pathlib import Path
 
 from ....core.password_hash import hash_password
 
-import logging
 logger = logging.getLogger(__name__)
 _ROLE_ROWS: tuple[tuple[int, str, str, int], ...] = (
     (1, "admin", "管理员", 10),

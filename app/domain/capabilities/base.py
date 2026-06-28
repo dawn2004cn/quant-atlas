@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Base capability interface for the plugin registry."""
 
 

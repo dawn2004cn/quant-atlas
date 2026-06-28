@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Market Stream Processor - 流式行情处理器。
 
 提供:
@@ -13,6 +14,7 @@ from collections import deque
 from dataclasses import dataclass
 
 from app.core.logger import get_logger
+
 from .data_bus import Subscriber, Tick
 
 logger = get_logger(__name__)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Infrastructure adapters for RD-Agent ports."""
 
 from pathlib import Path

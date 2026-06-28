@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Industry provider implementation using Eastmoney industry map."""
 
 

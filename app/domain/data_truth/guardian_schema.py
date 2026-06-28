@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 """Data Truth Guardian schemas (Quant Atlas 9.0 Step Four)."""
 
-from typing import Literal
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, Field
 

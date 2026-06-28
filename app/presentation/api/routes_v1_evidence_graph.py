@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 """API v1: Evidence graph routes."""
 
 
 from flask import Blueprint
 from flask_login import login_required
 
-from ...application.errors import ValidationError
+from app.core.registry import register_routes
 from app.modules.system.services.ui.evidence_graph_service import get_evidence_graph_service
+
+from ...application.errors import ValidationError
 from .common import ok_resource
 from .v1_context import ApiV1Context
-from app.core.registry import register_routes
 
 
 @register_routes(name="evidence_graph", context="research", description="Evidence graph routes")

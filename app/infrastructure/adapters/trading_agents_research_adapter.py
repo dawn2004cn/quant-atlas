@@ -29,10 +29,10 @@ class TradingAgentsResearchAdapter(ResearchPort):
         llm_profile: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         from app.agents.trading_agents_service import TradingAgentsService
+        from app.core.llm_config import get_llm
         from app.modules.system.services.config.llm_user_config import (
             build_langchain_llm_from_profile,
         )
-        from app.core.llm_config import get_llm
 
         if llm_profile:
             llm = build_langchain_llm_from_profile(llm_profile)

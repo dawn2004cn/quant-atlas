@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """BaseTool + ToolRegistry: tool infrastructure.
 
 Ported from Vibe-Trading.
@@ -8,7 +9,6 @@ Ported from Vibe-Trading.
 import json
 from abc import ABC, abstractmethod
 from typing import Any
-
 
 from app.core.logger import get_logger
 

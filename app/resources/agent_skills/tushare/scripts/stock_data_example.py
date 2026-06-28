@@ -3,8 +3,9 @@
 股票数据获取示例脚本
 """
 
-import tushare as ts
 import os
+
+import tushare as ts
 
 # 读取环境变量中的token, 或者读取本地记录的token
 token = os.getenv('TUSHARE_TOKEN') or ts.get_token()

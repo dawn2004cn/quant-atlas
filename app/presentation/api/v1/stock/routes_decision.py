@@ -5,13 +5,14 @@ from __future__ import annotations
 from flask import Blueprint, request
 from flask_login import login_required
 
-from app.core.registry import register_routes
 from app.core.logger import get_logger
+from app.core.registry import register_routes
+from app.modules.system.services.ui.data_freshness_service import enrich_market_payload
+
 from ...common import ok_response, parse_market
 from ...decorators import service_fallback
 from ...request_parsers import parse_int_param
 from ...stock_route_helpers import build_sector_context
-from app.modules.system.services.ui.data_freshness_service import enrich_market_payload
 
 logger = get_logger(__name__)
 
@@ -29,19 +30,15 @@ def register_stock_decision(blueprint: Blueprint, ctx) -> None:
 
         from flask_login import current_user
 
+        from app.domain.shared.market_fact import enrich_quote_with_facts
         from app.modules.market_data.services.data_coverage_service import DataCoverageService
-
         from app.modules.system.services.ui.attribution_timeline_service import (
             AttributionTimelineService,
         )
-
         from app.modules.system.services.ui.decision_brief_service import DecisionBriefService
-
         from app.modules.system.services.ui.user_decision_context_service import (
             UserDecisionContextService,
         )
-
-        from app.domain.shared.market_fact import enrich_quote_with_facts
 
         m = parse_market(market)
 
@@ -160,7 +157,7 @@ def register_stock_decision(blueprint: Blueprint, ctx) -> None:
                     for h in raw_hist
                 ]
 
-            except Exception:  # noqa: BLE001
+            except Exception:
 
                 history_for_evidence = []
 
@@ -180,7 +177,7 @@ def register_stock_decision(blueprint: Blueprint, ctx) -> None:
 
                 yanbao_items = list(bmd.yanbao_list(limit=300) or [])
 
-            except Exception:  # noqa: BLE001
+            except Exception:
 
                 yanbao_items = []
 

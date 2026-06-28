@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 """Strategy Copilot UseCase - 策略推荐引擎."""
 
 
 from datetime import datetime, timedelta
 from typing import Any
 
-from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
+from app.core.logger import get_logger
 from app.domain.enums import MarketCode
 from app.domain.ports.market_ports import MarketDataProvider
-from app.core.logger import get_logger
+from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
 logger = get_logger(__name__)
 

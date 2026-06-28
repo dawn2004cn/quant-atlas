@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """行情扫描 Celery 任务：支持分布式切片执行。"""
 
 
 from typing import Any
+
 from celery import group
 
 from ..application.services.strategy.scanner_service import ScannerApplicationService

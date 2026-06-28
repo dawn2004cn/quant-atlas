@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Evidence Graph — directed provenance graph for decision traceability.
 
 Node types

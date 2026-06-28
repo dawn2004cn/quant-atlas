@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Example usage of new architecture services.
 
 This module demonstrates how to use the new domain-model-based services,
@@ -141,7 +142,7 @@ async def event_driven_example():
     """Example: Using events to decouple services."""
     print("\n=== Event-Driven Example ===")
 
-    from app.application.events import get_event_bus, EventType, publish_event
+    from app.application.events import EventType, get_event_bus, publish_event
 
     event_bus = get_event_bus()
 

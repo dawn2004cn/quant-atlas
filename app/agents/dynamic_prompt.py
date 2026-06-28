@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Dynamic Prompt Engineering - Adaptive prompts based on agent history.
 
 This module implements the Dynamic Prompt Engineering from midify_plan10.md:
@@ -21,11 +22,10 @@ _sanitizer = PromptSanitizer()
 from dataclasses import dataclass
 from typing import Any
 
-from .agent_memory import get_agent_memory
-
 from app.core.logger import get_logger
-
 from app.security.prompt_sanitizer import PromptSanitizer
+
+from .agent_memory import get_agent_memory
 
 _sanitizer = PromptSanitizer()
 
@@ -76,7 +76,7 @@ class DynamicPromptBuilder:
                     frequency=int(row.get("frequency") or 1),
                     last_occurred=str(row.get("discovered_at") or ""),
                 )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("dynamic_prompt meta patterns: %s", exc)
         return out
 

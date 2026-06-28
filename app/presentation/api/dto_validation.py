@@ -1,18 +1,18 @@
 from __future__ import annotations
+
 """API DTO validation utilities."""
 
 
 import functools
 import inspect
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
 
-from app.application.errors import ExternalServiceError, ValidationError as AppValidationError
-
-
+from app.application.errors import ExternalServiceError
+from app.application.errors import ValidationError as AppValidationError
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

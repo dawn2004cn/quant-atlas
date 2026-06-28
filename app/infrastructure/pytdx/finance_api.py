@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """财务数据：在线 get_finance_info + 历史财务 crawler/reader。"""
 
 
@@ -6,8 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from app.infrastructure.pytdx.api_base import BasePytdxApi
-from app.infrastructure.pytdx.exceptions import PytdxMethodNotAllowedError
 from app.infrastructure.pytdx.connection_hq import TdxHqConnection
+from app.infrastructure.pytdx.exceptions import PytdxMethodNotAllowedError
 from app.infrastructure.pytdx.runtime import require_pytdx
 from app.infrastructure.pytdx.symbols import code6_from_symbol, market_code_from_symbol
 

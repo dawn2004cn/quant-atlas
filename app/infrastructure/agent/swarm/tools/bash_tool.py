@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Bash tool: execute shell commands under run_dir."""
 
 

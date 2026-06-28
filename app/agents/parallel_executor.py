@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Parallel Agent Executor with Circuit Breaker Isolation.
 
 This module implements the Parallelism & Resilience from midify_plan9.md:
@@ -10,14 +11,13 @@ This module implements the Parallelism & Resilience from midify_plan9.md:
 
 import asyncio
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
-from collections.abc import Callable
-
-from ..core.resilience import CircuitBreaker, CircuitBreakerConfig, get_circuit_breaker_registry
 
 from app.core.logger import get_logger
 
+from ..core.resilience import CircuitBreaker, CircuitBreakerConfig, get_circuit_breaker_registry
 
 logger = get_logger(__name__)
 

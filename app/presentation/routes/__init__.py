@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """独立 Blueprint 模块（避免与 ``api/routes.py`` 同名冲突）。"""
 
 

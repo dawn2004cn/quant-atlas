@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TopologyLoader — load research graph structure from JSON for Swarm Designer sync."""
 
 import json

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain Services - Business logic moved from Application layer.
 
 Following Phase 7: Domain Model Purity - these services encapsulate
@@ -6,13 +7,22 @@ business rules that were previously scattered in Application Services.
 """
 
 
-from typing import Any
 from datetime import datetime
+from typing import Any
 
-from app.domain.models import RiskCalculator, RiskMetrics, PriceLevel
-from app.domain.models import SignalGenerator, TradingSignal
-from app.domain.models import Portfolio, PortfolioAnalyzer, Position, PositionStatus, PositionSide
 from app.core.logger import get_logger
+from app.domain.models import (
+    Portfolio,
+    PortfolioAnalyzer,
+    Position,
+    PositionSide,
+    PositionStatus,
+    PriceLevel,
+    RiskCalculator,
+    RiskMetrics,
+    SignalGenerator,
+    TradingSignal,
+)
 
 logger = get_logger(__name__)
 

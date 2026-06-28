@@ -8,8 +8,12 @@ from typing import Any
 
 from app.core.circuit_breaker import (
     CircuitBreaker as _CircuitBreaker,
+)
+from app.core.circuit_breaker import (
     CircuitBreakerConfig,
     CircuitBreakerOpenError,
+)
+from app.core.circuit_breaker import (
     CircuitBreakerRegistry as _Registry,
 )
 from app.core.logger import get_logger
@@ -98,7 +102,7 @@ def _register_openbb_probe(registry) -> None:
             try:
                 from openbb import obb
             except ImportError:
-                raise RuntimeError("openbb not installed")
+                raise RuntimeError("openbb not installed") from None
             # Ping via a cheap profile check on a known symbol
             try:
                 obb.equity.price.quote(symbol="000001.SZ", provider="yfinance")
@@ -137,6 +141,7 @@ def _register_ollama_probe(registry) -> None:
 
         def _probe() -> None:
             import requests
+
             from app.core.config import get_settings
             s = get_settings()
             base = getattr(s, "OLLAMA_BASE_URL", "http://localhost:11434")

@@ -18,15 +18,15 @@ from app.infrastructure.redis_client import RedisClientPoolEvidenceBlackboard
 """
 
 
-import orjson as json
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
+import orjson as json
 import redis
-from app.infrastructure.redis_client import RedisClientPool
 
 from app.core.logger import get_logger
+from app.infrastructure.redis_client import RedisClientPool
 
 logger = get_logger(__name__)
 

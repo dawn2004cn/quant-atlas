@@ -17,6 +17,7 @@ from app.presentation.strategic_sunset_hooks import require_strategic_feature
 from app.presentation.web.decorators import admin_required
 from app.presentation.web.page_shell import ux_env_hints as _ux_env_hints
 
+
 def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/collaboration")
     @login_required

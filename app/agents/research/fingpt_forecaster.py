@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """FinGPT-inspired forecasting agent node for LangGraph."""
 
 
@@ -8,9 +9,9 @@ from typing import Any
 
 from langchain_core.language_models.chat_models import BaseChatModel
 
-from ...modules.ai_agent.services.fingpt_application_service import FinGPTApplicationService
 from ...core.logger import get_logger
 from ...domain.entities import FinGPTPrediction
+from ...modules.ai_agent.services.fingpt_application_service import FinGPTApplicationService
 from .react_loop import react_with_tools
 from .state import ResearchState
 
@@ -146,7 +147,7 @@ async def run_fingpt_forecast_step(
             rec = fingpt_app.record_prediction(pred)
             if not rec.get("ok"):
                 logger.warning("FinGPT record_prediction not ok: %s", rec.get("error"))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("FinGPT forecast persistence failed: %s", exc)
 
     return {"fingpt_forecast": report}

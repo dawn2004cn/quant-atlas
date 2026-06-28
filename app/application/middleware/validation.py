@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 """Request validation middleware for API endpoints."""
 
 
-from functools import wraps
 from collections.abc import Callable
-from flask import request, jsonify
+from functools import wraps
+
+from flask import jsonify, request
 
 from app.core.logger import get_logger
 

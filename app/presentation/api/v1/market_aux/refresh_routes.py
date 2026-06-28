@@ -13,6 +13,7 @@ from app.presentation.api.common import ok_response, require_data_ingestion_role
 from app.presentation.api.request_parsers import parse_bool_param
 from app.presentation.api.v1.market_aux.runtime import MarketAuxRuntime
 from app.presentation.api.v1_context import ApiV1Context
+
 from ...decorators import service_fallback
 
 logger = get_logger(__name__)
@@ -90,7 +91,7 @@ def register_market_aux_refresh_routes(
                         enable_legacy_alias=legacy,
                     )
                 raise RuntimeError("celery_not_available")
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("celery enqueue failed, falling back to sync: %s", exc)
 
         out: dict = {}

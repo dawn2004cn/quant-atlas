@@ -86,7 +86,7 @@ def _tick_loop(app: Any, market_service: Any) -> None:
                         volume=vol,
                         source="tick_loop",
                     )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("tick broadcast tick: %s", exc)
         time.sleep(interval)
 

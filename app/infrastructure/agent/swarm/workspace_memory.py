@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Workspace memory: shared state across tool calls within a single run.
 
 Ported from Vibe-Trading.

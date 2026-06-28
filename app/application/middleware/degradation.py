@@ -1,13 +1,14 @@
 from __future__ import annotations
+
 """Graceful degradation and fallback mechanisms for new architecture."""
 
 
 import asyncio
-from typing import Any, TypeVar
 from collections.abc import Callable
-from functools import wraps
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from functools import wraps
+from typing import Any, TypeVar
 
 from app.core.logger import get_logger
 

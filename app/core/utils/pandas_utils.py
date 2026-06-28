@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 """Pandas and JSON data cleaning utilities."""
 
 
+import logging
 from datetime import datetime
 from typing import Any
+
 import numpy as np
 import pandas as pd
-import logging
 
 logger = logging.getLogger(__name__)
 

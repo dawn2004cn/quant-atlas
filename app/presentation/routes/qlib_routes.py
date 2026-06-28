@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Qlib SDK 能力 HTTP 接口（init / 数据状态 / 官方回测 / 策略信号对齐）。"""
 
 

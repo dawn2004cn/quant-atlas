@@ -2,12 +2,13 @@ from __future__ import annotations
 
 """Compare factor-style attribution between two symbols."""
 
+import logging
 from typing import Any
 
-from app.modules.strategy.services.analytics.unified_attribution_service import UnifiedAttributionService
 from app.domain.dto.analytics_dto import AttributionCompareDTO, FactorCompareRowDTO
 from app.domain.enums import MarketCode
-import logging
+from app.modules.strategy.services.analytics.unified_attribution_service import UnifiedAttributionService
+
 logger = logging.getLogger(__name__)
 
 

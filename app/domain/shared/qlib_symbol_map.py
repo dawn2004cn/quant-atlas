@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """平台标的 ↔ Qlib instrument（domain 纯逻辑）。"""
 
 from app.domain.enums import MarketCode

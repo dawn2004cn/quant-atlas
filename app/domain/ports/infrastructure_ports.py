@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Infrastructure ports - interfaces for dependency inversion.
 
 These interfaces define contracts that infrastructure components must implement.

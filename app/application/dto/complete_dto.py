@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Complete DTO collection for Application Services.
 
 This module provides comprehensive DTOs that replace dict usage throughout the codebase.
@@ -8,8 +9,8 @@ Following Phase 7: DTO Standardization plan.
 
 from datetime import datetime
 from typing import Any
-from pydantic import BaseModel, Field, field_validator
 
+from pydantic import BaseModel, Field, field_validator
 
 # ==================== Market DTOs ====================
 

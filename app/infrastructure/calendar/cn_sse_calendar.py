@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """China A-share session dates (SSE calendar via AkShare), with safe fallbacks."""
 
 

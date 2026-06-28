@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Financial Data Tools - 财务数据相关工具."""
 
 
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
 from langchain_core.tools import tool
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..core.logger import get_logger
 
@@ -59,8 +60,9 @@ def _confidence_cn_financial(bundle: dict[str, Any]) -> float:
 @tool
 def get_cn_financial_statements(ticker: str) -> CnFinancialStatementsToolResult:
     """获取A股财务摘要与三表 (资产负债表、利润表、现金流量表)."""
-    from ..application.services.tool_facade_service import get_tool_facade_service
     from datetime import datetime, timedelta
+
+    from ..application.services.tool_facade_service import get_tool_facade_service
 
     try:
         service = get_tool_facade_service()
@@ -116,9 +118,10 @@ def get_cn_research_reports(ticker: str, limit: int = 30) -> CnResearchReportsTo
 @tool
 def get_tdx_financial_data(ticker: str, periods: int = 8) -> TdxFinancialDataToolResult:
     """获取TDX专业财务数据 (gpcw*.dat, 584个具名字段)."""
-    from ..infrastructure.repositories.mysql.mysql_tdx_gpcw_repository import MySQLTdxGpcwRepository
-    from ..infrastructure.database.mysql_client import mysql_connect
     from datetime import date
+
+    from ..infrastructure.database.mysql_client import mysql_connect
+    from ..infrastructure.repositories.mysql.mysql_tdx_gpcw_repository import MySQLTdxGpcwRepository
 
     try:
         conn = mysql_connect()

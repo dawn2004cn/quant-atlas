@@ -7,10 +7,10 @@ from typing import Any
 
 from flask import jsonify
 
+from app.domain.dto.decision_context_dto import DecisionContextDTO
 from app.modules.system.services.ui.decision_provenance_service import (
     DecisionProvenanceService,
 )
-from app.domain.dto.decision_context_dto import DecisionContextDTO
 
 
 def _build_provenance_summary(dto: DecisionContextDTO) -> dict[str, Any]:

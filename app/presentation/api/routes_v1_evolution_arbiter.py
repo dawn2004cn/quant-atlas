@@ -8,7 +8,6 @@ from app.core.logger import get_logger
 from app.core.registry import register_routes
 from app.presentation.api.common import ok_response
 
-
 logger = get_logger(__name__)
 from app.presentation.api.v1_context import ApiV1Context
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """PersistentMemory: file-based cross-session memory.
 
 Ported from Vibe-Trading.

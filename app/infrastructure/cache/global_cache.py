@@ -6,13 +6,12 @@ from app.core.runtime_config import get_runtime
 
 
 import json
-from typing import Any
 from collections.abc import Callable
-from app.infrastructure.redis_client import RedisClientPool, delete_keys_by_pattern
+from typing import Any
 
-
-from app.infrastructure.cache.coalesce import get_or_set_coalesced
 from app.core.logger import get_logger
+from app.infrastructure.cache.coalesce import get_or_set_coalesced
+from app.infrastructure.redis_client import RedisClientPool, delete_keys_by_pattern
 
 logger = get_logger(__name__)
 

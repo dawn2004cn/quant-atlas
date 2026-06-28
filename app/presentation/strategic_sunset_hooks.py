@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from functools import wraps
 from typing import Any, TypeVar
-from collections.abc import Callable
 
-from flask import Flask, Blueprint, jsonify, render_template, request
+from flask import Blueprint, Flask, jsonify, render_template, request
 
 from app.core.strategic_sunset import (
     api_path_sunset_feature,

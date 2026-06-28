@@ -4,8 +4,8 @@ import json
 import sqlite3
 from pathlib import Path
 
-from app.domain.ports import KronosRepository
 from app.domain.kronos_entities import KronosModel, KronosPrediction
+from app.domain.ports import KronosRepository
 
 
 class SQLiteKronosRepository(KronosRepository):

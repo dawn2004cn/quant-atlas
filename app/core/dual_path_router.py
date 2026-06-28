@@ -6,11 +6,11 @@ from __future__ import annotations
 
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum, auto
 from typing import Any
-from collections.abc import Callable
 
 from app.core.logger import get_logger
 from app.core.mesh.global_state_bus import get_global_state_bus

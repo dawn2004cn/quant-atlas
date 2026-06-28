@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from app.modules.strategy.services.strategy.signal_flag_service import (
-    SignalFlagScanSummary,
     SignalFlagScannerService,
+    SignalFlagScanSummary,
 )
 
 __all__ = [

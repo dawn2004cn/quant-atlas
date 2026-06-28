@@ -13,7 +13,10 @@ _bp = Blueprint("investment", __name__)
 
 def _get_services():
     from app.modules.portfolio_risk.services.investment_tier_service import (
-        MultiStrategyOptimizerService, MacroRegimeService, TaxCostOptimizerService, MultiAssetService,
+        MacroRegimeService,
+        MultiAssetService,
+        MultiStrategyOptimizerService,
+        TaxCostOptimizerService,
     )
     return MultiStrategyOptimizerService(), MacroRegimeService(), TaxCostOptimizerService(), MultiAssetService()
 

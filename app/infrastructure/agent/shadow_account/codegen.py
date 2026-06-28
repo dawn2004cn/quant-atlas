@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shadow Account — code generation (rules → signal_engine.py + config.json).
 
 Inputs are always a ``ShadowProfile`` (contract-stable). Outputs are:

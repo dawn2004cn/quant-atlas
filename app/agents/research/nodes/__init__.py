@@ -12,22 +12,23 @@ from typing import Any
 
 from app.core.logger import get_logger
 from app.tools.quant_tools import (
-    get_market_data,
-    get_kline_chart,
-    stock_selector,
-    probe_ticker,
+    get_cn_financial_statements,
     get_cn_longhu_for_symbol,
+    get_cn_research_reports,
+    get_kline_chart,
+    get_market_data,
     get_qlib_factor_snapshot,
     get_research_pipeline_status,
+    get_stock_news,
     get_tdx_local_snapshot,
-    get_cn_financial_statements,
-    get_cn_research_reports,
+    get_user_watchlist,
     get_yanbao_market_digest,
+    probe_ticker,
     run_backtest,
     run_qlib_unified_backtest,
-    get_user_watchlist,
-    get_stock_news,
+    stock_selector,
 )
+
 from ..react_loop import react_with_tools
 from ..state import INVESTMENT_DEBATE_ROUNDS, RISK_DEBATE_ROUNDS, ResearchState
 
@@ -186,7 +187,7 @@ async def sentiment_analyst_node(
                 rec = fingpt_svc.record_sentiment(t, payload)
                 if not rec.get("ok"):
                     logger.warning("FinGPT record_sentiment (sentiment_analyst) not ok: %s", rec.get("error"))
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.exception("FinGPT sentiment persist failed: %s", exc)
     return {"sentiment_report": report}
 
@@ -217,8 +218,8 @@ async def backtest_optimizer_node(state: ResearchState, llm: Any) -> dict[str, A
 
 # ── Debate nodes ───────────────────────────────────────────────────────
 
-from ..state import merge_investment_history, merge_risk_history
 from ..debate_bus import publish_debate_round
+from ..state import merge_investment_history, merge_risk_history
 
 
 async def bull_node(state: ResearchState, llm: Any) -> dict[str, Any]:
@@ -437,12 +438,12 @@ async def chart_vision_node(state: ResearchState) -> dict[str, Any]:
 # ── Evidence write node ────────────────────────────────────────────────
 
 async def write_fundamental_evidence(state: ResearchState) -> dict[str, Any]:
+    from ...constants import BlackboardKey
     from ...evidence_blackboard import (
-        EvidenceType,
         EvidenceStrength,
+        EvidenceType,
         get_evidence_blackboard,
     )
-    from ...constants import BlackboardKey
 
     bb = get_evidence_blackboard()
     bb.write(
@@ -456,12 +457,12 @@ async def write_fundamental_evidence(state: ResearchState) -> dict[str, Any]:
 
 
 async def write_macro_evidence(state: ResearchState) -> dict[str, Any]:
+    from ...constants import AgentName, BlackboardKey
     from ...evidence_blackboard import (
-        EvidenceType,
         EvidenceStrength,
+        EvidenceType,
         get_evidence_blackboard,
     )
-    from ...constants import AgentName, BlackboardKey
 
     bb = get_evidence_blackboard()
     bb.write(

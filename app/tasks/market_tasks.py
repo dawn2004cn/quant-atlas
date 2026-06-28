@@ -42,7 +42,7 @@ def _run_refresh(kind: str, *, task_id: str | None = None) -> dict[str, Any]:
 
             init_task_progress(task_id, task_name=_TASK_NAME, steps=steps)
             report_task_progress(task_id, step_index=step_idx, message=steps[step_idx])
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("refresh_basic_market_data progress init: %s", exc)
 
     if k in ("all", "longhu"):
@@ -51,7 +51,7 @@ def _run_refresh(kind: str, *, task_id: str | None = None) -> dict[str, Any]:
                 from app.tasks.task_wiring import report_task_progress
 
                 report_task_progress(task_id, step_index=step_idx, message="正在拉取龙虎榜…")
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("refresh progress longhu: %s", exc)
         out["longhu"] = svc.ingest_longhu_em(lookback_calendar_days=14)
         step_idx += 1
@@ -64,7 +64,7 @@ def _run_refresh(kind: str, *, task_id: str | None = None) -> dict[str, Any]:
                     step_index=min(step_idx, len(steps) - 1),
                     message=f"龙虎榜完成，下一步：{steps[step_idx]}",
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("refresh progress after longhu: %s", exc)
 
     if k in ("all", "yanbao"):
@@ -77,7 +77,7 @@ def _run_refresh(kind: str, *, task_id: str | None = None) -> dict[str, Any]:
                     step_index=min(step_idx, len(steps) - 1),
                     message="正在拉取研报…",
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("refresh progress yanbao: %s", exc)
         end = datetime.now()
         begin = end - timedelta(days=30)
@@ -100,7 +100,7 @@ def _run_refresh(kind: str, *, task_id: str | None = None) -> dict[str, Any]:
                 message="基础市场数据刷新完成",
                 percent=100,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("refresh progress finalize: %s", exc)
 
     return out

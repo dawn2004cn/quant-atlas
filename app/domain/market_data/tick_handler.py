@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Tick Handler - Tick 数据处理。
 
 提供:

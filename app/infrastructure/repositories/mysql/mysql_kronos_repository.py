@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 """SQLAlchemy implementation of KronosRepository."""
 
 
 import json
 from typing import Any
+
 from sqlalchemy import select
 
-from app.domain.ports import KronosRepository
 from app.domain.kronos_entities import KronosModel, KronosPrediction
-from app.infrastructure.database.models.advanced import KronosModel as DBKronosModel, KronosPrediction as DBKronosPrediction
+from app.domain.ports import KronosRepository
+from app.infrastructure.database.models.advanced import KronosModel as DBKronosModel
+from app.infrastructure.database.models.advanced import KronosPrediction as DBKronosPrediction
 
 
 class MySQLKronosRepository(KronosRepository):

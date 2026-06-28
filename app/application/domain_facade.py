@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain Service Facade - Wires domain services to application layer.
 
 Provides unified access to domain services from application layer.
@@ -6,24 +7,22 @@ Provides unified access to domain services from application layer.
 
 
 
-from app.domain.services.stock_screening_service import (
-    StockScreeningService,
-)
-from app.domain.services.signal_generation_service import (
-    SignalGenerationService,
-    SignalAggregator,
-)
+from app.core.logger import get_logger
 from app.domain.services.portfolio_calculation_service import (
     PortfolioCalculationService,
     PortfolioValuator,
 )
-from app.domain.services.trading_policy_service import (
-    TradingPolicyService,
-    TradingPolicy,
+from app.domain.services.signal_generation_service import (
+    SignalAggregator,
+    SignalGenerationService,
 )
-
-
-from app.core.logger import get_logger
+from app.domain.services.stock_screening_service import (
+    StockScreeningService,
+)
+from app.domain.services.trading_policy_service import (
+    TradingPolicy,
+    TradingPolicyService,
+)
 
 logger = get_logger(__name__)
 

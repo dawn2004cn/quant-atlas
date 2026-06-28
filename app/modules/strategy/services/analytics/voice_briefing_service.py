@@ -194,7 +194,7 @@ class VoiceBriefingService:
                 "audio_url": f"/api/v1/briefing/voice-daily/audio/{file_id}",
                 "generated_at": datetime.now(timezone.utc).isoformat(),
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("voice_briefing TTS error: %s", exc)
             return {
                 "audio_mode": "browser",

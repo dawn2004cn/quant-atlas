@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Factual price labels (MA deviation) and UI trace anchors."""
 
 from typing import Any

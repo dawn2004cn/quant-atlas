@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Agent Configuration - Centralized agent settings management.
 
 This module implements from midify_plan13.md optimization:

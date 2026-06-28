@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 """Factor registry and mining engine."""
 
 from collections.abc import Callable
+
 import pandas as pd
 import quant_core
+
 
 class FactorRegistry:
     """Central registry for factor calculation functions."""

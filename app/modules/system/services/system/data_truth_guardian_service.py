@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Data Truth Guardian -- proactive reconciliation and self-heal orchestration."""
 
 import json
@@ -305,7 +306,7 @@ class DataTruthGuardianService:
                     "ok": True,
                     "action": {"dispatched": True, "task_id": task_id},
                 }
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.warning("Suppressed exception in heal", exc_info=True)
                 pass
 
@@ -368,7 +369,7 @@ class DataTruthGuardianService:
                 task_id=task_id,
                 evidence={**action.evidence, "task_id": task_id},
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("heal dispatch failed: %s", exc)
             return action._replace(
                 dispatched=False,
@@ -382,7 +383,7 @@ class DataTruthGuardianService:
 
             payload["timestamp"] = datetime.now(timezone.utc).isoformat()
             return broadcast_to_room("alerts", "system_self_heal", payload)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("self-heal notify skipped (no socketio): %s", exc)
         return 0
 
@@ -395,7 +396,7 @@ class DataTruthGuardianService:
         try:
             with self._store_path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("guardian heal log: %s", exc)
 
     def list_heal_log(self, *, limit: int = 30) -> dict[str, Any]:
@@ -406,7 +407,7 @@ class DataTruthGuardianService:
             for line in self._store_path.read_text(encoding="utf-8").splitlines():
                 if line.strip():
                     rows.append(json.loads(line))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("guardian heal log read: %s", exc)
             return {"ok": False, "error": str(exc)}
         rows.reverse()

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Chart Generator Tool: market charts for Agent visual analysis."""
 
 from datetime import date, timedelta
@@ -70,10 +71,10 @@ class ChartGeneratorTool(BaseTool):
             if df is None or df.empty:
                 return f"Error generating chart: no market data for {symbol}"
 
-            import mplfinance as mpf  # noqa: PLC0415
+            import mplfinance as mpf
 
             mpf.plot(df, type="candle", volume=True, savefig=str(output_path))
             return f"Chart for {symbol} saved to {output_path} ({len(df)} bars)."
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.error("Chart generation failed: %s", exc, exc_info=True)
             return f"Error generating chart: {exc!s}"

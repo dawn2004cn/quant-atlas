@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """QuestDB / ClickHouse history adapters for MultiSourceHistoryProvider."""
 
 from datetime import date

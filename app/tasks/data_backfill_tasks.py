@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """一次性存量回填与财报日更（Celery）
 
 - 龙虎/ 财报快照：仅当库内无对应存量时执行全量回填（``backfill_*_if_empty``）
@@ -10,17 +11,16 @@ from __future__ import annotations
 
 from typing import Any
 
-
-from ..core.logger import get_logger
 from ..application.services.data.basic_market_data_service import BasicMarketDataService
+from ..celery_app import celery as _celery
+from ..core.logger import get_logger
+from ..core.runtime_config import get_runtime, get_runtime_int
+from ..domain.enums import MarketCode
+from ..domain.shared.qlib_symbol_map import qlib_instrument_to_symbol
 from ..infrastructure.repositories.deps import (
     create_default_qlib_pipeline_service,
     create_tdx_dayk_sync_service,
 )
-from ..celery_app import celery as _celery
-from ..core.runtime_config import get_runtime, get_runtime_int
-from ..domain.enums import MarketCode
-from ..domain.shared.qlib_symbol_map import qlib_instrument_to_symbol
 from .qlib_data_update import full_qlib_kline_cache_and_bin_if_empty
 from .task_wiring import create_basic_market_data_service
 
@@ -45,7 +45,7 @@ def _financial_daily_codes() -> list[str]:
             continue
         try:
             codes.append(qlib_instrument_to_symbol(xs, MarketCode.CN))
-        except Exception:  # noqa: BLE001
+        except Exception:
             continue
     cap = get_runtime_int("FINANCIAL_DAILY_MAX_CODES", 120)
     if codes:

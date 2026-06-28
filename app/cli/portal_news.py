@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """门户滚动/股道新闻：CLI 用抓取与可选落盘（与 Web 新闻源同源）。"""
 
 

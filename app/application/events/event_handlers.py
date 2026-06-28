@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Event handlers for automated service reactions."""
 
 
 from app.application.events import EventType, get_event_bus
 from app.core.logger import get_logger
 from app.modules.system.services.architecture_integration import (
-    get_risk_service,
     get_portfolio_service,
+    get_risk_service,
     get_signal_service,
 )
 

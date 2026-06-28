@@ -10,6 +10,7 @@ New routes should use @register_routes for automatic discovery.
 from __future__ import annotations
 
 import logging
+
 from flask import Blueprint
 
 from app.core.registry import discover_routes

@@ -1,21 +1,22 @@
 from __future__ import annotations
+
 """热点板块服务：东财 / 同花顺 / 开盘啦 / 选股通 概念与行业板块。"""
 
 
 import time
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Any, Literal
-from collections.abc import Callable
 
 import requests
 from requests import exceptions as req_exc
 
-from app.modules.system.services.helpers.cn_sector_board_access import get_cn_sector_board_port
 from app.core.logger import get_logger
 from app.core.runtime_config import get_runtime_int
 from app.domain.shared.sector_board_metrics import rise_ratio
 from app.infrastructure.providers import DEFAULT_UA
+from app.modules.system.services.helpers.cn_sector_board_access import get_cn_sector_board_port
 
 logger = get_logger(__name__)
 

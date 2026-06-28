@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class IndicatorDTO(BaseModel):
     ma5: float = 0.0
     ma10: float = 0.0

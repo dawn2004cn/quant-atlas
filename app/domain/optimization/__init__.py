@@ -1,11 +1,11 @@
 """Optimization module."""
 
 from .auto_tuning import (
-    OptimizationResult,
-    WalkForwardWindow,
-    WalkForwardOptimizer,
     BayesianOptimizer,
+    OptimizationResult,
     SelfHealingEngine,
+    WalkForwardOptimizer,
+    WalkForwardWindow,
     get_self_healing_engine,
 )
 

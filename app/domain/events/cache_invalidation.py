@@ -9,7 +9,7 @@ namespace — no wildcards needed.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 
 @dataclass(frozen=True)

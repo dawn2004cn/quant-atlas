@@ -7,10 +7,10 @@ Minute data uses ``pro.stk_mins()`` (Tushare points >= 2000).
 import os
 
 import pandas as pd
-
-from app.core.logger import get_logger
 from backtest.loaders.base import validate_date_range
 from backtest.loaders.registry import register
+
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

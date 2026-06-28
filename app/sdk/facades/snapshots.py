@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.modules.strategy.services.strategy.strategy_snapshot_service import StrategySnapshotService
 from app.domain.dto.strategy_snapshot_dto import (
     StrategyDeploySnapshotDTO,
     StrategyRollbackResultDTO,
 )
+from app.modules.strategy.services.strategy.strategy_snapshot_service import StrategySnapshotService
 
 
 class SnapshotsFacade:

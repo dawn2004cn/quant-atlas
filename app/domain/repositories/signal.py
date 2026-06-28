@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Signal Repository Interface.
 
 Defines the contract for signal data access.

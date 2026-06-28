@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Write file tool: create or overwrite files in the workspace."""
 
 
@@ -6,8 +7,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from app.infrastructure.agent.swarm.tools_base import BaseTool
 from app.infrastructure.agent.swarm.tools.path_utils import safe_path as _safe_path
+from app.infrastructure.agent.swarm.tools_base import BaseTool
 
 
 class WriteFileTool(BaseTool):

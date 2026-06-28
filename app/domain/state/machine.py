@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 """Generic State Machine interfaces for fault-tolerant workflows."""
 
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Any
+from typing import Any, Generic, TypeVar
 
 TState = TypeVar("TState", bound=str)
 TContext = TypeVar("TContext")

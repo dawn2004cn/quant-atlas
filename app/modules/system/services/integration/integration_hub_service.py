@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """集成中枢页面上下文组装（应用层，薄封装）。"""
 
 

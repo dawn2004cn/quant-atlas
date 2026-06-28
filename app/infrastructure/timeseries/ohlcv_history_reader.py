@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Read OHLCV bars from QuestDB / ClickHouse (env-driven table names)."""
 
 from datetime import date
@@ -94,7 +95,7 @@ def fetch_questdb_ohlcv(
         if bars:
             logger.info("QuestDB got %d bars for %s from %s", len(bars), code, table)
         return bars
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("fetch_questdb_ohlcv: %s", exc)
         return []
     finally:
@@ -132,7 +133,7 @@ def fetch_clickhouse_ohlcv(
         if bars:
             logger.info("ClickHouse got %d bars for %s from %s", len(bars), code, table)
         return bars
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("fetch_clickhouse_ohlcv: %s", exc)
         return []
     finally:
@@ -157,7 +158,7 @@ def probe_ohlcv_tables() -> dict[str, Any]:
                 )
                 if sample_sym:
                     out["questdb_sample_sh600519"] = int(sample_sym[0].get("cnt") or 0)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("probe questdb table: %s", exc)
             finally:
                 adapter.disconnect()
@@ -174,7 +175,7 @@ def probe_ohlcv_tables() -> dict[str, Any]:
                 sample = adapter.execute_raw_query(f"SELECT count() AS cnt FROM {table}")
                 if sample:
                     rows = int(sample[0].get("cnt") or 0)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("probe clickhouse table: %s", exc)
             finally:
                 adapter.disconnect()

@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 """API v1：管理员查看本地行情缓存（stock_cache.db）。"""
 
+
+from typing import Any
 
 from flask import Blueprint, request
 from flask_login import current_user, login_required
 
 from app.application.errors import AuthorizationError
-from app.modules.system.services.admin.admin_stock_service import get_admin_stock_service
 from app.core.registry import register_routes
-from typing import Any
+from app.modules.system.services.admin.admin_stock_service import get_admin_stock_service
+
 from .common import ok_response
 from .request_parsers import parse_int_param
 

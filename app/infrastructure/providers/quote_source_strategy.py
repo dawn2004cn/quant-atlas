@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Quote Source Strategy - Extensible data source pattern.
 
 This module provides a strategy pattern for adding quote data sources

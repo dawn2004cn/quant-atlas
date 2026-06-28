@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,9 +27,9 @@ warnings.warn(
 """Bound data infrastructure helpers (quality monitor + lineage tracker)."""
 
 from collections.abc import Callable
+
 from app.domain.ports.data_lineage_port import DataLineagePort
 from app.domain.ports.data_quality_ports import DataQualityPort
-
 
 _create_quality_monitor: Callable[[], DataQualityPort] | None = None
 _create_lineage_tracker: Callable[[], DataLineagePort] | None = None

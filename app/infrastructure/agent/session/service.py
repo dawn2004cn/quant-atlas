@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Session lifecycle orchestration for message flow, attempt creation, and execution scheduling.
 
 V5: Uses AgentLoop instead of the fixed pipeline behind the generate skill.
@@ -9,13 +10,15 @@ import asyncio
 import concurrent.futures
 from datetime import datetime
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from app.infrastructure.agent.loop import AgentLoop
 
 # Dedicated thread pool limited to four concurrent agents to avoid exhausting the default executor.
 _AGENT_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=4, thread_name_prefix="agent")
+
+import logging
 
 from app.infrastructure.agent.session.events import EventBus
 from app.infrastructure.agent.session.models import (
@@ -27,8 +30,6 @@ from app.infrastructure.agent.session.models import (
 from app.infrastructure.agent.session.search import get_shared_index
 from app.infrastructure.agent.session.store import SessionStore
 
-
-import logging
 logger = logging.getLogger(__name__)
 class SessionService:
     """Session lifecycle service.
@@ -232,10 +233,10 @@ class SessionService:
         Returns:
             Result dictionary containing status, run_dir, run_id, metrics, and related fields.
         """
-        from app.infrastructure.agent.swarm.tools import build_registry
-        from app.infrastructure.agent.providers.chat import ChatLLM
         from app.infrastructure.agent.loop import AgentLoop
         from app.infrastructure.agent.memory.persistent import PersistentMemory
+        from app.infrastructure.agent.providers.chat import ChatLLM
+        from app.infrastructure.agent.swarm.tools import build_registry
 
         llm = ChatLLM()
         pm = PersistentMemory()

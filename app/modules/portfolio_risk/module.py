@@ -1,9 +1,11 @@
 """Portfolio and risk bounded context module."""
 
 from __future__ import annotations
+
 from app.core.module_registry import register_module
 from app.core.typed_registry import get_registry
 from app.modules.health import module_health_check
+
 
 @register_module(name="portfolio_risk", description="Portfolio construction and trading risk")
 class PortfolioRiskContextModule:
@@ -75,7 +77,7 @@ def _on_regime_changed_portfolio(event: Any) -> None:
 def _subscribe_portfolio_regime_events(services: Any) -> None:
     """Subscribe to MarketRegimeChangedEvent if event bus is available."""
     try:
-        from app.core.event_bus import get_event_bus, MarketRegimeChangedEvent
+        from app.core.event_bus import MarketRegimeChangedEvent, get_event_bus
 
         bus = get_event_bus()
         bus.subscribe(MarketRegimeChangedEvent, _on_regime_changed_portfolio, priority=50)

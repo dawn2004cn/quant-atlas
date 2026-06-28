@@ -6,8 +6,8 @@ PriorityTaskQueue (threading) based on configuration.
 from __future__ import annotations
 
 import os
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from .task_queue import AsyncTaskQueue
 from .task_queue_v2 import PriorityTaskQueue

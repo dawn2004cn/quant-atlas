@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TraceWriter: crash-safe JSONL trace writer.
 
 One JSON record per line; append + flush guarantees no data loss on crash.
@@ -6,12 +7,11 @@ One JSON record per line; append + flush guarantees no data loss on crash.
 
 
 import json
+import logging
 import time
 from pathlib import Path
 from typing import Any
 
-
-import logging
 logger = logging.getLogger(__name__)
 class TraceWriter:
     """JSONL trace writer, one record per line, crash-safe.

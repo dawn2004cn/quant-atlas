@@ -4,8 +4,8 @@ Converts domain entities to DTOs for API responses.
 """
 
 
-from app.domain.repositories import Stock, Signal
-from app.application.interfaces import StockDTO, SignalDTO
+from app.application.interfaces import SignalDTO, StockDTO
+from app.domain.repositories import Signal, Stock
 
 
 class StockMapper:

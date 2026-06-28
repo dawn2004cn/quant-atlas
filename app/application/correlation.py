@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Correlation ID for Distributed Tracing.
 
 This module provides a correlation ID system that tracks requests across
@@ -36,10 +37,9 @@ Usage:
 
 import logging
 import uuid
+from collections.abc import Generator
 from contextlib import contextmanager
 from contextvars import ContextVar
-from collections.abc import Generator
-
 
 from app.core.logger import get_logger
 

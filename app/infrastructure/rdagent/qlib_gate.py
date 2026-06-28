@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 """RD-Agent 产物注册后的轻量 Qlib 门禁：参考买入持有可跑通即写入 bundle.qlib_gate。"""
 
 
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
-
+from typing import TYPE_CHECKING, Any
 
 from ...domain.enums import MarketCode
 from ...domain.ports import QlibDataProviderPort
@@ -94,7 +94,7 @@ def execute_rdagent_qlib_gate(
     start = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
     try:
         bt = qlib_service.unified_buy_hold_backtest(sym, MarketCode.CN, start=start, end=end)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("qlib gate backtest failed run_id=%s: %s", job_id, exc)
         gate = {
             "ok": False,

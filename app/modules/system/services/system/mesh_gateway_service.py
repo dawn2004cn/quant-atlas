@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Mesh gateway — federated agent cluster operations (Quant Atlas 9.0)."""
 
 import logging
@@ -53,7 +54,7 @@ class MeshGatewayService:
             return {"ok": False, "error": "mesh_disabled"}
         try:
             req = MeshPublishRequest.model_validate(body)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return {"ok": False, "error": f"invalid_request:{exc}"}
         result = bus.publish(req)
         result["ok"] = bool(result.get("ok"))
@@ -74,7 +75,7 @@ class MeshGatewayService:
     ) -> dict[str, Any]:
         """Cross-node agent discovery — local research topology + mesh registry."""
         bus = get_distributed_event_bus() or self.ensure_started()
-        registry = bus._registry if bus is not None else None  # noqa: SLF001
+        registry = bus._registry if bus is not None else None
         protocol = AgentDiscoveryProtocol(registry=registry)
         result = protocol.discover(role=role, region=region)
         result["mesh_enabled"] = bus is not None

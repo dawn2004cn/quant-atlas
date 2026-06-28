@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Market regime, sentiment, and calendar helpers."""
 
 

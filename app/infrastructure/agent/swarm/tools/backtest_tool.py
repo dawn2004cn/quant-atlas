@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Backtest execution tool: validates config.json + signal_engine.py and runs the built-in engine."""
 
 
 import json
 from pathlib import Path
 
-from app.infrastructure.agent.swarm.tools_base import BaseTool
 from app.infrastructure.agent.backtest.runner import Runner
+from app.infrastructure.agent.swarm.tools_base import BaseTool
 
 
 def run_backtest(run_dir: str) -> str:

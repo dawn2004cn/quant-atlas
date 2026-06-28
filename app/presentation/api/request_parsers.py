@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 """Request parameter parsing helpers for API routes."""
 
 
 from typing import Any
-from pydantic import BaseModel, ValidationError as PydanticValidationError
+
+from pydantic import BaseModel
+from pydantic import ValidationError as PydanticValidationError
 
 from ...application.errors import ValidationError
 

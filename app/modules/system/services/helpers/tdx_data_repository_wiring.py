@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -25,7 +26,6 @@ warnings.warn(
 
 
 from app.domain.ports.tdx_data_write_port import TdxBaseDataWritePort, TdxDaykWritePort
-
 
 _dayk_repo: TdxDaykWritePort | None = None
 _base_repo: TdxBaseDataWritePort | None = None

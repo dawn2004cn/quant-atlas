@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """FinGPT core adapters and repository implementation."""
 
 
@@ -6,14 +7,14 @@ import json
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import select, func, text
+from sqlalchemy import func, select, text
 
 from app.core.circuit_breaker import CircuitBreakerOpenError, circuit_breaker
+from app.core.logger import get_logger
 
 from ...domain.ports import FinGPTPersistencePort, SentimentProvider
-from ..database.models.advanced import FinGPTPrediction as DBFinGPTPrediction, FinGPTSentiment as DBFinGPTSentiment
-
-from app.core.logger import get_logger
+from ..database.models.advanced import FinGPTPrediction as DBFinGPTPrediction
+from ..database.models.advanced import FinGPTSentiment as DBFinGPTSentiment
 
 logger = get_logger(__name__)
 

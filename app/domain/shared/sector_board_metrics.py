@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """板块榜单通用指标：涨股比、龙头等（domain 纯函数）。"""
 
 from typing import Any

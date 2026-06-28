@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """开盘啦板块：概念 / 地区 / 行业（apphq.longhuvip.com）。"""
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Factor Lifecycle Manager - 因子生命周期自动化管理.
 
 Phase 41: 因子生命周期管理
@@ -13,11 +14,9 @@ This module provides automated factor lifecycle management:
 
 import logging
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.domain.ports.factor_repository_port import FactorRepositoryPort as _FactorRepo

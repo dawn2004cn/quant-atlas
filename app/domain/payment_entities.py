@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain entities for payment orchestration (Hyperswitch port)."""
 
 

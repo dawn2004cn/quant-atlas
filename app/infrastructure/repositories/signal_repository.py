@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Signal Repository - MySQL Implementation.
 
 Implements ISignalRepository using existing signal_flag_pool table.
@@ -7,13 +8,11 @@ Implements ISignalRepository using existing signal_flag_pool table.
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
-from app.domain.repositories.signal import ISignalRepository, Signal, SignalType
-
-
 from app.core.logger import get_logger
+from app.domain.repositories.signal import ISignalRepository, Signal, SignalType
 
 logger = get_logger(__name__)
 
@@ -106,8 +105,9 @@ class MySQLSignalRepository(ISignalRepository):
         """
         session = self._get_session()
         try:
-            from app.infrastructure.database.models.advanced import SignalFlagPool
             from sqlalchemy import select
+
+            from app.infrastructure.database.models.advanced import SignalFlagPool
 
             today = datetime.now().strftime("%Y-%m-%d")
             # Serialize reason/confidence into JSON-compatible extra fields

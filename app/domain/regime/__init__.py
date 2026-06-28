@@ -1,11 +1,11 @@
 """Regime module."""
 
 from .regime_strategy import (
-    RegimeParameters,
-    RegimeTemplate,
-    RegimeStrategySwitcher,
-    StressTestSimulator,
     RegimeAwarePortfolioManager,
+    RegimeParameters,
+    RegimeStrategySwitcher,
+    RegimeTemplate,
+    StressTestSimulator,
     get_regime_portfolio_manager,
 )
 

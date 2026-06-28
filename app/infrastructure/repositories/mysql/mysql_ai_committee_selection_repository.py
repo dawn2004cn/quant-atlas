@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 """MySQL repository for AI committee selection runs and simulated trades."""
 
 
 import json
 from typing import Any
-
 
 from sqlalchemy import select
 

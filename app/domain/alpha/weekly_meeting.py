@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """自动化投研周会 - Weekly Alpha Factory Meeting.
 
 This implements Section 3, Step 3 from the roadmap:

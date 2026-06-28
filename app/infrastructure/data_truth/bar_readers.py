@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Read latest bar close from TDX lday and qlib_bin."""
 
 from datetime import date, timedelta
@@ -41,7 +42,7 @@ def latest_tdx_bar(
             if use_qfq
             else read_lday_file(file_path, tail=1)
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("latest_tdx_bar failed sym=%s: %s", symbol, exc)
         return None
     return rows[-1] if rows else None
@@ -65,7 +66,7 @@ def latest_qlib_bar(
             end_d.isoformat(),
             base_dir=base_dir or BASE_DIR,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("latest_qlib_bar failed sym=%s: %s", symbol, exc)
         return None
     return rows[-1] if rows else None
@@ -83,7 +84,7 @@ def latest_akshare_bar(symbol: str, *, lookback_days: int = 10) -> dict[str, Any
             start_d.isoformat(),
             end_d.isoformat(),
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.debug("latest_akshare_bar failed sym=%s: %s", symbol, exc)
         return None
     return bars[-1] if bars else None

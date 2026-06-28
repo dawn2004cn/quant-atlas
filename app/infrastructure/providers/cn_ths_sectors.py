@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """同花顺板块与成分股（概念/地域/行业/证监会行业，q.10jqka.com.cn）。"""
 
 

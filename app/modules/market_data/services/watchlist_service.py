@@ -1,9 +1,5 @@
 from __future__ import annotations
 
-from app.core.logger import get_logger
-from app.domain.dto.service_result import GenericResponseDTO
-from app.domain.dto.watchlist_dto import QuoteItem, WatchlistResponse
-
 import json
 import threading
 from datetime import datetime
@@ -11,10 +7,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from app.core.logger import get_logger
+from app.domain.dto.service_result import GenericResponseDTO
+from app.domain.dto.watchlist_dto import QuoteItem, WatchlistResponse
 from app.domain.enums import MarketCode
 from app.domain.ports import MarketDataProvider, StockGroupRepository, WatchlistRepository
-from app.modules.system.services.helpers.stock_metadata import get_stock_metadata_batch
 from app.domain.shared.symbol_normalizer import SymbolNormalizer
+from app.modules.system.services.helpers.stock_metadata import get_stock_metadata_batch
 
 logger = get_logger(__name__)
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TDX gpcw 财务数据入库 Celery 任务
 
 - 存量入库 (backfill): 扫描所gpcw*.dat 历史文件，导入全量股票全期数
@@ -11,13 +12,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from app.core.logger import get_logger
+
 from ..celery_app import celery as _celery
 from ..config import get_settings
 from ..core.runtime_config import get_runtime, get_runtime_int
 from .task_wiring import create_cn_tdx_gpcw_provider, create_tdx_gpcw_task_repository, ensure_tdx_gpcw_audit_table
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -282,7 +282,7 @@ def import_tdx_gpcw_latest(
     files = [f for f in files if f[2] >= 500]
 
     target_file = None
-    for fpath, report_date, max_count in files:
+    for fpath, report_date, _max_count in files:
         if target_date > 0 and report_date != target_date:
             continue
         target_file = fpath

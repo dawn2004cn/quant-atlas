@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """ORM models for multi-tenant collaboration (Quant Atlas 6.0)."""
 
 from datetime import datetime

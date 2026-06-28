@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for MySQL DBAPI connections (pooled via infrastructure)."""
 
 from typing import Any, Protocol

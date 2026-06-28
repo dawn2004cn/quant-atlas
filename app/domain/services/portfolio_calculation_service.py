@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Portfolio Calculation Domain Service.
 
 Pure domain logic for portfolio valuation and risk metrics.

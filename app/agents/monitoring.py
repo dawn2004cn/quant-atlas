@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Agent Monitoring & Observability - OpenTelemetry Integration.
 
 This module implements from midify_plan13.md optimization:
@@ -14,10 +15,11 @@ Usage:
 
 
 import time
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
-from contextlib import asynccontextmanager
+
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

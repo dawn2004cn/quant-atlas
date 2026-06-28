@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Runner module for executing generated backtest code and collecting artifacts.
 
 Ported from Vibe-Trading.
@@ -27,8 +28,8 @@ logger = get_logger(__name__)
 _IS_WINDOWS = sys.platform == "win32"
 if _IS_WINDOWS:
     try:
-        import win32process
         import win32con
+        import win32process
     except ImportError:
         win32process = None  # type: ignore[assignment]
         win32con = None  # type: ignore[assignment]
@@ -119,7 +120,7 @@ class Runner:
 
     def _python_ready(self, python_cmd: str) -> bool:
         try:
-            probe = subprocess.run(  # noqa: S603  # python_cmd from local filesystem scan; -c script is hardcoded
+            probe = subprocess.run(  # python_cmd from local filesystem scan; -c script is hardcoded
                 [python_cmd, "-c", "import pandas,numpy; print('ok')"],
                 stdin=subprocess.DEVNULL,
                 capture_output=True,
@@ -247,7 +248,7 @@ class Runner:
                 creation_flags |= win32con.CREATE_BREAKAWAY_FROM_JOB  # type: ignore[attr-defined]
                 creation_flags |= win32con.DETACHED_PROCESS  # type: ignore[attr-defined]
 
-            process = subprocess.run(  # noqa: S603  # cmd is internally constructed [python_cmd, entry_script] from controlled Path
+            process = subprocess.run(  # cmd is internally constructed [python_cmd, entry_script] from controlled Path
                 cmd,
                 cwd=str(effective_cwd),
                 stdin=subprocess.DEVNULL,

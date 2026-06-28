@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 import time
-from typing import Any, TypeVar
 from collections.abc import Callable
 from functools import wraps
+from typing import Any, TypeVar
 
-from app.infrastructure.cache.coalesce import get_or_set_coalesced
 from app.core.logger import get_logger
+from app.infrastructure.cache.coalesce import get_or_set_coalesced
 
 logger = get_logger(__name__)
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Connection Pooling Infrastructure.
 
 Provides connection pooling for database and cache resources.
@@ -8,11 +9,10 @@ Provides connection pooling for database and cache resources.
 import threading
 import time
 from collections import deque
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
-from collections.abc import Callable
-
 
 from app.core.logger import get_logger
 

@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 """Rich domain models with business logic encapsulated."""
 
 
 from dataclasses import dataclass, field
 from datetime import datetime
-
 
 from app.core.logger import get_logger
 

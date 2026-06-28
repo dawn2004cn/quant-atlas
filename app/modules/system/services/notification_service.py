@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import asyncio
-from app.core.registry import ServiceRegistry
+
 from app.core.event_bus import publish_event
-from app.modules.strategy.services.strategy.strategy_sentinel_service import StrategyRegimeMismatchEvent
 from app.core.logger import get_logger
+from app.core.registry import ServiceRegistry
+from app.modules.strategy.services.strategy.strategy_sentinel_service import StrategyRegimeMismatchEvent
 
 logger = get_logger(__name__)
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Agent Constants - Centralized management of agent names, keys, and roles.
 
 This module consolidates all magic strings used across the agent system.

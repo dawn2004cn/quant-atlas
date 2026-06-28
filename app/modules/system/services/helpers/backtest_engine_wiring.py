@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,8 +27,8 @@ warnings.warn(
 """Bound backtest engine factory for application services."""
 
 from collections.abc import Callable
-from app.domain.ports.quant_ports import IBacktestEngine
 
+from app.domain.ports.quant_ports import IBacktestEngine
 
 _factory: Callable[[], IBacktestEngine] | None = None
 def bind_backtest_engine_factory(factory: Callable[[], IBacktestEngine]) -> None:

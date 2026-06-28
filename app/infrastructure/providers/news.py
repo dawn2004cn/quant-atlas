@@ -1,16 +1,16 @@
 from __future__ import annotations
+
 """News provider implementations."""
 
 
+import logging
 import os
 
-import logging
 logger = logging.getLogger(__name__)
 from ...domain.entities import NewsItem
 from ...domain.enums import MarketCode
 from ...domain.ports import NewsProvider
 from .cn_portal_news import (
-
     fetch_10jqka_gdxw_headlines,
     fetch_eastmoney_roll_headlines,
     filter_headlines_for_symbol,

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Workflow event handlers - Automated business process triggers.
 
 This module implements Phase 8: Event-Driven architecture by providing

@@ -1,24 +1,26 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Risk application service with domain model integration."""
 
 
 from typing import Any
 from uuid import uuid4
 
+from app.application.dto.complete_dto import (
+    PositionRiskDTO,
+    RiskAlertDTO,
+    RiskAssessmentDTO,
+    RiskLimitDTO,
+)
+from app.application.events.event_bus import EventBus, EventType, publish_event
 from app.core.logger import get_logger
-from app.modules.portfolio_risk.services.entangled_risk_monitor import EntangledRiskMonitor
 from app.domain.models.risk_models import (
     RiskCalculator,
     RiskLevel,
 )
-from app.application.dto.complete_dto import (
-    RiskAssessmentDTO,
-    RiskAlertDTO,
-    PositionRiskDTO,
-    RiskLimitDTO,
-)
-from app.application.events.event_bus import EventBus, EventType, publish_event
+from app.modules.portfolio_risk.services.entangled_risk_monitor import EntangledRiskMonitor
 
 logger = get_logger(__name__)
 

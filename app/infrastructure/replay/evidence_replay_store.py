@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Append-only evidence replay snapshots per symbol."""
 
 import json

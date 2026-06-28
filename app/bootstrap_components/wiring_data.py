@@ -19,9 +19,10 @@ register_factory("data_lake_manager", _make_data_lake_manager)
 
 
 def _make_qlib_pipeline_service(reg: Any) -> Any:
-    from app.modules.data.services.qlib_pipeline_service import QlibPipelineService
-    from app.config import get_settings
     from pathlib import Path
+
+    from app.config import get_settings
+    from app.modules.data.services.qlib_pipeline_service import QlibPipelineService
 
     class _StubDataAccess:
         def fetch_daily_bars(self, symbols, market, start_date, end_date):

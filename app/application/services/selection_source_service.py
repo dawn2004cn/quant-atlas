@@ -1,3 +1,3 @@
-from app.modules.data.services.selection_source_service import SelectionSourceService  # noqa: F401
+from app.modules.data.services.selection_source_service import SelectionSourceService
 
 __all__ = ["SelectionSourceService"]

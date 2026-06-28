@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 
 from app.core.logger import get_logger
 from app.core.registry import register_routes
+
 from .common import ok_response
 
 logger = get_logger(__name__)

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Swarm multi-agent system — run state persistence.
 
 Ported from Vibe-Trading.

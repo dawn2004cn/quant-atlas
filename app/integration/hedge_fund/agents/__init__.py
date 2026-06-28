@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """AI Hedge Fund Agents - 18 Master Traders.
 
 This module integrates all 18 agents from ai-hedge-fund project:
@@ -16,7 +17,6 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
-
 
 from app.core.logger import get_logger
 
@@ -180,4 +180,4 @@ __all__ = [
 ]
 
 # Lazy imports for Openclaw integration
-from .openclaw import get_openclaw_personalities, get_enhanced_system_prompt, get_communication_style
+from .openclaw import get_communication_style, get_enhanced_system_prompt, get_openclaw_personalities

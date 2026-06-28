@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Database Adapter - Bridge Pattern for SQLite/MySQL."""
 
 
@@ -9,12 +10,11 @@ from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from typing import Any
 
-from ...config import AppSettings, get_settings
-from ...config import INSTANCE_DIR
-from .mysql_client import mysql_get_connection
-from app.core.utils.sql_utils import validate_identifier, quote_identifier
-
 from app.core.logger import get_logger
+from app.core.utils.sql_utils import quote_identifier, validate_identifier
+
+from ...config import INSTANCE_DIR, AppSettings, get_settings
+from .mysql_client import mysql_get_connection
 
 logger = get_logger(__name__)
 

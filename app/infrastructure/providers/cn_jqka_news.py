@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """同花顺实时新闻 Provider - https://news.10jqka.com.cn/realtimenews.html"""
 
 

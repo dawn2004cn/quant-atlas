@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Stock group application service."""
 
 

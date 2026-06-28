@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Swarm topology CRUD and compile validation for Swarm Designer."""
 
 import re
@@ -46,7 +47,7 @@ class SwarmTopologyService:
                 "source": str(path),
                 "editable": True,
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return {"ok": False, "error": str(exc)}
 
     def save_research_graph_topology(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -79,7 +80,7 @@ class SwarmTopologyService:
                 "topology": topo.model_dump(mode="json", by_alias=True),
                 "validation": validation,
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return {"ok": False, "error": str(exc)}
 
     def get_preset(self, preset_id: str) -> dict[str, Any]:
@@ -111,7 +112,7 @@ class SwarmTopologyService:
             payload["name"] = clean_id
         try:
             topo = SwarmTopologyDescriptor.model_validate(payload)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return {"ok": False, "error": "invalid_topology", "details": str(exc)}
         saved = self._repo.save(user_id, topo)
         validation = self.validate_topology(saved)
@@ -129,7 +130,7 @@ class SwarmTopologyService:
 
             compiler = TopologyCompiler(IntegratedResearchGraph(MagicMock()))
             return compiler.validate(topology)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("swarm_topology validate: %s", exc)
             return {"ok": False, "error": str(exc)}
 

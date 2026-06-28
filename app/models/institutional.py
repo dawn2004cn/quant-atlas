@@ -1,10 +1,10 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+from ta.trend import MACD, ADXIndicator, EMAIndicator, SMAIndicator
 from ta.volatility import AverageTrueRange
+from ta.volume import ChaikinMoneyFlowIndicator, OnBalanceVolumeIndicator, VolumePriceTrendIndicator
 
 from ..core.base_strategy import BaseTradingStrategy
-from ta.volume import OnBalanceVolumeIndicator, ChaikinMoneyFlowIndicator, VolumePriceTrendIndicator
-from ta.trend import EMAIndicator, ADXIndicator, SMAIndicator, MACD
 
 
 class OBVAccumulationStrategy(BaseTradingStrategy):

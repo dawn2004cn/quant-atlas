@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for TDX online finance snapshot fetching."""
 
 from dataclasses import dataclass

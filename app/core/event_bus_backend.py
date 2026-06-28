@@ -17,8 +17,8 @@ from __future__ import annotations
 import json
 import threading
 from collections import deque
-from typing import Any, Protocol, runtime_checkable
 from collections.abc import Callable
+from typing import Any, Protocol, runtime_checkable
 
 from app.core.logger import get_logger
 from app.core.runtime_config import get_runtime

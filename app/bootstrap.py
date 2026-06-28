@@ -23,7 +23,8 @@ try:
 except Exception:  # pragma: no cover
     logger.warning("werkzeug patch failed", exc_info=True)
 
-from .core.secrets import run_security_sanity_checks
+from app.presentation.api.error_handlers import register_api_error_handlers, setup_flask_login_errors
+
 from .bootstrap_components.bootstrap_helpers import (
     build_registry_config,
     init_cluster_event_bus,
@@ -34,22 +35,22 @@ from .bootstrap_components.bootstrap_helpers import (
     start_truth_sentry,
 )
 from .bootstrap_components.module_wiring import initialize_all_modules
-from .bootstrap_components.presentation import register_blueprints
+from .bootstrap_components.presentation import configure_login_manager, register_blueprints
 from .bootstrap_components.realtime import init_realtime
+from .bootstrap_components.security_headers import configure_security_headers, csp_nonce
 from .bootstrap_components.services import create_services
 from .config import get_settings
 from .config.app_settings import reset_settings
-from .core.logger import setup_logging
-from .core.i18n import t
 from .core.asset_versioning import init_app as init_asset_versioning
+from .core.i18n import t
+from .core.logger import setup_logging
 from .core.plugins import PluginRegistry
+from .core.secrets import run_security_sanity_checks
 from .presentation.csrf_protection import csrf_protect
-from .bootstrap_components.presentation import configure_login_manager
-from .bootstrap_components.security_headers import configure_security_headers, csp_nonce
-from app.presentation.api.error_handlers import register_api_error_handlers, setup_flask_login_errors
+
 
 def _load_warm_runtime_extensions():
-    import app.warm_runtime_extensions  # noqa: F401
+    pass
 
 
 class _ApiBundle:
@@ -141,6 +142,7 @@ def _wire_cors(app, settings):
     """Step 5: CORS strict allowlist, no wildcard fallback."""
     try:
         from flask_cors import CORS
+
         from app.core.runtime_config import get_runtime as _cors_get_runtime
         raw = (
             getattr(settings, "cors_allowed_origins", None)
@@ -224,8 +226,8 @@ def _trigger_legacy_migration(services: object) -> None:
         manifest = lake_manager.get_manifest()
         if manifest.get("status") == "migration_complete":
             return
-        import threading
         import asyncio
+        import threading
 
         def _run():
             try:

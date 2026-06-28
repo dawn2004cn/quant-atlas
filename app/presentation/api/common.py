@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 """API v1 共享：权限校验、统一 JSON 成功体、市场枚举解析、服务检查装饰器。"""
 
 
 import functools
-from typing import Any
 from collections.abc import Callable
+from typing import Any
+
 from flask_login import current_user
 
 from ...application.errors import ValidationError
 from ...domain.enums import MarketCode
-from .responses import success_response, serialize
+from .responses import serialize, success_response
 
 
 def get_service(service_name: str) -> Any:

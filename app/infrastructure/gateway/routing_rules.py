@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 # ── Kong/APISIX Route Configuration ────────────────────────────────
 
 KONG_ROUTES = {

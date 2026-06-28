@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Strategy optimization application service."""
 
 
-from app.core.base_service import BaseApplicationService
-from app.domain.ports.strategy_ports import WalkForwardOptimizerPort
-from app.domain.ports import MarketDataProvider
-from app.modules.system.services.helpers.strategy_access import create_default_walk_forward_optimizer
 from app.application.dto.strategy_dto import WalkForwardResultDTO, WalkForwardWindowDTO
+from app.core.base_service import BaseApplicationService
+from app.domain.ports import MarketDataProvider
+from app.domain.ports.strategy_ports import WalkForwardOptimizerPort
+from app.modules.system.services.helpers.strategy_access import create_default_walk_forward_optimizer
 
 
 class StrategyOptimizationService(BaseApplicationService):

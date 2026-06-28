@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """兼容入口：RD-Agent 因子循环实现位于 ``infrastructure.rdagent.rdagent_factor_loop``。"""
 
 

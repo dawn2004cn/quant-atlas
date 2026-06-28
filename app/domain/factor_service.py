@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Factor Service - manages factor lifecycle and performance tracking.
 
 This module provides:
@@ -12,9 +13,9 @@ This module provides:
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
 import numpy as np
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.domain.ports.factor_repository_port import FactorRepositoryPort as _FactorRepo

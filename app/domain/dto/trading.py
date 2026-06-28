@@ -1,10 +1,12 @@
 from __future__ import annotations
+
 """Extended DTO contracts for trading and execution."""
 
 
 from datetime import datetime
-from typing import Any
 from enum import Enum
+from typing import Any
+
 from pydantic import BaseModel, Field, computed_field
 
 

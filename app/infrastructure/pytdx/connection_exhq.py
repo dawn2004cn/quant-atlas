@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """扩展行情连接（pytdx.exhq.TdxExHq_API）。"""
 
 

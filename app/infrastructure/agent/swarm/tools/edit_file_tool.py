@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Edit file tool: find-and-replace in workspace files."""
 
 
@@ -6,8 +7,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from app.infrastructure.agent.swarm.tools_base import BaseTool
 from app.infrastructure.agent.swarm.tools.path_utils import safe_path as _safe_path
+from app.infrastructure.agent.swarm.tools_base import BaseTool
 
 
 class EditFileTool(BaseTool):

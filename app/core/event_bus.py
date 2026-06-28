@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Internal Event Bus for decoupled service communication.
 
 This is the system's neural hub.  Events flow between services, workflows,
@@ -13,11 +14,10 @@ service restart.
 import json
 import threading
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field, fields, is_dataclass
 from datetime import datetime, timedelta
 from typing import Any
-from collections.abc import Callable
-
 
 from app.core.logger import get_logger
 
@@ -501,8 +501,8 @@ class RedisStreamBackend:
             self.ensure_consumer_group(event_type, group)
             raw = client.xreadgroup(group, consumer, {stream: ">"}, count=count, block=1000)
             events: list[Event] = []
-            for stream_name, messages in raw:
-                for msg_id, msg_data in messages:
+            for _stream_name, messages in raw:
+                for _msg_id, msg_data in messages:
                     try:
                         evt = event_from_json(msg_data[b"payload"])
                         events.append(evt)

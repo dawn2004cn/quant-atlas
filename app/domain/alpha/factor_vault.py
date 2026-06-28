@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Factor Vault - persistent storage for discovered alpha factors.
 
 This implements "Factor Vault" from the roadmap:

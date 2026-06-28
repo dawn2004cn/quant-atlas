@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Monitoring & Observability for Domain Layer.
 
 Metrics, structured logging, and tracing.
@@ -9,7 +10,6 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-
 
 from app.core.logger import get_logger
 

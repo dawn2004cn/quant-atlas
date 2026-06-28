@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shadow Account Autonomy Controller.
 
 Monitors trading performance and proactively suggests or enforces risk rules.
@@ -7,11 +8,9 @@ Monitors trading performance and proactively suggests or enforces risk rules.
 
 from typing import Any
 
+from app.core.logger import get_logger
 from app.infrastructure.agent.shadow_account.models import ShadowStrategy
 from app.infrastructure.agent.swarm.tools_base import BaseTool
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 """API v1: Memory optimization routes using Apache Arrow."""
 
 
 from flask import Blueprint, request
 from flask_login import login_required
 
+from app.core.registry import register_routes
+
 from ...application.errors import NotFoundError, ValidationError
 from .common import ok_resource
 from .route_deps import MemoryRouteDeps, build_memory_route_deps
 from .v1_context import ApiV1Context
-from app.core.registry import register_routes
 
 
 @register_routes(name="memory_optimization", context="data", description="Memory optimization routes using Apache Arrow")

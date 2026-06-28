@@ -1,9 +1,13 @@
 from __future__ import annotations
+
 import json
 from datetime import datetime
 from typing import Any
-from sqlalchemy import Table, Column, Integer, String, DateTime, Text, JSON, MetaData, Numeric, select, update
-from app.domain.sniper_entities import SniperSelection, MarketRegime
+
+from sqlalchemy import JSON, Column, DateTime, Integer, MetaData, Numeric, String, Table, Text, select, update
+
+from app.domain.sniper_entities import MarketRegime, SniperSelection
+
 
 class MySQLSniperRepository:
     def __init__(self, session_factory):

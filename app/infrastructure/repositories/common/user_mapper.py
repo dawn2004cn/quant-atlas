@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Map persistence user rows/models to domain ``UserAccount``."""
 
 from app.domain.entities import UserAccount

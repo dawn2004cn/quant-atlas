@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Signal observation service.
 
 Turns strategy signals into a lightweight simulated observation loop. The
@@ -369,7 +371,7 @@ class SignalObservationService:
             rows = self._market_service.list_quotes(market, [symbol])
             if rows:
                 return _to_dict(rows[0])
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("signal observation quote unavailable for %s: %s", symbol, exc)
         return {"code": symbol, "name": symbol}
 
@@ -391,7 +393,7 @@ class SignalObservationService:
                     code = str(q.get("code") or "")
                     quotes[(market.value, code)] = q
                     quotes[(market.value, code[-6:])] = q
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("signal observation batch quote unavailable: %s", exc)
 
         for row in rows:
@@ -440,7 +442,7 @@ class SignalObservationService:
             raw = json.loads(self._store_path.read_text(encoding="utf-8"))
             if isinstance(raw, list):
                 return [dict(x) for x in raw if isinstance(x, dict)]
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("signal observation store read failed: %s", exc)
         return []
 

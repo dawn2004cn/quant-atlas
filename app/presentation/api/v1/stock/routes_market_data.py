@@ -8,6 +8,7 @@ from flask_login import login_required
 from app.application.errors import ValidationError
 from app.core.registry import register_routes
 from app.domain.enums import MarketCode
+
 from ...common import ok_response, parse_market
 from ...decorators import service_fallback
 from ...request_parsers import parse_int_param

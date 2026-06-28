@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """策略目录（与平台 StrategyFactory 对齐）。"""
 
 

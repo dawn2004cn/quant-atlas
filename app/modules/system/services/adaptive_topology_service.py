@@ -6,10 +6,10 @@ import logging
 from typing import Any
 
 from app.agents.research.integrated_graph import build_integrated_research_graph
-from app.modules.system.services.agent_topology_service import AgentTopologyService
-from app.modules.system.services.topology_generator import TopologyGenerator
 from app.core.event_bus import get_event_bus
 from app.domain.events import ArbiterConsensusEvent, TruthDeviationEvent
+from app.modules.system.services.agent_topology_service import AgentTopologyService
+from app.modules.system.services.topology_generator import TopologyGenerator
 
 logger = logging.getLogger(__name__)
 

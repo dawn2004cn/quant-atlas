@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for signal observation / simulated position persistence."""
 
 from abc import ABC, abstractmethod

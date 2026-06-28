@@ -1,10 +1,10 @@
 """Compute module."""
 
 from .vectorized_compute import (
-    VectorizedMarketData,
     AcceleratedFactors,
     BatchProcessor,
     VectorizedFactorEngine,
+    VectorizedMarketData,
     get_vectorized_engine,
 )
 

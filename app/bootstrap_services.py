@@ -11,8 +11,7 @@ and can be unit?tested without a web server.
 import logging
 from typing import Any
 
-from app.bootstrap_components.service_wiring import configure_service_registry
-from app.bootstrap_components.service_wiring import _get_registry, _wire_from_registry
+from app.bootstrap_components.service_wiring import _get_registry, _wire_from_registry, configure_service_registry
 from app.config import get_settings
 
 logger = logging.getLogger(__name__)

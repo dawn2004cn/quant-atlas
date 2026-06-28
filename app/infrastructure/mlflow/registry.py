@@ -30,7 +30,7 @@ class ModelRegistry:
     @staticmethod
     def is_available() -> bool:
         try:
-            import mlflow  # noqa: F401
+            import mlflow
 
             return True
         except ImportError:
@@ -133,7 +133,7 @@ class ModelRegistry:
             import mlflow.pyfunc
 
             class _BacktestSummaryPyfunc(mlflow.pyfunc.PythonModel):
-                def predict(self, context, model_input):  # noqa: ANN001
+                def predict(self, context, model_input):
                     import pandas as pd
 
                     return pd.DataFrame([{"status": "backtest_summary"}])

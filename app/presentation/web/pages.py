@@ -2,11 +2,11 @@
 
 from flask import Blueprint
 
-from .pages_market import register_pages as register_market_pages
-from .pages_ai import register_pages as register_ai_pages
-from .pages_stock import register_pages as register_stock_pages
 from .pages_admin import register_pages as register_admin_pages
+from .pages_ai import register_pages as register_ai_pages
+from .pages_market import register_pages as register_market_pages
 from .pages_spa import register_spa_pages
+from .pages_stock import register_pages as register_stock_pages
 
 
 def create_pages_blueprint():

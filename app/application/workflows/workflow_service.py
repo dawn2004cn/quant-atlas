@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 """Workflow service — registry & lifecycle management for all workflow types."""
 
 
 from typing import Any
 
 from app.application.workflows.base_workflow import BaseWorkflow
+from app.application.workflows.data_pipeline_workflow import DataPipelineWorkflow
 from app.application.workflows.healing import CircuitBreaker
 from app.application.workflows.optimizer import WorkflowOptimizer
 from app.application.workflows.research_workflow import ResearchWorkflow
 from app.application.workflows.trading_workflow import TradingWorkflow
-from app.application.workflows.data_pipeline_workflow import DataPipelineWorkflow
 from app.domain.enums import MarketCode
 from app.infrastructure.capabilities.registry import CapabilityRegistry
 

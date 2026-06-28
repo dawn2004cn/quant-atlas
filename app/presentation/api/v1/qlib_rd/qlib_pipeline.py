@@ -7,6 +7,9 @@ import uuid
 from flask import Blueprint, Response, request, stream_with_context
 from flask_login import login_required
 
+from app.application.errors import ValidationError
+from app.core.logger import get_logger
+from app.domain.enums import MarketCode
 from app.modules.data.services.research_pipeline_snapshot import build_research_pipeline_snapshot
 from app.presentation.api.common import (
     ok_resource,
@@ -21,9 +24,6 @@ from app.presentation.api.request_parsers import (
     parse_optional_bool_param,
 )
 from app.presentation.api.v1_context import ApiV1Context
-from app.application.errors import ValidationError
-from app.core.logger import get_logger
-from app.domain.enums import MarketCode
 
 logger = get_logger(__name__)
 
@@ -217,7 +217,7 @@ def register_qlib_pipeline_routes(blueprint: Blueprint, ctx: ApiV1Context) -> No
                         enable_legacy_alias=legacy,
                     )
                 raise RuntimeError("celery_not_available")
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("qlib update_all celery enqueue failed, sync fallback: %s", exc)
 
         from app.tasks.qlib_data_update import update_all_data

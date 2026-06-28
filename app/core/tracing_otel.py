@@ -1,13 +1,13 @@
 from __future__ import annotations
+
 """OpenTelemetry distributed tracing for full request lifecycle."""
 
 
 import uuid
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any
-from collections.abc import Callable
-
 
 from app.core.logger import get_logger
 
@@ -15,10 +15,10 @@ logger = get_logger(__name__)
 
 try:
     from opentelemetry import trace
+    from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+    from opentelemetry.sdk.resources import SERVICE_NAME, Resource
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-    from opentelemetry.exporter.jaeger.thrift import JaegerExporter
-    from opentelemetry.sdk.resources import Resource, SERVICE_NAME
     OTEL_AVAILABLE = True
 except ImportError:
     OTEL_AVAILABLE = False

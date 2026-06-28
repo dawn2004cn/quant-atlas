@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Complete DTO contracts with strict type validation.
 
 This module provides comprehensive DTOs with Pydantic validation,
@@ -7,10 +8,10 @@ replacing dict-based data transfer throughout the codebase.
 
 
 from datetime import datetime
-from typing import Any, Optional
 from enum import Enum
-from pydantic import BaseModel, Field, field_validator, model_validator, computed_field
+from typing import Any, Optional
 
+from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 # ==================== Enums ====================
 

@@ -1,16 +1,18 @@
 from __future__ import annotations
+
 """Diagnosis report API routes."""
 
 
 from flask import Blueprint, request
 from flask_login import login_required
 
+from app.core.registry import register_routes
+
 from ...application.errors import ValidationError
 from .common import ok_response, parse_market
+from .decorators import service_fallback
 from .request_parsers import parse_float_param
 from .v1_context import ApiV1Context
-from app.core.registry import register_routes
-from .decorators import service_fallback
 
 
 @register_routes(name="diagnosis", context="misc", description="Diagnosis report API routes")

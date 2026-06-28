@@ -2,7 +2,6 @@
 
 import openbb_core.app.provider_interface as pi
 
-
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

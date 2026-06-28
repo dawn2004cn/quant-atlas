@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from app.domain.dto.decision_context_dto import DecisionContextDTO
 from app.domain.decision_feedback import DecisionFeedback, FeedbackRating
+from app.domain.dto.decision_context_dto import DecisionContextDTO
 
 
 class DecisionProvenancePort:

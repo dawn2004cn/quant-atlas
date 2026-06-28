@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Weighted Consensus & Game Theory - Agent performance-based voting.
 
 This module implements:
@@ -15,9 +16,9 @@ Usage:
 from dataclasses import dataclass, field
 from typing import Any
 
-from .auto_validator import AutoValidator
-
 from app.core.logger import get_logger
+
+from .auto_validator import AutoValidator
 
 logger = get_logger(__name__)
 

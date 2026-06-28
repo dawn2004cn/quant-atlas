@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Web search provider implementations (Tavily, Bocha) ported from daily_stock_analysis."""
 
 
@@ -6,9 +7,10 @@ from typing import Any
 
 import requests
 
+from app.core.logger import get_logger
+
 from ...core.runtime_config import get_runtime
 from ...domain.ports import WebSearchProvider
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

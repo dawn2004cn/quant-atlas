@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TimescaleDB repository for market bar time-series (raw / QFQ / HFQ + factors)."""
 
 import threading
@@ -146,7 +147,7 @@ def _ensure_schema_once(postgres: PostgresSettings) -> None:
                 _RAW_TABLE,
                 _use_adjusted_matviews(),
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             conn.rollback()
             logger.warning("TimescaleDB schema ensure skipped: %s", exc)
         finally:

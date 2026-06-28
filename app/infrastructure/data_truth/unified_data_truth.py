@@ -1,18 +1,19 @@
 from __future__ import annotations
+
 """UnifiedDataTruth — reconcile TDX vs Qlib close prices."""
 
 
 from app.core.logger import get_logger
+from app.domain.data_truth.byzantine_consensus import (
+    QuorumConsensusResult,
+    SourceQuote,
+    compute_quorum_consensus,
+)
 from app.domain.ports.data_quality_ports import (
     DataQualityAlert,
     DataQualityPort,
     DataQualityReport,
     SourceComparison,
-)
-from app.domain.data_truth.byzantine_consensus import (
-    QuorumConsensusResult,
-    SourceQuote,
-    compute_quorum_consensus,
 )
 from app.infrastructure.data_truth.bar_readers import (
     latest_akshare_bar,

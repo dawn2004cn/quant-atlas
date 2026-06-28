@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from typing import Any
+
+from pydantic import BaseModel
+
 
 class AgentResultDTO(BaseModel):
     agent_id: str

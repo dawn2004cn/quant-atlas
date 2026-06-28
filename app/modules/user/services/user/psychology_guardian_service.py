@@ -200,7 +200,7 @@ class PsychologyGuardianService:
                     priority="high" if alert.get("severity") == "high" else "normal",
                 )
                 pushed += 1
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("push alert to message center: %s", exc)
         return pushed
 

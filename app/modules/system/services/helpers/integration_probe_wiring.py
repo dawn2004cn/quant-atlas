@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -25,7 +26,6 @@ warnings.warn(
 
 
 from app.domain.ports.integration_probe_port import IntegrationProbePort
-
 
 _port: IntegrationProbePort | None = None
 def bind_integration_probe_port(port: IntegrationProbePort | None) -> None:

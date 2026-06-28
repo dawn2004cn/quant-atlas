@@ -1,12 +1,13 @@
 from __future__ import annotations
+
 """Knowledge Distillation: Converts successful swarm remediations into persistent expert skills."""
 
 
 from typing import Any
 
 from app.core.logger import get_logger
-from app.infrastructure.agent.swarm.tools.skill_writer_tool import SkillWriterTool
 from app.infrastructure.agent.swarm.runtime import SwarmRuntime
+from app.infrastructure.agent.swarm.tools.skill_writer_tool import SkillWriterTool
 
 logger = get_logger(__name__)
 

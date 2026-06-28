@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """前端可选的 LLM 提供方：列举模型与构建 LangChain Chat 模型。"""
 
 
@@ -8,8 +9,6 @@ import requests
 from langchain_core.language_models.chat_models import BaseChatModel
 
 from app.application.errors import ValidationError
-
-
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

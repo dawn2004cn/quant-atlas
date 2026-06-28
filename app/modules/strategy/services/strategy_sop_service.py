@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 from dataclasses import dataclass
+from typing import Any
+
 from app.core.base_service import BaseApplicationService
 
 logger = logging.getLogger(__name__)

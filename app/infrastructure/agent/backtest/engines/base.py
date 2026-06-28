@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Base backtest engine with shared bar-by-bar execution loop.
 
 All market engines inherit from BaseEngine and override market-rule methods.
@@ -12,12 +13,11 @@ import importlib
 import json
 import sys
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
 
 import pandas as pd
-
 
 from app.core.logger import get_logger
 from app.infrastructure.memory_cache import MemoryCache
@@ -26,19 +26,17 @@ logger = get_logger(__name__)
 
 memory_store = MemoryCache()
 
+# ─── Market detection (lightweight, for signal alignment only) ───
+import re as _re
+
 from backtest.metrics import (
     by_exit_reason_stats,
     by_symbol_stats,
     calc_metrics,
 )
+from backtest.models import EquitySnapshot, Position, TradeRecord
 from backtest.stdio_json import write_stdout_json
 from backtest.validation_gate import MarketDataQualityGate
-from backtest.models import EquitySnapshot, Position, TradeRecord
-
-
-# ─── Market detection (lightweight, for signal alignment only) ───
-
-import re as _re
 
 _CRYPTO_RE = _re.compile(r"^[A-Z]+-USDT$|^[A-Z]+/USDT$", _re.I)
 _FOREX_RE = _re.compile(r"^[A-Z]{3}/[A-Z]{3}$|^[A-Z]{6}\.FX$")

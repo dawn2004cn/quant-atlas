@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Integrated Research Graph - Reactive Hierarchical Departments.
 
 This module implements the integration from midify_plan13.md:
@@ -21,28 +22,27 @@ from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
 
-from ..constants import (
-    AgentName,
-    get_llm_tier_for_agent,
-    CRITICAL_RISK_KEYS,
-    TOOL_CONTEXT_LIMITS,
-)
-from ..evidence_blackboard import (
-    get_evidence_blackboard,
-    EvidenceType,
-    EvidenceStrength,
-)
-from ..evidence_router import EvidenceRouter
-from ..dynamic_weighting import WeightedAggregator
-from ..tiered_llm import TieredLLMOrchestrator
-from ..auto_validator import AutoValidator
-from .state import ResearchState
-from .topology_compiler import TopologyCompiler
-
 from app.core.logger import get_logger
 from app.domain.swarm_topology_presets import PRESET_REGISTRY, preset_integrated_parallel
 from app.domain.topology_schema import SwarmTopologyDescriptor
 
+from ..auto_validator import AutoValidator
+from ..constants import (
+    CRITICAL_RISK_KEYS,
+    TOOL_CONTEXT_LIMITS,
+    AgentName,
+    get_llm_tier_for_agent,
+)
+from ..dynamic_weighting import WeightedAggregator
+from ..evidence_blackboard import (
+    EvidenceStrength,
+    EvidenceType,
+    get_evidence_blackboard,
+)
+from ..evidence_router import EvidenceRouter
+from ..tiered_llm import TieredLLMOrchestrator
+from .state import ResearchState
+from .topology_compiler import TopologyCompiler
 
 logger = get_logger(__name__)
 
@@ -217,7 +217,7 @@ class IntegratedResearchGraph:
                 content=memo,
                 debate_phase="investment",
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("debate node publish: %s", exc)
         key = "bull_debate_memo" if stance == "bullish" else "bear_debate_memo"
         return {key: memo, "debate_turn": int(state.get("debate_turn") or 0) + 1}

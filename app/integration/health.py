@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """System Health Check Service.
 
 Provides comprehensive health checks for all system components.
@@ -7,7 +8,6 @@ Provides comprehensive health checks for all system components.
 
 from dataclasses import dataclass
 from datetime import datetime
-
 
 from app.core.logger import get_logger
 

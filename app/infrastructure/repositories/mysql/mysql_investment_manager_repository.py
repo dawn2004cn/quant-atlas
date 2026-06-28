@@ -1,21 +1,28 @@
 """MySQL implementation for InvestmentManagerRepository."""
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import select, desc, func, and_
+from sqlalchemy import and_, desc, func, select
 
-from ...database.mysql_client import mysql_get_connection
 from ...database.models.investment import (
     InvestmentManager as DBManager,
-    ManagerNAV as DBNAV,
-    ManagerTrade as DBTrade,
+)
+from ...database.models.investment import (
     ManagerHoldingsSnap as DBHoldings,
+)
+from ...database.models.investment import (
+    ManagerNAV as DBNAV,
+)
+from ...database.models.investment import (
     ManagerPositionState as DBPosition,
 )
-
-import logging
+from ...database.models.investment import (
+    ManagerTrade as DBTrade,
+)
+from ...database.mysql_client import mysql_get_connection
 
 logger = logging.getLogger(__name__)
 

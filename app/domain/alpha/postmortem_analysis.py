@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Post-Mortem Analysis - failure溯源 for rd-agent research.
 
 This implements Section 2E from the roadmap:

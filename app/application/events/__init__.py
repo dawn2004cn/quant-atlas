@@ -13,16 +13,14 @@ Usage:
 """
 
 from .event_bus import (
-    EventBus,
     Event,
+    EventBus,
     EventType,
     get_event_bus,
-    publish_event,
     on_event,
+    publish_event,
 )
-
 from .handlers import EventHandlerRegistry, get_event_handlers
-
 from .workflows import get_workflows
 
 __all__ = [

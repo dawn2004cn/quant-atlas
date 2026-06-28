@@ -12,22 +12,6 @@ Unified registry:
 
 from __future__ import annotations
 
-from app.core.typed_registry import (
-    ServiceRegistry,
-    register_factory,
-    register_service,
-    get_registry,
-    registered_service_names,
-)
-from app.core.route_registry import (
-    _route_registry,
-    clear_route_registry,
-    discover_routes,
-    is_route_registered,
-    register_routes,
-    registered_route_names,
-    registered_routes_by_context,
-)
 from app.core.module_registry import (
     ContextModule,
     _module_registry,
@@ -42,6 +26,22 @@ from app.core.registry_bootstrap import (
     configure_service_registry,
     rewire_infra_dependent_services,
     wire_from_registry,
+)
+from app.core.route_registry import (
+    _route_registry,
+    clear_route_registry,
+    discover_routes,
+    is_route_registered,
+    register_routes,
+    registered_route_names,
+    registered_routes_by_context,
+)
+from app.core.typed_registry import (
+    ServiceRegistry,
+    get_registry,
+    register_factory,
+    register_service,
+    registered_service_names,
 )
 
 __all__ = [

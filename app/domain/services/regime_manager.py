@@ -1,6 +1,9 @@
 from __future__ import annotations
+
 from typing import Any
+
 from ..sniper_entities import MarketRegime
+
 
 class MarketRegimeManager:
     """判定当前市场处于牛市、熊市还是震荡市。"""

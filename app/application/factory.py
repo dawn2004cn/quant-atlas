@@ -5,12 +5,12 @@ In a full implementation, this would use a DI container.
 """
 
 from app.application.interfaces import (
-    IStockService,
-    ISignalService,
     IAnalysisService,
     IServiceFactory,
-    StockDTO,
+    ISignalService,
+    IStockService,
     SignalDTO,
+    StockDTO,
 )
 
 

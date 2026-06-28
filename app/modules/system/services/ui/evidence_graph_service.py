@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Evidence Graph Service — builds provenance graphs from capability & workflow execution."""
 
 
@@ -12,9 +13,9 @@ from app.core.event_bus import (
 )
 from app.core.registry import register_service
 from app.domain.evidence_graph import (
+    EdgeLabel,
     EvidenceGraph,
     EvidenceNode,
-    EdgeLabel,
     NodeType,
 )
 

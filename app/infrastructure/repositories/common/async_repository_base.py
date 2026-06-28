@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Enhanced Async Repository Base.
 
 Phase 46: 增强版异步 Repository 基类，提供通用异步操作。
@@ -8,10 +9,11 @@ with common CRUD operations, pagination, and transaction support.
 """
 
 
-from typing import Any, Generic, TypeVar
 from collections.abc import Sequence
+from typing import Any, Generic, TypeVar
+
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import select, update, delete, func
 from sqlalchemy.sql import Select
 
 T = TypeVar("T")

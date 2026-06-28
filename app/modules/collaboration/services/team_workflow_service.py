@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Team Workflow 2.0 — human + agent hybrid pipeline designer and runner (8.0 P1)."""
 
 import uuid
@@ -71,7 +72,7 @@ class TeamWorkflowService:
             payload["name"] = raw_id
         try:
             wf = TeamWorkflowDescriptor.model_validate(payload)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return {"ok": False, "error": "invalid_workflow", "details": str(exc)}
         saved = self._store.save_workflow(team_id, wf)
         validation = self.validate_workflow(saved)
@@ -321,7 +322,7 @@ class TeamWorkflowService:
             if self._arbiter is not None:
                 try:
                     arbiter_out = self._arbiter.consensus_only(symbol.upper(), market, use_llm=False)
-                except Exception as exc:  # noqa: BLE001
+                except Exception as exc:
                     logger.warning("workflow agent_swarm arbiter: %s", exc)
             self._inject_swarm_round(symbol, market, topo_id, topo_note)
             return {
@@ -354,7 +355,7 @@ class TeamWorkflowService:
                 debate_phase="team_workflow",
                 market=market,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("workflow debate inject: %s", exc)
 
     def _resolve_workflow(self, team_id: int, workflow_id: str) -> TeamWorkflowDescriptor | None:

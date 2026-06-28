@@ -1,24 +1,25 @@
 from __future__ import annotations
+
 """Signal application service with domain model integration."""
 
 
 from datetime import datetime
 from typing import Any
 
-from app.core.logger import get_logger
-from app.domain.models.signal_models import (
-    SignalGenerator,
-    TradingSignal,
-    SignalType,
-    SignalStrength,
-    SignalSource,
-    SignalDirection,
-)
 from app.application.dto.complete_dto import (
     SignalDTO,
     SignalFilterDTO,
 )
 from app.application.events.event_bus import EventBus, EventType, publish_event
+from app.core.logger import get_logger
+from app.domain.models.signal_models import (
+    SignalDirection,
+    SignalGenerator,
+    SignalSource,
+    SignalStrength,
+    SignalType,
+    TradingSignal,
+)
 
 logger = get_logger(__name__)
 

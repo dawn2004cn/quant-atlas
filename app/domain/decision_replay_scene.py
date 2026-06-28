@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """3D decision replay scene descriptors (Quant Atlas 8.0 P2)."""
 
 from typing import Any

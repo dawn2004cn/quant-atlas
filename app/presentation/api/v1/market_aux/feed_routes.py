@@ -10,6 +10,7 @@ from app.presentation.api.common import ok_response
 from app.presentation.api.request_parsers import parse_int_param
 from app.presentation.api.v1.market_aux.runtime import MarketAuxRuntime
 from app.presentation.api.v1_context import ApiV1Context
+
 from ...decorators import service_fallback
 
 

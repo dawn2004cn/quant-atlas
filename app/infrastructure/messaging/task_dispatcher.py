@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Task dispatcher implementations wrapping existing infrastructure."""
 
 
@@ -13,6 +14,7 @@ logger = get_logger(__name__)
 
 
 from app.domain.ports.task_ports import TaskDispatcher
+
 
 class CeleryTaskDispatcher(TaskDispatcher):
     """Celery-based task dispatcher implementation."""

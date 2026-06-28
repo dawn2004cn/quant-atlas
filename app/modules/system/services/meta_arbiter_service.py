@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Meta-Arbiter — site-level synthesis across independent team arbiters (8.0 P0)."""
 
 import uuid
@@ -164,7 +165,7 @@ class MetaArbiterService:
         try:
             sym = symbol.upper()
             return self._arbiter.consensus_only(sym, market, use_llm=use_llm)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("meta_arbiter local consensus sym=%s: %s", symbol, exc)
             return None
 
@@ -257,7 +258,7 @@ class MetaArbiterService:
             response = llm.invoke(prompt)
             text = str(getattr(response, "content", response)).strip()
             return text[:200] if text else verdict.get("rationale", "")
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("meta_arbiter llm rationale: %s", exc)
             return verdict.get("rationale", "")
 
@@ -278,7 +279,7 @@ class MetaArbiterService:
                     rationale=verdict.rationale[:500],
                 )
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("meta_arbiter event publish: %s", exc)
 
     def _index_memory(self, verdict: MetaArbiterVerdict) -> None:

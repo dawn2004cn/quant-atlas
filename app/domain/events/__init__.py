@@ -5,19 +5,6 @@ Legacy ``EventType`` enum and ``emit``/``on`` helpers live here for
 transitional consumption; new code should use ``app.core.event_bus`` directly.
 """
 
-from app.core.logger import get_logger
-
-from .handlers import (
-    EventBus,
-    DomainEvent,
-    EventHandler,
-    EventPriority,
-    SignalGeneratedEvent,
-    PositionOpenedEvent,
-    PositionClosedEvent,
-    get_event_bus,
-    publish_event,
-)
 from app.core.event_bus import (
     AnalysisStaleEvent,
     ApplicationEventForwardedEvent,
@@ -37,6 +24,19 @@ from app.core.event_bus import (
     TruthDeviationEvent,
     WatchlistAnomalyDetectedEvent,
     WorkflowCompletedEvent,
+)
+from app.core.logger import get_logger
+
+from .handlers import (
+    DomainEvent,
+    EventBus,
+    EventHandler,
+    EventPriority,
+    PositionClosedEvent,
+    PositionOpenedEvent,
+    SignalGeneratedEvent,
+    get_event_bus,
+    publish_event,
 )
 
 logger = get_logger(__name__)
@@ -78,8 +78,10 @@ EventType = _LegacyEventType
 
 def _emit_legacy(event_name: str, **data: object) -> None:
     """Compat shim for the old ``emit()`` — forwards via the bridge."""
+    # Lazy imports to avoid domain -> application dependency at module load time
     from app.application.events.bridge import forward_event
-    from app.application.events.event_bus import Event, EventType as _AppEventType
+    from app.application.events.event_bus import Event
+    from app.application.events.event_bus import EventType as _AppEventType
 
     try:
         app_type = _AppEventType(event_name)
@@ -147,19 +149,19 @@ emit = _emit_legacy
 on = _on_legacy
 
 # ── Cache invalidation re-exports ────────────────────────────────────
-from .cache_invalidation import (  # noqa: E402
+from .cache_invalidation import (
     CacheInvalidationEvent,
     invalidate_market_panorama,
     invalidate_quote,
     invalidate_strategy_cache,
 )
-from .cache_invalidation_emitter import (  # noqa: E402
+from .cache_invalidation_emitter import (
     CacheInvalidationEmitter,
     CacheInvalidationTransaction,
 )
-from .cache_invalidation_subscriber import (  # noqa: E402
-    CacheInvalidationSubscriber,
-)
-from .cache_invalidation_publisher import (  # noqa: E402
+from .cache_invalidation_publisher import (
     CacheInvalidationPublisher,
+)
+from .cache_invalidation_subscriber import (
+    CacheInvalidationSubscriber,
 )

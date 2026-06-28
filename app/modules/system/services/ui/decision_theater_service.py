@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Decision Theater — immersive research pipeline 3D scene (Quant Atlas 9.0 Step Five)."""
 
 import math
@@ -160,7 +161,7 @@ class DecisionTheaterService:
                 qlib_pipeline_service=self._qlib,
                 rdagent_run_service=self._rd,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("decision_theater pipeline snapshot: %s", exc)
             return {"steps": []}
 

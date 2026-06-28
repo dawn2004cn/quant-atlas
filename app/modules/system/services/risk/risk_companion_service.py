@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from app.domain.risk.risk_companion_models import RiskCompanionService as BaseRiskCompanionService, SentimentProfile, RiskCompanionMessage, EmpathyTone
+from app.domain.risk.risk_companion_models import EmpathyTone, RiskCompanionMessage, SentimentProfile
+from app.domain.risk.risk_companion_models import RiskCompanionService as BaseRiskCompanionService
 
 
 class RiskCompanionService(BaseRiskCompanionService):

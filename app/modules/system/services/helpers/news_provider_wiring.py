@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound news provider for application services."""
 
 from app.domain.ports.market_ports import NewsProvider
-
 
 _provider: NewsProvider | None = None
 def bind_news_provider(provider: NewsProvider) -> None:

@@ -1,11 +1,9 @@
 """Evidence management implementation."""
 
+from app.config import AppSettings
+from app.core.logger import get_logger
 from app.domain.dto.evidence_dto import EvidenceDTO, EvidenceType
 from app.infrastructure.database.mysql_client import mysql_connect
-from app.config import AppSettings
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

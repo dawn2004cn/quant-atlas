@@ -1,4 +1,5 @@
 ﻿from __future__ import annotations
+
 """Smart Degrade Gateway adapt quote delivery mode from SystemPulse / Redis latency."""
 
 import time
@@ -133,7 +134,7 @@ class SmartDegradeGateway:
             ms = (time.perf_counter() - t0) * 1000
             client.close()
             return ms
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("redis latency probe failed: %s", exc)
             return 999.0
 

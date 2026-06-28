@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Live-Document — unified streaming research dashboard payload."""
 
 from datetime import datetime
@@ -45,7 +46,7 @@ class LiveResearchDocumentService:
                 if debate.get("verdict") is None and eval_out.get("arbiter"):
                     debate["verdict"] = (eval_out.get("arbiter") or {}).get("verdict")
                     debate["confidence"] = (eval_out.get("arbiter") or {}).get("confidence")
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("live_document handover: %s", exc)
 
         return {
@@ -107,10 +108,10 @@ class LiveResearchDocumentService:
         try:
             from datetime import date, timedelta
 
+            from app.infrastructure.providers.rust_indicators import RustIndicatorProvider
             from app.modules.strategy.services.analytics.visual_data_reducer_service import (
                 TechnicalResonanceMeter,
             )
-            from app.infrastructure.providers.rust_indicators import RustIndicatorProvider
 
             end_d = date.today()
             start_d = end_d - timedelta(days=120)
@@ -121,7 +122,7 @@ class LiveResearchDocumentService:
             payload = TechnicalResonanceMeter(RustIndicatorProvider()).calculate_resonance(items)
             payload["ok"] = True
             return payload
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("live_document resonance: %s", exc)
             return {"ok": False, "error": str(exc)}
 

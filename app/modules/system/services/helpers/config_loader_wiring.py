@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,7 +27,6 @@ warnings.warn(
 """Bound config loader port for application services."""
 
 from app.domain.ports.config_loader_port import ConfigLoaderPort
-
 
 _port: ConfigLoaderPort | None = None
 def bind_config_loader_port(port: ConfigLoaderPort) -> None:

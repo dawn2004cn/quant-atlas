@@ -1,7 +1,7 @@
 """Backward-compat re-export."""
 from __future__ import annotations
 
-from app.modules.data.services.financial_market_data import *  # noqa: F401, F403
+from app.modules.data.services.financial_market_data import *
 
 __all__ = [
     "fetch_market_data",

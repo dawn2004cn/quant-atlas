@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 """Market data DTOs with strict type contracts."""
 
 
 from datetime import datetime
 from typing import Any
+
 from pydantic import BaseModel, Field, field_validator
 
 

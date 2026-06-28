@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Transactional Outbox Service.
 
 This service implements the Message Relay pattern to process events
@@ -20,9 +21,8 @@ Usage:
 
 import asyncio
 import json
+from collections.abc import Awaitable, Callable
 from typing import Any
-from collections.abc import Callable, Awaitable
-
 
 from app.core.logger import get_logger
 
@@ -198,8 +198,8 @@ def create_outbox_service(session_factory) -> TransactionalOutboxService:
 
 async def create_async_outbox_service(database_uri: str) -> TransactionalOutboxService:
     """Factory function to create async outbox service."""
-    from app.infrastructure.repositories.outbox_repository import OutboxRepository
     from app.infrastructure.database.async_mysql_client import create_async_session_factory
+    from app.infrastructure.repositories.outbox_repository import OutboxRepository
 
     session_factory = create_async_session_factory(database_uri)
     repo = OutboxRepository(session_factory)

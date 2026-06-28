@@ -1,4 +1,5 @@
 ﻿from __future__ import annotations
+
 """SocketIO init and optional quote broadcast loop."""
 
 import threading
@@ -79,7 +80,7 @@ def _broadcast_loop(app: Any, market_service: Any) -> None:
                             market=MarketCode.CN.value,
                         )
                     )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("quote broadcast tick: %s", exc)
         time.sleep(interval)
 
@@ -151,7 +152,7 @@ def init_realtime(app: Any, settings: Any, market_service: Any | None = None) ->
 
             meta["tick_stream"] = start_tick_stream(app, market_service)
             wire_event_bus_ticks()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("tick stream init skipped: %s", exc)
             meta["tick_stream"] = False
 

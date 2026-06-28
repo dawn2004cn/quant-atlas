@@ -12,6 +12,7 @@ from app.presentation.api.common import ok_response, parse_market
 from app.presentation.api.request_parsers import parse_float_param
 from app.presentation.api.v1.trade_plan.runtime import TradePlanRuntime
 from app.presentation.api.v1_context import ApiV1Context
+
 from ...decorators import service_fallback
 
 

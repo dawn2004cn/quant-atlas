@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """通达信本地 lday（未除权）与东财前复权日 K 合并，供 Qlib CSV 与缓存。"""
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shared Evidence Blackboard - structured evidence storage for multi-agent collaboration.
 
 This module implements the Shared Evidence Blackboard from midify_plan9.md:

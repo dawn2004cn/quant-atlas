@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Event handlers for automatic service reactions.
 
 This module demonstrates how services can react to events

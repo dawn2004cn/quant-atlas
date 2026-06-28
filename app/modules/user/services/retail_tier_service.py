@@ -161,10 +161,10 @@ class NLToStrategyService:
                      market: str = "CN") -> dict:
         """Run a quick backtest preview using FastBacktestEngine."""
         try:
+            from app.modules.data.services.data_lake_manager import DataLakeManager
             from app.modules.strategy.services.strategy.fast_backtest_engine import (
                 FastBacktestEngine,
             )
-            from app.modules.data.services.data_lake_manager import DataLakeManager
             engine = FastBacktestEngine(lake_manager=DataLakeManager())
             import asyncio
             try:

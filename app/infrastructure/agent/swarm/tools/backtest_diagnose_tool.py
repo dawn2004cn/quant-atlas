@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Backtest diagnosis tool for adversarial testing."""
 
 
@@ -6,6 +7,7 @@ import json
 from typing import Any
 
 from app.infrastructure.agent.swarm.tools_base import BaseTool
+
 
 class BacktestDiagnoseTool(BaseTool):
     """Diagnoses backtest results for logic flaws and vulnerabilities."""

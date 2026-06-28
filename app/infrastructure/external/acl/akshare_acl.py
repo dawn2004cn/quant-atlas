@@ -1,9 +1,13 @@
 from __future__ import annotations
+
 """Concrete ACL implementation for AkShare Market Data."""
 
 from typing import Any
-from app.infrastructure.external.acl.market_data_acl import IMarketDataACL
+
 import akshare as ak
+
+from app.infrastructure.external.acl.market_data_acl import IMarketDataACL
+
 
 class AkShareMarketDataACL(IMarketDataACL):
     """Translates AkShare response to Quant Atlas Domain Schema."""

@@ -44,24 +44,24 @@ def _register_market_data_routes(blueprint: Blueprint, ctx: Any | None = None) -
         ctx = _MinimalContext()
 
     # Import route registration functions (side-effect: registers routes on blueprint)
-    from app.presentation.api.v1.stock.routes_market_data import (
-        register_stock_market_data,
+    import logging
+
+    from app.presentation.api.routes_market_sentiment import (
+        register_sentiment_routes,
     )
     from app.presentation.api.routes_v1_global_market import (
         register_global_market_routes,
     )
-    from app.presentation.api.routes_market_sentiment import (
-        register_sentiment_routes,
-    )
+    from app.presentation.api.routes_v1_pytdx import register_pytdx_routes
     from app.presentation.api.routes_v1_tdx_base import (
         register_tdx_base_routes,
     )
     from app.presentation.api.v1.hot_sectors.list_routes import (
         register_hot_sector_list_routes,
     )
-    from app.presentation.api.routes_v1_pytdx import register_pytdx_routes
-
-    import logging
+    from app.presentation.api.v1.stock.routes_market_data import (
+        register_stock_market_data,
+    )
     logger = logging.getLogger(__name__)
 
     # Register each route group, skipping if dependencies missing
@@ -166,7 +166,7 @@ def create_market_data_app() -> Any:
 
         return app
     except ImportError:
-        raise RuntimeError("Flask is required for market data service")
+        raise RuntimeError("Flask is required for market data service") from None
 
 
 __all__ = [

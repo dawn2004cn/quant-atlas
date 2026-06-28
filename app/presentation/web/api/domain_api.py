@@ -1,28 +1,27 @@
 from __future__ import annotations
+
 """Domain API Blueprint.
 
 REST endpoints for domain operations using CQRS and aggregates.
 """
 
 
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, jsonify, request
 
-from app.application.mediator import send, fetch
 from app.application.commands import (
     CreateStockCommand,
-    UpdatePositionCommand,
-    SubmitOrderCommand,
-    ScreenStocksCommand,
     GenerateSignalCommand,
+    ScreenStocksCommand,
+    SubmitOrderCommand,
+    UpdatePositionCommand,
 )
+from app.application.mediator import fetch, send
 from app.application.queries import (
-    GetStockQuery,
-    GetPortfolioQuery,
     GetOrdersQuery,
+    GetPortfolioQuery,
     GetSignalsQuery,
+    GetStockQuery,
 )
-
-
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

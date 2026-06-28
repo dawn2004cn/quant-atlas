@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Quant Tools - LangGraph可调用量化工具入口.
 
 此模块作为工具入口，将功能模块化拆分到:
@@ -15,14 +16,14 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field
 from langchain_core.tools import tool
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.modules.market_data.services.watchlist_service import WatchlistApplicationService
+
 from ..core.logger import get_logger
 from ..domain.enums import MarketCode
 from ..domain.ports import UserRepository, WebSearchProvider
-
 
 logger = get_logger(__name__)
 
@@ -114,45 +115,44 @@ def _guard_tool_call(tool_name: str, fn: Callable[[], TResult]) -> TResult:
         return error_result
 
 
-from .stock_history_tools import (
-    get_kline_chart,
-    get_qlib_factor_snapshot,
-    probe_ticker,
-    get_chip_distribution,
-    get_tdx_local_snapshot,
-    infer_market_and_symbol as _infer_market_and_symbol,
-    _confidence_from_bars as _conf_bars,
-)
-
 from .backtest_tools import (
-    run_backtest,
     batch_backtest_selection,
+    run_backtest,
     run_qlib_unified_backtest,
 )
-
 from .financial_tools import (
     get_cn_financial_statements,
+    get_cn_longhu_for_symbol,
     get_cn_research_reports,
     get_tdx_financial_data,
-    get_cn_longhu_for_symbol,
 )
-
 from .news_tools import (
-    get_stock_news,
-    get_news_sentiment,
     get_market_mood,
+    get_news_sentiment,
+    get_stock_news,
 )
-
-from .selection_tools import (
-    stock_selector,
-    get_user_watchlist,
-)
-
 from .pipeline_tools import (
     get_research_pipeline_status,
+    get_yanbao_market_digest,
     run_intelligent_pipeline,
     search_web_intelligence,
-    get_yanbao_market_digest,
+)
+from .selection_tools import (
+    get_user_watchlist,
+    stock_selector,
+)
+from .stock_history_tools import (
+    _confidence_from_bars as _conf_bars,
+)
+from .stock_history_tools import (
+    get_chip_distribution,
+    get_kline_chart,
+    get_qlib_factor_snapshot,
+    get_tdx_local_snapshot,
+    probe_ticker,
+)
+from .stock_history_tools import (
+    infer_market_and_symbol as _infer_market_and_symbol,
 )
 
 
@@ -171,8 +171,9 @@ def get_market_data(
     interval: str = "1d",
 ) -> MarketDataToolResult:
     """获取股票历史K线数据 (多数据源优先级)."""
-    from ..infrastructure.providers.market_data import MultiSourceMarketProvider
     from datetime import datetime, timedelta
+
+    from ..infrastructure.providers.market_data import MultiSourceMarketProvider
 
     market, symbol = infer_market_and_symbol(ticker)
     provider = MultiSourceMarketProvider()

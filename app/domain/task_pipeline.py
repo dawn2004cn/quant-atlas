@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Task Pipeline - implements workflow pattern for task orchestration.
 
 This module implements the task pipeline concept from midify_plan7.md:
@@ -12,14 +13,12 @@ Following Pipeline pattern for explicit workflow management.
 
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
 
 from app.core.logger import get_logger
-
 
 logger = get_logger(__name__)
 

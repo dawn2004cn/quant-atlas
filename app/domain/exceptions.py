@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain-level exceptions, agnostic of framework or delivery mechanism.
 
 This module implements the exception standardization from midify_plan8.md:

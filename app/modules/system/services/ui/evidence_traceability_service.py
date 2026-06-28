@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Build supporting_evidence with factor values and 250-day percentiles."""
 
 from typing import Any

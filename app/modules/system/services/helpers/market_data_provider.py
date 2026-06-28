@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Bound market data provider for application services (configured at bootstrap)."""
 
 from app.domain.ports.market_ports import MarketDataProvider

@@ -1,7 +1,10 @@
 from __future__ import annotations
-from app.domain.dto.service_result import GenericResponseDTO
+
 from typing import Any
+
 from app.core.base_service import BaseApplicationService
+from app.domain.dto.service_result import GenericResponseDTO
+
 
 class TenKingsCommitteeService(BaseApplicationService):
     """天王投委会：指挥官 + 6 大专家 + 短线选手（陈小群）。"""

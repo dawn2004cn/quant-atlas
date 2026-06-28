@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import dataclasses
+from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
-from flask import jsonify, Response
+from flask import Response, jsonify
 
 T = TypeVar("T")
 

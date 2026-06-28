@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shadow Account — multi-market backtest driver + delta-PnL attribution.
 
 Responsibilities:
@@ -23,6 +24,7 @@ from typing import Any
 
 import pandas as pd
 
+from app.core.logger import get_logger
 from app.infrastructure.agent.shadow_account.codegen import write_run_dir
 from app.infrastructure.agent.shadow_account.models import (
     AttributionBreakdown,
@@ -32,9 +34,6 @@ from app.infrastructure.agent.shadow_account.models import (
 from app.infrastructure.agent.shadow_account.storage import runs_dir
 from app.infrastructure.agent.swarm.tools.trade_journal_parsers import parse_file, records_to_dataframe
 from app.infrastructure.agent.swarm.tools.trade_journal_tool import pair_trades_fifo
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

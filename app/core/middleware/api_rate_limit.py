@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 
 from app.core.hybrid_rate_limiter import HybridRateLimiter
 from app.core.logger import get_logger

@@ -1,12 +1,12 @@
 from __future__ import annotations
+
 """Shadow Trading Engine: Real-time simulation of strategies."""
 
-from typing import Any
 from dataclasses import dataclass
-from app.infrastructure.agent.swarm.tools_base import BaseTool
-
+from typing import Any
 
 from app.core.logger import get_logger
+from app.infrastructure.agent.swarm.tools_base import BaseTool
 
 logger = get_logger(__name__)
 

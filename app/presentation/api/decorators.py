@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Cross-cutting concerns: role decorators and exception wrappers.
 
 Provides standardized decorators for:

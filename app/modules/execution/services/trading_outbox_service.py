@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Trading Service with Transactional Outbox Integration.
 
 This module demonstrates how to use the Transactional Outbox Pattern
@@ -14,9 +15,9 @@ This guarantees that either both succeed or both fail.
 
 import json
 from datetime import datetime
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import select
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.logger import get_logger
 

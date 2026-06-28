@@ -44,6 +44,7 @@ class TradeExecutionStub:
             return False
         try:
             import grpc  # type: ignore[import-untyped]
+
             from . import trade_execution_pb2_grpc  # type: ignore[import-untyped]
             self._channel = grpc.insecure_channel(self._target)
             self._client = trade_execution_pb2_grpc.TradeExecutionStub(self._channel)
@@ -102,7 +103,7 @@ class TradeExecutionStub:
                       strategy_id, user_id, max_trade_amount, max_position, dry_run,
                       metadata, fallback) -> OrderResponse:
         if fallback and hasattr(fallback, "validate"):
-            from app.domain.dto.trade_signal_dto import TradeSignalDTO, SignalDirection
+            from app.domain.dto.trade_signal_dto import SignalDirection, TradeSignalDTO
             signal = TradeSignalDTO(
                 symbol=symbol,
                 direction=SignalDirection(side.upper()),

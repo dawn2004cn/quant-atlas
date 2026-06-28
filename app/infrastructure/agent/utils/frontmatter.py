@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Shared YAML-like frontmatter parser for skills and memory files.
 
 Ported from Vibe-Trading.

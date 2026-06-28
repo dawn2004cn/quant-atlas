@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 """SQLAlchemy OpenBB repository implementation."""
 
 
 import json
 from datetime import datetime, timedelta
 from typing import Any
-from sqlalchemy import select, and_
 
-from app.domain.ports import OpenBBRepository
+from sqlalchemy import and_, select
+
 from app.domain.market_entities import ProviderConfig
-from app.infrastructure.database.models.advanced import OpenBBProviderConfig, OpenBBDataCache
+from app.domain.ports import OpenBBRepository
+from app.infrastructure.database.models.advanced import OpenBBDataCache, OpenBBProviderConfig
 
 
 class MySQLOpenBBRepository(OpenBBRepository):

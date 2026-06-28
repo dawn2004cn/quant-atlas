@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """High-level watchlist experience service."""
 
 
@@ -7,6 +9,8 @@ from datetime import datetime
 from typing import Any
 
 from app.domain.enums import MarketCode
+
+
 def _safe_float(value: object, default: float = 0.0) -> float:
     try:
         return float(value or default)

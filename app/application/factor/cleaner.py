@@ -1,8 +1,9 @@
 """Factor cleanup and orthogonalization pipeline."""
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import quant_core
+
 
 class FactorCleaner:
     """Cleans up redundant factors and performs orthogonalization."""

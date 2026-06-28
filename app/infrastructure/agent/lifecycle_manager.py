@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 """Lifecycle Manager: Archives stale experiment data."""
 
 
 import shutil
 import time
 from pathlib import Path
-
 
 from app.core.logger import get_logger
 

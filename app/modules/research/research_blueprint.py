@@ -46,6 +46,8 @@ def _register_research_routes(blueprint: Blueprint, ctx: Any | None = None) -> N
         ctx = _MinimalContext()
 
     # Import route registration functions (side-effect: registers routes on blueprint)
+    import logging
+
     from app.presentation.api.routes_v1_agent_swarm import (
         register_agent_swarm_routes,
     )
@@ -67,8 +69,6 @@ def _register_research_routes(blueprint: Blueprint, ctx: Any | None = None) -> N
     from app.presentation.api.routes_v1_workflows import (
         register_workflow_routes,
     )
-
-    import logging
     logger = logging.getLogger(__name__)
 
     # Register each route group, skipping if dependencies missing
@@ -174,7 +174,7 @@ def create_research_app() -> Any:
 
         return app
     except ImportError:
-        raise RuntimeError("Flask is required for research service")
+        raise RuntimeError("Flask is required for research service") from None
 
 
 __all__ = [

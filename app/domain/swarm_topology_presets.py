@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Built-in swarm topology presets for Swarm Designer."""
 
 from app.domain.topology_schema import (

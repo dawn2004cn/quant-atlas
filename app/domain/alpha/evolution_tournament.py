@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Evolution Tournament - Resource Allocation by Performance.
 
 Implements from strategy_plan3.md:
@@ -12,10 +13,9 @@ Usage:
 """
 
 
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from collections import defaultdict
-
 
 from app.core.logger import get_logger
 
@@ -154,7 +154,7 @@ class EvolutionTournament:
 
         allocations = []
 
-        for rank, (strategy_id, score) in enumerate(rankings):
+        for rank, (strategy_id, _score) in enumerate(rankings):
             if strategy_id not in self._scores:
                 continue
 

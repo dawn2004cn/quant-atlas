@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Generic Repository pattern implementation.
 
 Usage:
@@ -11,8 +12,8 @@ Usage:
 """
 
 
-from typing import Any, Generic, TypeVar
 from collections.abc import Callable
+from typing import Any, Generic, TypeVar
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session

@@ -1,17 +1,18 @@
 from __future__ import annotations
+
 """AI analysis application service."""
 
-from datetime import datetime, timezone
-from typing import Any, TYPE_CHECKING
 from collections.abc import Iterator
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from app.core.base_service import BaseApplicationService
 from app.core.utils.performance import track_latency
-from app.modules.ai_agent.services.sentiment_fingpt_payload import build_sentiment_payload_from_analyst_report
 from app.domain.dto.decision_context_dto import DecisionContextDTO, EvidenceNoteDTO
 from app.domain.enums import MarketCode
 from app.domain.ports.ai_analysis_port import AiAnalysisPort
+from app.modules.ai_agent.services.sentiment_fingpt_payload import build_sentiment_payload_from_analyst_report
 
 if TYPE_CHECKING:
     from app.modules.ai_agent.services.fingpt_application_service import FinGPTApplicationService
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
 
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -404,7 +406,7 @@ class AiAnalysisService(BaseApplicationService):
             rec = self._fingpt.record_sentiment(ticker, payload)
             if not rec.get("ok"):
                 self.logger.warning("FinGPT record_sentiment (ai_analyze) not ok: %s", rec.get("error"))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             self.logger.exception("FinGPT ai_analyze sentiment persist failed: %s", exc)
 
     def _sync_reflex_parameters(self, symbol: str, market: MarketCode, ai_payload: dict[str, Any]) -> None:

@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Pagination utilities for domain queries."""
 
 
 import math
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Generic, TypeVar
-from collections.abc import Callable
 
 T = TypeVar('T')
 

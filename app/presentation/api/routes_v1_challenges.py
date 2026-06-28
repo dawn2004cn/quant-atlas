@@ -5,9 +5,9 @@ from __future__ import annotations
 from flask import Blueprint
 
 from app.application.errors import ExternalServiceError
-from .common import ok_response
 from app.core.registry import register_routes
 
+from .common import ok_response
 
 challenges_bp = Blueprint("challenges", __name__, url_prefix="/challenges")
 

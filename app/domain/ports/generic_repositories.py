@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Generic Repository base interfaces."""
 
 

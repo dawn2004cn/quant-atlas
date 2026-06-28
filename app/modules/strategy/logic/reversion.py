@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from typing import Any
+
 import numpy as np
 import pandas as pd
+
 from app.modules.strategy.logic.base import IStrategyLogic
+
 
 class RSIReversionStrategy(IStrategyLogic):
     """RSI Reversion logic: RSI < Oversold = Long, RSI > Overbought = Short."""

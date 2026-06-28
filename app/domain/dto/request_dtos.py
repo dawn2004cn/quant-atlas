@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class AnalysisStockRequestDTO(BaseModel):
     code: str
     name: str = ""

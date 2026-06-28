@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 """News-related UseCases."""
 
 
-from ..use_cases import UseCase, UseCaseResult
 from app.domain.enums import MarketCode
+
+from ..use_cases import UseCase, UseCaseResult
 
 
 class GetMarketHeadlinesUseCase(UseCase):

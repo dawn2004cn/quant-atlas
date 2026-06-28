@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Factor analysis tool: compute IC/IR, layered backtest, and output analysis report."""
 
 

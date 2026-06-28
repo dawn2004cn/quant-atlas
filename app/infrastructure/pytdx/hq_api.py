@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """标准行情 API（pytdx.hq）。"""
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Strategy Loader - 动态策略加载器。
 
 提供策略插件的动态发现与加载:
@@ -14,9 +15,9 @@ import importlib
 import logging
 import pkgutil
 import types
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
 
 from .protocol import StrategyPlugin
 from .registry import StrategyRegistry, get_registry
@@ -158,7 +159,7 @@ class SandboxedModuleLoader:
         except Exception:
             logger.debug("BaseStrategy not available for plugin sandbox")
 
-        exec(compile(source, str(file_path), "exec"), safe_globals)  # noqa: S102  # sandboxed plugin loader: restricted builtins + safe_globals only
+        exec(compile(source, str(file_path), "exec"), safe_globals)  # sandboxed plugin loader: restricted builtins + safe_globals only
 
         # Copy public names into the module.
         for name, obj in safe_globals.items():

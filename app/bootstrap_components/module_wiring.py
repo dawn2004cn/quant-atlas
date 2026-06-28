@@ -51,7 +51,7 @@ def initialize_all_modules(
     try:
         from app.presentation.api.context_modules import ensure_all_modules_loaded
         ensure_all_modules_loaded()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("Context module preload skipped: %s", exc)
 
     from app.core.registry import discover_modules

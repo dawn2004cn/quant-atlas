@@ -52,7 +52,7 @@ def get_cached_xdxr(market: str, code: str, fetcher: Any) -> pd.DataFrame:
                 return _CACHE[key]
         try:
             df = fetcher(market, code)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("xdxr fetch %s: %s", key, exc)
             df = pd.DataFrame()
         if not isinstance(df, pd.DataFrame):

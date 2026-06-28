@@ -1,13 +1,15 @@
 from __future__ import annotations
+
 """Headless UI bootstrap APIs — page context without Jinja business logic."""
 
 from flask import Blueprint, request
 from flask_login import login_required
 
+from app.core.registry import register_routes
+
 from ...core.middleware.request_context import require_authenticated_user_id
 from .common import ok_response, require_ctx_service
 from .v1_context import ApiV1Context
-from app.core.registry import register_routes
 
 
 def _uid() -> int:

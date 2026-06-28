@@ -7,15 +7,17 @@ import math
 from datetime import datetime, timezone
 from typing import Any, Literal
 
+from app.core.logger import get_logger
 from app.domain.mesh.borderless_schema import (
-    SplitOrder, SymbioticExecutionRequest, SymbioticExecutionResult,
     CoolDownReason,
+    SplitOrder,
+    SymbioticExecutionRequest,
+    SymbioticExecutionResult,
 )
 from app.domain.monitoring.execution_profile import ExecutionProfile
 from app.domain.monitoring.price_tracer import MarketDepthSnapshot
-from app.core.logger import get_logger
-from app.modules.system.services.risk.risk_companion_service import RiskCompanionService
 from app.domain.risk.risk_companion_models import SentimentProfile
+from app.modules.system.services.risk.risk_companion_service import RiskCompanionService
 
 logger = get_logger(__name__)
 

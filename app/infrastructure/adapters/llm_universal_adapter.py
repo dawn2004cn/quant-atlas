@@ -10,10 +10,9 @@ import time
 from typing import Any
 
 from app.core.logger import get_logger
+from app.domain.ports.llm_adapter_port import ChatMessage, ChatResponse, UniversalLlmPort
 from app.modules.system.services.llm_fallback_service import LlmFallbackRouter
 from app.modules.system.services.llm_provider_service import LlmProviderService
-from app.domain.ports.llm_adapter_port import ChatMessage, ChatResponse
-from app.domain.ports.llm_adapter_port import UniversalLlmPort
 
 logger = get_logger(__name__)
 

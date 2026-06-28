@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from typing import Any
+
 import pandas as pd
+
 from app.modules.strategy.logic.base import IStrategyLogic
+
 
 class SentimentAdaptiveStrategy(IStrategyLogic):
     """AI Sentiment Adaptive: Adjusts bias based on external sentiment score."""

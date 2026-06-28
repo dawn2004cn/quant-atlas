@@ -5,11 +5,11 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Any
 
+from app.domain.ports.risk_ports import OrderContext, PositionSizingPort, RiskPreFlightPort
 from app.modules.system.services.helpers.trading_risk_access import (
     create_default_position_sizing,
     create_default_risk_preflight,
 )
-from app.domain.ports.risk_ports import OrderContext, PositionSizingPort, RiskPreFlightPort
 
 
 def _resolve_preflight() -> RiskPreFlightPort:

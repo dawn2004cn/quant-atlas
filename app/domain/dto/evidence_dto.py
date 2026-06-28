@@ -1,7 +1,9 @@
-from enum import Enum
-from pydantic import BaseModel, Field
 from datetime import datetime
+from enum import Enum
 from typing import Any
+
+from pydantic import BaseModel, Field
+
 
 class EvidenceType(Enum):
     ALPHA_FACTOR = "alpha_factor"

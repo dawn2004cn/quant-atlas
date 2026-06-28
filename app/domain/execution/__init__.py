@@ -1,22 +1,21 @@
 """Execution module."""
 
-from .high_fidelity_engine import (
-    ExecutionResult,
-    SlippageModel,
-    TickSimulator,
-    ConsistencyAuditor,
-    HighFidelityExecutor,
-    get_high_fidelity_executor,
-)
-
 from .digital_twin import (
-    StrategyState,
-    DriftAnalysis,
-    ShadowStrategy,
-    DriftDetector,
     AutoHotSwap,
     DigitalTwin,
+    DriftAnalysis,
+    DriftDetector,
+    ShadowStrategy,
+    StrategyState,
     get_digital_twin,
+)
+from .high_fidelity_engine import (
+    ConsistencyAuditor,
+    ExecutionResult,
+    HighFidelityExecutor,
+    SlippageModel,
+    TickSimulator,
+    get_high_fidelity_executor,
 )
 
 __all__ = [

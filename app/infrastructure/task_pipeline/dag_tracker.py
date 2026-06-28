@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Task pipeline DAG infrastructure implementation."""
 
 
@@ -7,9 +8,9 @@ from typing import Any
 
 from ...domain.ports.task_pipeline_ports import (
     TaskNode,
+    TaskObserverPort,
     TaskPipeline,
     TaskPipelinePort,
-    TaskObserverPort,
 )
 
 

@@ -1,12 +1,14 @@
 from __future__ import annotations
+
 """Strategy factory for dynamic instantiation."""
 
 
 from collections.abc import Iterator
-from ..domain.entities import StrategyConfig
-from .base_strategy import BaseTradingStrategy
 
 from app.core.logger import get_logger
+
+from ..domain.entities import StrategyConfig
+from .base_strategy import BaseTradingStrategy
 
 logger = get_logger(__name__)
 
@@ -47,7 +49,7 @@ class StrategyFactory:
     @classmethod
     def iter_registered_instances(cls) -> Iterator[tuple[str, BaseTradingStrategy]]:
         """遍历已注册策略 (strategy_id, 默认参数实例)，供信号扫描等批量逻辑使用。"""
-        for strategy_id, strategy_class in cls._registry.items():
+        for strategy_id, _strategy_class in cls._registry.items():
             cfg = StrategyConfig(strategy_id=strategy_id, parameters={})
             inst = cls.create(cfg)
             if inst is not None:

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Numba-accelerated operators for alpha factor computation.
 
 This enables rd-agent to generate complex, stateful factor logic
@@ -10,7 +11,6 @@ This enables rd-agent to generate complex, stateful factor logic
 
 
 import numpy as np
-
 
 try:
     from numba import jit, prange

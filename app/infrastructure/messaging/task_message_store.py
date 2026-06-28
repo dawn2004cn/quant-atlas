@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Celery 任务事件写入 Redis 列表（或内存回退），供消息中心 API 读取。"""
 
 
@@ -8,11 +9,9 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
+from app.core.logger import get_logger
 
 from ...core.runtime_config import get_runtime
-
-
-from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -76,7 +75,7 @@ class TaskMessageStore:
                     socket_timeout=2.0,
                 )
                 self._redis.ping()
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("task message redis unavailable, using memory: %s", exc)
                 self._redis = None
                 self._use_memory = True
@@ -114,7 +113,7 @@ class TaskMessageStore:
                 pipe.lpush(REDIS_KEY, line)
                 pipe.ltrim(REDIS_KEY, 0, MAX_MESSAGES - 1)
                 pipe.execute()
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("task message lpush failed: %s", exc)
                 self._memory.appendleft(payload)
         else:
@@ -123,7 +122,7 @@ class TaskMessageStore:
             from app.infrastructure.messaging.task_event_hub import get_task_event_hub
 
             get_task_event_hub().publish(task_id, payload)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug("task event hub publish skipped: %s", exc)
         return msg_id
 
@@ -139,6 +138,6 @@ class TaskMessageStore:
                     except json.JSONDecodeError:
                         continue
                 return out
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("task message lrange failed: %s", exc)
         return list(self._memory)[:lim]

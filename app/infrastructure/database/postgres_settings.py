@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """PostgreSQL / TimescaleDB connection settings."""
 
 from dataclasses import dataclass

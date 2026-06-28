@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 """Base application workflow — wraps ``AgentWorkflow`` state machine."""
 
 
 from abc import ABC, abstractmethod
 from typing import Any
 
-from app.domain.agent_workflow import WorkflowBuilder, WorkflowState, StepStatus
+from app.domain.agent_workflow import StepStatus, WorkflowBuilder, WorkflowState
 from app.infrastructure.capabilities.registry import CapabilityRegistry
 from app.infrastructure.messaging.task_progress_store import TaskProgressStore
 
-from .healing import RetryPolicy, CircuitBreaker, with_retry
+from .healing import CircuitBreaker, RetryPolicy, with_retry
 from .optimizer import WorkflowOptimizer
 
 

@@ -1,9 +1,12 @@
 from __future__ import annotations
+
 """Standardized market data ingestion ports."""
 
 
 from abc import ABC, abstractmethod
+
 import pandas as pd
+
 
 class IMarketDataIngestor(ABC):
     """Contract for all market data ingestion adapters."""

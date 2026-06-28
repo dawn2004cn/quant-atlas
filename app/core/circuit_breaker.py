@@ -1,16 +1,16 @@
 from __future__ import annotations
+
 """Circuit Breaker pattern for external API resilience."""
 
 
+import collections
 import functools
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
-import collections
-
 
 from app.core.logger import get_logger
 

@@ -6,12 +6,12 @@ from datetime import datetime
 
 from flask import Flask, Response
 
-from app.presentation.api.common import ok_response
 from app.modules.system.services.helpers.metrics_access import (
     build_metrics_summary,
     prometheus_metrics_content_type,
     render_prometheus_metrics,
 )
+from app.presentation.api.common import ok_response
 
 
 def register_metrics_routes(app: Flask) -> None:

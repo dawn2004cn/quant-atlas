@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 
 from app.domain.ports import TradeRepository
-from app.domain.trading_entities import Trade, Order
+from app.domain.trading_entities import Order, Trade
 
 
 class SQLiteTradingRepository(TradeRepository):

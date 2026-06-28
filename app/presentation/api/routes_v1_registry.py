@@ -20,9 +20,9 @@ def register_registry_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     def registry_routes():
         """List all registered routes with their context and metadata."""
         from ...core.registry import (
+            _route_registry,
             registered_route_names,
             registered_routes_by_context,
-            _route_registry,
         )
 
         context_filter = (request.args.get("context") or "").strip() or None
@@ -61,8 +61,8 @@ def register_registry_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     def registry_services():
         """List all registered services with their metadata."""
         from ...core.registry import (
-            registered_service_names,
             _registry,
+            registered_service_names,
         )
 
         service_details = []
@@ -91,7 +91,7 @@ def register_registry_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     @login_required
     def registry_modules():
         """List all registered context modules."""
-        from ...core.registry import list_modules, get_module
+        from ...core.registry import get_module, list_modules
         from .context_modules import ensure_all_modules_loaded
         ensure_all_modules_loaded()
 
@@ -123,10 +123,10 @@ def register_registry_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     def registry_summary():
         """High-level summary of the declarative registry."""
         from ...core.registry import (
-            registered_service_names,
+            list_modules,
             registered_route_names,
             registered_routes_by_context,
-            list_modules,
+            registered_service_names,
         )
         from .context_modules import ensure_all_modules_loaded
         ensure_all_modules_loaded()

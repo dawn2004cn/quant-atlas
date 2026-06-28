@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -27,8 +28,8 @@ warnings.warn(
 
 from collections.abc import Callable
 from typing import Any
-from app.domain.ports.agent_ports import ExpertSkillPort, SwarmOrchestratorPort
 
+from app.domain.ports.agent_ports import ExpertSkillPort, SwarmOrchestratorPort
 
 _create_swarm_orchestrator: Callable[[], SwarmOrchestratorPort] | None = None
 _create_expert_skill: Callable[[], ExpertSkillPort] | None = None

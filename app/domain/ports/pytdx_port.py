@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for Pytdx market data access."""
 
 from typing import Any, Protocol

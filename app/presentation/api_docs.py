@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """API Documentation.
 
 OpenAPI/Swagger documentation for API endpoints.
@@ -6,7 +7,6 @@ OpenAPI/Swagger documentation for API endpoints.
 
 
 from dataclasses import dataclass
-
 
 from app.core.logger import get_logger
 

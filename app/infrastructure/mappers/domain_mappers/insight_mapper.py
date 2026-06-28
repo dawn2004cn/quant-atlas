@@ -1,9 +1,11 @@
 """Mapper for Agent entities."""
 
+import json
+
 from app.domain.agent_entities import MarketInsight
 from app.infrastructure.database.models.advanced import AgentMarketInsight
 from app.infrastructure.mappers.domain_mappers.base import DataMapper
-import json
+
 
 class MarketInsightMapper(DataMapper[MarketInsight, AgentMarketInsight]):
 

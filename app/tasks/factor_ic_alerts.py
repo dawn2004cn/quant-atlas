@@ -1,18 +1,16 @@
 from __future__ import annotations
+
 """RD 注册因子 IC 巡检：定时扫描弱信号并写入消息中心（与 Celery Beat 配合）。"""
 
 
 import uuid
 from typing import Any
 
-
 from ..application.services.factor.factor_catalog_service import FactorCatalogService
 from ..config import BASE_DIR
 from ..core.logger import get_logger
 from ..core.runtime_config import get_runtime_bool, get_runtime_float
 from .task_wiring import get_task_message_store
-
-
 
 logger = get_logger(__name__)
 
@@ -56,7 +54,7 @@ def run_factor_ic_monitor() -> dict[str, Any]:
                     "ic_warn_threshold": ic_thr,
                 },
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("factor_ic alert push failed: %s", exc)
         out["_suppress_default_task_message"] = True
     else:

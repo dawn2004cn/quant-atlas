@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """User context API routes."""
 
 from flask import Blueprint

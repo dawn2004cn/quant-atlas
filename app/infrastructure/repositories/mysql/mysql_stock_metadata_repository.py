@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """MySQL ``base_stock_reference`` metadata repository."""
 
 from typing import Any

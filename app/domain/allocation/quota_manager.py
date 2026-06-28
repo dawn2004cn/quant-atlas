@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Multi-tenancy & Quota Management for 100+ Investment Managers.
 
 Implements from strategy_plan2.md:
@@ -15,8 +16,8 @@ Usage:
 
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from app.core.logger import get_logger
 
+from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 

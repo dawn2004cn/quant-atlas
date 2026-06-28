@@ -1,21 +1,20 @@
 from __future__ import annotations
+
 """SQLAlchemy implementation of AgentRepository."""
 
 
 import json
-from typing import Any
-from sqlalchemy import select, desc
-from app.infrastructure.redis_client import RedisClientPool
-
-from app.domain.ports import AgentRepository
-from app.domain.agent_entities import MarketInsight, ReportInterpretation
-from app.infrastructure.database.models.advanced import AgentMarketInsight, AgentReportInterpretation
-
-
-from app.infrastructure.repositories.factory import register_repo, RepositoryType
-
-
 import logging
+from typing import Any
+
+from sqlalchemy import desc, select
+
+from app.domain.agent_entities import MarketInsight, ReportInterpretation
+from app.domain.ports import AgentRepository
+from app.infrastructure.database.models.advanced import AgentMarketInsight, AgentReportInterpretation
+from app.infrastructure.redis_client import RedisClientPool
+from app.infrastructure.repositories.factory import RepositoryType, register_repo
+
 logger = logging.getLogger(__name__)
 @register_repo(RepositoryType.MYSQL, "agent")
 class MySQLAgentRepository(AgentRepository):

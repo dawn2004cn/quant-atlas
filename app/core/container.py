@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Dependency injection container shim.
 
 Deprecated: the application now uses ``app.core.registry`` (TypedServiceRegistry)
@@ -22,11 +23,11 @@ class _LegacyContainerShim:
         reg = get_registry()
         try:
             return reg.get(name)
-        except Exception:
+        except Exception as err:
             raise AttributeError(
                 f"Container shim: service '{name}' not found in registry. "
                 "Use get_registry().get('{name}') directly."
-            )
+            ) from err
 
 
 container = _LegacyContainerShim()

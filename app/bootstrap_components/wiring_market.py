@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 # ── Zero-arg services (simple lambdas) ──────────────────────────────────
 
 def _make_strategy_service(reg):
-    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
-    from app.modules.strategy.services.strategy.strategy_service import StrategyApplicationService
     from app.infrastructure.providers.strategies import DefaultBacktestProvider, DefaultStrategyProvider
+    from app.modules.strategy.services.strategy.strategy_service import StrategyApplicationService
+    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
     mp = get_market_data_provider()
     return StrategyApplicationService(
         strategy_provider=DefaultStrategyProvider(market_provider=mp),
@@ -76,9 +76,10 @@ register_factory("tool_facade_service", _make_tool_facade_service)
 
 
 def _make_qlib_pipeline_service(reg: Any) -> Any:
-    from app.modules.data.services.qlib_pipeline_service import QlibPipelineService
-    from app.config import get_settings
     from pathlib import Path
+
+    from app.config import get_settings
+    from app.modules.data.services.qlib_pipeline_service import QlibPipelineService
 
     class _StubDataAccess:
         def fetch_daily_bars(self, symbols, market, start_date, end_date):
@@ -232,9 +233,13 @@ register_factory("notification_service", _make_notification_service)
 
 
 def _make_investment_manager_service(reg: Any) -> Any:
-    from app.modules.execution.services.investment_manager_service import InvestmentManagerService
-    from app.infrastructure.repositories.deps import create_investment_manager_repository, create_stock_cache, create_signal_flag_pool_repository
     from app.config import get_settings
+    from app.infrastructure.repositories.deps import (
+        create_investment_manager_repository,
+        create_signal_flag_pool_repository,
+        create_stock_cache,
+    )
+    from app.modules.execution.services.investment_manager_service import InvestmentManagerService
     settings = get_settings()
     sf = getattr(reg, "_session_factory", None)
     repo = create_investment_manager_repository(settings, session_factory=sf)
@@ -249,9 +254,9 @@ register_factory("investment_manager_service", _make_investment_manager_service)
 
 
 def _make_moments_service(reg: Any) -> Any:
-    from app.modules.data.services.moments_service import MomentsService
-    from app.infrastructure.repositories.deps import create_moments_repository
     from app.config import get_settings
+    from app.infrastructure.repositories.deps import create_moments_repository
+    from app.modules.data.services.moments_service import MomentsService
     settings = get_settings()
     sf = getattr(reg, "_session_factory", None)
     repo = create_moments_repository(settings, session_factory=sf)
@@ -265,9 +270,9 @@ def _make_moments_service(reg: Any) -> Any:
 
 
 def _make_signal_observation_service(reg: Any) -> Any:
-    from app.modules.strategy.services.strategy.signal_observation_service import SignalObservationService
-    from app.infrastructure.repositories.deps import create_signal_observation_repository
     from app.config import get_settings
+    from app.infrastructure.repositories.deps import create_signal_observation_repository
+    from app.modules.strategy.services.strategy.signal_observation_service import SignalObservationService
     get_settings()
     sf = getattr(reg, "_session_factory", None)
     repo = create_signal_observation_repository(sf)
@@ -278,8 +283,8 @@ register_factory("signal_observation_service", _make_signal_observation_service)
 
 
 def _make_ten_kings_sniper_service(reg: Any) -> Any:
-    from app.modules.execution.services.ten_kings_sniper_service import TenKingsSniperService
     from app.config import get_settings
+    from app.modules.execution.services.ten_kings_sniper_service import TenKingsSniperService
     try:
         from app.infrastructure.repositories.deps import create_sniper_repository
     except ImportError:
@@ -294,8 +299,8 @@ register_factory("ten_kings_sniper_service", _make_ten_kings_sniper_service)
 
 
 def _make_hot_sector_storage_service(reg: Any) -> Any:
-    from app.modules.market_data.services.hot_sector_storage_service import HotSectorStorageService
     from app.config import get_settings
+    from app.modules.market_data.services.hot_sector_storage_service import HotSectorStorageService
     settings = get_settings()
     return HotSectorStorageService(settings=settings)
 
@@ -304,6 +309,7 @@ register_factory("hot_sector_storage_service", _make_hot_sector_storage_service)
 
 
 def _make_watchlist_service(reg: Any) -> Any:
+    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
     from app.config import get_settings
     from app.infrastructure.repositories.deps import (
         create_stock_group_repository,
@@ -311,7 +317,6 @@ def _make_watchlist_service(reg: Any) -> Any:
     )
     from app.modules.market_data.services.watchlist_service import WatchlistApplicationService
     from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
-    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
 
     settings = get_settings()
     sf = resolve_registry_session_factory(reg)
@@ -367,10 +372,10 @@ register_factory("watchlist_experience_service", _make_watchlist_experience_serv
 
 
 def _make_signal_flag_service(reg: Any) -> Any:
+    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
     from app.config import get_settings
     from app.infrastructure.repositories.deps import create_signal_flag_pool_repository, create_stock_cache
     from app.modules.strategy.services.strategy.signal_flag_service import SignalFlagScannerService
-    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
 
     settings = get_settings()
     sf = resolve_registry_session_factory(reg)
@@ -386,10 +391,10 @@ register_factory("signal_flag_service", _make_signal_flag_service)
 
 
 def _make_stock_group_service(reg: Any) -> Any:
+    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
     from app.config import get_settings
     from app.infrastructure.repositories.deps import create_stock_group_repository
     from app.modules.market_data.services.stock_group_service import StockGroupApplicationService
-    from app.bootstrap_components.service_wiring import resolve_registry_session_factory
 
     settings = get_settings()
     sf = resolve_registry_session_factory(reg)

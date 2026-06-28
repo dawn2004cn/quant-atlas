@@ -12,9 +12,8 @@ from __future__ import annotations
 from typing import Any
 
 from ..celery_app import celery as _celery
-from ..infrastructure.repositories.deps import create_tdx_dayk_sync_service
-
 from ..core.logger import get_logger
+from ..infrastructure.repositories.deps import create_tdx_dayk_sync_service
 
 logger = get_logger(__name__)
 

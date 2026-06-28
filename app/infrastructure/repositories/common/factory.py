@@ -5,10 +5,9 @@ based on the database type configuration. New database backends (e.g., PostgreSQ
 can be added by creating new implementation classes and registering them here.
 """
 
+from collections.abc import Callable
 from enum import Enum
 from typing import Any
-from collections.abc import Callable
-
 
 
 class RepositoryType(Enum):

@@ -1,38 +1,38 @@
 """Domain services - pure business logic without IO."""
 
-from .domain_services import RiskDomainService, SignalDomainService, MarketDomainService
+from .domain_services import MarketDomainService, RiskDomainService, SignalDomainService
 from .market_analysis_service import MarketAnalysisDomainService
+from .portfolio_calculation_service import (
+    PortfolioCalculationService,
+    PortfolioSnapshot,
+    PortfolioValuator,
+    Position,
+    PositionSide,
+    PositionSnapshot,
+    RiskMetrics,
+)
 from .rdagent_config import parse_rdagent_loop_params
 from .regime_manager import MarketRegimeManager
-from .stock_screening_service import (
-    ScreeningCriteria,
-    PriceRange,
-    ScreeningRule,
-    StockScreeningService,
-    ScreeningRuleFactory,
-)
 from .signal_generation_service import (
-    SignalStrength,
-    SignalSource,
-    SignalConfig,
     GeneratedSignal,
-    SignalGenerationService,
     SignalAggregator,
+    SignalConfig,
+    SignalGenerationService,
+    SignalSource,
+    SignalStrength,
 )
-from .portfolio_calculation_service import (
-    PositionSide,
-    Position,
-    PositionSnapshot,
-    PortfolioSnapshot,
-    RiskMetrics,
-    PortfolioCalculationService,
-    PortfolioValuator,
+from .stock_screening_service import (
+    PriceRange,
+    ScreeningCriteria,
+    ScreeningRule,
+    ScreeningRuleFactory,
+    StockScreeningService,
 )
 from .trading_policy_service import (
+    PolicyResult,
     PolicyViolation,
     TradingAction,
     TradingPolicy,
-    PolicyResult,
     TradingPolicyService,
     TradingRuleEngine,
 )

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Smart daily briefing with generative narrative layer."""
 
 from flask import Blueprint, request, send_file
@@ -8,9 +9,9 @@ from ...application.errors import ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
 from .common import ok_response, parse_market
+from .decorators import service_fallback
 from .request_parsers import parse_int_param
 from .v1_context import ApiV1Context
-from .decorators import service_fallback
 
 
 def _uid() -> int:

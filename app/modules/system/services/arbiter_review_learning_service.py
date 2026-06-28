@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Arbiter review learning — adjust debate stance weights from outcome feedback."""
 
 import json
@@ -95,7 +96,7 @@ class ArbiterReviewLearningService:
                     market=market,
                     pnl_pct=pnl_pct,
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.debug("arbiter_review cross_team pattern: %s", exc)
         logger.info(
             "Arbiter review recorded sym=%s predicted=%s outcome=%s adj=%s",

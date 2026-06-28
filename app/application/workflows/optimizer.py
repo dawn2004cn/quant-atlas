@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Workflow optimizer — track execution metrics and adapt parameters.
 
 Records per-(workflow_type, step_name) stats and adjusts timeouts

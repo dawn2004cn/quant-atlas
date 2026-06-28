@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 # -*- coding: utf-8 -*-
 """Wiring helpers — dependency injection binding layer.
 
@@ -26,8 +27,8 @@ warnings.warn(
 """Bound portfolio optimization infrastructure for application services."""
 
 from collections.abc import Callable
-from app.domain.ports.portfolio_ports import AttributionAnalysisPort, PortfolioOptimizerPort
 
+from app.domain.ports.portfolio_ports import AttributionAnalysisPort, PortfolioOptimizerPort
 
 _create_markowitz: Callable[[], PortfolioOptimizerPort] | None = None
 _create_black_litterman: Callable[[], PortfolioOptimizerPort] | None = None

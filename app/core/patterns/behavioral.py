@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """
 Behavioral Design Patterns
 ==========================
@@ -16,11 +17,10 @@ Behavioral Design Patterns
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Generic, TypeVar
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
-
+from typing import Any, Generic, TypeVar
 
 T = TypeVar('T')
 

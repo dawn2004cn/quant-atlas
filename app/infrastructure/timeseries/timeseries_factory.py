@@ -1,18 +1,19 @@
 from __future__ import annotations
+
 """Build QuestDB / ClickHouse adapters from environment settings."""
 
 from typing import Any
 
 from app.domain.ports.timeseries_port import TimeSeriesDBPort
-from app.infrastructure.timeseries.adapters import (
-    ClickHouseAdapter,
-    QuestDBAdapter,
-)
 from app.infrastructure.database.timeseries_settings import (
     ClickHouseSettings,
     QuestDBSettings,
     load_clickhouse_settings,
     load_questdb_settings,
+)
+from app.infrastructure.timeseries.adapters import (
+    ClickHouseAdapter,
+    QuestDBAdapter,
 )
 
 

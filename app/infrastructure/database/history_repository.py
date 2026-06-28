@@ -1,15 +1,16 @@
 from __future__ import annotations
+
 """History Repository - Single Responsibility for K-line Data."""
 
 
+import logging
 from typing import Any
 
 from app.core.sql_safety import safe_sql_identifier
+
 from ..mappers.symbol_normalizer import SymbolNormalizer
 from .adapters import DatabaseAdapter
 
-
-import logging
 logger = logging.getLogger(__name__)
 MARKET_TABLES = {
     "sh": "stock_history_sh",
@@ -57,7 +58,7 @@ class HistoryRepository:
         ]
         ph = self._ph
         if self._ph == "?":
-            sql = f"""
+            sql = f"""  # noqa: S608 — table name is a safe literal, values use parameterized placeholders
                 INSERT INTO {table_name} (stock_code, date, open, high, low, close, volume, amount)
                 VALUES ({ph},{ph},{ph},{ph},{ph},{ph},{ph},{ph})
                 ON CONFLICT(stock_code, date) DO UPDATE SET
@@ -65,7 +66,7 @@ class HistoryRepository:
                     close=excluded.close, volume=excluded.volume, amount=excluded.amount
             """
         else:
-            sql = f"""
+            sql = f"""  # noqa: S608 — table name is a safe literal, values use parameterized placeholders
                 INSERT INTO {table_name} (stock_code, date, open, high, low, close, volume, amount)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
                 ON DUPLICATE KEY UPDATE
@@ -82,7 +83,7 @@ class HistoryRepository:
         e0 = str(end_date or "")[:10]
 
         ph = self._ph
-        sql = f"""
+        sql = f"""  # noqa: S608 — table name is a safe literal, values use parameterized placeholders
             SELECT stock_code, date, open, high, low, close, volume, amount
             FROM {table_name}
             WHERE stock_code = {ph} AND date >= {ph} AND date <= {ph}
@@ -98,7 +99,7 @@ class HistoryRepository:
         table_name = self._get_table_name(normalized)
 
         ph = self._ph
-        sql = f"""
+        sql = f"""  # noqa: S608 — table name is a safe literal, values use parameterized placeholders
             SELECT stock_code, date, open, high, low, close, volume, amount
             FROM {table_name}
             WHERE stock_code = {ph}

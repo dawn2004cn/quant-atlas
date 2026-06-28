@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 """DTOs for Market Scanner services."""
 
 
 from datetime import datetime
+
 from pydantic import BaseModel
 
 

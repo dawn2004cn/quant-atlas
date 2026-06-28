@@ -49,6 +49,8 @@ def _register_portfolio_risk_routes(blueprint: Blueprint, ctx: Any | None = None
         ctx = _MinimalContext()
 
     # Import route registration functions (side-effect: registers routes on blueprint)
+    import logging
+
     from app.presentation.api.routes_v1_portfolio import (
         register_portfolio_routes,
     )
@@ -67,8 +69,6 @@ def _register_portfolio_risk_routes(blueprint: Blueprint, ctx: Any | None = None
     from app.presentation.api.routes_v1_trade_plan import (
         register_trade_plan_routes,
     )
-
-    import logging
     logger = logging.getLogger(__name__)
 
     # Register each route group, skipping if dependencies missing
@@ -173,7 +173,7 @@ def create_portfolio_risk_app() -> Any:
 
         return app
     except ImportError:
-        raise RuntimeError("Flask is required for portfolio/risk service")
+        raise RuntimeError("Flask is required for portfolio/risk service") from None
 
 
 __all__ = [

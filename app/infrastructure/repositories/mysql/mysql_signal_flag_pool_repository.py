@@ -1,15 +1,15 @@
 """MySQL implementation for SignalFlagPoolRepository."""
 
 import json
+import logging
 from datetime import datetime
 from typing import Any
-from sqlalchemy import select, delete, desc
 
-from ...database.mysql_client import mysql_get_connection
+from sqlalchemy import delete, desc, select
+
 from ...database.models.advanced import SignalFlagPool as DBPool
+from ...database.mysql_client import mysql_get_connection
 
-
-import logging
 logger = logging.getLogger(__name__)
 class MySQLSignalFlagPoolRepository:
     """MySQL implementation of SignalFlagPoolRepository."""

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Domain Events - implements Observer Pattern for event-driven architecture.
 
 This module implements the event-driven architecture from midify_plan7.md:
@@ -12,12 +13,13 @@ Following Observer Pattern for loose coupling between components.
 
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from logging import INFO
 from datetime import datetime
 from enum import Enum
+from logging import INFO
 from typing import Any
-from collections.abc import Callable
+
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

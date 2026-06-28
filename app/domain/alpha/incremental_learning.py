@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Incremental Learning - 模型增量学习 / Warm Start.
 
 实现 Section 2C 的在线学习：只训练模型增量（Warm Start），而非全量重训。
@@ -165,7 +166,7 @@ class IncrementalTrainer:
         """列出所有检查点."""
         results = []
 
-        for model_id, ckpt in self._checkpoints.items():
+        for _model_id, ckpt in self._checkpoints.items():
             meta = ckpt.load()
             if meta:
                 results.append(meta)

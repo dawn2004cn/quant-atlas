@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Signal Generation Domain Service.
 
 Pure domain logic for signal creation and quality scoring.

@@ -1,11 +1,11 @@
 from __future__ import annotations
+
 """Capability registry – service locator & self-registration decorator."""
 
 
 from typing import Any
 
 from app.domain.capabilities.base import BaseCapability
-
 
 # ── global class registry (decorator-populated) ──────────────────────────
 _registry: dict[str, type[BaseCapability]] = {}

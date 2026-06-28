@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Port for pre-trade signal validation."""
 
 from typing import Protocol

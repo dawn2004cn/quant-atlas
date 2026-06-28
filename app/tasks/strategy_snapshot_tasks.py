@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """Celery task: capture strategy deploy snapshot on pipeline deploy."""
 
 from typing import Any
 
-from app.modules.strategy.services.strategy.strategy_snapshot_service import StrategySnapshotService
 from app.core.logger import get_logger
+from app.modules.strategy.services.strategy.strategy_snapshot_service import StrategySnapshotService
 
 logger = get_logger(__name__)
 

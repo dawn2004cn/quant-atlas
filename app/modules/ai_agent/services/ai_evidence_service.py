@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """AI evidence and trust service.
 
 Builds an auditable evidence bundle for AI conclusions without triggering new
@@ -143,7 +145,7 @@ class AiEvidenceService:
                 detail = raw.model_dump()
             elif isinstance(raw, dict):
                 detail = raw
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("hypothesis eval detail unavailable for %s: %s", symbol, exc)
         dto = svc.evaluate(
             symbol=symbol,
@@ -209,7 +211,7 @@ class AiEvidenceService:
             quotes = self._market_service.list_quotes(market, [symbol])
             if quotes:
                 return _to_dict(quotes[0])
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("AI evidence quote unavailable for %s: %s", symbol, exc)
         return {"code": symbol, "name": symbol}
 
@@ -228,7 +230,7 @@ class AiEvidenceService:
                     }
                 )
             return rows
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("AI evidence news unavailable for %s: %s", symbol, exc)
             return []
 
@@ -254,7 +256,7 @@ class AiEvidenceService:
             return {"available": False, "items": []}
         try:
             rows = self._observations.list_observations(status="all", refresh=True).get("items") or []
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("AI evidence observations unavailable: %s", exc)
             rows = []
         clean_symbol = str(symbol or "").strip().upper()
@@ -384,7 +386,7 @@ class AiEvidenceService:
             raw = json.loads(self._feedback_store_path.read_text(encoding="utf-8"))
             if isinstance(raw, list):
                 return [dict(x) for x in raw if isinstance(x, dict)]
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("AI evidence feedback read failed: %s", exc)
         return []
 

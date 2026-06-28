@@ -1,29 +1,30 @@
 from __future__ import annotations
+
 """Portfolio management application service."""
 
 
 from datetime import datetime
 from typing import Any
 
+from app.application.dto.portfolio_dto import (
+    AttributionResultDTO,
+    OptimizationRequestDTO,
+    OptimizationResultDTO,
+    PortfolioPositionDTO,
+    PortfolioSnapshotDTO,
+    RebalanceAlertDTO,
+)
 from app.core.base_service import BaseApplicationService
 from app.domain.enums import MarketCode
 from app.domain.ports import (
-    PortfolioOptimizerPort,
     AttributionAnalysisPort,
-    PortfolioAsset,
     MarketDataProvider,
+    PortfolioAsset,
+    PortfolioOptimizerPort,
 )
 from app.modules.system.services.helpers.portfolio_access import (
     create_default_attribution_analysis,
     create_markowitz_optimizer,
-)
-from app.application.dto.portfolio_dto import (
-    PortfolioSnapshotDTO,
-    OptimizationRequestDTO,
-    OptimizationResultDTO,
-    RebalanceAlertDTO,
-    AttributionResultDTO,
-    PortfolioPositionDTO,
 )
 
 

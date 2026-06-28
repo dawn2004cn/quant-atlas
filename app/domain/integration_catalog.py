@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """上游项目 → Quant Atlas 映射目录（领域层纯数据，无 Web 依赖）。
 
 用于在 UI/文档中统一说明「集成落点」与面向对象六项原则的对应关系：
@@ -13,7 +14,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Literal
-
 
 IntegrationLayer = Literal["data", "execution", "analytics", "agents", "payments", "ops"]
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """JSONL persistence for SequenceChain provenance records."""
 
 import json

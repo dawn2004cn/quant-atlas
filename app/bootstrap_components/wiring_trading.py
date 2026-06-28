@@ -60,8 +60,11 @@ def _make_diagnosis_report_service(reg):
 register_factory("diagnosis_report_service", _make_diagnosis_report_service)
 
 def _make_portfolio_service(reg: Any) -> Any:
-    from app.modules.system.services.helpers.market_data_provider import NullMarketDataProvider, get_market_data_provider
     from app.modules.portfolio_risk.services.portfolio_service import PortfolioApplicationService
+    from app.modules.system.services.helpers.market_data_provider import (
+        NullMarketDataProvider,
+        get_market_data_provider,
+    )
     try:
         market_provider = get_market_data_provider()
     except RuntimeError:
@@ -114,8 +117,8 @@ register_factory("risk_application_service", _make_trading_risk_service)
 
 
 def _make_trading_execution_service(reg: Any) -> Any:
-    from app.modules.execution.services.execution_service import ExecutionService
     from app.config import get_settings
+    from app.modules.execution.services.execution_service import ExecutionService
 
     settings = get_settings()
     return ExecutionService(settings=settings)
@@ -144,8 +147,8 @@ register_factory("one_click_service", _make_one_click_service)
 
 
 def _make_active_job_tracker_service(reg: Any) -> Any:
-    from app.modules.system.services.system.active_job_tracker_service import ActiveJobTrackerService
     from app.bootstrap_components.wiring_market import _resolve_task_message_store
+    from app.modules.system.services.system.active_job_tracker_service import ActiveJobTrackerService
 
     return ActiveJobTrackerService(task_message_store=_resolve_task_message_store(reg))
 

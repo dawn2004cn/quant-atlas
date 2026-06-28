@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Request Validation.
 
 Schema validation for API requests.
@@ -10,10 +11,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from app.presentation.api_errors import ValidationException
-
-
 from app.core.logger import get_logger
+from app.presentation.api_errors import ValidationException
 
 logger = get_logger(__name__)
 
@@ -153,7 +152,7 @@ class DateRangeValidator:
             start = datetime.fromisoformat(start_date)
             end = datetime.fromisoformat(end_date)
         except ValueError:
-            raise ValidationException("Invalid date format (use ISO 8601)")
+            raise ValidationException("Invalid date format (use ISO 8601)") from None
 
         if start > end:
             raise ValidationException("start_date must be before end_date")

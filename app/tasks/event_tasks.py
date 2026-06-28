@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Celery tasks for async event processing.
 
 Deprecated — replaced by core/event_bus.py dataclass events + bridge.
@@ -8,8 +9,9 @@ Kept for backward compatibility; consumers should migrate to
 
 
 
-from ..celery_app import celery_app
 from app.core.logger import get_logger
+
+from ..celery_app import celery_app
 
 logger = get_logger(__name__)
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """UseCase base classes - Application business logic abstraction."""
 
 

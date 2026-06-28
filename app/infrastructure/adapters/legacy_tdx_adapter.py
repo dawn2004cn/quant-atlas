@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """TDX adapter with real TDX connection."""
 
 

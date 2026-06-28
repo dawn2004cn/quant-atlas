@@ -1,19 +1,22 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """Strategy selection and backtest service with market sentiment awareness."""
 
 
-import pandas as pd
+import logging
 from datetime import datetime, timedelta
 from typing import Any
 
+import pandas as pd
+
+from app.application.dto.strategy_dto import ScreeningCriteria
 from app.core.base_service import BaseApplicationService
 from app.domain.enums import MarketCode
-from app.domain.ports import BacktestProvider, IndicatorProvider, StrategyProvider, MarketDataProvider
+from app.domain.ports import BacktestProvider, IndicatorProvider, MarketDataProvider, StrategyProvider
 from app.domain.services.regime_manager import MarketRegimeManager
-from app.application.dto.strategy_dto import ScreeningCriteria
 
-import logging
 logger = logging.getLogger(__name__)
 class StrategyApplicationService(BaseApplicationService):
     """Application service for selection and backtest use cases."""

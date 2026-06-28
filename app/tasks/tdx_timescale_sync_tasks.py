@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 """Celery: TDX lday → TimescaleDB only (split from TDX dayk MySQL/qlib pipeline)."""
 
 from typing import Any
 
-from app.modules.data.services.tdx_timescale_sync_service import run_tdx_timescale_sync
 from app.core.logger import get_logger
+from app.modules.data.services.tdx_timescale_sync_service import run_tdx_timescale_sync
 
 logger = get_logger(__name__)
 

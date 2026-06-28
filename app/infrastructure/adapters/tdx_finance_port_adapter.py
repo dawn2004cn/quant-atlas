@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Infrastructure adapter for ``TdxFinancePort``."""
 
 from app.domain.ports.tdx_finance_port import TdxFinancePort, TdxFinanceSnapshot

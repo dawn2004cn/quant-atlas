@@ -20,13 +20,13 @@ import time
 from pathlib import Path
 from typing import Any
 
+from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.backends import default_backend
 
-from app.domain.exceptions import AuthorizationError, ValidationError
 from app.core.logger import get_logger
 from app.core.runtime_config import get_runtime
+from app.domain.exceptions import AuthorizationError, ValidationError
 
 logger = get_logger(__name__)
 
@@ -279,7 +279,7 @@ def decode_access_token(token: str) -> dict[str, Any]:
     try:
         header = json.loads(_b64url_decode(header_b64))
     except Exception:
-        raise AuthorizationError("invalid_token")
+        raise AuthorizationError("invalid_token") from None
     if not isinstance(header, dict):
         raise AuthorizationError("invalid_token")
     token_alg = str(header.get("alg", "HS256")).upper()
@@ -316,7 +316,7 @@ def decode_refresh_token(token: str) -> dict[str, Any]:
 
 def _rs256_verify(signing_input: str, signature_b64: str) -> dict | None:
     payload = None
-    for ver, pub_key in _rsa_public_key_versions().items():
+    for _ver, pub_key in _rsa_public_key_versions().items():
         try:
             sig_bytes = _b64url_decode(signature_b64)
             pub_key.verify(
@@ -334,7 +334,7 @@ def _hs256_verify(
     signing_input: str, signature_b64: str, payload_b64: str
 ) -> dict | None:
     payload = None
-    for ver, key_bytes in _jwt_key_versions().items():
+    for _ver, key_bytes in _jwt_key_versions().items():
         expected = _b64url_encode(
             hmac.new(key_bytes, signing_input.encode(), hashlib.sha256).digest()
         )

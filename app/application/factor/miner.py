@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 """Automated Factor Mining Engine."""
 
 from typing import Any
+
 import pandas as pd
+
 from app.application.factor.registry import factor_registry
-
-
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

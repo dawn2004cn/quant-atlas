@@ -1,14 +1,15 @@
 from __future__ import annotations
+
 from app.domain.dto.service_result import GenericResponseDTO
+
 """FinGPT 应用服务：应用层对 FinGPT 持久化的唯一编排入口（写与集成栈探测）。"""
 
 
 from typing import Any
 
-
+from app.core.base_service import BaseApplicationService
 from app.domain.entities import FinGPTPrediction
 from app.domain.ports import FinGPTPersistencePort
-from app.core.base_service import BaseApplicationService
 
 from ....core.logger import get_logger
 
@@ -58,7 +59,7 @@ class FinGPTApplicationService(BaseApplicationService):
         try:
             self._persistence.save_prediction(pred)
             return {"ok": True}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("FinGPT record_prediction failed: %s", exc)
             return {"ok": False, "error": str(exc)}
 
@@ -69,7 +70,7 @@ class FinGPTApplicationService(BaseApplicationService):
         try:
             self._persistence.save_sentiment(ticker, sentiment_data)
             return {"ok": True}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("FinGPT record_sentiment failed: %s", exc)
             return {"ok": False, "error": str(exc)}
 
@@ -80,7 +81,7 @@ class FinGPTApplicationService(BaseApplicationService):
             return {"ok": False, "skipped": True, "reason": "mysql_disabled_or_no_repository", "write_policy": policy}
         try:
             lim = max(1, min(int(limit), 50))
-        except Exception:  # noqa: BLE001
+        except Exception:
             lim = 5
         try:
             return {
@@ -90,7 +91,7 @@ class FinGPTApplicationService(BaseApplicationService):
                 "recent_sentiment_tickers": self._persistence.recent_sentiment_tickers(lim),
                 "write_policy": policy,
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("FinGPT recent_tickers failed: %s", exc)
             return {"ok": False, "error": str(exc), "limit": lim, "write_policy": policy}
 
@@ -113,7 +114,7 @@ class FinGPTApplicationService(BaseApplicationService):
                 since_hours=since_hours,
             )
             return {"ok": True, "items": rows, "limit": int(min(max(int(limit), 1), 200)), "write_policy": policy}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("FinGPT list_recent_predictions failed: %s", exc)
             return {"ok": False, "error": str(exc), "items": [], "write_policy": policy}
 
@@ -136,7 +137,7 @@ class FinGPTApplicationService(BaseApplicationService):
                 since_hours=since_hours,
             )
             return {"ok": True, "items": rows, "limit": int(min(max(int(limit), 1), 200)), "write_policy": policy}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("FinGPT list_recent_sentiments failed: %s", exc)
             return {"ok": False, "error": str(exc), "items": [], "write_policy": policy}
 
@@ -153,7 +154,7 @@ class FinGPTApplicationService(BaseApplicationService):
                 "sentiments": self._persistence.duplicate_sentiment_groups(ticker=ticker, sample=sample),
                 "write_policy": policy,
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("FinGPT dupes_preview failed: %s", exc)
             return {"ok": False, "error": str(exc), "write_policy": policy}
 
@@ -167,7 +168,7 @@ class FinGPTApplicationService(BaseApplicationService):
             pred = self._persistence.dedupe_predictions(ticker=t)
             sent = self._persistence.dedupe_sentiments(ticker=t)
             return {"ok": True, "ticker_filter": t, "predictions": pred, "sentiments": sent, "write_policy": policy}
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("FinGPT dedupe_apply failed: %s", exc)
             return {"ok": False, "error": str(exc), "write_policy": policy}
 
@@ -197,6 +198,6 @@ class FinGPTApplicationService(BaseApplicationService):
                 "recent_sentiment_tickers": s_tickers,
                 "write_policy": policy,
             }
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("FinGPT probe_integration_stack_layer failed: %s", exc)
             return {"ok": False, "error": str(exc), "write_policy": policy}

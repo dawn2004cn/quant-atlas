@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """AgentLoop: ReAct core loop.
 
 Five-layer context management:
@@ -17,17 +18,17 @@ import concurrent.futures
 import json
 import os
 import time as _time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
-from collections.abc import Callable
 
-from app.infrastructure.agent.swarm.context import ContextBuilder
-from app.infrastructure.agent.swarm.workspace_memory import WorkspaceMemory
-from app.infrastructure.agent.swarm.tools_base import ToolRegistry
-from app.infrastructure.agent.trace import TraceWriter
 from app.infrastructure.agent.backtest.state import RunStateStore
 from app.infrastructure.agent.providers.chat import ChatLLM
+from app.infrastructure.agent.swarm.context import ContextBuilder
 from app.infrastructure.agent.swarm.tools.background_tools import get_background_manager
+from app.infrastructure.agent.swarm.tools_base import ToolRegistry
+from app.infrastructure.agent.swarm.workspace_memory import WorkspaceMemory
+from app.infrastructure.agent.trace import TraceWriter
 
 RUNS_DIR = Path(__file__).resolve().parents[2] / "runs"
 TOKEN_THRESHOLD = int(os.getenv("TOKEN_THRESHOLD", "40000"))
@@ -385,9 +386,9 @@ class AgentLoop:
                 # Streaming output + collect thinking text
                 thinking_chunks: list[str] = []
 
-                def _on_text_chunk(delta: str) -> None:
-                    thinking_chunks.append(delta)
-                    self._emit("text_delta", {"delta": delta, "iter": iteration})
+                def _on_text_chunk(delta: str, _chunks=thinking_chunks, _iter=iteration) -> None:
+                    _chunks.append(delta)
+                    self._emit("text_delta", {"delta": delta, "iter": _iter})
 
                 response = self.llm.stream_chat(
                     messages,

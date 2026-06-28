@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Repository ports for domain persistence.
 
 These are abstract interfaces that infrastructure repositories must implement.

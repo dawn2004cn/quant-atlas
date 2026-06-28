@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Gate v2：从 RD bundle 抽取主因子任务，校验表达式非空与 IC 元数据（不执行 Qlib Dataset）。"""
 
 
