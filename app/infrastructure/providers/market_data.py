@@ -449,6 +449,22 @@ class MultiSourceMarketProvider(MarketDataProvider):
                 logger.debug(f"yfinance fetch failed for crypto {sym}: {e}")
         return quotes
 
+    def _fetch_google_finance(self, symbols: list[str]) -> list[StockQuote]:
+        """Use Google Finance to fetch US stock quotes as fallback."""
+        if _cb_check("gf_us", _yfinance_failures, _yfinance_until, 0):
+            return []
+
+        quotes = []
+        for sym in symbols:
+            try:
+                from app.infrastructure.providers.google_finance_provider import _get_google_finance_quotes
+                gf_quotes = _get_google_finance_quotes([sym])
+                quotes.extend(gf_quotes)
+            except Exception as e:
+                logger.debug(f"Google Finance fetch failed for {sym}: {e}")
+                continue
+        return quotes
+
     def _update_multi_level_cache(self, market: MarketCode, quotes: list[StockQuote]):
         now = datetime.now()
         l2_rows = []

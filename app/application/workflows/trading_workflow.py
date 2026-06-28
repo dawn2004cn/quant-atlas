@@ -43,9 +43,14 @@ from app.domain.services.trading_policy_service import (
     TradingPolicy,
     TradingPolicyService,
 )
-from app.infrastructure.capabilities.registry import CapabilityRegistry
 
 from .base_workflow import BaseWorkflow
+
+
+def _CapabilityRegistry():
+    """Lazy import via factory to avoid app->infra module-level dependency."""
+    from app.infrastructure.capabilities.registry import CapabilityRegistry as _CR
+    return _CR()
 
 logger = get_logger(__name__)
 

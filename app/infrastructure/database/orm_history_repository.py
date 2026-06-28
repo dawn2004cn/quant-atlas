@@ -130,7 +130,7 @@ class OrmHistoryRepository:
             for table in list(MARKET_TABLES.values()) + ["stock_history"]:
                 try:
                     count = session.execute(
-                        text(f"SELECT COUNT(*) FROM {table}")
+                        text(f"SELECT COUNT(*) FROM {table}")  # noqa: S608 — table is from hardcoded MARKET_TABLES
                     ).scalar()
                     total += count or 0
                 except Exception as e:

@@ -12,7 +12,12 @@ from app.application.workflows.optimizer import WorkflowOptimizer
 from app.application.workflows.research_workflow import ResearchWorkflow
 from app.application.workflows.trading_workflow import TradingWorkflow
 from app.domain.enums import MarketCode
-from app.infrastructure.capabilities.registry import CapabilityRegistry
+
+
+def _CapabilityRegistry():
+    """Lazy import via factory to avoid app->infra module-level dependency."""
+    from app.infrastructure.capabilities.registry import CapabilityRegistry as _CR
+    return _CR()
 
 
 class WorkflowService:

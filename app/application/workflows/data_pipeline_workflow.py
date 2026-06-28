@@ -7,7 +7,12 @@ from typing import Any
 
 from app.application.workflows.base_workflow import BaseWorkflow
 from app.domain.agent_workflow import WorkflowContext
-from app.infrastructure.capabilities.registry import CapabilityRegistry
+
+
+def _CapabilityRegistry():
+    """Lazy import via factory to avoid app->infra module-level dependency."""
+    from app.infrastructure.capabilities.registry import CapabilityRegistry as _CR
+    return _CR()
 
 
 class DataPipelineWorkflow(BaseWorkflow):
@@ -27,7 +32,7 @@ class DataPipelineWorkflow(BaseWorkflow):
         workflow_id: str,
         pipeline_name: str,
         symbols: list[str] | None = None,
-        capability_registry: CapabilityRegistry | None = None,
+        capability_registry: Any | None = None,
         **kwargs: Any,
     ) -> None:
         self._symbols = symbols or []

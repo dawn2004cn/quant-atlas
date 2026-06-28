@@ -8,11 +8,16 @@ from typing import Any
 from app.core.logger import get_logger
 from app.infrastructure.cache.coalesce import get_or_set_coalesced
 from app.infrastructure.cache.global_cache import get_global_cache
-from app.infrastructure.memory_cache import MemoryCache, get_cache
 
 logger = get_logger(__name__)
 
 _manager: CacheManager | None = None
+
+
+def _get_memory_cache():
+    """Lazy import to avoid circular import."""
+    from app.infrastructure.memory_cache import MemoryCache, get_cache
+    return MemoryCache, get_cache
 
 
 class CacheManager:
@@ -20,10 +25,11 @@ class CacheManager:
 
     def __init__(
         self,
-        memory: MemoryCache | None = None,
+        memory: Any | None = None,
         redis_ttl: int = 300,
         memory_ttl: int = 60,
     ) -> None:
+        MemoryCache, get_cache = _get_memory_cache()
         self._memory = memory or get_cache()
         self._redis = get_global_cache()
         self._redis_ttl = redis_ttl

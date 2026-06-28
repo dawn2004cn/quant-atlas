@@ -9,7 +9,6 @@ from app.application.errors import ValidationError
 from app.domain.enums import MarketCode
 from app.facade._helpers import observe_facade, parse_market, validation_error_from_pydantic
 from app.facade.dto.backtest_facade_dto import BacktestResultDTO
-from app.infrastructure.mlflow.backtest_log_hook import attach_mlflow_run_id
 
 
 class BacktestFacade:

@@ -7,11 +7,21 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from app.domain.agent_workflow import StepStatus, WorkflowBuilder, WorkflowState
-from app.infrastructure.capabilities.registry import CapabilityRegistry
-from app.infrastructure.messaging.task_progress_store import TaskProgressStore
 
 from .healing import CircuitBreaker, RetryPolicy, with_retry
 from .optimizer import WorkflowOptimizer
+
+
+def _CapabilityRegistry():
+    """Lazy import via factory to avoid app->infra module-level dependency."""
+    from app.infrastructure.capabilities.registry import CapabilityRegistry as _CR
+    return _CR()
+
+
+def _TaskProgressStore():
+    """Lazy import via factory to avoid app->infra module-level dependency."""
+    from app.infrastructure.messaging.task_progress_store import TaskProgressStore as _TPS
+    return _TPS()
 
 
 class BaseWorkflow(ABC):
@@ -25,15 +35,15 @@ class BaseWorkflow(ABC):
         self,
         workflow_id: str,
         name: str,
-        capability_registry: CapabilityRegistry | None = None,
+        capability_registry: Any | None = None,
         retry_policy: RetryPolicy | None = None,
         circuit_breaker: CircuitBreaker | None = None,
         optimizer: WorkflowOptimizer | None = None,
     ) -> None:
         builder = WorkflowBuilder(workflow_id=workflow_id, name=name)
         self._workflow = builder.build()
-        self._capabilities = capability_registry or CapabilityRegistry()
-        self._progress_store = TaskProgressStore()
+        self._capabilities = capability_registry or _CapabilityRegistry()
+        self._progress_store = _TaskProgressStore()
         self._retry_policy = retry_policy or RetryPolicy()
         self._circuit_breaker = circuit_breaker
         self._optimizer = optimizer

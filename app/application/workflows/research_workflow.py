@@ -9,8 +9,13 @@ from app.application.workflows.base_workflow import BaseWorkflow
 from app.core.event_bus import emit_workflow_completed
 from app.domain.agent_workflow import WorkflowContext
 from app.domain.enums import MarketCode
-from app.infrastructure.capabilities.registry import CapabilityRegistry
 from app.modules.user.services.user.user_knowledge_service import UserKnowledgeService
+
+
+def _CapabilityRegistry():
+    """Lazy import via factory to avoid app->infra module-level dependency."""
+    from app.infrastructure.capabilities.registry import CapabilityRegistry as _CR
+    return _CR()
 
 
 class ResearchWorkflow(BaseWorkflow):

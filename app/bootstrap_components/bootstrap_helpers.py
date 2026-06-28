@@ -34,6 +34,7 @@ def register_data_sources(app: Any = None, settings: Any = None) -> None:
         DataSource(name="tdx_history", type="kline", scope="history", market="CN", priority=90, description="历史K线（通达信）"),
         DataSource(name="akshare_history", type="kline", scope="history", market="CN", priority=70, description="历史K线（AkShare）"),
         DataSource(name="yfinance_us", type="quote", scope="realtime", market="US", priority=80, description="美股实时行情"),
+        DataSource(name="googlefinance_us", type="quote", scope="realtime", market="US", priority=85, description="Google Finance US实时行情"),
         DataSource(name="yfinance_hk", type="quote", scope="realtime", market="HK", priority=80, description="港股实时行情"),
         DataSource(name="qlib_factor", type="factor", scope="batch", market="CN", priority=90, description="Qlib因子数据"),
         DataSource(name="chip_akshare", type="chip", scope="realtime", market="CN", priority=80, description="筹码分布（AkShare）"),

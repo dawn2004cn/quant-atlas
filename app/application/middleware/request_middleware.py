@@ -9,9 +9,24 @@ from functools import wraps
 from typing import Any
 
 from app.core.logger import get_logger
-from app.infrastructure.memory_cache import get_cache
 
 logger = get_logger(__name__)
+
+
+def _get_memory_cache():
+    """Lazy import to avoid application -> infrastructure at module level."""
+    from app.infrastructure.memory_cache import get_cache
+    return get_cache()
+
+
+# Deferred resolution
+_get_cache = None
+
+
+def _resolve_cache():
+    global _get_cache
+    if _get_cache is None:
+        _get_cache = _get_memory_cache()
 
 
 async def timing_middleware(func: Callable) -> Callable:
@@ -38,7 +53,8 @@ class RequestCache:
 
     def __init__(self, ttl_seconds: int = 60):
         self._ttl = ttl_seconds
-        self._l1 = get_cache()
+        _resolve_cache()
+        self._l1 = _get_cache
 
     def _key(self, key: str) -> str:
         return f"{self._PREFIX}{key}"

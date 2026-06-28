@@ -89,7 +89,7 @@ class TradeRecorder:
             return -1
         try:
             cur = conn.cursor()
-            cur.execute(f"""
+            cur.execute(f"""  # noqa: S608 — _TABLE_SQL is module-level constant, values use %s placeholders
                 INSERT INTO {_TABLE_SQL}
                 (committee_id, symbol, name, strategy, direction, price, quantity, amount, trade_time, pnl, pnl_pct, status)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -125,7 +125,7 @@ class TradeRecorder:
             return []
         try:
             cur = conn.cursor(DictCursor)
-            cur.execute(f"""
+            cur.execute(f"""  # noqa: S608 — _TABLE_SQL is module-level constant, values use %s placeholders
                 SELECT * FROM {_TABLE_SQL}
                 WHERE committee_id = %s AND status = 'holding'
                 ORDER BY trade_time DESC
@@ -148,14 +148,14 @@ class TradeRecorder:
         try:
             cur = conn.cursor(DictCursor)
             if symbol:
-                cur.execute(f"""
+                cur.execute(f"""  # noqa: S608 — _TABLE_SQL is module-level constant, values use %s placeholders
                     SELECT * FROM {_TABLE_SQL}
                     WHERE symbol = %s
                     ORDER BY trade_time DESC
                     LIMIT %s
                 """, (symbol, limit))
             else:
-                cur.execute(f"""
+                cur.execute(f"""  # noqa: S608 — _TABLE_SQL is module-level constant, values use %s placeholders
                     SELECT * FROM {_TABLE_SQL}
                     ORDER BY trade_time DESC
                     LIMIT %s
@@ -177,7 +177,7 @@ class TradeRecorder:
             return {}
         try:
             cur = conn.cursor(DictCursor)
-            cur.execute(f"""
+            cur.execute(f"""  # noqa: S608 — _TABLE_SQL is module-level constant, values use %s placeholders
                 SELECT
                     COUNT(*) as total_trades,
                     SUM(CASE WHEN direction = 'buy' THEN amount ELSE 0 END) as total_buy,

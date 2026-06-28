@@ -65,7 +65,7 @@ class SentimentRepository:
         """Get latest sentiment for a market."""
         ph = self._ph
         rows = self._adapter.execute_select(
-            f"SELECT * FROM market_sentiment WHERE market = {ph} LIMIT 1",
+            f"SELECT * FROM market_sentiment WHERE market = {ph} LIMIT 1",  # noqa: S608 — table hardcoded, values use parameterized placeholder
             (market,),
         )
         return rows[0] if rows else None
@@ -75,7 +75,7 @@ class SentimentRepository:
         td = str(trade_date or "")[:10]
         ph = self._ph
         rows = self._adapter.execute_select(
-            f"SELECT * FROM market_sentiment_daily WHERE market = {ph} AND trade_date = {ph} LIMIT 1",
+            f"SELECT * FROM market_sentiment_daily WHERE market = {ph} AND trade_date = {ph} LIMIT 1",  # noqa: S608 — table hardcoded, values use parameterized placeholder
             (market, td),
         )
         return rows[0] if rows else None

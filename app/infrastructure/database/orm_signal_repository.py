@@ -22,7 +22,7 @@ class OrmSignalRepository:
         try:
             cols = ", ".join(signal.keys())
             ph = ", ".join([f":{k}" for k in signal])
-            sql = f"INSERT INTO signal_flag_pool ({cols}) VALUES ({ph})"
+            sql = f"INSERT INTO signal_flag_pool ({cols}) VALUES ({ph})"  # noqa: S608 — cols/ph are from dict.keys() using named params, table is hardcoded
             result = session.execute(text(sql), signal)
             session.commit()
             return result.lastrowid or 0
@@ -74,7 +74,7 @@ class OrmSignalRepository:
             rows = (
                 session.execute(
                     text(
-                        f"SELECT * FROM signal_flag_pool{where_sql}"
+                        f"SELECT * FROM signal_flag_pool{where_sql}"  # noqa: S608 — where_sql is built from hardcoded strings with named params
                         f" ORDER BY created_at DESC LIMIT :lim OFFSET :off"
                     ),
                     {**params, "lim": limit, "off": offset},
@@ -107,7 +107,7 @@ class OrmSignalRepository:
             return (
                 session.execute(
                     text(
-                        f"SELECT COUNT(*) FROM signal_flag_pool{where_sql}"
+                        f"SELECT COUNT(*) FROM signal_flag_pool{where_sql}"  # noqa: S608 — where_sql is built from hardcoded strings with named params
                     ),
                     params,
                 ).scalar()

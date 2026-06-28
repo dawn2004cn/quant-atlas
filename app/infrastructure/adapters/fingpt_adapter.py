@@ -136,7 +136,7 @@ class FinGPTRepository(FinGPTPersistencePort):
         try:
             cols = ["id", "ticker", "prediction_date", "source_ref", "predicted_movement", "positive_factors", "potential_concerns", "analysis_summary", "confidence", "actual_movement", "is_correct", "created_at"]
             col_str = ", ".join(cols)
-            sql = f"SELECT {col_str} FROM fingpt_predictions WHERE 1=1"
+            sql = f"SELECT {col_str} FROM fingpt_predictions WHERE 1=1"  # noqa: S608 — col_str is a hardcoded list, values use named parameters
             params = {}
             if ticker:
                 sql += " AND ticker = :ticker"
@@ -206,7 +206,7 @@ class FinGPTRepository(FinGPTPersistencePort):
         try:
             cols = ["id", "ticker", "news_id", "summary_hash", "source_ref", "sentiment_score", "key_entities", "impact_level", "summary", "created_at"]
             col_str = ", ".join(cols)
-            sql = f"SELECT {col_str} FROM fingpt_sentiment WHERE 1=1"
+            sql = f"SELECT {col_str} FROM fingpt_sentiment WHERE 1=1"  # noqa: S608 — col_str is a hardcoded list, values use named parameters
             params = {}
             if ticker:
                 sql += " AND ticker = :ticker"

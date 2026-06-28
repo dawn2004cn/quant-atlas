@@ -24,6 +24,8 @@ jobs:
         run: python scripts/check_module_cross_imports.py
       - name: Template inline style gate
         run: python scripts/check_template_inline_styles.py
+      - name: Architecture layer dependency gate
+        run: python -m pytest tests/architecture/test_layer_dependency_gate.py -v --no-header
 
   lint:
     name: Lint (Ruff)
