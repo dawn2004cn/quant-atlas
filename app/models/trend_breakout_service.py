@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import pandas as pd
 
-from ..core.base_strategy import BaseTradingStrategy
 from .trend_breakout_model import CANSLIMModelStrategy
+from ..core.base_strategy import BaseTradingStrategy
 
 
 class CANSLIMService:
