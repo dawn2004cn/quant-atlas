@@ -14,7 +14,7 @@ def __getattr__(name: str) -> Any:
         import importlib
         mod = importlib.import_module("app.infrastructure.memory_cache")
         return getattr(mod, name)
-    msg = "module {!r} has no attribute {!r}".format(__name__, name)
+    msg = f"module {__name__!r} has no attribute {name!r}"
     raise AttributeError(msg)
 
 

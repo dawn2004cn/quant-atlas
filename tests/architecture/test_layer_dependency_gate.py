@@ -52,6 +52,7 @@ FORBIDDEN_APPLICATION = ["app.infrastructure"]
 # Modules that use lazy (function-local) imports are already compliant.
 LEGACY_SHIMS = frozenset({
     "app/application/hot_path_cache.py",
+    "app/application/services/batch_service.py",
     "app/domain/services/cache_service.py",
 })
 

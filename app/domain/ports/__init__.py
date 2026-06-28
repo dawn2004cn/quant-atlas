@@ -26,6 +26,11 @@ try:
     from .repository_ports import *
 except ImportError as e:
     logger.warning("__init__.py.repository_ports: %s", e)
+try:
+    from .repository_ports import PaymentGatewayPort, PaymentRepository
+except ImportError:
+    PaymentGatewayPort = None  # type: ignore[misc, assignment]
+    PaymentRepository = None  # type: ignore[misc, assignment]
 
 try:
     from .agent_ports import *

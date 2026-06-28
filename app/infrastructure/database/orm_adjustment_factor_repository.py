@@ -69,7 +69,7 @@ class OrmAdjustmentFactorRepository:
                 "SELECT stock_code, date, factor FROM stock_adjustment_factor"
                 " WHERE " + " AND ".join(where_clauses)
                 + " ORDER BY date"
-            )  # noqa: S608 — where_clauses are built from hardcoded strings, params use named parameters
+            )
             rows = session.execute(text(sql), params).mappings().all()
             return [dict(r) for r in rows]
         finally:

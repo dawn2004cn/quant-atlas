@@ -11,6 +11,7 @@ from .core.runtime_config import _load_dotenv_if_present
 
 _load_dotenv_if_present()
 
+from .core.celery_ext import BeatRegistry
 from .core.logger import get_logger
 from .core.runtime_config import get_runtime, get_runtime_bool, get_runtime_int
 
@@ -45,45 +46,31 @@ def _result_backend() -> str:
 
 
 def _build_beat_schedule() -> dict[str, Any]:
+    """Build beat schedule from BeatRegistry. All tasks register declaratively."""
     assert crontab is not None
-    beat: dict[str, Any] = {}
 
+    BeatRegistry.clear()
+
+    # -- BASIC_DATA_LONGHU_BEAT --
     if get_runtime("BASIC_DATA_LONGHU_BEAT", "1") == "1":
-        beat["basic-data-longhu-daily"] = {
-            "task": "app.tasks.market_tasks.scheduled_longhu",
-            "schedule": crontab(hour=17, minute=5),
-        }
-        beat["basic-data-indices-daily"] = {
-            "task": "app.tasks.market_tasks.scheduled_indices_sync",
-            "schedule": crontab(hour=15, minute=40),
-        }
+        BeatRegistry.register("basic-data-longhu-daily", "app.tasks.market_tasks.scheduled_longhu", crontab(hour=17, minute=5), description="longhu data update", queue="default")
+        BeatRegistry.register("basic-data-indices-daily", "app.tasks.market_tasks.scheduled_indices_sync", crontab(hour=15, minute=40), description="indices sync", queue="default")
 
+    # -- BASIC_DATA_YANBAO_BEAT --
     if get_runtime("BASIC_DATA_YANBAO_BEAT", "1") == "1":
-        beat["basic-data-yanbao-daily"] = {
-            "task": "app.tasks.market_tasks.scheduled_yanbao",
-            "schedule": crontab(hour=6, minute=5),
-        }
+        BeatRegistry.register("basic-data-yanbao-daily", "app.tasks.market_tasks.scheduled_yanbao", crontab(hour=6, minute=5), description="yanbao data update", queue="default")
 
+    # -- NEWS_DAILY_BEAT --
     if get_runtime("NEWS_DAILY_BEAT", "1") == "1":
-        beat["news-archive-daily"] = {
-            "task": "app.tasks.news_backfill_tasks.scheduled_news_daily",
-            "schedule": crontab(hour=6, minute=20),
-        }
+        BeatRegistry.register("news-archive-daily", "app.tasks.news_backfill_tasks.scheduled_news_daily", crontab(hour=6, minute=20), description="daily news archive", queue="default")
 
+    # -- SCANNER_CELERY_BEAT --
     if get_runtime("SCANNER_CELERY_BEAT", "1") == "1":
-        beat["scanner-core-every-2min"] = {
-            "task": "app.tasks.scanner_tasks.scanner_core_tick",
-            "schedule": crontab(minute="*/2"),
-        }
-        beat["scanner-rotation-every-15min"] = {
-            "task": "app.tasks.scanner_tasks.scanner_rotation_tick",
-            "schedule": crontab(minute="*/15"),
-        }
-        beat["scanner-daily-sync"] = {
-            "task": "app.tasks.market_tasks.refresh_basic_market_data",
-            "schedule": crontab(hour=16, minute=0),
-        }
+        BeatRegistry.register("scanner-core-every-2min", "app.tasks.scanner_tasks.scanner_core_tick", crontab(minute="*/2"), description="scanner core tick", queue="default")
+        BeatRegistry.register("scanner-rotation-every-15min", "app.tasks.scanner_tasks.scanner_rotation_tick", crontab(minute="*/15"), description="scanner rotation tick", queue="default")
+        BeatRegistry.register("scanner-daily-sync", "app.tasks.market_tasks.refresh_basic_market_data", crontab(hour=16, minute=0), description="refresh basic market data", queue="default")
 
+    # -- TDX_DAYK_CELERY_BEAT --
     tdx_dayk_beat_on = get_runtime("TDX_DAYK_CELERY_BEAT", "0") == "1"
     if tdx_dayk_beat_on:
         tdx_hour = max(0, min(get_runtime_int("TDX_DAYK_BEAT_HOUR", 16), 23))
@@ -91,173 +78,93 @@ def _build_beat_schedule() -> dict[str, Any]:
         bin_minute = max(0, min(get_runtime_int("TDX_DAYK_QLIB_BIN_BEAT_MINUTE", 25), 59))
         use_daily_chain = get_runtime("TDX_USE_SCHEDULED_DAILY_CHAIN", "1") == "1"
         if use_daily_chain:
-            beat["cn-history-daily-after-close"] = {
-                "task": "app.tasks.data_backfill_tasks.scheduled_cn_history_daily",
-                "schedule": crontab(hour=tdx_hour, minute=tdx_minute),
-            }
+            BeatRegistry.register("cn-history-daily-after-close", "app.tasks.data_backfill_tasks.scheduled_cn_history_daily", crontab(hour=tdx_hour, minute=tdx_minute), description="CN history daily after close", queue="low")
         else:
-            beat["tdx-dayk-incremental-after-close"] = {
-                "task": "app.tasks.data_backfill_tasks.sync_incremental_tdx",
-                "schedule": crontab(hour=tdx_hour, minute=tdx_minute),
-                "kwargs": {"dump_qlib_bin": False},
-            }
-            beat["cn-history-mysql-to-qlib-after-tdx"] = {
-                "task": "app.tasks.qlib_data_update.mysql_to_qlib_incremental_sync",
-                "schedule": crontab(hour=tdx_hour, minute=bin_minute),
-            }
+            BeatRegistry.register("tdx-dayk-incremental-after-close", "app.tasks.data_backfill_tasks.sync_incremental_tdx", crontab(hour=tdx_hour, minute=tdx_minute), description="TDX dayk incremental after close", queue="low", kwargs={"dump_qlib_bin": False})
+            BeatRegistry.register("cn-history-mysql-to-qlib-after-tdx", "app.tasks.qlib_data_update.mysql_to_qlib_incremental_sync", crontab(hour=tdx_hour, minute=bin_minute), description="MySQL to qlib after TDX", queue="low")
 
+    # -- QLIB_CELERY_BEAT --
     if get_runtime("QLIB_CELERY_BEAT", "0") == "1":
         if not tdx_dayk_beat_on:
-            beat["qlib-mysql-incremental-sync"] = {
-                "task": "app.tasks.qlib_data_update.mysql_to_qlib_incremental_sync",
-                "schedule": crontab(hour=16, minute=10),
-            }
-        beat["qlib-tdx-incremental-nightly"] = {
-            "task": "app.tasks.qlib_data_update.qlib_incremental_pipeline",
-            "schedule": crontab(hour=2, minute=40),
-        }
+            BeatRegistry.register("qlib-mysql-incremental-sync", "app.tasks.qlib_data_update.mysql_to_qlib_incremental_sync", crontab(hour=16, minute=10), description="qlib mysql incremental sync", queue="low")
+        BeatRegistry.register("qlib-tdx-incremental-nightly", "app.tasks.qlib_data_update.qlib_incremental_pipeline", crontab(hour=2, minute=40), description="qlib tdx nightly", queue="low")
 
+    # -- DATA_BACKFILL_BEAT --
     if get_runtime("DATA_BACKFILL_BEAT", "0") == "1":
-        beat["backfill-financial-stash-if-empty"] = {
-            "task": "app.tasks.data_backfill_tasks.backfill_financial_stash_if_empty",
-            "schedule": crontab(hour=2, minute=12),
-        }
-        beat["backfill-longhu-if-empty"] = {
-            "task": "app.tasks.data_backfill_tasks.backfill_longhu_if_empty",
-            "schedule": crontab(hour=2, minute=18),
-        }
-        beat["backfill-qlib-kline-if-empty"] = {
-            "task": "app.tasks.data_backfill_tasks.backfill_qlib_kline_if_empty",
-            "schedule": crontab(hour=2, minute=28),
-        }
+        BeatRegistry.register("backfill-financial-stash-if-empty", "app.tasks.data_backfill_tasks.backfill_financial_stash_if_empty", crontab(hour=2, minute=12), description="backfill financial stash", queue="low")
+        BeatRegistry.register("backfill-longhu-if-empty", "app.tasks.data_backfill_tasks.backfill_longhu_if_empty", crontab(hour=2, minute=18), description="backfill longhu", queue="low")
+        BeatRegistry.register("backfill-qlib-kline-if-empty", "app.tasks.data_backfill_tasks.backfill_qlib_kline_if_empty", crontab(hour=2, minute=28), description="backfill qlib kline", queue="low")
 
+    # -- FINANCIAL_DAILY_BEAT --
     if get_runtime("FINANCIAL_DAILY_BEAT", "0") == "1":
-        beat["financial-stash-daily-refresh"] = {
-            "task": "app.tasks.data_backfill_tasks.scheduled_financial_stash_refresh",
-            "schedule": crontab(hour=7, minute=30),
-        }
+        BeatRegistry.register("financial-stash-daily-refresh", "app.tasks.data_backfill_tasks.scheduled_financial_stash_refresh", crontab(hour=7, minute=30), description="financial stash daily refresh", queue="low")
 
+    # -- NEWS_ARCHIVE_BACKFILL_BEAT --
     if get_runtime("NEWS_ARCHIVE_BACKFILL_BEAT", "0") == "1":
-        beat["news-archive-backfill-weekly"] = {
-            "task": "app.tasks.news_backfill_tasks.backfill_news_archive_for_codes",
-            "schedule": crontab(day_of_week=0, hour=3, minute=10),
-        }
+        BeatRegistry.register("news-archive-backfill-weekly", "app.tasks.news_backfill_tasks.backfill_news_archive_for_codes", crontab(day_of_week=0, hour=3, minute=10), description="news archive weekly backfill", queue="default")
 
+    # -- RETAIL_PSYCHOLOGY_BEAT --
     if get_runtime("RETAIL_PSYCHOLOGY_BEAT", "1") == "1":
-        beat["retail-psychology-midday"] = {
-            "task": "app.tasks.retail_psychology_tasks.psychology_guardian_tick",
-            "schedule": crontab(hour=11, minute=35),
-        }
-        beat["retail-psychology-after-close"] = {
-            "task": "app.tasks.retail_psychology_tasks.psychology_guardian_tick",
-            "schedule": crontab(hour=15, minute=12),
-        }
+        BeatRegistry.register("retail-psychology-midday", "app.tasks.retail_psychology_tasks.psychology_guardian_tick", crontab(hour=11, minute=35), description="psychology midday scan", queue="default")
+        BeatRegistry.register("retail-psychology-after-close", "app.tasks.retail_psychology_tasks.psychology_guardian_tick", crontab(hour=15, minute=12), description="psychology after-close scan", queue="default")
 
+    # -- RETAIL_META_LEARNING_BEAT --
     if get_runtime("RETAIL_META_LEARNING_BEAT", "1") == "1":
-        beat["retail-meta-learning-weekly"] = {
-            "task": "app.tasks.retail_meta_learning_tasks.meta_learning_evolve_tick",
-            "schedule": crontab(day_of_week=6, hour=18, minute=50),
-        }
+        BeatRegistry.register("retail-meta-learning-weekly", "app.tasks.retail_meta_learning_tasks.meta_learning_evolve_tick", crontab(day_of_week=6, hour=18, minute=50), description="meta learning weekly evolve", queue="default")
 
+    # -- QUESTDB_SYNC_BEAT --
     if get_runtime("QUESTDB_SYNC_BEAT", "1") == "1":
-        beat["questdb-ohlcv-after-close"] = {
-            "task": "app.tasks.questdb_sync_tasks.questdb_ohlcv_sync_tick",
-            "schedule": crontab(hour=16, minute=35),
-        }
+        BeatRegistry.register("questdb-ohlcv-after-close", "app.tasks.questdb_sync_tasks.questdb_ohlcv_sync_tick", crontab(hour=16, minute=35), description="questdb ohlcv sync", queue="default")
 
+    # -- TIMESCALE_TDX_SYNC_BEAT --
     if get_runtime("TIMESCALE_TDX_SYNC_BEAT", "0") == "1":
         ts_hour = max(0, min(get_runtime_int("TIMESCALE_SYNC_BEAT_HOUR", 17), 23))
         ts_minute = max(0, min(get_runtime_int("TIMESCALE_SYNC_BEAT_MINUTE", 10), 59))
-        beat["tdx-timescale-after-close"] = {
-            "task": "app.tasks.tdx_timescale_sync_tasks.tdx_timescale_sync_tick",
-            "schedule": crontab(hour=ts_hour, minute=ts_minute),
-        }
+        BeatRegistry.register("tdx-timescale-after-close", "app.tasks.tdx_timescale_sync_tasks.tdx_timescale_sync_tick", crontab(hour=ts_hour, minute=ts_minute), description="TDX to TimescaleDB sync", queue="low")
 
+    # -- OHLCV_RECONCILIATION_BEAT --
     if get_runtime("OHLCV_RECONCILIATION_BEAT", "0") == "1":
-        beat["ohlcv-reconciliation-weekly"] = {
-            "task": "app.tasks.ohlcv_reconciliation_tasks.ohlcv_reconciliation_tick",
-            "schedule": crontab(day_of_week=6, hour=19, minute=0),
-        }
+        BeatRegistry.register("ohlcv-reconciliation-weekly", "app.tasks.ohlcv_reconciliation_tasks.ohlcv_reconciliation_tick", crontab(day_of_week=6, hour=19, minute=0), description="OHLCV weekly reconciliation", queue="low")
 
+    # -- FACTOR_IC_CELERY_BEAT --
     if get_runtime("FACTOR_IC_CELERY_BEAT", "0") == "1":
-        beat["factor-ic-monitor-after-close"] = {
-            "task": "app.tasks.factor_ic_alerts.factor_ic_monitor_tick",
-            "schedule": crontab(hour=18, minute=35),
-        }
+        BeatRegistry.register("factor-ic-monitor-after-close", "app.tasks.factor_ic_alerts.factor_ic_monitor_tick", crontab(hour=18, minute=35), description="factor IC monitor", queue="default")
 
+    # -- FACTOR_LIFECYCLE_CELERY_BEAT --
     if get_runtime("FACTOR_LIFECYCLE_CELERY_BEAT", "0") == "1":
-        beat["factor-lifecycle-daily-check"] = {
-            "task": "factor.lifecycle_daily_check",
-            "schedule": crontab(hour=18, minute=40),
-        }
-        beat["factor-ic-calculation-daily"] = {
-            "task": "factor.ic_calculation",
-            "schedule": crontab(hour=18, minute=45),
-        }
-        beat["factor-cleanup-archived-weekly"] = {
-            "task": "factor.cleanup_archived",
-            "schedule": crontab(day_of_week=6, hour=3, minute=0),
-        }
+        BeatRegistry.register("factor-lifecycle-daily-check", "factor.lifecycle_daily_check", crontab(hour=18, minute=40), description="factor lifecycle daily check", queue="default")
+        BeatRegistry.register("factor-ic-calculation-daily", "factor.ic_calculation", crontab(hour=18, minute=45), description="factor IC daily calc", queue="default")
+        BeatRegistry.register("factor-cleanup-archived-weekly", "factor.cleanup_archived", crontab(day_of_week=6, hour=3, minute=0), description="factor cleanup archived", queue="low")
 
+    # -- MOMENTS_AFTER_CLOSE_BEAT --
     if get_runtime("MOMENTS_AFTER_CLOSE_BEAT", "0") == "1":
-        beat["moments-after-close"] = {
-            "task": "app.tasks.moments_tasks.moments_after_close",
-            "schedule": crontab(hour=15, minute=20),
-        }
+        BeatRegistry.register("moments-after-close", "app.tasks.moments_tasks.moments_after_close", crontab(hour=15, minute=20), description="moments after close", queue="default")
 
+    # -- INVESTMENT_MANAGERS_CELERY_BEAT --
     if get_runtime("INVESTMENT_MANAGERS_CELERY_BEAT", "0") == "1":
-        beat["post-close-signal-then-managers"] = {
-            "task": "app.tasks.investment_manager_tasks.post_close_signal_then_managers",
-            "schedule": crontab(hour=15, minute=50),
-            "kwargs": {
-                "pool_date": None,
-                "max_stocks": 800,
-                "lookback_days": 160,
-                "run_deploy_schedule": True,
-                "schedule_start_date": "2020-01-01",
-                "schedule_batch_size": 10,
-                "asof_date": None,
-                "nav_date": None,
-                "universe_limit": 800,
-            },
-        }
+        BeatRegistry.register("post-close-signal-then-managers", "app.tasks.investment_manager_tasks.post_close_signal_then_managers", crontab(hour=15, minute=50), description="post-close signal + managers", queue="high", kwargs={"pool_date": None, "max_stocks": 800, "lookback_days": 160, "run_deploy_schedule": True, "schedule_start_date": "2020-01-01", "schedule_batch_size": 10, "asof_date": None, "nav_date": None, "universe_limit": 800})
 
+    # -- TDX_GPCW_DAILY_BEAT --
     if get_runtime("TDX_GPCW_DAILY_BEAT", "0") == "1":
-        beat["tdx-gpcw-incremental-daily"] = {
-            "task": "app.tasks.tdx_gpcw_tasks.import_tdx_gpcw_latest",
-            "schedule": crontab(hour=7, minute=45),
-        }
+        BeatRegistry.register("tdx-gpcw-incremental-daily", "app.tasks.tdx_gpcw_tasks.import_tdx_gpcw_latest", crontab(hour=7, minute=45), description="TDX GPCW daily import", queue="default")
 
+    # -- ALERT_DISPATCH_CELERY_BEAT --
     if get_runtime("ALERT_DISPATCH_CELERY_BEAT", "0") == "1":
         beat_minutes = max(5, min(get_runtime_int("ALERT_DISPATCH_BEAT_MINUTES", 30), 59))
-        beat["alert-dispatch-periodic"] = {
-            "task": "app.tasks.alert_dispatch_tasks.dispatch_alert_notifications",
-            "schedule": crontab(minute=f"*/{beat_minutes}"),
-            "kwargs": {
-                "min_level": get_runtime("ALERT_DISPATCH_MIN_LEVEL", "warning"),
-                "limit": get_runtime_int("ALERT_DISPATCH_LIMIT", 20),
-                "respect_dedup": True,
-            },
-        }
+        BeatRegistry.register("alert-dispatch-periodic", "app.tasks.alert_dispatch_tasks.dispatch_alert_notifications", crontab(minute=f"*/{beat_minutes}"), description="alert dispatch periodic", queue="default", kwargs={"min_level": get_runtime("ALERT_DISPATCH_MIN_LEVEL", "warning"), "limit": get_runtime_int("ALERT_DISPATCH_LIMIT", 20), "respect_dedup": True})
 
+    # -- HEADLINE_SIGNAL_CELERY_BEAT --
     if get_runtime("HEADLINE_SIGNAL_CELERY_BEAT", "0") == "1":
         beat_minutes = max(10, min(get_runtime_int("HEADLINE_SIGNAL_BEAT_MINUTES", 30), 59))
-        beat["headline-signal-enrich-cn"] = {
-            "task": "app.tasks.headline_signal_tasks.enrich_market_headlines",
-            "schedule": crontab(minute=f"*/{beat_minutes}"),
-            "kwargs": {"market": "CN", "limit": get_runtime_int("HEADLINE_SIGNAL_BATCH_LIMIT", 40)},
-        }
+        BeatRegistry.register("headline-signal-enrich-cn", "app.tasks.headline_signal_tasks.enrich_market_headlines", crontab(minute=f"*/{beat_minutes}"), description="headline signal enrich", queue="default", kwargs={"market": "CN", "limit": get_runtime_int("HEADLINE_SIGNAL_BATCH_LIMIT", 40)})
 
-    from app.core.strategic_sunset import feature_enabled
-
-    if feature_enabled("federated_mesh") and get_runtime("FEDERATED_CLUSTER_BEAT", "0") == "1":
+    # -- FEDERATED_CLUSTER_BEAT --
+    if get_runtime("FEDERATED_CLUSTER_BEAT", "0") == "1":
         beat_minutes = max(5, min(get_runtime_int("FEDERATED_CLUSTER_BEAT_MINUTES", 5), 59))
-        beat["federated-cluster-health-scan"] = {
-            "task": "federated.cluster_health_scan",
-            "schedule": crontab(minute=f"*/{beat_minutes}"),
-        }
+        BeatRegistry.register("federated-cluster-health-scan", "federated.cluster_health_scan", crontab(minute=f"*/{beat_minutes}"), description="federated cluster health scan", queue="default")
 
-    return beat
+    return BeatRegistry.build_schedule()
+
 
 
 _SKIP_TASK_MODULES = frozenset({"task_wiring", "worker_db_cleanup", "registry"})

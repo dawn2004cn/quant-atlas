@@ -16,6 +16,7 @@ def _CapabilityRegistry():
     """Lazy import via factory to avoid app->infra module-level dependency."""
     from app.infrastructure.capabilities.registry import CapabilityRegistry as _CR
     return _CR()
+CapabilityRegistry = _CapabilityRegistry  # alias for type annotations
 
 
 class ResearchWorkflow(BaseWorkflow):

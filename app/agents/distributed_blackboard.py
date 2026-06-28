@@ -192,7 +192,7 @@ class RedisEvidenceBlackboard(EvidenceBlackboard):
                     redis_key = self._make_key(ticker, key)
                     await self._redis.delete(redis_key)
                 except Exception as e:
-                    logger.error(f"Failed to delete from Redis: {e}")  # noqa: S608 — logger call, not SQL
+                    logger.error(f"Failed to delete from Redis: {e}")
         else:
             keys_to_delete = [k for k in self._local_cache.keys() if k.startswith(f"{ticker}:")]
             for k in keys_to_delete:

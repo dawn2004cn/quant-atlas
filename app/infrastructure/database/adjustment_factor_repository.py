@@ -103,5 +103,5 @@ class AdjustmentFactorRepository:
         normalized = SymbolNormalizer.to_db_code(stock_code)
         table = "stock_adjustment_factor"
         ph = self._ph
-        sql = f"DELETE FROM {table} WHERE stock_code = {ph} AND date < {ph}"  # noqa: S608 — table name is a safe literal, values use parameterized placeholders
+        sql = f"DELETE FROM {table} WHERE stock_code = {ph} AND date < {ph}"
         return self._adapter.execute_update(sql, (normalized, date))

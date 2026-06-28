@@ -455,4 +455,4 @@ def wire_recommendation_service(services: Any) -> None:
         logger.warning("recommendation_service resolution failed", exc_info=True)
         return
     if svc is not None:
-        setattr(services, "recommendation_service", svc)
+        services.recommendation_service = svc
