@@ -22,8 +22,9 @@ services:
     ports:
       - "8000:8000"  # Proxy
       - "8443:8443"  # HTTPS
-      - "8001:8001"  # Admin API
-      - "8444:8444"  # Admin HTTPS
+      # Admin API ports removed for security
+      # - "8001:8001"  # Admin API
+      # - "8444:8444"  # Admin HTTPS
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: "/kong/declarative/kong.yml"
@@ -187,7 +188,7 @@ services:
     image: redis:7-alpine
     container_name: quant-atlas-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     networks:
@@ -197,7 +198,7 @@ services:
     image: mysql:8.0
     container_name: quant-atlas-mysql
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
       MYSQL_DATABASE: quant_atlas

@@ -13,6 +13,14 @@ services:
         config:
           minute: 100
           policy: local
+      - name: jwt
+        config:
+          claims_to_verify:
+            - nbf
+            - exp
+          key_claim_name: "iss"
+          secret_is_base64: false
+          run_on_preflight: true
 
   - name: strategy-service
     url: http://strategy:5201
@@ -27,6 +35,14 @@ services:
         config:
           minute: 50
           policy: local
+      - name: jwt
+        config:
+          claims_to_verify:
+            - nbf
+            - exp
+          key_claim_name: "iss"
+          secret_is_base64: false
+          run_on_preflight: true
 
   - name: ai-agent-service
     url: http://ai-agent:5301
@@ -41,6 +57,14 @@ services:
         config:
           minute: 30
           policy: local
+      - name: jwt
+        config:
+          claims_to_verify:
+            - nbf
+            - exp
+          key_claim_name: "iss"
+          secret_is_base64: false
+          run_on_preflight: true
 
   - name: portfolio-risk-service
     url: http://portfolio-risk:5401
@@ -55,6 +79,14 @@ services:
         config:
           minute: 100
           policy: local
+      - name: jwt
+        config:
+          claims_to_verify:
+            - nbf
+            - exp
+          key_claim_name: "iss"
+          secret_is_base64: false
+          run_on_preflight: true
 
   - name: execution-service
     url: http://execution:5501
@@ -69,6 +101,14 @@ services:
         config:
           minute: 200
           policy: local
+      - name: jwt
+        config:
+          claims_to_verify:
+            - nbf
+            - exp
+          key_claim_name: "iss"
+          secret_is_base64: false
+          run_on_preflight: true
 
   - name: system-user-service
     url: http://system-user:5601
@@ -83,6 +123,14 @@ services:
         config:
           minute: 100
           policy: local
+      - name: jwt
+        config:
+          claims_to_verify:
+            - nbf
+            - exp
+          key_claim_name: "iss"
+          secret_is_base64: false
+          run_on_preflight: true
 
   - name: data-service
     url: http://data:5701
@@ -97,6 +145,14 @@ services:
         config:
           minute: 50
           policy: local
+      - name: jwt
+        config:
+          claims_to_verify:
+            - nbf
+            - exp
+          key_claim_name: "iss"
+          secret_is_base64: false
+          run_on_preflight: true
 
   - name: research-service
     url: http://research:5801
@@ -111,3 +167,11 @@ services:
         config:
           minute: 30
           policy: local
+      - name: jwt
+        config:
+          claims_to_verify:
+            - nbf
+            - exp
+          key_claim_name: "iss"
+          secret_is_base64: false
+          run_on_preflight: true

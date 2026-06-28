@@ -85,7 +85,8 @@ CREATE TABLE IF NOT EXISTS research_reports (
     INDEX idx_symbol_market (symbol, market)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Create service user
-CREATE USER IF NOT EXISTS 'quant_service'@'%' IDENTIFIED BY 'quant_service_pass';
-GRANT ALL PRIVILEGES ON quant_atlas.* TO 'quant_service'@'%';
+-- Create service user (restricted to localhost, minimal privileges)
+-- Password injected via Docker environment variable ${MYSQL_PASSWORD}
+CREATE USER IF NOT EXISTS 'quant_service'@'localhost' IDENTIFIED BY '${MYSQL_PASSWORD}';
+GRANT SELECT, INSERT, UPDATE, DELETE ON quant_atlas.* TO 'quant_service'@'localhost';
 FLUSH PRIVILEGES;

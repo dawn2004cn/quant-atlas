@@ -13,8 +13,20 @@ spec:
       labels:
         app: portfolio-risk
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: portfolio-risk
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
           image: quant-atlas/portfolio-risk:latest
           ports:
             - containerPort: 5401
@@ -25,10 +37,7 @@ spec:
                   name: quant-atlas-config
                   key: REDIS_URL
             - name: MYSQL_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: quant-atlas-config
-                  key: MYSQL_URL
+              value: "mysql://quant_service:${DB_PASSWORD}@mysql-master:3306/quant_atlas"
             - name: SERVICE_PORT
               value: "5401"
           livenessProbe:

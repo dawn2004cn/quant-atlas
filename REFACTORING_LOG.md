@@ -3564,3 +3564,32 @@ Establish JWT auth, OpenAPI docs, E2E tests, CI checks, and frontend API type ge
 2. **openapi-typescript not installed** — no prebuild hook exists, so 
 pm run build runs clean. Only fails when gen:api-types invoked manually
 3. **Build verification** — passes 	sc -b && vite build (839 modules, 12.87s, 0 errors, 0 PostCSS warnings)
+
+
+## 2026-06-27 (CSO 全面安全审计修复)
+
+### 背景
+CSO 安全审计发现 27 项安全漏洞（5 CRITICAL + 12 HIGH + 10 MEDIUM），覆盖密钥管理、基础设施、LLM、XSS 四个维度。
+
+### 修复清单（10 项）
+
+| # | 修复内容 | 严重性 |
+|---|---------|--------|
+| 1 | Git 历史密钥清理 | CRITICAL |
+| 2 | K8s 基础设施加固（SealedSecret + securityContext） | CRITICAL |
+| 3 | Kong Admin API 加固 | CRITICAL |
+| 4 | 数据库端口绑定到 localhost | CRITICAL |
+| 5 | LLM Prompt 注入防护（PromptSanitizer） | CRITICAL |
+| 6 | XSS 修复（innerHTML 清理） | HIGH |
+| 7 | Ingress TLS 加密 | HIGH |
+| 8 | K8s NetworkPolicy | HIGH |
+| 9 | Docker 安全加固 | HIGH |
+| 10 | MySQL init.sql 安全配置 | HIGH |
+
+### 验证
+- PromptSanitizer 6/6 测试通过
+- .env 从 Git 历史清除
+- ConfigMap 无明文密码
+- MySQL 用户限制到 localhost
+
+---
