@@ -16,7 +16,6 @@ Usage:
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 import yaml
 
@@ -123,7 +122,7 @@ def load_agent_config(config_path: str | None = None) -> AgentConfig:
         return AgentConfig()
 
     try:
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
 
         return AgentConfig(

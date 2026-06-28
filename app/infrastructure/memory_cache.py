@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 import hashlib
 import time
-from datetime import datetime
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
+from collections.abc import Callable
 from functools import wraps
 
 from app.infrastructure.cache.coalesce import get_or_set_coalesced

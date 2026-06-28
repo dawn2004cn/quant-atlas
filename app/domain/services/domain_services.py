@@ -7,10 +7,10 @@ business rules that were previously scattered in Application Services.
 
 
 from typing import Any
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from app.domain.models import RiskCalculator, RiskMetrics, PriceLevel
-from app.domain.models import SignalGenerator, TradingSignal, SignalType, SignalDirection, SignalStrength
+from app.domain.models import SignalGenerator, TradingSignal
 from app.domain.models import Portfolio, PortfolioAnalyzer, Position, PositionStatus, PositionSide
 from app.core.logger import get_logger
 
@@ -19,7 +19,7 @@ logger = get_logger(__name__)
 
 class RiskDomainService:
     """Domain service for risk calculations.
-    
+
     Previously these calculations were embedded in RiskAlertService.
     Now they use pure domain models.
     """
@@ -35,10 +35,10 @@ class RiskDomainService:
         # Use the RiskCalculator from domain models
         metrics = RiskMetrics.from_price_history(price_history)
         metrics.beta = beta
-        
+
         # Recalculate score with beta
         metrics.score = min(100, metrics.score * (0.7 + beta * 0.3))
-        
+
         # Determine level
         if metrics.score < 25:
             metrics.level = 'low'
@@ -48,7 +48,7 @@ class RiskDomainService:
             metrics.level = 'high'
         else:
             metrics.level = 'extreme'
-            
+
         return metrics
 
     @staticmethod
@@ -59,10 +59,10 @@ class RiskDomainService:
         """Calculate risk metrics for a position."""
         position_value = position.total_value()
         weight = position_value / portfolio_value * 100 if portfolio_value > 0 else 0
-        
+
         # Risk contribution to portfolio
         risk_contribution = weight * (position.pnl_pct() / 100)
-        
+
         return {
             'position_value': position_value,
             'weight': weight,
@@ -80,7 +80,7 @@ class RiskDomainService:
 
 class SignalDomainService:
     """Domain service for signal generation.
-    
+
     Previously embedded in various scanning services.
     """
 
@@ -96,7 +96,7 @@ class SignalDomainService:
     ) -> list[TradingSignal]:
         """Generate trading signals using domain models."""
         signals = []
-        
+
         # Breakout signal
         if len(price_history) >= 20:
             high_20d = max(price_history[-20:])
@@ -115,7 +115,7 @@ class SignalDomainService:
             )
             if reversion:
                 signals.append(reversion)
-                
+
         return signals
 
     @staticmethod
@@ -126,7 +126,7 @@ class SignalDomainService:
 
 class PortfolioDomainService:
     """Domain service for portfolio operations.
-    
+
     Moved from PortfolioService.
     """
 
@@ -153,8 +153,8 @@ class PortfolioDomainService:
     @staticmethod
     def calculate_portfolio_metrics(portfolio: Portfolio) -> dict[str, Any]:
         """Calculate portfolio-level metrics."""
-        closed_positions = [p for p in portfolio.positions if p.status == PositionStatus.CLOSED]
-        
+        [p for p in portfolio.positions if p.status == PositionStatus.CLOSED]
+
         return {
             'total_positions': len(portfolio.positions),
             'open_positions': portfolio.position_count(),
@@ -171,19 +171,19 @@ class PortfolioDomainService:
     ) -> list[dict[str, Any]]:
         """Generate rebalancing suggestions."""
         suggestions = []
-        
+
         current_weights = {}
         total_value = sum(p.total_value() for p in portfolio.positions if p.status == PositionStatus.OPEN)
-        
+
         for pos in portfolio.positions:
             if pos.status == PositionStatus.OPEN:
                 weight = pos.total_value() / total_value * 100 if total_value > 0 else 0
                 current_weights[pos.code] = weight
-                
+
         for code, target in target_weights.items():
             current = current_weights.get(code, 0)
             diff = target - current
-            
+
             if abs(diff) > 5:  # Threshold 5%
                 suggestions.append({
                     'code': code,
@@ -192,7 +192,7 @@ class PortfolioDomainService:
                     'action': 'increase' if diff > 0 else 'decrease',
                     'difference': diff
                 })
-                
+
         return suggestions
 
 
@@ -225,14 +225,14 @@ class MarketDomainService:
     def is_trading_time() -> bool:
         """Check if currently in trading hours (CN market)."""
         now = datetime.now()
-        
+
         # Weekend
         if now.weekday() >= 5:
             return False
-            
+
         hour = now.hour
         minute = now.minute
-        
+
         # 9:30-11:30, 13:00-15:00
         if 9 <= hour < 11:
             return minute >= 30
@@ -240,5 +240,5 @@ class MarketDomainService:
             return False
         elif 13 <= hour < 15:
             return True
-            
+
         return False

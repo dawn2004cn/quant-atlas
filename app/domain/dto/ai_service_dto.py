@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Dict, Any, List
+from typing import Any
 
 class AIAnalysisResultDTO(BaseModel):
     code: str
@@ -12,7 +12,7 @@ class ResearchReportDTO(BaseModel):
 class DebateResultDTO(BaseModel):
     symbol: str
     decision: str
-    votes: List[Dict[str, Any]]
+    votes: list[dict[str, Any]]
 
 class CommandResultDTO(BaseModel):
     result: str

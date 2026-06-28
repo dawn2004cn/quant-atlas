@@ -15,14 +15,13 @@ later phase.
 from __future__ import annotations
 
 import json
-import logging
 import threading
 from collections import deque
-from datetime import datetime
-from typing import Any, Callable, Protocol, Type, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
+from collections.abc import Callable
 
 from app.core.logger import get_logger
-from app.core.runtime_config import get_runtime, get_runtime_bool
+from app.core.runtime_config import get_runtime
 
 logger = get_logger(__name__)
 

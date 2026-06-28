@@ -7,7 +7,7 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 from collections import defaultdict
 from datetime import datetime
-from typing import Any
+
 
 
 class TradingPatternAnalyzer:
@@ -25,7 +25,7 @@ class TradingPatternAnalyzer:
         for op in operation_history:
             rsi_zone = op.get("rsi_zone", "unknown")
             action = op.get("action", "")
-            
+
             if action == "buy":
                 rsi_buy_pattern[rsi_zone].append(op)
             elif action == "sell":
@@ -167,4 +167,4 @@ class DisciplineAuditorService:
         return {
             "status": "compliant",
             "message": "交易纪律执行良好",
-        }
+        }

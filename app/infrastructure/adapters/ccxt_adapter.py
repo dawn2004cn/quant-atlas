@@ -7,8 +7,11 @@ import ccxt
 from datetime import datetime
 
 from app.core.circuit_breaker import CircuitBreakerOpenError, CircuitBreakerRegistry, CircuitBreakerConfig
+from app.core.logger import get_logger
 from app.domain.ports import ExchangePort
 from app.domain.trading_entities import Order
+
+logger = get_logger(__name__)
 
 
 class CCXTExchangeAdapter(ExchangePort):

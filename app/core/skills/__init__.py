@@ -269,7 +269,7 @@ class SkillInstaller:
         import subprocess
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp_path = Path(tmpdir) / 'skill_repo'
-            subprocess.run(['git', 'clone', '--depth', '1', '--branch', branch, repo_url, str(tmp_path)],
+            subprocess.run(['git', 'clone', '--depth', '1', '--branch', branch, repo_url, str(tmp_path)],  # noqa: S603  # git clone with user-supplied URL; list form safe against shell injection
                            check=True, capture_output=True)
             return self.install_from_local(tmp_path, skill_name)
 

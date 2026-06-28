@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """Stock financial data routes."""
 
-from flask import Blueprint, request
+from flask import Blueprint
 from flask_login import login_required
 
 from app.application.errors import ValidationError
@@ -24,7 +24,6 @@ def register_stock_financials(blueprint: Blueprint, ctx) -> None:
     @login_required
     @service_fallback("fundamental_access")
     def stock_fundamentals(market: str, symbol: str):
-        from app.domain.enums import MarketCode
 
 
 
@@ -106,7 +105,6 @@ def register_stock_financials(blueprint: Blueprint, ctx) -> None:
     @blueprint.get("/stocks/<market>/<symbol>/tdx-financial")
     @login_required
     def stock_tdx_financial(market: str, symbol: str):
-        from app.domain.enums import MarketCode
 
 
 

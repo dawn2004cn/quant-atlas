@@ -42,7 +42,7 @@ class RiskEventHandler:
 
     async def handle_risk_threshold_breached(self, event):
         """Handle risk threshold breach events."""
-        portfolio_id = event.payload.get("portfolio_id")
+        event.payload.get("portfolio_id")
         threshold_type = event.payload.get("type")
         value = event.payload.get("value")
 
@@ -152,7 +152,7 @@ class TaskEventHandler:
     async def handle_task_completed(self, event):
         """Handle task completion events."""
         task_id = event.payload.get("task_id")
-        result = event.payload.get("result")
+        event.payload.get("result")
 
         logger.info(f"Task completed: {task_id}")
 

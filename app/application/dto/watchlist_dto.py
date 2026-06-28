@@ -2,7 +2,6 @@ from __future__ import annotations
 """DTOs for Watchlist services."""
 
 
-from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -19,21 +18,21 @@ class WatchlistCreateDTO(BaseModel):
 
 class WatchlistUpdateDTO(BaseModel):
     """DTO for updating a watchlist."""
-    name: Optional[str] = Field(default=None, min_length=1, max_length=64)
-    description: Optional[str] = Field(default=None, max_length=256)
+    name: str | None = Field(default=None, min_length=1, max_length=64)
+    description: str | None = Field(default=None, max_length=256)
 
 
 class WatchlistAddStockDTO(BaseModel):
     """DTO for adding stock to watchlist."""
-    stock_code: Optional[str] = Field(default=None, description="Stock code")
-    symbol: Optional[str] = Field(default=None, description="Stock symbol (alias)")
-    code: Optional[str] = Field(default=None, description="Stock code (alias)")
+    stock_code: str | None = Field(default=None, description="Stock code")
+    symbol: str | None = Field(default=None, description="Stock symbol (alias)")
+    code: str | None = Field(default=None, description="Stock code (alias)")
 
 
 class WatchlistRemoveStockDTO(BaseModel):
     """DTO for removing stock from watchlist."""
-    stock_code: Optional[str] = Field(default=None, description="Stock code")
-    symbol: Optional[str] = Field(default=None, description="Stock symbol (alias)")
+    stock_code: str | None = Field(default=None, description="Stock code")
+    symbol: str | None = Field(default=None, description="Stock symbol (alias)")
 
 
 class WatchlistBatchAddDTO(BaseModel):

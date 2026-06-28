@@ -14,8 +14,7 @@ import warnings
 
 from typing import Any
 import pandas as pd
-import numpy as np
-from datetime import date, timedelta
+from datetime import date
 
 from ...core.risk_controls import (
     load_default_risk_params,
@@ -208,7 +207,7 @@ class BacktestEngine:
                 for sym in positions
             )
 
-        final_value = cash + sum(
+        cash + sum(
             self._calc_pos_value(positions[sym], df_by_sym[sym], cal[-1].isoformat() if cal else "")
             for sym in positions
         )
@@ -248,7 +247,7 @@ class BacktestEngine:
         df.index = pd.to_datetime(df.index).date
 
         atr = compute_atr(df, window=14)
-        liq_filt = compute_liquidity_filters(df)
+        compute_liquidity_filters(df)
 
         positions = {}
         cash = initial_capital
@@ -312,7 +311,7 @@ class BacktestEngine:
             pos_value = sum(p["shares"] * p["current_price"] for p in positions.values())
             equity_curve.append({"date": dt_str, "value": cash + pos_value})
 
-        final_value = cash + sum(
+        cash + sum(
             p["shares"] * p["current_price"] for p in positions.values()
         )
 
@@ -396,7 +395,7 @@ class BacktestEngine:
                 continue
             close = df_sym.loc[dt, "Close"]
             exec_price = self._slippage_price(close, "sell", costs.slippage_bps)
-            proceeds = exec_price * pos["shares"]
+            exec_price * pos["shares"]
             trades.append({
                 "date": dt,
                 "symbol": sym,

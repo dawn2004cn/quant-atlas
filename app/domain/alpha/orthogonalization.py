@@ -6,7 +6,6 @@ portfolio factors before deployment. If correlation > 0.7, reject deployment.
 """
 
 
-import logging
 from dataclasses import dataclass
 from typing import Any
 

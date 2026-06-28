@@ -14,6 +14,7 @@ from typing import Any
 
 from app.core.logger import get_logger
 from app.domain.enums import MarketCode
+from app.core.event_bus import WatchlistAnomalyDetectedEvent
 logger = get_logger(__name__)
 
 
@@ -69,7 +70,7 @@ class WatchlistAgentService:
     def subscribe_to_events(self) -> None:
         """Subscribe to WatchlistAnomalyDetectedEvent to auto-trigger analysis."""
         try:
-            from app.core.event_bus import WatchlistAnomalyDetectedEvent, get_event_bus
+            from app.core.event_bus import get_event_bus
             bus = get_event_bus()
             bus.subscribe(WatchlistAnomalyDetectedEvent, self._on_anomaly, priority=50)
         except Exception as exc:
@@ -108,7 +109,7 @@ class WatchlistAgentService:
         )
         group_radar = self._build_group_radar(groups, user_id=user_id, market=market)
         summary = self._build_summary(items, active_group)
-        
+
         # New: Exposure calculation
         exposure = self._calculate_exposure(items)
 
@@ -131,10 +132,10 @@ class WatchlistAgentService:
         """计算分组在行业和风格上的暴露."""
         if not items:
             return {"industries": {}, "sentiment_map": {}}
-        
+
         industries = {}
         sentiments = {"bullish": 0, "bearish": 0, "neutral": 0}
-        
+
         for it in items:
             # Industry count
             ind = it.get("industry") or "其他"
@@ -144,7 +145,7 @@ class WatchlistAgentService:
             if score >= 70: sentiments["bullish"] += 1
             elif score < 50: sentiments["bearish"] += 1
             else: sentiments["neutral"] += 1
-            
+
         return {
             "industries": dict(sorted(industries.items(), key=lambda x: x[1], reverse=True)[:5]),
             "sentiments": sentiments,

@@ -15,35 +15,27 @@ Usage:
 
 
 import asyncio
-import logging
-from typing import Any, Literal
+from typing import Any
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph import END, START, StateGraph
 
 from ..constants import (
     AgentName,
-    DepartmentName,
-    NodeName,
-    LLMTierConfig,
     get_llm_tier_for_agent,
     CRITICAL_RISK_KEYS,
     TOOL_CONTEXT_LIMITS,
 )
 from ..evidence_blackboard import (
     get_evidence_blackboard,
-    EvidenceBlackboard,
     EvidenceType,
     EvidenceStrength,
 )
 from ..evidence_router import EvidenceRouter
-from ..weighted_consensus import WeightedConsensus
 from ..dynamic_weighting import WeightedAggregator
-from ..tiered_llm import TieredLLMOrchestrator, LLMTier
+from ..tiered_llm import TieredLLMOrchestrator
 from ..auto_validator import AutoValidator
-from ..knowledge_intermediary import EvidenceAwareToolWrapper
 from .state import ResearchState
 from .topology_compiler import TopologyCompiler
 
@@ -86,17 +78,17 @@ class IntegratedResearchGraph:
         ticker = state.get("ticker", "")
         query = state.get("query", "")
 
-        sys = f"""你是 **Supervisor Orchestrator**（研究编排者）??阅读用户问题与标的，输出简洁的「研究计划」??"""
+        sys = """你是 **Supervisor Orchestrator**（研究编排者）??阅读用户问题与标的，输出简洁的「研究计划」??"""
         user = f"ticker={ticker}, query={query}"
 
-        tier = get_llm_tier_for_agent(AgentName.SUPERVISOR)
+        get_llm_tier_for_agent(AgentName.SUPERVISOR)
         result = await react_with_tools(self._llm, [], system=sys, user=user, max_rounds=1)
 
         # Publish perception vector for cross-node resonance (10.0)
         if ticker:
             try:
                 from app.core.mesh.perception_bridge import publish_perception, subscribe_perception
-                
+
                 # Publish research start signal
                 publish_perception(
                     text=f"research_started:{ticker}:{query[:50]}",
@@ -107,7 +99,7 @@ class IntegratedResearchGraph:
                     },
                     ttl_seconds=600,
                 )
-                
+
                 # Subscribe to related signals
                 subscribe_perception(
                     text=f"risk_alert:{ticker}",
@@ -119,7 +111,7 @@ class IntegratedResearchGraph:
                     threshold=0.7,
                     label=f"currency_risk_for_{ticker}",
                 )
-                
+
                 logger.debug("perception layer: published research_start and subscribed for %s", ticker)
             except Exception as exc:
                 logger.debug("perception layer integration skipped: %s", exc)
@@ -129,12 +121,6 @@ class IntegratedResearchGraph:
     async def execute_parallel_departments(self, state: ResearchState) -> dict[str, Any]:
         """Execute all departments in parallel using TeamSupervisor pattern."""
         from .react_loop import react_with_tools
-        from ...tools.quant_tools import (
-            get_market_data,
-            get_kline_chart,
-            get_cn_financial_statements,
-            get_stock_news,
-        )
 
         async def run_macro():
             sys = "你是 Macro Analyst - 宏观分析?"
@@ -319,11 +305,11 @@ class IntegratedResearchGraph:
                     conclusion = "BEARISH"
                 elif "中?" in report or "neutral" in report.lower() or "sideways" in report.lower():
                     conclusion = "NEUTRAL"
-                
+
                 confidence = 0.7
                 if key == "chart_vision":
                     confidence = state.get("chart_vision_confidence", 0.7)
-                
+
                 agent_results.append({
                     "agent_name": f"{key.replace('_', ' ').title().replace(' ', '')}Analyst",
                     "conclusion": conclusion,
@@ -361,7 +347,7 @@ class IntegratedResearchGraph:
 
     async def execute_chart_vision(self, state: ResearchState) -> dict[str, Any]:
         """Execute Chart-Vision Agent ??visual pattern recognition on K-line charts (10.0).
-        
+
         This node renders a K-line chart from market data, analyzes it with a multimodal
         LLM to identify visual patterns, and merges results with numerical pattern detection.
         """
@@ -435,17 +421,17 @@ class IntegratedResearchGraph:
             # Publish perception vector for cross-node resonance (10.0)
             try:
                 from app.core.mesh.perception_bridge import publish_perception
-                
+
                 # Publish significant patterns as perception vectors
                 signal = merged.get("signal", "neutral")
                 confidence = merged.get("confidence", 0.0)
-                
+
                 # Only publish high-confidence signals
                 if confidence >= 0.7 and signal != "neutral":
                     perception_text = f"chart_pattern:{ticker}:{signal}"
                     if patterns_desc:
                         perception_text += f":{','.join(patterns_desc[:3])}"
-                    
+
                     publish_perception(
                         text=perception_text,
                         metadata={
@@ -459,7 +445,7 @@ class IntegratedResearchGraph:
                         },
                         ttl_seconds=600,
                     )
-                    logger.debug("published chart_vision perception for %s: %s (conf=%.2f)", 
+                    logger.debug("published chart_vision perception for %s: %s (conf=%.2f)",
                                ticker, signal, confidence)
             except Exception as exc:
                 logger.debug("perception layer publish skipped: %s", exc)

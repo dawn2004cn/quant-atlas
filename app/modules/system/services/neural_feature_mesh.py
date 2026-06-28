@@ -8,7 +8,6 @@ import math
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from app.core.logger import get_logger
 from app.domain.verification import list_pending

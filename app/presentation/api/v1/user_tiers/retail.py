@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 
 from app.core.logger import get_logger
 from app.core.registry import register_routes
-from app.presentation.api.v1.user_tiers._http import tier_not_found, tier_success
+from app.presentation.api.v1.user_tiers._http import tier_success
 
 logger = get_logger(__name__)
 

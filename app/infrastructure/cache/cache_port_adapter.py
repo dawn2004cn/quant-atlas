@@ -2,7 +2,8 @@ from __future__ import annotations
 
 """Adapter that makes CacheManager satisfy the domain CachePort contract."""
 
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.domain.ports.cache_port import CachePort
 from app.infrastructure.cache.cache_manager import CacheManager

@@ -6,7 +6,6 @@ call these same functions. Zero duplication — one source of truth.
 """
 
 
-from typing import Dict
 
 import pandas as pd
 
@@ -38,7 +37,7 @@ def calc_crypto_funding_fee(
     symbol: str,
     bar: pd.Series,
     timestamp: pd.Timestamp,
-    positions: Dict[str, Position],
+    positions: dict[str, Position],
     funding_rate: float,
     applied_set: set,
     daily_done_set: set,
@@ -86,7 +85,7 @@ def calc_crypto_funding_fee(
 def check_crypto_liquidation(
     symbol: str,
     bar: pd.Series,
-    positions: Dict[str, Position],
+    positions: dict[str, Position],
 ) -> bool:
     """Check if a crypto position should be liquidated.
 
@@ -139,7 +138,7 @@ def _normalize_symbol(symbol: str) -> str:
 def calc_forex_swap(
     symbol: str,
     timestamp: pd.Timestamp,
-    positions: Dict[str, Position],
+    positions: dict[str, Position],
     lot_size: float,
     last_swap_dates: dict,
 ) -> float:

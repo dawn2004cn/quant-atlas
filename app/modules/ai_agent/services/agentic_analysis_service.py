@@ -2,8 +2,6 @@ from __future__ import annotations
 """Application service for orchestrating AI Agent analyses."""
 
 
-import logging
-from typing import Any
 from app.domain.ports import AgentRepository, AgentLLMPort, MarketDataProvider
 from app.domain.agent_entities import MarketInsight, ReportInterpretation
 from app.domain.enums import MarketCode
@@ -32,19 +30,19 @@ class AgenticAnalysisService:
         # 1. Gather raw data
         overview = self._market_data.get_market_overview(market_code)
         rankings = self._market_data.get_market_rankings(market_code)
-        
+
         market_data = {
             "market": market_code.value,
             "overview": overview,
             "top_gainers": rankings.get("gainers", [])[:10]
         }
-        
+
         # 2. Run LLM Agent
         insight = self._llm.analyze_market(market_data)
-        
+
         # 3. Persist
         self._repository.save_market_insight(insight)
-        
+
         return insight
 
     def interpret_report(self, report_text: str, source: str | None = None) -> ReportInterpretation:
@@ -53,8 +51,8 @@ class AgenticAnalysisService:
         interpretation = self._llm.interpret_report(report_text)
         if source:
             interpretation.source = source
-            
+
         # 2. Persist
         self._repository.save_report_interpretation(interpretation)
-        
+
         return interpretation

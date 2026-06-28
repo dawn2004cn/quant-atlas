@@ -8,7 +8,6 @@ This enables rd-agent to generate complex, stateful factor logic
 """
 
 
-from typing import Any
 
 import numpy as np
 

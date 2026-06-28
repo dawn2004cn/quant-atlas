@@ -14,11 +14,9 @@ Signal interface: OptionsSignalEngine.generate(data_map) returns a list of trade
 Artifacts: equity.csv, metrics.csv, trades.csv, greeks.csv.
 """
 
-import json
 import sys
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -67,7 +65,7 @@ def bs_price(S: float, K: float, T: float, r: float, sigma: float,
 
 
 def bs_greeks(S: float, K: float, T: float, r: float, sigma: float,
-              option_type: str = "call") -> Dict[str, float]:
+              option_type: str = "call") -> dict[str, float]:
     """Calculate Black-Scholes Greeks.
 
     Args:
@@ -256,12 +254,12 @@ class OptionPosition:
 
 
 def run_options_backtest(
-    config: Dict[str, Any],
+    config: dict[str, Any],
     loader: Any,
     engine: Any,
     run_dir: Path,
     bars_per_year: int = 252,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Options backtest entry point.
 
     Day-by-day simulation:
@@ -292,7 +290,7 @@ def run_options_backtest(
     commission = config.get("commission", 0.001)
     options_cfg = config.get("options_config", {})
     risk_free_rate = options_cfg.get("risk_free_rate", 0.05)
-    iv_source = options_cfg.get("iv_source", "historical")
+    options_cfg.get("iv_source", "historical")
     contract_multiplier = options_cfg.get("contract_multiplier", 1.0)
     exercise_style = options_cfg.get("exercise_style", "european")  # v2: "european" or "american"
     iv_skew = options_cfg.get("iv_skew", 0.0)         # v2: smile skew param (0 = flat)
@@ -305,7 +303,7 @@ def run_options_backtest(
         sys.exit(1)
 
     # Compute implied volatility (approximated by historical volatility)
-    iv_map: Dict[str, pd.Series] = {}
+    iv_map: dict[str, pd.Series] = {}
     for code, df in data_map.items():
         iv_map[code] = historical_volatility(df["close"])
 
@@ -319,25 +317,25 @@ def run_options_backtest(
     dates = sorted(all_dates)
 
     # Index signals by date
-    signal_by_date: Dict[str, List[Dict[str, Any]]] = {}
+    signal_by_date: dict[str, list[dict[str, Any]]] = {}
     for sig in signals:
         d = sig.get("date", "")
         signal_by_date.setdefault(d, []).append(sig)
 
     # Day-by-day simulation
     cash = float(initial_cash)
-    positions: List[OptionPosition] = []
-    trade_records: List[Dict[str, Any]] = []
-    greeks_records: List[Dict[str, Any]] = []
-    equity_records: List[Dict[str, Any]] = []
+    positions: list[OptionPosition] = []
+    trade_records: list[dict[str, Any]] = []
+    greeks_records: list[dict[str, Any]] = []
+    equity_records: list[dict[str, Any]] = []
 
     for current_date in dates:
         ts = pd.Timestamp(current_date)
         date_str = str(ts.date()) if hasattr(ts, "date") else str(ts)
 
         # 1. Get underlying price and IV for the current day
-        spot_prices: Dict[str, float] = {}
-        ivs: Dict[str, float] = {}
+        spot_prices: dict[str, float] = {}
+        ivs: dict[str, float] = {}
         for code, df in data_map.items():
             if ts in df.index:
                 spot_prices[code] = float(df.at[ts, "close"])
@@ -564,12 +562,12 @@ def run_options_backtest(
 
 
 def _find_matching_position(
-    positions: List[OptionPosition],
+    positions: list[OptionPosition],
     underlying: str,
     option_type: str,
     strike: float,
     expiry: str,
-) -> Optional[OptionPosition]:
+) -> OptionPosition | None:
     """Find a matching open position.
 
     Args:
@@ -595,9 +593,9 @@ def _find_matching_position(
 def _calc_options_metrics(
     equity: pd.Series,
     initial_cash: float,
-    trades: List[Dict[str, Any]],
+    trades: list[dict[str, Any]],
     bars_per_year: int = 252,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Calculate options backtest metrics.
 
     Args:

@@ -2,7 +2,7 @@ from __future__ import annotations
 """Generic State Machine interfaces for fault-tolerant workflows."""
 
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Any, Dict
+from typing import Generic, TypeVar, Any
 
 TState = TypeVar("TState", bound=str)
 TContext = TypeVar("TContext")
@@ -24,11 +24,11 @@ class IStatePersistence(ABC):
     """Contract for state snapshotting."""
 
     @abstractmethod
-    def save_snapshot(self, state_id: str, state: str, context: Dict[str, Any]) -> None:
+    def save_snapshot(self, state_id: str, state: str, context: dict[str, Any]) -> None:
         """Save a state snapshot."""
         raise NotImplementedError
 
     @abstractmethod
-    def load_snapshot(self, state_id: str) -> Dict[str, Any] | None:
+    def load_snapshot(self, state_id: str) -> dict[str, Any] | None:
         """Load a state snapshot."""
         raise NotImplementedError

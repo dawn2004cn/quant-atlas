@@ -12,7 +12,8 @@ Usage:
 """
 
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from .evidence_blackboard import (
     get_evidence_blackboard,

@@ -1,40 +1,39 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
 
 class TaskNodeDTO(BaseModel):
     task_id: str
     task_name: str
     label: str
     status: str
-    started_at: Optional[str] = None
-    completed_at: Optional[str] = None
-    duration_sec: Optional[float] = None
-    error: Optional[str] = None
+    started_at: str | None = None
+    completed_at: str | None = None
+    duration_sec: float | None = None
+    error: str | None = None
 
 class PipelineDTO(BaseModel):
     pipeline_id: str
     name: str
     description: str
-    nodes: List[TaskNodeDTO]
-    root_task_ids: List[str]
+    nodes: list[TaskNodeDTO]
+    root_task_ids: list[str]
 
 class PipelineSummaryDTO(BaseModel):
     pipeline_id: str
     name: str
     total_tasks: int
-    status: Dict[str, int]
+    status: dict[str, int]
 
 class DagNodeDTO(BaseModel):
     id: str
     label: str
     status: str
     color: str
-    duration: Optional[float] = None
+    duration: float | None = None
 
 class DagEdgeDTO(BaseModel):
     source: str = Field(alias="from")
     target: str = Field(alias="to")
 
 class DagGraphDTO(BaseModel):
-    nodes: List[DagNodeDTO]
-    edges: List[DagEdgeDTO]
+    nodes: list[DagNodeDTO]
+    edges: list[DagEdgeDTO]

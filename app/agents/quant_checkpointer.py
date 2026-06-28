@@ -2,7 +2,6 @@
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import MemorySaver
-import logging
 
 
 from app.core.logger import get_logger
@@ -11,7 +10,7 @@ logger = get_logger(__name__)
 
 class QuantBaseCheckpointSaver(BaseCheckpointSaver):
     """Base class for Quant Atlas Checkpoint Savers."""
-    
+
     def setup(self) -> None:
         """Standard lifecycle initialization."""
         logger.info(f"Initializing {self.__class__.__name__}...")

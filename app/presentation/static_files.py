@@ -2,7 +2,6 @@ from __future__ import annotations
 """Serve project-root ``static/`` and ``instance/uploads/`` reliably."""
 
 
-import functools
 import re
 from pathlib import Path
 

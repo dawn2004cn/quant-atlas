@@ -3,7 +3,6 @@ from __future__ import annotations
 
 
 from collections import defaultdict
-from typing import Dict, List, Optional, Union
 
 import pandas as pd
 import yfinance as yf
@@ -68,7 +67,7 @@ def _to_yfinance_interval(interval: str) -> str:
 
 
 def _download_history(
-    tickers: Union[List[str], str],
+    tickers: list[str] | str,
     start_date: str,
     end_date: str,
     interval: str,
@@ -214,12 +213,12 @@ class DataLoader:
 
     def fetch(
         self,
-        codes: List[str],
+        codes: list[str],
         start_date: str,
         end_date: str,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
         interval: str = "1D",
-    ) -> Dict[str, pd.DataFrame]:
+    ) -> dict[str, pd.DataFrame]:
         """Fetch OHLCV history keyed by the original project symbols.
 
         Args:
@@ -240,12 +239,12 @@ class DataLoader:
         requested_interval = str(interval or "1D").strip()
         yf_interval = _to_yfinance_interval(requested_interval)
 
-        symbol_groups: Dict[str, List[str]] = defaultdict(list)
+        symbol_groups: dict[str, list[str]] = defaultdict(list)
         for code in codes:
             symbol_groups[_to_yfinance_symbol(code)].append(code)
 
         unique_symbols = list(symbol_groups.keys())
-        results: Dict[str, pd.DataFrame] = {}
+        results: dict[str, pd.DataFrame] = {}
 
         try:
             bulk_data = _download_history(unique_symbols, start_date, end_date, yf_interval)

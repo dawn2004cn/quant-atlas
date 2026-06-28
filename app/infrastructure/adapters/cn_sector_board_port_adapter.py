@@ -1,7 +1,7 @@
 from __future__ import annotations
 """Infrastructure adapter for ``CnSectorBoardPort``."""
 
-from typing import Any, Literal
+from typing import Any
 
 from app.domain.ports.cn_sector_board_port import CnSectorBoardPort, SectorKind
 from app.infrastructure.providers.cn_kpl_sectors import (

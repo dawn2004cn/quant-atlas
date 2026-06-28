@@ -8,10 +8,10 @@ from __future__ import annotations
 """
 
 
-import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Generic, TypeVar
+from collections.abc import Callable
 
 from app.core.logger import get_logger
 from .market_stream import Quote
@@ -75,7 +75,7 @@ class QuoteStreamProcessor(StreamProcessor[Quote]):
         self._buffers: dict[str, list[Quote]] = {}
         self._indicators: dict[str, list[TechnicalIndicator]] = {}
 
-    def map(self, transform: Callable[[Quote], R]) -> "QuoteStreamProcessor":
+    def map(self, transform: Callable[[Quote], R]) -> QuoteStreamProcessor:
         """数据转换"""
         def wrapped(q: Quote) -> Quote | None:
             result = transform(q)
@@ -90,7 +90,7 @@ class QuoteStreamProcessor(StreamProcessor[Quote]):
         self._transforms.append(wrapped)
         return self
 
-    def filter(self, predicate: Callable[[Quote], bool]) -> "QuoteStreamProcessor":
+    def filter(self, predicate: Callable[[Quote], bool]) -> QuoteStreamProcessor:
         """数据过滤"""
         self._filters.append(predicate)
         return self

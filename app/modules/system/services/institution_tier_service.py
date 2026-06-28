@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from app.core.logger import get_logger
+from app.infrastructure.database.models import Role, UserRoleAssignment
 
 logger = get_logger(__name__)
 
@@ -602,7 +603,7 @@ class FederatedDeploymentService:
         """Updates from non-stale nodes within TTL window."""
         config = self.get_deployment_config()
         ttl_hours = float(config.get("update_ttl_hours", 48))
-        timeout = int(config.get("heartbeat_timeout_sec", 300))
+        int(config.get("heartbeat_timeout_sec", 300))
         now = datetime.now(timezone.utc)
         node_health = {n["node_id"]: n for n in self.list_nodes()}
         eligible: list[dict[str, Any]] = []
@@ -863,12 +864,16 @@ class RBACService:
         session = self._get_session()
         if session is None:
             return None
+        assignment = session.query(UserRoleAssignment).filter_by(user_id=user_id).first()
+        if not assignment:
+            return None
+        role = session.query(Role).filter_by(id=assignment.role_id).first()
+        return role.label if role else None
 
     def check_multi_resource(self, user_id: int,
                               resources: dict[str, str]) -> dict[str, bool]:
         """Check multiple resource permissions at once."""
         result = {}
-        from typing import get_args
         for resource, permission in resources.items():
             result[f"{resource}:{permission}"] = self.check_permission(user_id, resource, permission)
         return result
@@ -908,15 +913,6 @@ class RBACService:
             fh.write(json.dumps(record, ensure_ascii=False) + "\n")
         logger.info("RBAC audit: %s by user %d on user %d", action, changed_by, target_user)
         return record
-
-
-        from app.infrastructure.database.models import UserRoleAssignment, Role
-
-        assignment = session.query(UserRoleAssignment).filter_by(user_id=user_id).first()
-        if not assignment:
-            return None
-        role = session.query(Role).filter_by(id=assignment.role_id).first()
-        return role.label if role else None
 
     def list_roles(self) -> list[dict]:
         """List all available roles with their permissions."""

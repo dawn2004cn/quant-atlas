@@ -2,7 +2,7 @@ from __future__ import annotations
 """Domain Events and Event Bus."""
 
 from dataclasses import dataclass
-from typing import Callable, Type, Dict, List
+from collections.abc import Callable
 
 @dataclass
 class DomainEvent:
@@ -11,11 +11,11 @@ class DomainEvent:
 
 class EventBus:
     """Lightweight in-memory event bus."""
-    
-    def __init__(self):
-        self._subscribers: Dict[Type[DomainEvent], List[Callable]] = {}
 
-    def subscribe(self, event_type: Type[DomainEvent], callback: Callable):
+    def __init__(self):
+        self._subscribers: dict[type[DomainEvent], list[Callable]] = {}
+
+    def subscribe(self, event_type: type[DomainEvent], callback: Callable):
         if event_type not in self._subscribers:
             self._subscribers[event_type] = []
         self._subscribers[event_type].append(callback)

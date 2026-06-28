@@ -9,6 +9,7 @@ from app.application.errors import NotFoundError, ValidationError
 from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
 from pathlib import Path
 from app.domain.schemas.agent_schemas import SwarmRunRequest
+from ..common import ok_response
 from ..decorators import require_role
 
 
@@ -38,11 +39,11 @@ def create_agent_swarm_blueprint(
         run = store.load_run(run_id)
         if not run:
             raise NotFoundError("swarm_run_not_found", details={"run_id": run_id})
-        
+
         # Build a graph view for the frontend
         nodes = [{"id": t.id, "agent": t.agent_id, "status": t.status, "summary": t.summary} for t in run.tasks]
         edges = [{"source": dep, "target": t.id} for t in run.tasks for dep in t.depends_on]
-        
+
         return ok_response(data={"run_id": run_id, "nodes": nodes, "edges": edges})
 
     @bp.post("/run")
@@ -56,7 +57,7 @@ def create_agent_swarm_blueprint(
                 "invalid_swarm_request",
                 details={"reason": str(exc)},
             ) from exc
-        
+
         result = swarm_service.start_research_swarm(req)
         return ok_response(data=result)
 

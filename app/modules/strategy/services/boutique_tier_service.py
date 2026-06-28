@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 import random
@@ -11,7 +10,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.core.logger import get_logger
 
@@ -162,7 +162,8 @@ class VectorizedBacktestService:
                     param_grid: dict[str, list[float]],
                     signal_fn: Callable[[list[float], dict], list[float]]) -> list[VectorizedBacktestResult]:
         """Run grid search over parameter combinations."""
-        import itertools, time
+        import itertools
+        import time
         start = time.perf_counter()
 
         keys = list(param_grid.keys())
@@ -208,7 +209,9 @@ class AltDataPoint:
 
     def parallel_grid_search(self, strategy_id, returns, param_grid, signal_fn, max_workers=4):
         """Run grid search with parallel workers and return heatmap-ready data."""
-        import itertools, time, concurrent.futures
+        import itertools
+        import time
+        import concurrent.futures
         start = time.perf_counter()
 
         keys = list(param_grid.keys())
@@ -366,7 +369,8 @@ class AutoFactorMiningService:
 
     def _evaluate_tree(self, tree, data):
         """Evaluate an expression tree on data matrix."""
-        import math, random
+        import math
+        import random
         if tree[0] == "feature":
             col = tree[1]
             if col < len(data):
@@ -396,7 +400,7 @@ class AutoFactorMiningService:
 
     def _compute_ic(self, factor_values, forward_returns):
         """Compute Information Coefficient (rank correlation)."""
-        import math, random
+        import random
         n = min(len(factor_values), len(forward_returns))
         if n < 5: return random.uniform(0, 0.05)
         fv = factor_values[:n]
@@ -471,7 +475,8 @@ class AutoFactorMiningService:
 
     def save_factor(self, name, expression, ic, created_by="system"):
         """Save a mined factor to the store."""
-        import json, uuid
+        import json
+        import uuid
         record = {
             "factor_id": f"af.{uuid.uuid4().hex[:8]}",
             "name": name,

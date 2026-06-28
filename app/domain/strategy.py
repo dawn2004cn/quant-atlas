@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 import pandas as pd
 
-from app.domain.trading_entities import SignalType, Trade
+from app.domain.trading_entities import Trade
 
 
 class BaseStrategy(ABC):
@@ -36,10 +36,10 @@ class BaseStrategy(ABC):
     def check_roi(self, trade: Trade, current_rate: float, current_time: float) -> bool:
         """Check if ROI condition is met."""
         profit_ratio = trade.calc_profit_ratio(current_rate)
-        
+
         # Simple ROI check
         duration = (current_time - trade.open_date.timestamp()) / 60  # in minutes
-        
+
         sorted_roi = sorted(self.minimal_roi.items(), key=lambda x: int(x[0]), reverse=True)
         for roi_time, roi_profit in sorted_roi:
             if duration >= int(roi_time) and profit_ratio >= roi_profit:

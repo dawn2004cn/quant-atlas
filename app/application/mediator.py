@@ -5,8 +5,8 @@ Mediator pattern for CQRS command/query dispatching.
 """
 
 
-import logging
-from typing import Any, Callable, Optional, Type
+from typing import Any
+from collections.abc import Callable
 
 from app.application.commands import (
     Command,
@@ -55,15 +55,15 @@ class HandlerNotFoundError(MediatorError):
 
 class Mediator:
     """CQRS Mediator for dispatching commands and queries."""
-    
+
     def __init__(self):
         self._command_handlers: dict[type, CommandHandler] = {}
         self._query_handlers: dict[type, QueryHandler] = {}
         self._middleware: list[Callable] = []
-        
+
         self._register_default_handlers()
         logger.info("Mediator initialized")
-    
+
     def _register_default_handlers(self) -> None:
         """Register default handlers."""
         self.register_command(CreateStockCommand, CreateStockHandler())
@@ -71,80 +71,80 @@ class Mediator:
         self.register_command(SubmitOrderCommand, SubmitOrderHandler())
         self.register_command(ScreenStocksCommand, ScreenStocksHandler())
         self.register_command(GenerateSignalCommand, GenerateSignalHandler())
-        
+
         self.register_query(GetStockQuery, GetStockHandler())
         self.register_query(GetPortfolioQuery, GetPortfolioHandler())
         self.register_query(GetOrdersQuery, GetOrdersHandler())
         self.register_query(GetSignalsQuery, GetSignalsHandler())
         self.register_query(GetEventHistoryQuery, GetEventHistoryHandler())
-    
+
     def register_command(
         self,
         command_type: type,
         handler: CommandHandler
-    ) -> "Mediator":
+    ) -> Mediator:
         """Register a command handler."""
         self._command_handlers[command_type] = handler
         return self
-    
+
     def register_query(
         self,
         query_type: type,
         handler: QueryHandler
-    ) -> "Mediator":
+    ) -> Mediator:
         """Register a query handler."""
         self._query_handlers[query_type] = handler
         return self
-    
-    def add_middleware(self, middleware: Callable) -> "Mediator":
+
+    def add_middleware(self, middleware: Callable) -> Mediator:
         """Add middleware."""
         self._middleware.append(middleware)
         return self
-    
+
     def send(self, command: Command) -> Any:
         """Send a command."""
         logger.debug(f"Sending command: {command.__class__.__name__}")
-        
+
         for middleware in self._middleware:
             middleware(command)
-        
+
         command_type = type(command)
         handler = self._command_handlers.get(command_type)
-        
+
         if not handler:
             raise HandlerNotFoundError(
                 f"No handler for command: {command_type.__name__}"
             )
-        
+
         return handler.handle(command)
-    
+
     def fetch(self, query: Query) -> Any:
         """Fetch using query."""
         logger.debug(f"Fetching query: {query.__class__.__name__}")
-        
+
         for middleware in self._middleware:
             middleware(query)
-        
+
         query_type = type(query)
         handler = self._query_handlers.get(query_type)
-        
+
         if not handler:
             raise HandlerNotFoundError(
                 f"No handler for query: {query_type.__name__}"
             )
-        
+
         return handler.handle(query)
-    
+
     def send_async(self, command: Command) -> Any:
         """Send command asynchronously (for future async support)."""
         return self.send(command)
-    
+
     def fetch_async(self, query: Query) -> Any:
         """Fetch query asynchronously."""
         return self.fetch(query)
 
 
-_global_mediator: Optional[Mediator] = None
+_global_mediator: Mediator | None = None
 
 
 def get_mediator() -> Mediator:

@@ -17,7 +17,6 @@ simulation rebuild. This keeps the numbers auditable and reproducible.
 
 
 import json
-import logging
 from dataclasses import replace
 from pathlib import Path
 from typing import Any

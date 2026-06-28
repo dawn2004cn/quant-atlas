@@ -6,7 +6,6 @@ import pandas as pd
 from typing import Any
 
 from app.core.engine import MarketRegimeManager
-from app.domain.enums import MarketCode
 
 
 class MarketAnalysisDomainService:
@@ -25,10 +24,10 @@ class MarketAnalysisDomainService:
             df = pd.DataFrame(index_history)
             if "close" not in df.columns:
                 return self._empty_sentiment(benchmark)
-            
+
             df.rename(columns={"close": "Close"}, inplace=True)
             regime_mgr = MarketRegimeManager(df)
-            
+
             return {
                 "regime": regime_mgr.get_current_regime(),
                 "recommended_categories": regime_mgr.get_recommended_categories(),

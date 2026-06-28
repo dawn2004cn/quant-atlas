@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from types import TracebackType
-from typing import Type
 
 class IUnitOfWork(ABC):
     """Transaction management contract."""
@@ -16,7 +15,7 @@ class IUnitOfWork(ABC):
     @abstractmethod
     def __exit__(
         self,
-        exc_type: Type[BaseException] | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:

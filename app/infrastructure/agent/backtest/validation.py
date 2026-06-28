@@ -12,7 +12,7 @@ is present, or invoked directly on backtest outputs.
 
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -25,11 +25,11 @@ from backtest.stdio_json import write_stdout_json
 
 
 def monte_carlo_test(
-    trades: List[TradeRecord],
+    trades: list[TradeRecord],
     initial_capital: float,
     n_simulations: int = 1000,
     seed: int = 42,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Shuffle trade PnL order to test path significance.
 
     Null hypothesis: the observed Sharpe / max-drawdown is no better than
@@ -80,7 +80,7 @@ def monte_carlo_test(
     }
 
 
-def _path_metrics(pnls: np.ndarray, initial_capital: float) -> Dict[str, float]:
+def _path_metrics(pnls: np.ndarray, initial_capital: float) -> dict[str, float]:
     """Compute Sharpe and max drawdown from a PnL sequence."""
     equity = initial_capital + np.cumsum(pnls)
     returns = np.diff(equity) / equity[:-1] if len(equity) > 1 else np.array([0.0])
@@ -101,7 +101,7 @@ def bootstrap_sharpe_ci(
     confidence: float = 0.95,
     bars_per_year: int = 252,
     seed: int = 42,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Resample daily returns to estimate Sharpe confidence interval.
 
     Args:
@@ -154,10 +154,10 @@ def _sharpe(returns: np.ndarray, bars_per_year: int = 252) -> float:
 
 def walk_forward_analysis(
     equity_curve: pd.Series,
-    trades: List[TradeRecord],
+    trades: list[TradeRecord],
     n_windows: int = 5,
     bars_per_year: int = 252,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Split backtest into sequential windows, check consistency.
 
     Each window is evaluated independently (returns normalised to window start).
@@ -238,12 +238,12 @@ def walk_forward_analysis(
 
 
 def run_validation(
-    config: Dict[str, Any],
+    config: dict[str, Any],
     equity_curve: pd.Series,
-    trades: List[TradeRecord],
+    trades: list[TradeRecord],
     initial_capital: float,
     bars_per_year: int = 252,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run configured validation checks.
 
     Reads from config["validation"]:
@@ -262,7 +262,7 @@ def run_validation(
         Dict keyed by validation type with results.
     """
     v_cfg = config.get("validation", {})
-    results: Dict[str, Any] = {}
+    results: dict[str, Any] = {}
 
     if "monte_carlo" in v_cfg:
         mc_cfg = v_cfg["monte_carlo"] if isinstance(v_cfg["monte_carlo"], dict) else {}
@@ -302,7 +302,7 @@ def _load_equity(run_dir: Path) -> pd.Series:
     return df["equity"]
 
 
-def _load_trades(run_dir: Path) -> List[TradeRecord]:
+def _load_trades(run_dir: Path) -> list[TradeRecord]:
     """Load trades from artifacts/trades.csv and convert to TradeRecord list."""
     path = run_dir / "artifacts" / "trades.csv"
     df = pd.read_csv(path)
@@ -331,7 +331,7 @@ def _load_trades(run_dir: Path) -> List[TradeRecord]:
     return trades
 
 
-def _parse_run_dir(argv: List[str]) -> Path:
+def _parse_run_dir(argv: list[str]) -> Path:
     """Validate CLI input and return a usable run directory path."""
     if len(argv) < 2:
         raise SystemExit("Usage: python -m backtest.validation <run_dir>")
@@ -356,7 +356,7 @@ def _parse_run_dir(argv: List[str]) -> Path:
     return run_dir
 
 
-def main(run_dir: Path) -> Dict[str, Any]:
+def main(run_dir: Path) -> dict[str, Any]:
     """Run all three validations on existing backtest artifacts.
 
     Reads equity.csv, trades.csv, and config.json from run_dir.

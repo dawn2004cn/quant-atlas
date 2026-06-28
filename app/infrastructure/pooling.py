@@ -5,13 +5,13 @@ Provides connection pooling for database and cache resources.
 """
 
 
-import logging
 import threading
 import time
 from collections import deque
 from contextlib import contextmanager
-from dataclasses import dataclass, field
-from typing import Any, Callable, Generic, Optional, TypeVar
+from dataclasses import dataclass
+from typing import Any, Generic, TypeVar
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
@@ -45,41 +45,41 @@ class PoolStats:
 
 class PooledConnection(Generic[T]):
     """A pooled connection wrapper."""
-    
+
     def __init__(self, conn: T, pool: ConnectionPool[T], created_at: float):
         self._conn = conn
         self._pool = pool
         self._created_at = created_at
-        self._checked_out_at: Optional[float] = None
+        self._checked_out_at: float | None = None
         self._in_use = False
-    
+
     @property
     def connection(self) -> T:
         return self._conn
-    
+
     @property
     def age(self) -> float:
         return time.time() - self._created_at
-    
+
     def is_stale(self, recycle_time: float) -> bool:
         return self.age > recycle_time
-    
+
     def release(self) -> None:
         if self._in_use:
             self._in_use = False
             self._checked_out_at = None
             self._pool._return_connection(self)
-    
+
     def __enter__(self):
         return self
-    
+
     def __exit__(self, *args):
         self.release()
 
 
 class ConnectionPool(Generic[T]):
     """Generic connection pool."""
-    
+
     def __init__(
         self,
         factory: Callable[[], T],
@@ -94,9 +94,9 @@ class ConnectionPool(Generic[T]):
         self._stats = PoolStats()
         self._closed = False
         self._stats_lock = threading.Lock()
-        
+
         logger.info(f"ConnectionPool initialized: max={self._config.max_size}")
-    
+
     def initialize(self) -> None:
         """Initialize pool with minimum connections."""
         with self._lock:
@@ -105,23 +105,23 @@ class ConnectionPool(Generic[T]):
                 self._idle.append(conn)
                 self._stats.idle += 1
                 self._stats.total += 1
-        
+
         logger.info(f"Pool initialized: {self._config.min_size} connections")
-    
+
     def _create(self) -> PooledConnection[T]:
         """Create a new connection."""
         conn = self._factory()
         return PooledConnection(conn, self, time.time())
-    
+
     @contextmanager
     def checkout(self, timeout: float = None):
         """Checkout a connection from the pool."""
         if self._closed:
             raise RuntimeError("Pool is closed")
-        
+
         timeout = timeout or self._config.checkout_timeout
         deadline = time.time() + timeout
-        
+
         with self._lock:
             # Try to get from idle
             while self._idle:
@@ -143,53 +143,53 @@ class ConnectionPool(Generic[T]):
                         with self._stats_lock:
                             self._stats.timeouts += 1
                         raise TimeoutError("Connection pool exhausted")
-                    
+
                     self._stats.waiters += 1
                     try:
                         self._cond.wait(remaining)
                     finally:
                         self._stats.waiters -= 1
-                    
+
                     if self._idle:
                         pooled = self._idle.pop()
                     else:
                         with self._stats_lock:
                             self._stats.timeouts += 1
                         raise TimeoutError("Connection pool timeout")
-            
+
             pooled._in_use = True
             pooled._checked_out_at = time.time()
             self._active.add(pooled)
             self._stats.active += 1
             self._stats.idle = max(0, self._stats.idle - 1)
-            
+
             with self._stats_lock:
                 self._stats.checkouts += 1
-        
+
         try:
             yield pooled
         finally:
             self._return_connection(pooled)
-    
+
     def _return_connection(self, pooled: PooledConnection[T]) -> None:
         """Return a connection to the pool."""
         with self._lock:
             self._active.discard(pooled)
             self._stats.active = max(0, self._stats.active - 1)
-            
+
             if self._closed or pooled.is_stale(self._config.recycle_time):
                 self._stats.total -= 1
                 logger.debug("Connection closed (stale or pool closed)")
                 return
-            
+
             self._idle.append(pooled)
             self._stats.idle += 1
-            
+
             with self._stats_lock:
                 self._stats.checkins += 1
-            
+
             self._cond.notify()
-    
+
     def close_idle(self) -> int:
         """Close idle connections beyond min_size."""
         with self._lock:
@@ -199,26 +199,26 @@ class ConnectionPool(Generic[T]):
                 self._stats.total -= 1
                 self._stats.idle -= 1
                 closed += 1
-            
+
             if closed:
                 logger.info(f"Closed {closed} idle connections")
-            
+
             return closed
-    
+
     def close(self) -> None:
         """Close all connections."""
         with self._lock:
             self._closed = True
-            
+
             while self._idle:
                 self._idle.pop()
                 self._stats.total -= 1
-            
+
             self._stats.idle = 0
             self._stats.active = 0
-            
+
             logger.info("Pool closed")
-    
+
     def get_stats(self) -> PoolStats:
         """Get pool statistics."""
         with self._stats_lock:
@@ -234,8 +234,8 @@ class ConnectionPool(Generic[T]):
 
 
 # Global pools
-_db_pool: Optional[ConnectionPool[Any]] = None
-_cache_pool: Optional[ConnectionPool[Any]] = None
+_db_pool: ConnectionPool[Any] | None = None
+_cache_pool: ConnectionPool[Any] | None = None
 
 
 def get_db_pool() -> ConnectionPool[Any]:
@@ -262,7 +262,7 @@ def get_cache_pool() -> ConnectionPool[Any]:
 
 __all__ = [
     "PoolConfig",
-    "PoolStats", 
+    "PoolStats",
     "PooledConnection",
     "ConnectionPool",
     "get_db_pool",

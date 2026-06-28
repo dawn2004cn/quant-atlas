@@ -382,4 +382,4 @@ def get_strategy_synthesizer() -> DynamicStrategySynthesizer:
     global _global_synthesizer
     if _global_synthesizer is None:
         _global_synthesizer = DynamicStrategySynthesizer()
-    return _global_synthesizer
+    return _global_synthesizer

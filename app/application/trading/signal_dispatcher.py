@@ -1,6 +1,5 @@
 """Signal Dispatcher for trade execution."""
 
-import logging
 from typing import Any
 from app.core.events import risk_alert_triggered
 from app.domain.dto.trade_signal_dto import TradeSignalDTO
@@ -15,7 +14,7 @@ logger = get_logger(__name__)
 
 class SignalDispatcher:
     """Routes strategy signals to execution gateways with pre-trade checks."""
-    
+
     def __init__(self, executor: ITradeExecutor, validator: PreTradeValidationPort):
         self._executor = executor
         self._validator = validator
@@ -33,6 +32,6 @@ class SignalDispatcher:
         if not self._validator.validate(signal):
             logger.warning(f"Trade signal rejected by PreTradeValidator: {signal.symbol}")
             return
-            
+
         logger.info(f"Dispatching trade signal: {signal.direction} {signal.quantity} shares of {signal.symbol}")
         self._executor.execute(signal)

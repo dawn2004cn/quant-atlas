@@ -5,7 +5,6 @@ import json
 import statistics
 import threading
 from datetime import date, timedelta
-from pathlib import Path
 from typing import Any
 
 from app.config import BASE_DIR

@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import ast
 import json
-import os
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone

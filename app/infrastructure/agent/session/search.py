@@ -10,13 +10,11 @@ Database location: ~/.vibe-trading/sessions.db (WAL mode for concurrent reads).
 
 
 import json
-import logging
 import sqlite3
 import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
 
 
 from app.core.logger import get_logger
@@ -74,7 +72,7 @@ class SessionSearchIndex:
         """
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn: Optional[sqlite3.Connection] = None
+        self._conn: sqlite3.Connection | None = None
         self._init_db()
 
     def _get_conn(self) -> sqlite3.Connection:
@@ -150,7 +148,7 @@ class SessionSearchIndex:
         conn.commit()
 
     def index_message(self, session_id: str, role: str, content: str,
-                      tool_name: Optional[str] = None) -> None:
+                      tool_name: str | None = None) -> None:
         """Index a single message.
 
         Args:
@@ -195,7 +193,7 @@ class SessionSearchIndex:
         # Quote each token and join with OR for broader matching
         return " OR ".join(f'"{t}"' for t in tokens)
 
-    def search(self, query: str, max_sessions: int = 3) -> List[SearchMatch]:
+    def search(self, query: str, max_sessions: int = 3) -> list[SearchMatch]:
         """Full-text search across all sessions.
 
         Args:
@@ -286,9 +284,9 @@ class SessionSearchIndex:
                 title = session_data.get("title", "")
 
                 try:
-                    ts = datetime.fromisoformat(session_data.get("created_at", "")).timestamp()
+                    datetime.fromisoformat(session_data.get("created_at", "")).timestamp()
                 except (ValueError, TypeError):
-                    ts = time.time()
+                    time.time()
 
                 self.index_session(sid, title)
 
@@ -327,7 +325,7 @@ class SessionSearchIndex:
 
 import threading as _threading
 
-_shared_index: Optional[SessionSearchIndex] = None
+_shared_index: SessionSearchIndex | None = None
 _shared_lock = _threading.Lock()
 
 

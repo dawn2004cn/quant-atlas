@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from datetime import date, datetime
-from typing import Any, Optional
+from typing import Any
 
 from app.core.base_service import BaseApplicationService
 from app.application.dto.portfolio_dto import TradeRecordDTO, PortfolioPerformanceDTO
@@ -34,7 +34,7 @@ def _get_user_file(user_id: int) -> Path:
 class PortfolioTradeService(BaseApplicationService):
     """Service for managing trade records and calculating portfolio metrics."""
 
-    def __init__(self, market_provider: Optional[IMarketDataProvider] = None):
+    def __init__(self, market_provider: IMarketDataProvider | None = None):
         super().__init__()
         if market_provider is not None:
             self._market = market_provider
@@ -152,8 +152,8 @@ class PortfolioTradeService(BaseApplicationService):
         for d in trade_dates:
             daily_trades = [t for t in trades if datetime.fromisoformat(t['trade_date']).date() == d]
 
-            daily_buy = sum(t['quantity'] * t['price'] + t.get('fee', 0) for t in daily_trades if t['direction'] == 'BUY')
-            daily_sell = sum(t['quantity'] * t['price'] - t.get('fee', 0) for t in daily_trades if t['direction'] == 'SELL')
+            sum(t['quantity'] * t['price'] + t.get('fee', 0) for t in daily_trades if t['direction'] == 'BUY')
+            sum(t['quantity'] * t['price'] - t.get('fee', 0) for t in daily_trades if t['direction'] == 'SELL')
 
             for t in daily_trades:
                 sym = t['symbol']
@@ -203,7 +203,7 @@ class PortfolioTradeService(BaseApplicationService):
         if not f.exists():
             return []
         try:
-            with open(f, 'r', encoding='utf-8') as fp:
+            with open(f, encoding='utf-8') as fp:
                 return json.load(fp)
         except (OSError, json.JSONDecodeError, TypeError, ValueError) as e:
             self.logger.error("Error loading trades: %s", e)

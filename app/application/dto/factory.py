@@ -2,7 +2,7 @@ from __future__ import annotations
 """DTO Factory for creating validated DTO instances."""
 
 
-from typing import Any, Type, Optional
+from typing import Any
 from pydantic import BaseModel, ValidationError
 
 from app.core.logger import get_logger
@@ -13,16 +13,16 @@ logger = get_logger(__name__)
 class DTOFactory:
     """Factory for creating validated DTO instances."""
 
-    _registry: dict[str, Type[BaseModel]] = {}
+    _registry: dict[str, type[BaseModel]] = {}
 
     @classmethod
-    def register(cls, name: str, dto_class: Type[BaseModel]):
+    def register(cls, name: str, dto_class: type[BaseModel]):
         """Register a DTO class."""
         cls._registry[name] = dto_class
         logger.debug(f"Registered DTO: {name}")
 
     @classmethod
-    def create(cls, name: str, data: dict[str, Any]) -> Optional[BaseModel]:
+    def create(cls, name: str, data: dict[str, Any]) -> BaseModel | None:
         """Create a DTO instance from raw data."""
         if name not in cls._registry:
             logger.warning(f"DTO not registered: {name}")
@@ -42,7 +42,7 @@ class DTOFactory:
         return [cls.create(name, data) for data in data_list if cls.create(name, data)]
 
     @classmethod
-    def validate(cls, name: str, data: dict[str, Any]) -> tuple[bool, Optional[BaseModel], list[str]]:
+    def validate(cls, name: str, data: dict[str, Any]) -> tuple[bool, BaseModel | None, list[str]]:
         """Validate data and return result."""
         if name not in cls._registry:
             return False, None, [f"DTO not registered: {name}"]
@@ -62,8 +62,7 @@ def register_dtos():
     from app.application.dto.contracts import (
         BarContract, QuoteContract, StrategySignalContract,
         PositionContract, PortfolioContract, RiskAssessmentContract,
-        OrderContract, TechnicalIndicatorContract, AnalysisResultContract,
-        TaskContract, EventContract,
+        OrderContract, TaskContract, EventContract,
     )
     from app.domain.dto.market_data import (
         BarData, QuoteData, StockProfile, MarketStats,
@@ -89,12 +88,12 @@ def register_dtos():
     DTOFactory.register("risk_data", RiskAssessmentData)
 
 
-def create_dto(dto_name: str, data: dict[str, Any]) -> Optional[BaseModel]:
+def create_dto(dto_name: str, data: dict[str, Any]) -> BaseModel | None:
     """Create a DTO instance (convenience function)."""
     return DTOFactory.create(dto_name, data)
 
 
-def validate_dto(dto_name: str, data: dict[str, Any]) -> tuple[bool, Optional[BaseModel], list[str]]:
+def validate_dto(dto_name: str, data: dict[str, Any]) -> tuple[bool, BaseModel | None, list[str]]:
     """Validate a DTO (convenience function)."""
     return DTOFactory.validate(dto_name, data)
 

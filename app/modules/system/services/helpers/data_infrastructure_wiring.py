@@ -26,7 +26,6 @@ warnings.warn(
 """Bound data infrastructure helpers (quality monitor + lineage tracker)."""
 
 from collections.abc import Callable
-from typing import Any
 from app.domain.ports.data_lineage_port import DataLineagePort
 from app.domain.ports.data_quality_ports import DataQualityPort
 

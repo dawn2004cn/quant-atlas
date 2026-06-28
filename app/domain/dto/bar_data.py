@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 class BarData(BaseModel):
     """Immutable OHLCV bar data contract."""
-    
+
     code: str = Field(..., description="Stock code, e.g. '000001'")
     name: str = Field(default="", description="Stock name")
     trade_date: str = Field(..., description="Trading date, format: YYYY-MM-DD")
@@ -22,12 +22,12 @@ class BarData(BaseModel):
     amount: float = Field(0.0, description="Trading amount (CNY)")
     turnover: float = Field(0.0, description="Turnover rate (%)")
     change_pct: float = Field(0.0, description="Price change percentage")
-    
+
     @property
     def is_valid(self) -> bool:
         """Check if bar data is valid."""
         return self.close > 0 and self.high >= self.low
-    
+
     @property
     def typical_price(self) -> float:
         """Typical price = (high + low + close) / 3"""
@@ -36,7 +36,7 @@ class BarData(BaseModel):
 
 class QuoteData(BaseModel):
     """Real-time quote data contract."""
-    
+
     code: str
     name: str = ""
     price: float = 0.0
@@ -58,7 +58,7 @@ class QuoteData(BaseModel):
 
 class IndicatorResult(BaseModel):
     """Technical indicator result contract."""
-    
+
     code: str
     indicator_name: str
     value: float
@@ -69,21 +69,21 @@ class IndicatorResult(BaseModel):
 
 class HistoryData(BaseModel):
     """History data container with metadata."""
-    
+
     code: str
     bars: list[BarData] = Field(default_factory=list)
     start_date: str = ""
     end_date: str = ""
     count: int = 0
-    
+
     @property
     def closes(self) -> list[float]:
         return [b.close for b in self.bars]
-    
+
     @property
     def highs(self) -> list[float]:
         return [b.high for b in self.bars]
-    
+
     @property
     def lows(self) -> list[float]:
         return [b.low for b in self.bars]

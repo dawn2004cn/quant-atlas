@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Facade package exposing high-level APIs for the Quant Atlas platform.
 Each facade groups related services behind a simple, stable interface.

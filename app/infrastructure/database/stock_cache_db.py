@@ -9,7 +9,7 @@ decoupled repositories internally (Bridge Pattern + Single Responsibility).
 import threading
 from typing import Any
 
-from .adapters import create_database_adapter, DatabaseAdapter
+from .adapters import create_database_adapter
 from .stock_repository import StockRepository
 from .history_repository import HistoryRepository
 from .sentiment_repository import SentimentRepository

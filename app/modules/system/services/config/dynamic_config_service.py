@@ -5,7 +5,6 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 import yaml
 from datetime import datetime
-from typing import Any
 
 from app.core.logger import get_logger
 
@@ -53,7 +52,7 @@ class SwarmConfigModel:
         }, allow_unicode=True, default_flow_style=False)
 
     @classmethod
-    def from_yaml(cls, yaml_str: str, name: str) -> "SwarmConfigModel":
+    def from_yaml(cls, yaml_str: str, name: str) -> SwarmConfigModel:
         """从YAML导入"""
         data = yaml.safe_load(yaml_str)
         return cls(
@@ -113,10 +112,10 @@ class DynamicConfigService:
     def reload_from_file(self, preset_name: str, file_path: str) -> bool:
         """从文件重新加载配置"""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding='utf-8') as f:
                 yaml_str = f.read()
 
-            config = self.create_from_yaml(yaml_str, preset_name)
+            self.create_from_yaml(yaml_str, preset_name)
             logger.info(f"Reloaded config from {file_path}")
             return True
         except Exception as e:

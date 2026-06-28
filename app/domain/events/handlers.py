@@ -5,12 +5,11 @@ In-memory event bus for domain events.
 """
 
 
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Optional
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
@@ -31,7 +30,7 @@ class DomainEvent:
     event_id: str = field(default_factory=lambda: datetime.now().strftime("%Y%m%d%H%M%S%f"))
     occurred_at: datetime = field(default_factory=datetime.now)
     metadata: dict = field(default_factory=dict)
-    
+
     @property
     def event_type(self) -> str:
         return self.__class__.__name__
@@ -90,12 +89,12 @@ class OrderFilledEvent(DomainEvent):
 
 class EventHandler(ABC):
     """Event handler interface."""
-    
+
     @abstractmethod
     def handle(self, event: DomainEvent) -> None:
         """Handle an event."""
         pass
-    
+
     @property
     @abstractmethod
     def priority(self) -> EventPriority:
@@ -105,82 +104,82 @@ class EventHandler(ABC):
 
 class LoggingEventHandler(EventHandler):
     """Log all events."""
-    
+
     @property
     def priority(self) -> EventPriority:
         return EventPriority.LOW
-    
+
     def handle(self, event: DomainEvent) -> None:
         logger.info(f"Event: {event.event_type} - {event.metadata}")
 
 
 class EventBus:
     """In-memory event bus."""
-    
+
     def __init__(self):
         self._handlers: list[EventHandler] = []
         self._listeners: dict[str, list[Callable]] = {}
         self._event_history: list[DomainEvent] = []
         self._max_history: int = 1000
-    
-    def subscribe(self, handler: EventHandler) -> "EventBus":
+
+    def subscribe(self, handler: EventHandler) -> EventBus:
         """Subscribe a handler."""
         self._handlers.append(handler)
         self._handlers.sort(key=lambda h: h.priority.value)
         return self
-    
-    def listen(self, event_type: str, callback: Callable) -> "EventBus":
+
+    def listen(self, event_type: str, callback: Callable) -> EventBus:
         """Listen for specific event type."""
         if event_type not in self._listeners:
             self._listeners[event_type] = []
         self._listeners[event_type].append(callback)
         return self
-    
+
     def publish(self, event: DomainEvent) -> None:
         """Publish an event."""
         self._event_history.append(event)
-        
+
         if len(self._event_history) > self._max_history:
             self._event_history = self._event_history[-self._max_history:]
-        
+
         for handler in self._handlers:
             try:
                 handler.handle(event)
             except Exception as e:
                 logger.error(f"Handler error: {e}")
-        
+
         listeners = self._listeners.get(event.event_type, [])
         for callback in listeners:
             try:
                 callback(event)
             except Exception as e:
                 logger.error(f"Listener error: {e}")
-        
+
         logger.debug(f"Published: {event.event_type}")
-    
+
     def get_history(
         self,
-        event_type: Optional[str] = None,
+        event_type: str | None = None,
         limit: int = 100
     ) -> list[DomainEvent]:
         """Get event history."""
         result = self._event_history
-        
+
         if event_type:
             result = [e for e in result if e.event_type == event_type]
-        
+
         return result[-limit:]
-    
+
     def clear_history(self) -> None:
         """Clear event history."""
         self._event_history.clear()
-    
+
     @property
     def event_count(self) -> int:
         return len(self._event_history)
 
 
-_global_event_bus: Optional[EventBus] = None
+_global_event_bus: EventBus | None = None
 
 
 def get_event_bus() -> EventBus:

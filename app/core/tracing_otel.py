@@ -2,12 +2,11 @@ from __future__ import annotations
 """OpenTelemetry distributed tracing for full request lifecycle."""
 
 
-import logging
 import uuid
 from contextlib import contextmanager
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Callable, Dict, Optional
+from dataclasses import dataclass
+from typing import Any
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
@@ -31,16 +30,16 @@ class TraceContext:
     """Trace context for passing across service calls."""
     trace_id: str = ""
     span_id: str = ""
-    parent_span_id: Optional[str] = None
-    
-    def to_dict(self) -> Dict[str, str]:
+    parent_span_id: str | None = None
+
+    def to_dict(self) -> dict[str, str]:
         return {
             "trace_id": self.trace_id,
             "span_id": self.span_id
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, str]) -> "TraceContext":
+    def from_dict(cls, data: dict[str, str]) -> TraceContext:
         return cls(
             trace_id=data.get("trace_id", ""),
             span_id=data.get("span_id", "")
@@ -62,7 +61,7 @@ class TracingService:
     def initialize(
         self,
         service_name: str = "quant-atlas",
-        jaeger_endpoint: Optional[str] = None,
+        jaeger_endpoint: str | None = None,
         enable_console: bool = False
     ) -> None:
         """Initialize tracing."""
@@ -98,8 +97,8 @@ class TracingService:
     def start_span(
         self,
         name: str,
-        attributes: Optional[Dict[str, Any]] = None,
-        context: Optional[TraceContext] = None
+        attributes: dict[str, Any] | None = None,
+        context: TraceContext | None = None
     ):
         """Start a new span.
 
@@ -134,11 +133,11 @@ class TracingService:
             span_id=uuid.uuid4().hex[:8]
         )
 
-    def get_current_context(self) -> Optional[TraceContext]:
+    def get_current_context(self) -> TraceContext | None:
         """Get current trace context from OpenTelemetry."""
         if not OTEL_AVAILABLE:
             return None
-        
+
         current_span = trace.get_current_span()
         if current_span:
             return TraceContext(
@@ -151,7 +150,7 @@ class TracingService:
 # Decorator for automatic tracing
 def traced(
     operation_name: str = None,
-    attributes: Optional[Dict[str, Any]] = None
+    attributes: dict[str, Any] | None = None
 ):
     """Decorator to automatically trace function execution.
 
@@ -176,7 +175,7 @@ def traced(
 
 
 # Global tracing service
-_tracing_service: Optional[TracingService] = None
+_tracing_service: TracingService | None = None
 
 
 def get_tracing_service() -> TracingService:
@@ -189,7 +188,7 @@ def get_tracing_service() -> TracingService:
 
 def init_tracing(
     service_name: str = "quant-atlas",
-    jaeger_endpoint: Optional[str] = None,
+    jaeger_endpoint: str | None = None,
     enable_console: bool = False
 ) -> None:
     """Initialize tracing service."""

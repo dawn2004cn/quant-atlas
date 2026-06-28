@@ -6,7 +6,8 @@ import uuid
 from enum import Enum
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 from queue import PriorityQueue
 import threading
 
@@ -39,21 +40,21 @@ class Task:
     priority: TaskPriority = TaskPriority.MEDIUM
     status: TaskStatus = TaskStatus.PENDING
 
-    func: Optional[Callable] = None
+    func: Callable | None = None
     args: tuple = ()
     kwargs: dict = field(default_factory=dict)
 
     result: Any = None
-    error: Optional[str] = None
+    error: str | None = None
 
     created_at: datetime = field(default_factory=datetime.now)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
 
     retries: int = 0
     max_retries: int = 3
 
-    def __lt__(self, other: "Task"):
+    def __lt__(self, other: Task):
         """Compare tasks by priority."""
         return self.priority.value < other.priority.value
 
@@ -213,7 +214,7 @@ class PriorityTaskQueue:
                 )
 
 
-_task_queue: Optional[PriorityTaskQueue] = None
+_task_queue: PriorityTaskQueue | None = None
 
 
 def get_task_queue() -> PriorityTaskQueue:

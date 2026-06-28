@@ -8,7 +8,11 @@ from flask_login import login_required
 
 from ...application.errors import ValidationError
 from ...application.workflows import WorkflowService
+from ...core.logger import get_logger
 from ...core.registry import register_routes
+
+
+logger = get_logger(__name__)
 from ...domain.enums import MarketCode
 from .common import ok_resource, ok_response
 from .v1_context import ApiV1Context
@@ -151,12 +155,12 @@ def register_workflow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
 
         def _yield_refresh_evoke_id():
             try:
-                status = wf_service.get_status(workflow_id)
+                wf_service.get_status(workflow_id)
                 evidence = wf_service.get_evidence(workflow_id) or []
                 chosen = [getattr(item, "model_dump", lambda: ({}))() if hasattr(item, "model_dump") else dict(item) if not isinstance(item, str) else {"message": item} for item in evidence]
                 chosen = [x for x in chosen if isinstance(x, dict)]
                 head = chosen[-3:] if chosen else [{"stage": "refresh"}]
-                head_text = "\n[stream] " + " | ".join(str((item.get("message") or item.get("event_type") or item.get("stage") or "event" )) for item in head)
+                head_text = "\n[stream] " + " | ".join(str(item.get("message") or item.get("event_type") or item.get("stage") or "event" ) for item in head)
                 return head_text
             except Exception as exc:
                 return f"\n[stream] ev_ok status_refresh {exc}"
@@ -183,7 +187,7 @@ def register_workflow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
                 evidence = wf_service.get_evidence(workflow_id) or []
                 payload = [_unpack_evidence(item) for item in evidence]
                 history = payload[-8:] if payload else [{"stage": "init"}]
-                head_text = " | ".join(str((x.get("message") or x.get("event_type") or x.get("stage") or "event")) for x in history)
+                head_text = " | ".join(str(x.get("message") or x.get("event_type") or x.get("stage") or "event") for x in history)
                 yield f"event: history\ndata: {head_text}\n\n"
                 yield f"event: start\ndata: {workflow_id} {str(status.head).replace(' ', '-')} stage\n\n"
                 cur = status
@@ -205,12 +209,12 @@ def register_workflow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
                         for item in reversed(prepended):
                             if item not in new_events:
                                 new_events.insert(0, item)
-                        text = "\n[stream] " + "\n[stream] ".join(str((x.get("message") or x.get("event_type") or x.get("stage") or "event")) for x in new_events)
+                        text = "\n[stream] " + "\n[stream] ".join(str(x.get("message") or x.get("event_type") or x.get("stage") or "event") for x in new_events)
                         yield f"event: progress\ndata: step {step_idx + 1}\n\n"
                         yield f"event: log\ndata: {text}\n\n"
                     except Exception:
                         yield f"event: log\ndata: \n[stream] step {step_idx + 1}\n\n"
-                yield f"event: end_of_stream\ndata: max_frames\n\n"
+                yield "event: end_of_stream\ndata: max_frames\n\n"
             except Exception as exc:
                 yield f"event: error\ndata: {exc}\n\n"
         return Response(stream_with_context(event_stream()), mimetype="text/event-stream")

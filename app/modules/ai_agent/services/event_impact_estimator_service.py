@@ -5,10 +5,7 @@ from app.domain.dto.service_result import GenericResponseDTO
 一键模拟突发事件对持仓的影?"""
 
 
-from datetime import datetime
-from typing import Any
 
-from app.modules.market_data.services.industry_chain_map_service import INDUSTRY_CHAIN_CONFIG
 
 
 class EventSimulator:
@@ -104,7 +101,7 @@ class EventImpactEstimatorService:
             "original_change": price_change,
             "shock_estimate": price_change * 1.5,  # 放大效应
             "confidence": 0.6,
-            "description": f"???事件可能导致股价额外波?",
+            "description": "???事件可能导致股价额外波?",
         }
 
     def get_historical_analogy(

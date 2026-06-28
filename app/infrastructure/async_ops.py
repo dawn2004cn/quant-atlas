@@ -5,14 +5,13 @@ Background task execution and async repository methods.
 """
 
 
-import asyncio
-import logging
 import threading
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
@@ -28,14 +27,14 @@ class Task:
     args: tuple = ()
     kwargs: dict = field(default_factory=dict)
     submitted_at: datetime = field(default_factory=datetime.now)
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
     result: Any = None
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class AsyncTaskQueue:
     """Async task queue with thread pool."""
-    
+
     def __init__(self, max_workers: int = 4):
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._queue: deque[Task] = deque()
@@ -45,29 +44,29 @@ class AsyncTaskQueue:
         self._lock = threading.Lock()
         self._task_id = 0
         logger.info(f"AsyncTaskQueue initialized: workers={max_workers}")
-    
+
     def submit(self, func: Callable, *args, **kwargs) -> str:
         """Submit a task."""
         self._task_id += 1
         task_id = f"task_{self._task_id}"
-        
+
         task = Task(
             id=task_id,
             func=func,
             args=args,
             kwargs=kwargs
         )
-        
+
         with self._lock:
             self._queue.append(task)
             self._running.add(task_id)
-        
+
         # Execute async
         self._executor.submit(self._run_task, task)
-        
+
         logger.debug(f"Task submitted: {task_id}")
         return task_id
-    
+
     def _run_task(self, task: Task) -> None:
         """Run a task."""
         try:
@@ -84,8 +83,8 @@ class AsyncTaskQueue:
                 self._completed.append(task)
                 if len(self._completed) > self._max_completed:
                     self._completed.pop(0)
-    
-    def get_result(self, task_id: str) -> Optional[Any]:
+
+    def get_result(self, task_id: str) -> Any | None:
         """Get task result."""
         with self._lock:
             for task in self._completed:
@@ -94,8 +93,8 @@ class AsyncTaskQueue:
                         raise RuntimeError(task.error)
                     return task.result
             return None
-    
-    def get_status(self, task_id: str) -> Optional[str]:
+
+    def get_status(self, task_id: str) -> str | None:
         """Get task status."""
         with self._lock:
             if task_id in self._running:
@@ -104,7 +103,7 @@ class AsyncTaskQueue:
                 if task.id == task_id:
                     return "completed" if not task.error else "failed"
             return "not_found"
-    
+
     def get_queue_status(self) -> dict:
         """Get queue status."""
         with self._lock:
@@ -114,7 +113,7 @@ class AsyncTaskQueue:
                 "completed": len(self._completed),
                 "total": self._task_id
             }
-    
+
     def shutdown(self, wait: bool = True) -> None:
         """Shutdown executor."""
         self._executor.shutdown(wait=wait)
@@ -122,7 +121,7 @@ class AsyncTaskQueue:
 
 
 # Global instance
-_async_task_queue: Optional[AsyncTaskQueue] = None
+_async_task_queue: AsyncTaskQueue | None = None
 
 
 def get_async_task_queue() -> AsyncTaskQueue:

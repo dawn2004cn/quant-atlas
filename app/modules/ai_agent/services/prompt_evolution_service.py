@@ -4,7 +4,6 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -213,7 +212,7 @@ class PromptEvolutionService:
     def _load_persisted(self) -> None:
         if not self._store_path.exists():
             return
-        with open(self._store_path, "r", encoding="utf-8") as fh:
+        with open(self._store_path, encoding="utf-8") as fh:
             for line in fh:
                 line = line.strip()
                 if not line:

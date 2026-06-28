@@ -2,7 +2,6 @@ from __future__ import annotations
 """Quant pipeline execution and orchestration."""
 
 from typing import Any
-import logging
 from app.core.events import market_data_synced
 
 from app.core.logger import get_logger

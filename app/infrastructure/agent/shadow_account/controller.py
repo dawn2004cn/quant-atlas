@@ -5,7 +5,6 @@ Monitors trading performance and proactively suggests or enforces risk rules.
 """
 
 
-import logging
 from typing import Any
 
 from app.infrastructure.agent.shadow_account.models import ShadowStrategy
@@ -32,21 +31,21 @@ class ShadowAccountController:
         """
         drawdown = metrics.get("max_drawdown", 0.0)
         win_rate = metrics.get("win_rate", 0.0)
-        
+
         if drawdown > 0.15: # 15% Max Drawdown limit
             return {
                 "action": "STOP_LOSS",
                 "reason": f"Drawdown {drawdown:.1%} exceeds threshold",
                 "suggestion": "Initiate full position liquidation and shadow strategy re-evaluation."
             }
-        
+
         if win_rate < 0.30: # 30% Win rate alert
             return {
                 "action": "ADJUST",
                 "reason": f"Win rate {win_rate:.1%} low, trend capture failing",
                 "suggestion": "Adjust trend filter sensitivity in signal engine."
             }
-            
+
         return {"action": "STAY", "reason": "Performance within risk parameters."}
 
 

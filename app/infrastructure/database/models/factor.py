@@ -13,8 +13,7 @@ Factor Metadata includes:
 
 
 from datetime import datetime
-from typing import Optional
-from sqlalchemy import String, Integer, Double, DateTime, Text, ForeignKey, UniqueConstraint, Index
+from sqlalchemy import String, Integer, Double, DateTime, Text, UniqueConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..orm import Base
@@ -29,7 +28,7 @@ class FactorMetadata(Base):
     factor_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     factor_expression: Mapped[str] = mapped_column(Text, nullable=False)
     category: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
-    description: Mapped[Optional[str]] = mapped_column(Text)
+    description: Mapped[str | None] = mapped_column(Text)
 
     ic_mean: Mapped[float] = mapped_column(Double, default=0.0, index=True)
     ic_std: Mapped[float] = mapped_column(Double, default=0.0)
@@ -38,21 +37,21 @@ class FactorMetadata(Base):
     win_rate: Mapped[float] = mapped_column(Double, default=0.0)
 
     decay_rate: Mapped[float] = mapped_column(Double, default=0.0)
-    half_life_days: Mapped[Optional[int]] = mapped_column(Integer)
+    half_life_days: Mapped[int | None] = mapped_column(Integer)
     turnover_rate: Mapped[float] = mapped_column(Double, default=0.0)
 
-    effective_date: Mapped[Optional[str]] = mapped_column(String(16), index=True)
-    expiration_date: Mapped[Optional[str]] = mapped_column(String(16))
+    effective_date: Mapped[str | None] = mapped_column(String(16), index=True)
+    expiration_date: Mapped[str | None] = mapped_column(String(16))
     status: Mapped[str] = mapped_column(String(32), default="active", index=True)
 
     version: Mapped[int] = mapped_column(Integer, default=1)
     owner: Mapped[str] = mapped_column(String(64), default="system")
-    tags: Mapped[Optional[str]] = mapped_column(Text)
+    tags: Mapped[str | None] = mapped_column(Text)
 
     sample_count: Mapped[int] = mapped_column(Integer, default=0)
-    last_calculated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, index=True)
+    last_calculated_at: Mapped[datetime | None] = mapped_column(DateTime, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
-    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     __table_args__ = (
         UniqueConstraint("factor_name", "version", name="uq_factor_name_version"),
@@ -73,7 +72,7 @@ class FactorICRecord(Base):
     calc_date: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
 
     ic_value: Mapped[float] = mapped_column(Double, nullable=False)
-    rank_ic_value: Mapped[Optional[float]] = mapped_column(Double)
+    rank_ic_value: Mapped[float | None] = mapped_column(Double)
 
     forward_return: Mapped[float] = mapped_column(Double, default=0.0)
     universe: Mapped[str] = mapped_column(String(64), default="all")
@@ -124,7 +123,7 @@ class FactorDecayLog(Base):
     decay_ratio: Mapped[float] = mapped_column(Double, default=0.0)
 
     severity: Mapped[str] = mapped_column(String(32), default="normal")
-    action_taken: Mapped[Optional[str]] = mapped_column(String(64))
+    action_taken: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
     __table_args__ = (
@@ -139,12 +138,12 @@ class FactorCatalog(Base):
 
     catalog_id: Mapped[str] = mapped_column(String(64), primary_key=True)
     catalog_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    parent_id: Mapped[Optional[str]] = mapped_column(String(64))
-    description: Mapped[Optional[str]] = mapped_column(Text)
+    parent_id: Mapped[str | None] = mapped_column(String(64))
+    description: Mapped[str | None] = mapped_column(Text)
 
     factor_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
-    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     __table_args__ = (
         UniqueConstraint("catalog_name", "parent_id", name="uq_catalog_name_parent"),

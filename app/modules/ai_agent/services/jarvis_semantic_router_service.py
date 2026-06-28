@@ -7,11 +7,9 @@ from typing import Any
 from urllib.parse import urlencode
 
 from app.modules.ai_agent.services.command_plan_service import CommandPlanService
-from app.modules.ai_agent.services.archetypes.cluster_manager import ClusterManager
 from app.core.logger import get_logger
-from app.modules.ai_agent.services.visualization.user_dna_service import UserDNAService
 from app.domain.dto.decision_context_dto import DecisionContextDTO, EvidenceNoteDTO
-from app.core.middleware.health_aware import append_health_notice, is_system_degraded
+from app.core.middleware.health_aware import append_health_notice
 from app.core.strategic_sunset import feature_enabled
 
 logger = get_logger(__name__)
@@ -382,7 +380,7 @@ class JarvisSemanticRouterService:
                 intent="analyze",
                 label=f"分析 {sym}",
                 url=f"/stock/{sym}?m=CN",
-                reasoning=[f"Heuristic: 6-digit stock code detected in query"],
+                reasoning=["Heuristic: 6-digit stock code detected in query"],
             )
         if "回测" in q:
             return _nav_dto(

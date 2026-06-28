@@ -11,7 +11,6 @@ This is the correct DIP direction:
 
 from __future__ import annotations
 
-import logging
 from datetime import datetime
 from typing import Any
 
@@ -115,7 +114,6 @@ class QuestDBAdapter(TimeSeriesDBPort):
         if not self._connected:
             return 0
 
-        import pandas as pd
 
         records = []
         for point in data:

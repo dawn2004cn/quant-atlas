@@ -5,7 +5,7 @@ from __future__ import annotations
 import base64
 import io
 import logging
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class ChartRenderer:
     """Renders market data into chart images for visual analysis.
-    
+
     Supports K-line (candlestick) charts with volume, moving averages,
     and other technical indicators.
     """
@@ -33,14 +33,14 @@ class ChartRenderer:
         output_path: Path | None = None,
     ) -> dict[str, Any]:
         """Render a K-line (candlestick) chart from OHLCV bar data.
-        
+
         Args:
             bars: List of bar dicts with keys: date/open/high/low/close/volume
             symbol: Stock symbol for title
             title: Optional chart title override
             indicators: List of indicators to overlay (ma5, ma10, ma20, ma60)
             output_path: Optional file path to save the image
-            
+
         Returns:
             Dict with image_base64, image_path (if saved), dimensions
         """
@@ -64,9 +64,9 @@ class ChartRenderer:
                 return {"status": "error", "message": "Failed to parse bar data"}
 
             add_plots = self._build_indicator_plots(df, indicators or [])
-            
+
             chart_title = title or f"{symbol} K-Line" if symbol else "K-Line Chart"
-            
+
             save_kwargs: dict[str, Any] = {}
             if output_path:
                 output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -74,7 +74,7 @@ class ChartRenderer:
 
             buf = io.BytesIO()
             save_kwargs.setdefault("savefig", buf)
-            
+
             mpf.plot(
                 df,
                 type="candle",
@@ -118,7 +118,7 @@ class ChartRenderer:
         output_path: Path | None = None,
     ) -> dict[str, Any]:
         """Fetch real market data and render a chart.
-        
+
         Args:
             stock_service: Service with get_history(symbol, market, start, end) method
             symbol: Stock symbol
@@ -126,7 +126,7 @@ class ChartRenderer:
             days: Number of trading days to fetch
             indicators: Technical indicators to overlay
             output_path: Optional output file path
-            
+
         Returns:
             Chart rendering result dict
         """

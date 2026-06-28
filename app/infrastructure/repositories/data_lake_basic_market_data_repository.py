@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-import json
 import pandas as pd
-from typing import Any, List, Optional, Dict
+from typing import Any
 from datetime import datetime
 
 from app.domain.ports.repository_ports import IBasicMarketDataRepository
@@ -18,28 +17,28 @@ class DataLakeBasicMarketDataRepository(IBasicMarketDataRepository):
 
     def __init__(self, lake_manager: DataLakeManager) -> None:
         self.lake_manager = lake_manager
-        self._meta_cache: Dict[str, str] = {}
+        self._meta_cache: dict[str, str] = {}
 
     def _run_async(self, coro):
         """Helper to run async lake calls in sync repository methods."""
         return asyncio.run(coro)
 
-    def upsert_longhu_rows(self, rows: List[dict[str, Any]]) -> int:
+    def upsert_longhu_rows(self, rows: list[dict[str, Any]]) -> int:
         """Upsert longhu rows into the lake."""
         if not rows:
             return 0
-        
+
         # Convert rows to a DataFrame
         df = pd.DataFrame(rows)
         # Expecting 'trade_date' or 'timestamp' as index
         time_col = next((c for c in df.columns if any(x in c.lower() for x in ['date', 'time', 'ts'])), None)
         if not time_col:
             return 0
-        
+
         df = df.set_index(time_col)
         # We use a generic symbol 'LONGHU_GLOBAL' or group by actual symbol if present
         symbol_col = next((c for c in df.columns if any(x in c.lower() for x in ['symbol', 'code', 'ticker'])), None)
-        
+
         if symbol_col:
             symbols = df[symbol_col].unique()
             for sym in symbols:
@@ -47,7 +46,7 @@ class DataLakeBasicMarketDataRepository(IBasicMarketDataRepository):
                 self._run_async(self.lake_manager.save_data(symbol=str(sym), data=sym_df, scope=DataScope.HISTORICAL))
         else:
             self._run_async(self.lake_manager.save_data(symbol="LONGHU_GLOBAL", data=df, scope=DataScope.HISTORICAL))
-            
+
         return len(rows)
 
     def count_longhu_rows(self) -> int:
@@ -67,11 +66,11 @@ class DataLakeBasicMarketDataRepository(IBasicMarketDataRepository):
         """Retrieve metadata from the lake."""
         if key in self._meta_cache:
             return self._meta_cache[key]
-        
+
         # Fetch from lake
         from app.core.mesh.unified_data_lake import DataQuery
         from datetime import datetime, timedelta
-        
+
         query = DataQuery(
             symbol="SYSTEM_META",
             market="SYSTEM",
@@ -107,7 +106,7 @@ class DataLakeBasicMarketDataRepository(IBasicMarketDataRepository):
             df = df.set_index('timestamp')
         else:
             df = df.set_index(time_col)
-            
+
         self._run_async(self.lake_manager.save_data(symbol=f"YANBAO_{category}", data=df, scope=DataScope.HISTORICAL))
         return len(items)
 
@@ -115,7 +114,7 @@ class DataLakeBasicMarketDataRepository(IBasicMarketDataRepository):
         """List longhu data for a symbol."""
         from app.core.mesh.unified_data_lake import DataQuery
         from datetime import datetime, timedelta
-        
+
         query = DataQuery(
             symbol=code,
             market="CN",
@@ -125,7 +124,7 @@ class DataLakeBasicMarketDataRepository(IBasicMarketDataRepository):
         df, _ = self._run_async(self.lake_manager.get_data(query))
         if df.empty:
             return []
-        
+
         # Convert back to list of dicts
         return df.tail(limit).reset_index().to_dict('records')
 

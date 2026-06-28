@@ -3,7 +3,7 @@ Phase 5 closure: every domain service gets a capability entry."""
 
 from __future__ import annotations
 
-from app.core.capability_registry import register_capability, get_capability_registry
+from app.core.capability_registry import register_capability
 
 # ── MarketService capabilities ──────────────────────────────────────────
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 """UnifiedDataTruth — reconcile TDX vs Qlib close prices."""
 
-from typing import Any
 
 from app.core.logger import get_logger
 from app.domain.ports.data_quality_ports import (

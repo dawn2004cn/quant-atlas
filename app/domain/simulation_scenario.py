@@ -45,7 +45,7 @@ class SimulationScenario(BaseModel):
     label: str | None = None
 
     @classmethod
-    def from_preset(cls, preset: dict[str, Any]) -> "SimulationScenario":
+    def from_preset(cls, preset: dict[str, Any]) -> SimulationScenario:
         """Build scenario from War Room preset dict."""
         st = preset.get("scenario_type") or SimulationScenarioType.CUSTOM_HYPOTHESIS.value
         return cls(
@@ -93,7 +93,7 @@ class WarRoomRunRequest(BaseModel):
     inject_virtual_events: bool = True
 
     @classmethod
-    def from_payload(cls, body: dict[str, Any]) -> "WarRoomRunRequest":
+    def from_payload(cls, body: dict[str, Any]) -> WarRoomRunRequest:
         scenario_raw = body.get("scenario") or body
         if "scenario_type" in body and "scenario" not in body:
             scenario_raw = body

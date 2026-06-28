@@ -1,11 +1,10 @@
 from pydantic import BaseModel
-from typing import List, Optional
 
 class ManagerStatsDTO(BaseModel):
     equity: float
     return_pct: float
     holdings_count: int
-    last_update: Optional[str] = None
+    last_update: str | None = None
 
 class StrategyPerformanceDTO(BaseModel):
     active_managers: int

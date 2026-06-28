@@ -2,7 +2,6 @@ from __future__ import annotations
 """Domain entities for Kronos foundation model integration."""
 
 
-import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any

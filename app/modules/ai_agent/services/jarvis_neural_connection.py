@@ -15,7 +15,6 @@ confidence score, and user context awareness.
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum, auto
@@ -107,7 +106,6 @@ class JarvisNeuralConnection:
 
         if score > 0.5:
             narrative = f"检测到 {symbol} 在 {source_a} vs {source_b} 间存在 {event.diff_pct:.2f}% 价差偏离，可能影响因子计算准确性"
-            rec_type = RecommendationType.ANALYZE
             actions = [
                 RecommendedAction(
                     rec_type=RecommendationType.ANALYZE,
@@ -126,7 +124,6 @@ class JarvisNeuralConnection:
             ]
         else:
             narrative = f"{symbol} 轻微微 dev ({event.diff_pct:.2f}%)，系统已自动处理"
-            rec_type = RecommendationType.WATCHLIST_ADD
             actions = [
                 RecommendedAction(
                     rec_type=RecommendationType.WATCHLIST_ADD,

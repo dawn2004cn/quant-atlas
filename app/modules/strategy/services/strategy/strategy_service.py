@@ -8,11 +8,10 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from app.core.base_service import BaseApplicationService
-from app.domain.entities import StrategySelection
 from app.domain.enums import MarketCode
 from app.domain.ports import BacktestProvider, IndicatorProvider, StrategyProvider, MarketDataProvider
 from app.domain.services.regime_manager import MarketRegimeManager
-from app.application.dto.strategy_dto import ScreeningCriteria, ComparisonOperator, LogicalOperator
+from app.application.dto.strategy_dto import ScreeningCriteria
 
 import logging
 logger = logging.getLogger(__name__)
@@ -75,12 +74,12 @@ class StrategyApplicationService(BaseApplicationService):
             if index_history:
                 df_index = pd.DataFrame(index_history)
                 df_index.rename(columns={"close": "Close"}, inplace=True)
-                
+
                 # 2. 分析大盘环境
                 regime_mgr = MarketRegimeManager(df_index)
                 regime = regime_mgr.get_current_regime()
                 categories = regime_mgr.get_recommended_categories()
-                
+
                 # 3. 决定最终调用的策略标记
                 effective_strategy = f"category:{','.join(categories)}"
                 sentiment_info = {
@@ -110,7 +109,7 @@ class StrategyApplicationService(BaseApplicationService):
         universe_limit: int = 200,
     ) -> GenericResponseDTO:
         """执行高度定制化的筛选：获取实时数据 -> 计算指标 -> 应用 Pydantic 逻辑规则"""
-        
+
         # 1. 获取标的池 (默认成交额前 N)
         symbols = self._get_universe_symbols(market, limit=universe_limit)
         if not symbols:
@@ -118,7 +117,7 @@ class StrategyApplicationService(BaseApplicationService):
 
         # 2. 批量获取详情数据 (行情+基本面)
         stock_data = self._fetch_stock_data_batch(symbols, market)
-        
+
         # 3. 注入情绪分析数据 (针对每一个标的，较慢，仅对前 N 进行)
         # 实际生产中这里应该有缓存
         # stock_data = self._enrich_with_sentiment(stock_data)
@@ -126,7 +125,7 @@ class StrategyApplicationService(BaseApplicationService):
         # 4. 执行过滤逻辑
         conditions = criteria.get("conditions", [])
         logical_op = criteria.get("logical_operator", "AND")
-        
+
         filtered = []
         for item in stock_data:
             match_results = []
@@ -135,12 +134,12 @@ class StrategyApplicationService(BaseApplicationService):
                 op = cond.get("operator")
                 target_val = cond.get("value")
                 item_val = item.get(field)
-                
+
                 if item_val is not None:
                     match_results.append(self._compare(item_val, op, target_val))
                 else:
                     match_results.append(False)
-            
+
             is_match = all(match_results) if logical_op == "AND" else any(match_results)
             if is_match:
                 filtered.append(item)

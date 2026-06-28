@@ -2,11 +2,10 @@ from __future__ import annotations
 """Rate Limiter for API protection."""
 
 
-import logging
 import threading
 import time
 from dataclasses import dataclass
-from typing import Callable, Optional
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
@@ -53,7 +52,7 @@ class TokenBucket:
 class RateLimiter:
     """Rate limiter with multiple strategies."""
 
-    def __init__(self, config: Optional[RateLimitConfig] = None):
+    def __init__(self, config: RateLimitConfig | None = None):
         self.config = config or RateLimitConfig()
         self._buckets: dict[str, TokenBucket] = {}
         self._lock = threading.RLock()

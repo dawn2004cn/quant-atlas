@@ -11,13 +11,12 @@ service restart.
 
 
 import json
-import logging
 import threading
-import time
 from collections import deque
 from dataclasses import dataclass, field, fields, is_dataclass
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Type
+from typing import Any
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
@@ -38,7 +37,7 @@ EVENT_PRIORITY_CRITICAL = 100
 @dataclass
 class _HandlerRegistration:
     priority: int
-    handler: Callable[["Event"], None]
+    handler: Callable[[Event], None]
 
 
 @dataclass
@@ -556,7 +555,7 @@ class EventBus:
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super().__new__(cls)
-                cls._instance._subscribers: Dict[str, List[_HandlerRegistration]] = {}
+                cls._instance._subscribers: dict[str, list[_HandlerRegistration]] = {}
                 cls._instance._recent_events = deque(maxlen=200)
                 cls._instance._handler_failures = deque(maxlen=100)
                 cls._instance._sub_lock = threading.Lock()
@@ -568,7 +567,7 @@ class EventBus:
 
     def subscribe(
         self,
-        event_type: Type[Event],
+        event_type: type[Event],
         handler: Callable[[Event], None],
         *,
         priority: int = 0,
@@ -586,7 +585,7 @@ class EventBus:
                 self._subscribers[event_name].sort(key=lambda r: r.priority, reverse=True)
                 logger.debug(f"Subscribed {handler.__name__} to {event_name} (priority={priority})")
 
-    def unsubscribe(self, event_type: Type[Event], handler: Callable[[Event], None]) -> None:
+    def unsubscribe(self, event_type: type[Event], handler: Callable[[Event], None]) -> None:
         """Unsubscribe from an event type."""
         event_name = event_type.__name__
         with self._sub_lock:
@@ -676,7 +675,7 @@ def get_event_bus() -> EventBus:
         _event_bus = EventBus()
     return _event_bus
 
-def publish_event(event: "Event") -> None:
+def publish_event(event: Event) -> None:
     """Publish an event to the global event bus."""
     get_event_bus().publish(event)
 
@@ -706,7 +705,7 @@ def _broadcast_to_websocket(event: Event) -> None:
             logger.exception("WebSocket broadcast failed")
 
 
-def on_event(event_type: Type[Event]):
+def on_event(event_type: type[Event]):
     """Decorator to register an event handler.
 
     Usage:

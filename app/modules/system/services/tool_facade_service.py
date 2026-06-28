@@ -9,6 +9,7 @@ from app.domain.ports import ToolFacadePort
 from app.domain.ports import MarketDataProvider
 from app.domain.ports.news_archive_port import NewsArchiveRepository
 from app.domain.ports.cn_fundamentals_port import CnFundamentalsPort
+from app.modules.system.services.helpers.cn_fundamentals_access import get_cn_fundamentals_port
 from app.modules.market_data.services.stock_service import StockApplicationService
 from app.modules.strategy.services.strategy.strategy_service import StrategyApplicationService
 from app.infrastructure.capabilities.registry import CapabilityRegistry

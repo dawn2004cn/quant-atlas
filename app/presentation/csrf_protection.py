@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import logging
 import secrets
-from typing import Callable
+from collections.abc import Callable
 
 from flask import Flask, request, session
 from markupsafe import Markup, escape

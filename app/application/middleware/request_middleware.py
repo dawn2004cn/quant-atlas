@@ -3,8 +3,8 @@ from __future__ import annotations
 
 
 import time
-import traceback
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from functools import wraps
 
 from app.core.logger import get_logger
@@ -61,7 +61,7 @@ _request_cache = RequestCache()
 
 def cache_request(key_func: Callable[[Any], str]):
     """Decorator to cache async request results.
-    
+
     Usage:
         @cache_request(lambda args: f"quote:{args[1]}")
         async def get_quote(self, code: str):
@@ -75,7 +75,7 @@ def cache_request(key_func: Callable[[Any], str]):
             if cached is not None:
                 logger.debug(f"Cache hit: {cache_key}")
                 return cached
-            
+
             result = await func(*args, **kwargs)
             _request_cache.set(cache_key, result)
             return result
@@ -101,7 +101,7 @@ class RetryPolicy:
     async def execute(self, func: Callable, *args, **kwargs) -> Any:
         """Execute function with retry policy."""
         last_exception = None
-        
+
         for attempt in range(self.max_attempts):
             try:
                 return await func(*args, **kwargs)
@@ -113,7 +113,7 @@ class RetryPolicy:
                         f"Attempt {attempt + 1} failed: {e}. Retrying in {delay}s..."
                     )
                     await asyncio.sleep(delay)
-                    
+
         raise last_exception
 
 
@@ -126,7 +126,7 @@ def with_retry(
     exceptions: tuple = (Exception,)
 ):
     """Decorator to add retry logic to async functions.
-    
+
     Usage:
         @with_retry(max_attempts=3, backoff=2.0)
         async def fetch_data(url):

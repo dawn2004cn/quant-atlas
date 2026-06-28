@@ -1,10 +1,9 @@
 from pydantic import BaseModel
-from typing import List
 
 class AnalysisStockRequestDTO(BaseModel):
     code: str
     name: str = ""
-    history_prices: List[float] = []
+    history_prices: list[float] = []
 
 class BatchAnalysisRequestDTO(BaseModel):
-    stocks: List[AnalysisStockRequestDTO]
+    stocks: list[AnalysisStockRequestDTO]

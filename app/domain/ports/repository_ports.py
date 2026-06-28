@@ -6,7 +6,7 @@ These are abstract interfaces that infrastructure repositories must implement.
 
 
 from abc import ABC, abstractmethod
-from typing import Any, List
+from typing import Any
 
 from app.domain.entities import UserAccount
 
@@ -15,7 +15,7 @@ class IBasicMarketDataRepository(ABC):
     """Contract for Basic Market Data persistent storage (龙虎榜 / 研报 / 财报快照)."""
 
     @abstractmethod
-    def upsert_longhu_rows(self, rows: List[dict[str, Any]]) -> int:
+    def upsert_longhu_rows(self, rows: list[dict[str, Any]]) -> int:
         raise NotImplementedError
 
     @abstractmethod
@@ -92,7 +92,7 @@ class UserRepository(ABC):
     def delete(self, user_id: str) -> bool:
         """Delete user."""
         raise NotImplementedError
-    
+
     @abstractmethod
     def list_all(self, limit: int = 100) -> list[UserAccount]:
         raise NotImplementedError
@@ -204,7 +204,7 @@ class PaymentGatewayPort(ABC):
 __all__ = [
     "IBasicMarketDataRepository",
     "UserRepository",
-    "WatchlistRepository", 
+    "WatchlistRepository",
     "StockGroupRepository",
     "PaymentRepository",
     "PaymentGatewayPort",

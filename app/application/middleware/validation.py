@@ -3,7 +3,7 @@ from __future__ import annotations
 
 
 from functools import wraps
-from typing import Any, Callable
+from collections.abc import Callable
 from flask import request, jsonify
 
 from app.core.logger import get_logger
@@ -121,7 +121,6 @@ def handle_validation_error(error: ValidationError):
 
 def register_validators(app):
     """Register validators with Flask app."""
-    from flask import Flask
 
     @app.errorhandler(ValidationError)
     def handle_validation_error_wrapper(error):

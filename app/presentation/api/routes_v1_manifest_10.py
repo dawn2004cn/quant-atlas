@@ -6,7 +6,7 @@ from flask import Blueprint, request
 
 from app.core.logger import get_logger
 from app.core.registry import register_routes
-from app.presentation.api.common import ok_response, require_ctx_service
+from app.presentation.api.common import ok_response
 from app.presentation.api.v1_context import ApiV1Context
 
 logger = get_logger(__name__)
@@ -27,7 +27,7 @@ def register_manifest_10_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None
         service = ctx.manifest_service_10
         if service is None:
             return ok_response({"ok": False, "error": "service_not_available"}), 503
-        
+
         try:
             manifest = service.get_manifest()
             return ok_response(manifest)
@@ -41,7 +41,7 @@ def register_manifest_10_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None
         service = ctx.manifest_service_10
         if service is None:
             return ok_response({"ok": False, "error": "service_not_available"}), 503
-        
+
         try:
             detail = service.get_component_detail(component_name)
             return ok_response(detail)
@@ -65,7 +65,7 @@ def register_resonance_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
         service = ctx.perception_resonance_service
         if service is None:
             return ok_response({"ok": False, "error": "service_not_available"}), 503
-        
+
         try:
             stats = service.get_stats()
             return ok_response(stats)
@@ -79,7 +79,7 @@ def register_resonance_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
         service = ctx.perception_resonance_service
         if service is None:
             return ok_response({"ok": False, "error": "service_not_available"}), 503
-        
+
         try:
             limit = int(request.args.get("limit", 100))
             log = service.get_action_log(limit=limit)

@@ -9,7 +9,7 @@ from app.infrastructure.agent.swarm.tools_base import BaseTool
 
 class BacktestDiagnoseTool(BaseTool):
     """Diagnoses backtest results for logic flaws and vulnerabilities."""
-    
+
     name = "backtest_diagnose"
     description = "Analyze backtest artifacts to identify risk factors, logic errors, and drawdown vulnerabilities."
     is_readonly = True
@@ -22,9 +22,9 @@ class BacktestDiagnoseTool(BaseTool):
     }
 
     def execute(self, **kwargs: Any) -> str:
-        # In a real implementation, this would read the artifacts/metrics.csv 
+        # In a real implementation, this would read the artifacts/metrics.csv
         # and artifacts/trades.csv and perform diagnostic analysis.
-        run_dir = kwargs["run_dir"]
+        kwargs["run_dir"]
         return json.dumps({
             "status": "success",
             "findings": [

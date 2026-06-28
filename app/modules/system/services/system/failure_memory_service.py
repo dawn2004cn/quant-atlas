@@ -8,7 +8,6 @@ from datetime import datetime
 from typing import Any
 
 from app.core.logger import get_logger
-from app.domain.enums import MarketCode
 
 logger = get_logger(__name__)
 

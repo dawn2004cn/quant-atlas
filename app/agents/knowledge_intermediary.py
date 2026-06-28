@@ -13,15 +13,13 @@ Usage:
 """
 
 
-import logging
-import time
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Callable
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
+from collections.abc import Callable
 
 from .evidence_blackboard import (
     get_evidence_blackboard,
-    EvidenceBlackboard,
     EvidenceType,
     EvidenceStrength,
 )

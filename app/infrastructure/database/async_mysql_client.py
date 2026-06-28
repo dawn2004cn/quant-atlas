@@ -9,8 +9,7 @@ Key improvements over sync pymysql:
 """
 
 
-import logging
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -118,7 +117,7 @@ class AsyncMySQLClient:
             self._session_factory = None
 
     @classmethod
-    def from_mysql_settings(cls, mysql_settings: MysqlSettings) -> "AsyncMySQLClient":
+    def from_mysql_settings(cls, mysql_settings: MysqlSettings) -> AsyncMySQLClient:
         """Create client from MysqlSettings configuration."""
         from urllib.parse import quote_plus
         user = quote_plus(mysql_settings.user or "")

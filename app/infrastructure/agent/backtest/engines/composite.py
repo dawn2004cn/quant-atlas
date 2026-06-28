@@ -9,7 +9,6 @@ All state (capital, positions, trades) lives in CompositeEngine.
 
 
 import re
-from typing import Dict, List
 
 import pandas as pd
 
@@ -57,10 +56,10 @@ def _is_china_futures(code: str) -> bool:
     return len(parts) == 2 and parts[1] in _CHINA_EXCHANGES
 
 
-def _build_rule_engines(config: dict, codes: List[str]) -> Dict[str, BaseEngine]:
+def _build_rule_engines(config: dict, codes: list[str]) -> dict[str, BaseEngine]:
     """Instantiate one sub-engine per market type detected in codes."""
     markets = {_detect_market(c) for c in codes}
-    engines: Dict[str, BaseEngine] = {}
+    engines: dict[str, BaseEngine] = {}
 
     for market in markets:
         if market == "a_share":
@@ -103,7 +102,7 @@ class CompositeEngine(BaseEngine):
         codes: List of instrument codes spanning multiple markets.
     """
 
-    def __init__(self, config: dict, codes: List[str]):
+    def __init__(self, config: dict, codes: list[str]):
         super().__init__(config)
 
         # Survivorship-bias filter: remove delisted / not-yet-listed symbols
@@ -115,7 +114,7 @@ class CompositeEngine(BaseEngine):
             codes = filter_survivorship(codes, _start)
 
         # Build symbol -> market mapping
-        self._symbol_market: Dict[str, str] = {c: _detect_market(c) for c in codes}
+        self._symbol_market: dict[str, str] = {c: _detect_market(c) for c in codes}
 
         # Build sub-engines (one per market type)
         self._rule_engines = _build_rule_engines(config, codes)

@@ -11,7 +11,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 # resource module is Unix-only; gracefully unavailable on Windows
 try:
@@ -88,14 +88,14 @@ _ARTIFACTS_SPEC = {
 }
 
 
-def _expand_artifacts_spec(spec: Dict[str, Any] | None) -> Dict[str, Dict[str, Any]]:
+def _expand_artifacts_spec(spec: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
     if not isinstance(spec, dict):
         return {}
     schemas = spec.get("schemas") or {}
     artifacts = spec.get("artifacts") or {}
     defaults = spec.get("defaults") or {}
     required = set(defaults.get("required") or [])
-    expanded: Dict[str, Dict[str, Any]] = {}
+    expanded: dict[str, dict[str, Any]] = {}
     for name, meta in artifacts.items():
         if not isinstance(meta, dict):
             continue
@@ -112,18 +112,17 @@ def _expand_artifacts_spec(spec: Dict[str, Any] | None) -> Dict[str, Dict[str, A
 class Runner:
     """Execute entry scripts inside a run directory and collect outputs."""
 
-    def __init__(self, timeout: int = 300, artifacts_spec: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, timeout: int = 300, artifacts_spec: dict[str, Any] | None = None) -> None:
         self.timeout = timeout
         self.artifacts_spec = artifacts_spec or _ARTIFACTS_SPEC
         self.artifact_entries = _expand_artifacts_spec(self.artifacts_spec)
 
     def _python_ready(self, python_cmd: str) -> bool:
         try:
-            probe = subprocess.run(
+            probe = subprocess.run(  # noqa: S603  # python_cmd from local filesystem scan; -c script is hardcoded
                 [python_cmd, "-c", "import pandas,numpy; print('ok')"],
                 stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 timeout=20,
             )
@@ -248,12 +247,11 @@ class Runner:
                 creation_flags |= win32con.CREATE_BREAKAWAY_FROM_JOB  # type: ignore[attr-defined]
                 creation_flags |= win32con.DETACHED_PROCESS  # type: ignore[attr-defined]
 
-            process = subprocess.run(
+            process = subprocess.run(  # noqa: S603  # cmd is internally constructed [python_cmd, entry_script] from controlled Path
                 cmd,
                 cwd=str(effective_cwd),
                 stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 timeout=self.timeout,
                 env=env,

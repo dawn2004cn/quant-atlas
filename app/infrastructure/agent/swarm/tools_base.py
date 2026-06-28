@@ -6,9 +6,8 @@ Ported from Vibe-Trading.
 
 
 import json
-import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 from app.core.logger import get_logger
@@ -21,7 +20,7 @@ class BaseTool(ABC):
 
     name: str = ""
     description: str = ""
-    parameters: Dict[str, Any] = {}
+    parameters: dict[str, Any] = {}
     repeatable: bool = False
     is_readonly: bool = True
 
@@ -33,7 +32,7 @@ class BaseTool(ABC):
     def execute(self, **kwargs: Any) -> str:
         """Execute the tool and return a JSON string."""
 
-    def to_openai_schema(self) -> Dict[str, Any]:
+    def to_openai_schema(self) -> dict[str, Any]:
         """Convert to OpenAI function calling format."""
         return {
             "type": "function",
@@ -49,18 +48,18 @@ class ToolRegistry:
     """Tool registry."""
 
     def __init__(self) -> None:
-        self._tools: Dict[str, BaseTool] = {}
+        self._tools: dict[str, BaseTool] = {}
 
     def register(self, tool: BaseTool) -> None:
         self._tools[tool.name] = tool
 
-    def get(self, name: str) -> Optional[BaseTool]:
+    def get(self, name: str) -> BaseTool | None:
         return self._tools.get(name)
 
-    def get_definitions(self) -> List[Dict[str, Any]]:
+    def get_definitions(self) -> list[dict[str, Any]]:
         return [t.to_openai_schema() for t in self._tools.values()]
 
-    def execute(self, name: str, params: Dict[str, Any]) -> str:
+    def execute(self, name: str, params: dict[str, Any]) -> str:
         tool = self._tools.get(name)
         if not tool:
             return json.dumps({"status": "error", "error": f"Tool '{name}' not found"}, ensure_ascii=False)
@@ -74,7 +73,7 @@ class ToolRegistry:
             }, ensure_ascii=False)
 
     @property
-    def tool_names(self) -> List[str]:
+    def tool_names(self) -> list[str]:
         return list(self._tools.keys())
 
     def __len__(self) -> int:

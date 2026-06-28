@@ -11,16 +11,13 @@ This module provides:
 
 
 import logging
-from datetime import datetime, timedelta
-from typing import Any, Optional
-import numpy as np
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func
 
 from app.infrastructure.database.models.execution_feedback import (
     ExecutionRecord,
-    SlippageStatistics,
     BacktestAdjustment,
 )
 
@@ -67,10 +64,10 @@ class ExecutionFeedbackRepository:
 
     async def get_executions(
         self,
-        symbol: Optional[str] = None,
-        strategy_id: Optional[str] = None,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        symbol: str | None = None,
+        strategy_id: str | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
         limit: int = 1000,
     ) -> list[dict[str, Any]]:
         """Get execution records with optional filters."""
@@ -113,8 +110,8 @@ class ExecutionFeedbackRepository:
 
     async def calculate_slippage_stats(
         self,
-        symbol: Optional[str] = None,
-        strategy_id: Optional[str] = None,
+        symbol: str | None = None,
+        strategy_id: str | None = None,
         period: str = "daily",
     ) -> dict[str, Any]:
         """Calculate slippage statistics for a given period."""
@@ -214,8 +211,8 @@ class SlippageAnalysisService:
 
     async def analyze_slippage(
         self,
-        symbol: Optional[str] = None,
-        strategy_id: Optional[str] = None,
+        symbol: str | None = None,
+        strategy_id: str | None = None,
         lookback_days: int = 30,
     ) -> dict[str, Any]:
         """Analyze slippage patterns and provide recommendations."""
@@ -280,7 +277,7 @@ class SlippageAnalysisService:
             return {"status": "no_data", "recommendation": None}
 
         recommendations = analysis["recommendations"]
-        
+
         adjustment = {
             "strategy_id": strategy_id,
             "original_slippage_model": current_slippage_model,

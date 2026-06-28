@@ -80,7 +80,7 @@ def _merge_prefix_local_with_qfq(
 
     min_q = df_q["date"].min()
     overlap_dates = df_l[df_l["date"] >= min_q]["date"].unique()
-    
+
     ratios = []
     for d in overlap_dates[:10]:
         l_row = df_l[df_l["date"] == d]
@@ -90,7 +90,7 @@ def _merge_prefix_local_with_qfq(
             qc = float(q_row.iloc[0]["close"])
             if lc > 1e-9 and qc > 1e-9:
                 ratios.append(qc / lc)
-    
+
     ratio = 1.0
     if ratios:
         ratio = float(pd.Series(ratios).median())

@@ -4,7 +4,6 @@ ImmuneAgent in-domain simulations and synthetic data fill for logic gaps."""
 from __future__ import annotations
 
 import json
-import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -33,7 +32,7 @@ class ImmunityThreat:
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "ImmunityThreat":
+    def from_dict(cls, data: dict[str, Any]) -> ImmunityThreat:
         return cls(**data)
 
 

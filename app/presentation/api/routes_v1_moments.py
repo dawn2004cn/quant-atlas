@@ -45,7 +45,7 @@ def register_moments_routes(
         before = request.args.get("before_post_id")
         before_id = int(before) if before and str(before).isdigit() else None
         out = _svc().list_feed(limit=limit, before_post_id=before_id)
-        items = out.get("items") or []
+        out.get("items") or []
         return ok_response(data=out, legacy_alias_key=None, enable_legacy_alias=legacy)
 
     @blueprint.post("/moments")

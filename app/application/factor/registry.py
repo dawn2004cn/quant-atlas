@@ -1,7 +1,7 @@
 from __future__ import annotations
 """Factor registry and mining engine."""
 
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
 import pandas as pd
 import quant_core
 
@@ -9,7 +9,7 @@ class FactorRegistry:
     """Central registry for factor calculation functions."""
 
     def __init__(self):
-        self._factors: Dict[str, Callable] = {}
+        self._factors: dict[str, Callable] = {}
 
     def register(self, name: str, func: Callable):
         self._factors[name] = func

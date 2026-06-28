@@ -22,6 +22,7 @@ def register_chart_vision_routes(blueprint: Blueprint, ctx: ApiV1Context) -> Non
     @service_fallback("chart_vision_agent_service")
     def vision_analyze(symbol: str):
         """Full visual analysis: render chart → vision LLM → pattern detection."""
+        svc = getattr(ctx, "chart_vision_agent_service", None)
         market = (request.args.get("market") or "CN").strip().upper()
         days = parse_int_param(request.args.get("days"), name="days", default=120, min_value=20, max_value=500)
         include_image = request.args.get("image", "0") == "1"
@@ -44,6 +45,7 @@ def register_chart_vision_routes(blueprint: Blueprint, ctx: ApiV1Context) -> Non
     @service_fallback("chart_vision_agent_service")
     def vision_patterns(symbol: str):
         """Pattern detection only (faster, no image in response)."""
+        svc = getattr(ctx, "chart_vision_agent_service", None)
         market = (request.args.get("market") or "CN").strip().upper()
         days = parse_int_param(request.args.get("days"), name="days", default=120, min_value=20, max_value=500)
 

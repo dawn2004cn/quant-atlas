@@ -5,12 +5,11 @@ from __future__ import annotations
 import json
 import re
 import secrets
-import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
-from sqlalchemy import select, delete, insert, update, func, and_, desc
+from sqlalchemy import select, delete, update, func, and_, desc
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import OperationalError as SAOperationalError
 import pymysql.err
@@ -50,7 +49,7 @@ class MySQLRepositoryBase:
         self._users_json_path = users_json_path
         self._watchlist_json_path = watchlist_json_path
         self._stock_groups_json_path = stock_groups_json_path
-        
+
         # Ensure database schema exists before seeding
         try:
             engine = self._session_factory().get_bind()
@@ -100,24 +99,24 @@ class MySQLRepositoryBase:
         # 1. Update role_id based on role string
         roles = session.scalars(select(Role)).all()
         role_map = {r.code.lower(): r.id for r in roles}
-        
-        users_to_sync = session.scalars(select(User).where(User.role_id == None)).all()
+
+        users_to_sync = session.scalars(select(User).where(User.role_id is None)).all()
         for u in users_to_sync:
             u.role_id = role_map.get(u.role.lower(), role_map.get('viewer'))
             # Sync the role column from role_id for older DBs
         session.flush()
 
         # Sync role column from role_id for all users that have role_id set
-        users_with_role_id = session.scalars(select(User).where(User.role_id != None)).all()
+        users_with_role_id = session.scalars(select(User).where(User.role_id is not None)).all()
         role_by_id = {r.id: r for r in session.scalars(select(Role)).all()}
         for u in users_with_role_id:
             if not u.role or u.role.lower() not in {r.code for r in role_by_id.values()}:
                 r = role_by_id.get(u.role_id)
                 if r:
                     u.role = r.code
-        
+
         session.flush()
-        
+
         # 2. Ensure demo users exist
         demo_specs = (
             ("researcher", "research123", "researcher", 3),
@@ -138,7 +137,7 @@ class MySQLRepositoryBase:
     def _seed_users(self, session) -> None:
         if session.query(func.count(User.id)).scalar() > 5: # More than just demo users
             return
-            
+
         payload = self._read_json(self._users_json_path) if self._users_json_path else None
         if not payload:
             specs = (
@@ -162,11 +161,11 @@ class MySQLRepositoryBase:
     def _seed_groups(self, session) -> None:
         if session.query(func.count(StockGroup.id)).scalar() > 0:
             return
-            
+
         payload = self._read_json(self._stock_groups_json_path) if self._stock_groups_json_path else None
         groups = (payload or {}).get("groups", [])
         items = (payload or {}).get("items", {})
-        
+
         if not groups:
             g = StockGroup(name="鑷€夎偂", description="榛樿鍒嗙粍", is_default=1)
             session.add(g)
@@ -182,7 +181,7 @@ class MySQLRepositoryBase:
             session.add(g)
             session.flush()
             id_map[int(group["id"])] = g.id
-            
+
         for old_group_id, symbols in items.items():
             new_group_id = id_map.get(int(old_group_id))
             if not new_group_id:
@@ -377,7 +376,7 @@ class MySQLUserRepository(MySQLRepositoryBase, UserRepository):
         finally:
             session.close()
             self._session_factory.remove()
-    
+
     def list_all(self, limit: int = 100) -> list[UserAccount]:
         session = self._session_factory()
         try:
@@ -450,20 +449,20 @@ class MySQLUserRepository(MySQLRepositoryBase, UserRepository):
         existing = self.get_by_wechat_openid(oid)
         if existing:
             return existing
-            
+
         nick = (nickname or "").strip()
         base = re.sub(r"[^\w\u4e00-\u9fff]", "", nick)[:24] if nick else ""
         if not base or len(base) < 2:
             base = f"wx{oid[-10:]}"
         if base.lower() in {x.lower() for x in PROTECTED_DEMO_USERNAMES}:
             base = f"wx{oid[-10:]}"
-            
+
         session = self._session_factory()
         try:
             viewer_role = session.scalars(select(Role).where(Role.code == 'viewer')).first()
             if not viewer_role:
                 return None
-                
+
             rnd = self._hash(secrets.token_hex(32))
             for i in range(0, 50):
                 candidate = f"{base}{i}" if i else base
@@ -576,16 +575,16 @@ class MySQLWatchlistRepository(MySQLRepositoryBase, WatchlistRepository):
         finally:
             session.close()
             self._session_factory.remove()
-    
+
     def get_by_user(self, user_id: str) -> list[dict]:
         """Get watchlist for user (implements WatchlistRepository port)."""
         return [{"symbol": s} for s in self.list_symbols(int(user_id) if user_id.isdigit() else 1)]
-    
+
     def add_stock(self, user_id: str, stock_code: str, watchlist_name: str = "default") -> dict:
         """Add stock to watchlist."""
         self.add_symbol(stock_code, int(user_id) if user_id.isdigit() else 1)
         return {"user_id": user_id, "stock_code": stock_code, "watchlist": watchlist_name}
-    
+
     def remove_stock(self, user_id: str, stock_code: str, watchlist_name: str = "default") -> bool:
         """Remove stock from watchlist."""
         return self.remove_symbol(stock_code, int(user_id) if user_id.isdigit() else 1)
@@ -663,8 +662,8 @@ class MySQLStockGroupRepository(MySQLRepositoryBase, StockGroupRepository):
         try:
             stmt = select(StockGroupItem.symbol).where(
                 and_(
-                    StockGroupItem.group_id == group_id, 
-                    StockGroupItem.user_id == user_id, 
+                    StockGroupItem.group_id == group_id,
+                    StockGroupItem.user_id == user_id,
                     StockGroupItem.is_removed == 0
                 )
             ).order_by(StockGroupItem.symbol)
@@ -676,18 +675,18 @@ class MySQLStockGroupRepository(MySQLRepositoryBase, StockGroupRepository):
         finally:
             session.close()
             self._session_factory.remove()
-    
-    def get_by_id(self, group_id: str) -> Optional[dict]:
+
+    def get_by_id(self, group_id: str) -> dict | None:
         """Get stock group by ID."""
         try:
             return self.list_groups(int(group_id) if group_id.isdigit() else 1)[0]
         except (IndexError, ValueError):
             return None
-    
+
     def list_by_user(self, user_id: str) -> list[dict]:
         """List stock groups for user."""
         return self.list_groups(int(user_id) if user_id.isdigit() else 1)
-    
+
     def create(self, group_data: dict) -> dict:
         """Create stock group."""
         result = self.create_group(
@@ -697,7 +696,7 @@ class MySQLStockGroupRepository(MySQLRepositoryBase, StockGroupRepository):
             user_id=int(group_data.get("user_id", 1)) if str(group_data.get("user_id", "1")).isdigit() else 1
         )
         return result or {"name": group_data.get("name", "default")}
-    
+
     def add_symbol_to_group(self, group_id: int, symbol: str, user_id: int = 1) -> bool:
         from app.infrastructure.mappers.symbol_normalizer import SymbolNormalizer
         normalized = SymbolNormalizer.to_db_code(str(symbol))

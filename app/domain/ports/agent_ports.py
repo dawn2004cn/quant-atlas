@@ -3,7 +3,10 @@ from __future__ import annotations
 
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from app.domain.agent_entities import MarketInsight, ReportInterpretation
 
 
 class KronosRepository(ABC):

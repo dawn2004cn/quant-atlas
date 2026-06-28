@@ -2,6 +2,7 @@ from __future__ import annotations
 """SQLAlchemy Unit of Work implementation."""
 
 
+from types import TracebackType
 from sqlalchemy.orm import Session
 from app.domain.uow.unit_of_work import IUnitOfWork
 from app.infrastructure.database.db_manager import get_db_session

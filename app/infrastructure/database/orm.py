@@ -9,7 +9,6 @@ deployments:
 """
 
 
-import logging
 import threading
 from typing import Any
 from urllib.parse import quote_plus
@@ -137,7 +136,7 @@ def create_db_engine(database_uri: str, **kwargs: Any):
         def _checkout_check(dbapi_connection, connection_record, connection_proxy):
             try:
                 dbapi_connection.ping(reconnect=True)
-            except Exception:
+            except Exception as exc:
                 raise exc.DisconnectionError("Connection checkout failed")
 
         @event.listens_for(eng, "connect")

@@ -2,10 +2,8 @@ from __future__ import annotations
 """Personalized Morning/Evening Briefing Service."""
 
 
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
 
 
 from app.core.logger import get_logger
@@ -28,7 +26,7 @@ class MarketSummary:
     index: float = 0.0
     change_pct: float = 0.0
     sentiment: str = ""
-    hot_sectors: List[str] = field(default_factory=list)
+    hot_sectors: list[str] = field(default_factory=list)
     risk_level: str = "moderate"
 
 
@@ -58,12 +56,12 @@ class Briefing:
     user_id: str
     briefing_type: str  # "morning", "evening"
     generated_at: datetime
-    
-    market_summary: Optional[MarketSummary] = None
-    positions: List[PositionAlert] = field(default_factory=list)
-    watchlist: List[WatchlistPulse] = field(default_factory=list)
-    sections: List[BriefingSection] = field(default_factory=list)
-    
+
+    market_summary: MarketSummary | None = None
+    positions: list[PositionAlert] = field(default_factory=list)
+    watchlist: list[WatchlistPulse] = field(default_factory=list)
+    sections: list[BriefingSection] = field(default_factory=list)
+
     total_duration_seconds: int = 30  # Estimated reading time
 
 
@@ -80,9 +78,9 @@ class BriefingGenerator:
     def generate_morning_briefing(
         self,
         user_id: str,
-        positions: List[Dict],
-        watchlist: List[Dict],
-        market_data: Optional[Dict] = None
+        positions: list[dict],
+        watchlist: list[dict],
+        market_data: dict | None = None
     ) -> Briefing:
         """Generate morning briefing (8:50 AM)."""
         briefing = Briefing(
@@ -137,8 +135,8 @@ class BriefingGenerator:
     def generate_evening_briefing(
         self,
         user_id: str,
-        positions: List[Dict],
-        watchlist: List[Dict],
+        positions: list[dict],
+        watchlist: list[dict],
         daily_pnl: float = 0.0
     ) -> Briefing:
         """Generate evening briefing (3:30 PM)."""
@@ -179,7 +177,7 @@ class BriefingGenerator:
 
         return briefing
 
-    def _generate_market_summary(self, data: Dict) -> MarketSummary:
+    def _generate_market_summary(self, data: dict) -> MarketSummary:
         """Generate market summary."""
         return MarketSummary(
             index=data.get("index", 0),
@@ -212,7 +210,7 @@ class BriefingGenerator:
 
         return " ".join(lines)
 
-    def _analyze_positions(self, positions: List[Dict]) -> List[PositionAlert]:
+    def _analyze_positions(self, positions: list[dict]) -> list[PositionAlert]:
         """Analyze positions and generate alerts."""
         alerts = []
 
@@ -250,7 +248,7 @@ class BriefingGenerator:
 
         return alerts[:5]  # Limit to 5 alerts
 
-    def _format_position_alerts(self, alerts: List[PositionAlert]) -> str:
+    def _format_position_alerts(self, alerts: list[PositionAlert]) -> str:
         """Format position alerts."""
         if not alerts:
             return "今日持仓无异常提醒?"
@@ -262,7 +260,7 @@ class BriefingGenerator:
 
         return " ".join(lines)
 
-    def _analyze_watchlist(self, watchlist: List[Dict]) -> List[WatchlistPulse]:
+    def _analyze_watchlist(self, watchlist: list[dict]) -> list[WatchlistPulse]:
         """Analyze watchlist for significant changes."""
         pulses = []
 
@@ -281,7 +279,7 @@ class BriefingGenerator:
 
         return pulses[:5]
 
-    def _format_watchlist(self, pulses: List[WatchlistPulse]) -> str:
+    def _format_watchlist(self, pulses: list[WatchlistPulse]) -> str:
         """Format watchlist updates."""
         if not pulses:
             return "关注的股票今日无明显异动?"
@@ -293,7 +291,7 @@ class BriefingGenerator:
 
         return " ".join(lines)
 
-    def _generate_strategy_suggestion(self, summary: Optional[MarketSummary]) -> str:
+    def _generate_strategy_suggestion(self, summary: MarketSummary | None) -> str:
         """Generate daily strategy suggestion."""
         if not summary:
             return "建议保持谨慎，关注市场动态?"
@@ -314,7 +312,7 @@ class BriefingGenerator:
         else:
             return "今日持平，静待机会?"
 
-    def _generate_tomorrow_watchlist(self, watchlist: List[WatchlistPulse]) -> str:
+    def _generate_tomorrow_watchlist(self, watchlist: list[WatchlistPulse]) -> str:
         """Generate tomorrow's watchlist suggestion."""
         if not watchlist:
             return "建议明天继续关注市场热门板块?"
@@ -326,8 +324,6 @@ class BriefingGenerator:
 # Celery task integration
 def schedule_morning_briefing(user_id: str) -> Briefing:
     """Schedule morning briefing for a user."""
-    from app.modules.user.services.user.user_service import UserApplicationService
-    from app.modules.market_data.services.market_service import MarketApplicationService
 
     generator = BriefingGenerator()
     # In production, fetch actual data via services

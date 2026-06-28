@@ -16,7 +16,8 @@ Usage:
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from enum import Enum
 
 from app.core.logger import get_logger

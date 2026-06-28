@@ -1,6 +1,6 @@
 """Mean-variance (max Sharpe) optimizer: max (w'mu - r_f) / sqrt(w'Sigma w), w>=0, sum(w)=1."""
 
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -16,8 +16,8 @@ class MeanVarianceOptimizer(BaseOptimizer):
         self.risk_free = risk_free
 
     def _build_context(
-        self, window: pd.DataFrame, active: List[str]
-    ) -> "Dict[str, Any] | None":
+        self, window: pd.DataFrame, active: list[str]
+    ) -> "dict[str, Any] | None":
         """Mean vector and covariance."""
         mu = window.mean().values
         cov = window.cov().values
@@ -25,7 +25,7 @@ class MeanVarianceOptimizer(BaseOptimizer):
             return None
         return {"cov": cov, "mu": mu}
 
-    def _calc_weights(self, ctx: Dict[str, Any]) -> np.ndarray:
+    def _calc_weights(self, ctx: dict[str, Any]) -> np.ndarray:
         """SLSQP max-Sharpe weights."""
         from scipy.optimize import minimize
 

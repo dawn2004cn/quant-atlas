@@ -6,14 +6,12 @@ Supports multi-table history storage per market.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select, func, text
+from sqlalchemy import select, text
 
 from ..mappers.symbol_normalizer import SymbolNormalizer
 from ..models.market import StockHistory
-from ..orm import create_session_factory
 
 import logging
 

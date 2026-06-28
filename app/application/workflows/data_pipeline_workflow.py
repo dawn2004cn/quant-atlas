@@ -6,7 +6,6 @@ from typing import Any
 
 from app.application.workflows.base_workflow import BaseWorkflow
 from app.domain.agent_workflow import WorkflowContext
-from app.domain.enums import MarketCode
 from app.infrastructure.capabilities.registry import CapabilityRegistry
 
 

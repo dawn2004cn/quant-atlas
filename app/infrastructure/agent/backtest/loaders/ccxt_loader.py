@@ -7,9 +7,7 @@ No API key required for public market data.
 """
 
 
-import logging
 import os
-from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -58,13 +56,13 @@ class DataLoader:
 
     def fetch(
         self,
-        codes: List[str],
+        codes: list[str],
         start_date: str,
         end_date: str,
         *,
         interval: str = "1D",
-        fields: Optional[List[str]] = None,
-    ) -> Dict[str, pd.DataFrame]:
+        fields: list[str] | None = None,
+    ) -> dict[str, pd.DataFrame]:
         """Fetch crypto OHLCV via CCXT.
 
         Args:
@@ -84,7 +82,7 @@ class DataLoader:
         since_ms = int(pd.Timestamp(start_date).timestamp() * 1000)
         end_ms = int((pd.Timestamp(end_date) + pd.Timedelta(days=1)).timestamp() * 1000)
 
-        result: Dict[str, pd.DataFrame] = {}
+        result: dict[str, pd.DataFrame] = {}
         for code in codes:
             try:
                 ccxt_symbol = code.replace("-", "/").upper()
@@ -98,7 +96,7 @@ class DataLoader:
     @staticmethod
     def _fetch_one(
         exchange, symbol: str, timeframe: str, since_ms: int, end_ms: int,
-    ) -> Optional[pd.DataFrame]:
+    ) -> pd.DataFrame | None:
         """Paginated OHLCV fetch for one symbol."""
         all_rows: list = []
         cursor = since_ms

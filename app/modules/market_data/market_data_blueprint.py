@@ -25,7 +25,7 @@ def _register_market_data_routes(blueprint: Blueprint, ctx: Any | None = None) -
 
     This function imports and registers all market data route handlers.
     In Phase 2A, this becomes the entry point for the standalone service.
-    
+
     Note: Some routes require specific services to be available in ctx.
     If a service is not available, that route group is skipped (logged as warning).
     """
@@ -42,7 +42,7 @@ def _register_market_data_routes(blueprint: Blueprint, ctx: Any | None = None) -
             hot_sector_storage_service = None
             sentiment_radar_service = None
         ctx = _MinimalContext()
-    
+
     # Import route registration functions (side-effect: registers routes on blueprint)
     from app.presentation.api.v1.stock.routes_market_data import (
         register_stock_market_data,
@@ -60,7 +60,7 @@ def _register_market_data_routes(blueprint: Blueprint, ctx: Any | None = None) -
         register_hot_sector_list_routes,
     )
     from app.presentation.api.routes_v1_pytdx import register_pytdx_routes
-    
+
     import logging
     logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ def _register_market_data_routes(blueprint: Blueprint, ctx: Any | None = None) -
         ("hot_sectors", lambda: register_hot_sector_list_routes(blueprint, ctx)),
         ("pytdx", lambda: register_pytdx_routes(blueprint, ctx)),
     ]
-    
+
     registered = []
     for name, register_fn in route_groups:
         try:
@@ -82,7 +82,7 @@ def _register_market_data_routes(blueprint: Blueprint, ctx: Any | None = None) -
             logger.debug("Registered route group: %s", name)
         except Exception as exc:
             logger.warning("Skipping route group %s (dependencies unavailable): %s", name, exc)
-    
+
     return registered
 
 
@@ -142,7 +142,7 @@ def create_market_data_app() -> Any:
         # Register market data routes
         bp, registered = create_market_data_blueprint()
         app.register_blueprint(bp, url_prefix="/api/v1/market")
-        
+
         # Store registration info for debugging
         app.extensions["market_data_registered_routes"] = registered
 

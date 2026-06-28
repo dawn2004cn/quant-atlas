@@ -18,12 +18,12 @@ class MultiEngineSearchProvider(WebSearchProvider):
 
     def __init__(self):
         self._providers = []
-        
+
         # Tavily
         tavily_key = get_runtime("TAVILY_API_KEY")
         if tavily_key:
             self._providers.append(TavilySearchProvider(tavily_key))
-            
+
         # Bocha
         bocha_key = get_runtime("BOCHA_API_KEY")
         if bocha_key:
@@ -43,7 +43,7 @@ class MultiEngineSearchProvider(WebSearchProvider):
             except Exception as e:
                 logger.error(f"搜索引擎 {provider.__class__.__name__} 失败: {e}")
                 continue
-        
+
         return []
 
 
@@ -65,7 +65,7 @@ class TavilySearchProvider(WebSearchProvider):
             response = requests.post(url, json=payload, timeout=10)
             response.raise_for_status()
             data = response.json()
-            
+
             results = []
             for item in data.get("results", []):
                 results.append({
@@ -102,7 +102,7 @@ class BochaSearchProvider(WebSearchProvider):
             response = requests.post(url, headers=headers, json=payload, timeout=10)
             response.raise_for_status()
             data = response.json()
-            
+
             # 博查返回结构通常在 data.webPages.value
             results = []
             pages = data.get("data", {}).get("webPages", {}).get("value", [])

@@ -12,9 +12,8 @@ This module provides automated factor lifecycle management:
 
 
 import logging
-from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -64,8 +63,8 @@ class FactorLifecycleManager:
 
     def __init__(
         self,
-        factor_repository: "_FactorRepo",
-        config: Optional[FactorLifecycleConfig] = None,
+        factor_repository: _FactorRepo,
+        config: FactorLifecycleConfig | None = None,
     ):
         from app.domain.factor_service import FactorService
         self._repo = factor_repository
@@ -107,7 +106,7 @@ class FactorLifecycleManager:
         factor_id: str,
         calc_date: str,
         ic_value: float,
-        rank_ic: Optional[float] = None,
+        rank_ic: float | None = None,
         forward_return: float = 0.0,
         sample_count: int = 0,
     ) -> None:
@@ -344,7 +343,7 @@ class FactorLifecycleManager:
 
         return results
 
-    async def get_active_factors(self, category: Optional[str] = None) -> list[dict[str, Any]]:
+    async def get_active_factors(self, category: str | None = None) -> list[dict[str, Any]]:
         """Get list of active factors.
 
         Args:

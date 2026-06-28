@@ -5,14 +5,11 @@ Implements ISignalRepository using existing signal_flag_pool table.
 """
 
 
-import logging
 from datetime import datetime, timedelta
-from typing import Optional
 
-from sqlalchemy import select, delete, func
+from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
-from app.domain.base import Entity
 from app.domain.repositories.signal import ISignalRepository, Signal, SignalType
 
 
@@ -23,7 +20,7 @@ logger = get_logger(__name__)
 
 class MySQLSignalRepository(ISignalRepository):
     """MySQL implementation of signal repository."""
-    
+
     SIGNAL_TYPE_MAP = {
         "buy": SignalType.BUY,
         "sell": SignalType.SELL,
@@ -31,13 +28,13 @@ class MySQLSignalRepository(ISignalRepository):
         "strong_buy": SignalType.STRONG_BUY,
         "strong_sell": SignalType.STRONG_SELL,
     }
-    
+
     def __init__(self, session_factory):
         self._session_factory = session_factory
-    
+
     def _get_session(self) -> Session:
         return self._session_factory()
-    
+
     def _row_to_signal(self, row) -> Signal:
         signal_type = self.SIGNAL_TYPE_MAP.get(row.get("signal_type", "hold"), SignalType.HOLD)
         return Signal(
@@ -47,12 +44,12 @@ class MySQLSignalRepository(ISignalRepository):
             confidence=row.get("confidence", 0.5),
             reason=row.get("reason", ""),
         )
-    
+
     def get_by_stock(self, stock_code: str, limit: int = 10) -> list[Signal]:
         """Get signals for a stock from signal_flag_pool table."""
         with self._get_session() as session:
             from app.infrastructure.database.models.advanced import SignalFlagPool
-            
+
             stmt = (
                 select(SignalFlagPool)
                 .where(SignalFlagPool.stock_code == stock_code)
@@ -60,7 +57,7 @@ class MySQLSignalRepository(ISignalRepository):
                 .limit(limit)
             )
             results = session.execute(stmt).scalars().all()
-            
+
             signals = []
             for r in results:
                 signal_type = self.SIGNAL_TYPE_MAP.get(r.signal_type, SignalType.HOLD)
@@ -72,14 +69,14 @@ class MySQLSignalRepository(ISignalRepository):
                     reason=r.reason or "",
                 ))
             return signals
-    
+
     def get_active(self, limit: int = 100) -> list[Signal]:
         """Get active signals (from recent pool dates)."""
         with self._get_session() as session:
             from app.infrastructure.database.models.advanced import SignalFlagPool
-            
+
             recent_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
-            
+
             stmt = (
                 select(SignalFlagPool)
                 .where(SignalFlagPool.pool_date >= recent_date)
@@ -87,7 +84,7 @@ class MySQLSignalRepository(ISignalRepository):
                 .limit(limit)
             )
             results = session.execute(stmt).scalars().all()
-            
+
             signals = []
             for r in results:
                 signal_type = self.SIGNAL_TYPE_MAP.get(r.signal_type, SignalType.HOLD)
@@ -99,7 +96,7 @@ class MySQLSignalRepository(ISignalRepository):
                     reason=r.reason or "",
                 ))
             return signals
-    
+
     def save(self, signal: Signal) -> Signal:
         """Persist a signal to the signal_flag_pool table.
 
@@ -150,14 +147,14 @@ class MySQLSignalRepository(ISignalRepository):
             raise
         finally:
             session.close()
-    
+
     def delete_expired(self) -> int:
         """Delete expired signals."""
         with self._get_session() as session:
             from app.infrastructure.database.models.advanced import SignalFlagPool
-            
+
             cutoff_date = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
-            
+
             stmt = delete(SignalFlagPool).where(SignalFlagPool.pool_date < cutoff_date)
             result = session.execute(stmt)
             session.commit()

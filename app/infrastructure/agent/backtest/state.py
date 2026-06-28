@@ -6,7 +6,7 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 class RunStateStore:
@@ -30,7 +30,7 @@ class RunStateStore:
         (run_dir / "artifacts").mkdir(exist_ok=True)
         return run_dir
 
-    def save_request(self, run_dir: Path, prompt: str, context: Dict[str, Any]) -> Dict[str, Any]:
+    def save_request(self, run_dir: Path, prompt: str, context: dict[str, Any]) -> dict[str, Any]:
         """Save the user request.
 
         Args:

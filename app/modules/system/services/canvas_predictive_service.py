@@ -3,7 +3,7 @@ Predictive UI + one-click strategy export."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 import json
 
@@ -35,7 +35,7 @@ class CanvasExport:
 
 class CanvasPredictiveService:
     """Generates predictive tool suggestions and one-click exports."""
-    
+
     # Archetype → likely tool mappings
     _ARCHETYPE_TOOLS = {
         "novice": [
@@ -54,7 +54,7 @@ class CanvasPredictiveService:
             ToolSuggestion("backtest", "回测引擎", "play-circle", 0.80, "策略回测验证"),
         ],
     }
-    
+
     # Symbol context → tool suggestions
     _SYMBOL_CONTEXT = {
         "limit_up": [ToolSuggestion("da_ban_radar", "打板雷达", "zap", 0.95, "涨停股分析")],
@@ -62,14 +62,14 @@ class CanvasPredictiveService:
         "high_volume": [ToolSuggestion("order_flow", "订单流分析", "trending-up", 0.90, "异动放量分析")],
         "new_low": [ToolSuggestion("stress_test", "压力测试", "thermometer", 0.85, "新低品种的风险评估")],
     }
-    
+
     def predict_tools(self, archetype: str, symbol: str | None = None,
                       context: dict | None = None) -> list[ToolSuggestion]:
         """Predict most likely needed tools."""
         tools = []
         base = self._ARCHETYPE_TOOLS.get(archetype, self._ARCHETYPE_TOOLS["novice"])
         tools.extend(base)
-        
+
         if context:
             key = context.get("symbol_context")
             if key in self._SYMBOL_CONTEXT:
@@ -77,7 +77,7 @@ class CanvasPredictiveService:
                     # Boost probability
                     t.probability = min(1.0, t.probability * 1.1)
                     tools.insert(0, t)
-        
+
         # Deduplicate by tool_id
         seen = set()
         unique = []
@@ -85,9 +85,9 @@ class CanvasPredictiveService:
             if t.tool_id not in seen:
                 seen.add(t.tool_id)
                 unique.append(t)
-        
+
         return unique[:5]  # Top 5
-    
+
     def export_strategy(self, canvas_json: dict) -> CanvasExport:
         """Export canvas logic as a deployable strategy."""
         try:

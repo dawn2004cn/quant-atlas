@@ -59,10 +59,10 @@ class SingleBullishHoldStrategy(BaseTradingStrategy):
 
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         df['Signal'] = 0
-        
+
         # 🚀 优化：防止开盘价为 0 的异常股
         big_yang = (df['Close'] - df['Open']) / df['Open'].replace(0, np.nan) > 0.05
-        
+
         # 过去4天最低价大于5天前的开盘价
         hold_base = df['Low'].rolling(4).min() > df['Open'].shift(4)
 
@@ -241,7 +241,7 @@ class BBLowerSupportStrategy(BaseTradingStrategy):
         # 🚀 优化：防抖处理。只有昨天收在下轨之下（恐慌），今天收回下轨之上（翻转），才算买点！
         panic_yesterday = df['Close'].shift(1) < low.shift(1)
         reclaim_today = (df['Low'] < low) & (df['Close'] > low) & (df['Close'] > df['Open'])
-        
+
         buy_cond = panic_yesterday & reclaim_today
         sell_cond = df['Close'] > bb.bollinger_hband()
         df.loc[buy_cond.fillna(False), 'Signal'] = 1

@@ -34,10 +34,9 @@ Lazy initialization — repos are created on first access and cached.
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import Any
 
-from app.config import AppSettings, INSTANCE_DIR
+from app.config import AppSettings
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

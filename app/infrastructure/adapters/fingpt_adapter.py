@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import select, func, desc, and_, text
+from sqlalchemy import select, func, text
 
 from app.core.circuit_breaker import CircuitBreakerOpenError, circuit_breaker
 
@@ -145,7 +145,7 @@ class FinGPTRepository(FinGPTPersistencePort):
                 params["hours"] = since_hours
             sql += " ORDER BY id DESC LIMIT :limit"
             params["limit"] = limit
-            
+
             result = session.execute(text(sql), params)
             return [row[0] for row in result.fetchall() if row[0]]
         except Exception as exc:
@@ -215,7 +215,7 @@ class FinGPTRepository(FinGPTPersistencePort):
                 params["hours"] = since_hours
             sql += " ORDER BY id DESC LIMIT :limit"
             params["limit"] = limit
-            
+
             result = session.execute(text(sql), params)
             return [dict(zip(cols, row)) for row in result.fetchall()]
         except Exception as exc:

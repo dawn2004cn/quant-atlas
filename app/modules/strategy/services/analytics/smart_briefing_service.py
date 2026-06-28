@@ -103,7 +103,7 @@ class SmartDailyBriefingService:
     ) -> GenericResponseDTO:
         """
         生成智能投研日报 - 一键体检核心入口.
-        
+
         流程: 筛选 -> 情绪过滤 -> 模拟回测 -> 返回最优N只
         """
         # 1. 智能选股 (自动根据市场环境选择策略)
@@ -137,7 +137,7 @@ class SmartDailyBriefingService:
         # 4. 生成推荐结果
         final_stocks = filtered[:top_n]
         recommendations = []
-        
+
         for stock in final_stocks:
             rec = self._generate_recommendation(stock, selection_result)
             recommendations.append(rec)
@@ -219,14 +219,14 @@ class SmartDailyBriefingService:
         """为单只股票生成推荐理由."""
         symbol = stock.get("symbol", "")
         name = stock.get("name", symbol)
-        
+
         # 策略翻译
         strategy = selection_result.get("effective_strategy_group", "unknown")
         strategy_desc = StrategyTranslator.translate_strategy(strategy)
-        
+
         # 构建理由
         reasons = []
-        
+
         # 基于价格变化
         change_pct = abs(stock.get("change_pct", 0))
         if change_pct > 5:
@@ -234,17 +234,17 @@ class SmartDailyBriefingService:
                 reasons.append(f"今日涨幅{change_pct:.1f}%，表现强势")
             else:
                 reasons.append(f"今日跌幅{change_pct:.1f}%，存在超跌反弹机会")
-        
+
         # 基于技术指标
         if stock.get("rsi", 50) < 30:
             reasons.append("RSI超卖，反弹潜力大")
         elif stock.get("rsi", 50) > 70:
             reasons.append("RSI超买，注意回调风险")
-        
+
         # 基于成交量
         if stock.get("volume_ratio", 1) > 2:
             reasons.append("成交量放大，关注度提升")
-        
+
         # 基于舆情
         sentiment = stock.get("sentiment_score")
         if sentiment:
@@ -266,25 +266,25 @@ class SmartDailyBriefingService:
     def _calculate_confidence(self, stock: dict) -> float:
         """计算推荐置信度."""
         score = 0.5
-        
+
         # 涨幅因素
         change = abs(stock.get("change_pct", 0))
         if 3 < change < 8:
             score += 0.1
-        
+
         # RSI因素
         rsi = stock.get("rsi", 50)
         if 25 < rsi < 35 or 65 < rsi < 75:
             score += 0.15
-        
+
         # 成交量因素
         if stock.get("volume_ratio", 1) > 1.5:
             score += 0.1
-        
+
         # 舆情因素
         if stock.get("sentiment_score"):
             score += stock.get("sentiment_score", 0.5) * 0.15
-        
+
         return min(round(score, 2), 1.0)
 
     def _analyze_market_environment(self, selection_result: dict) -> GenericResponseDTO:
@@ -292,19 +292,19 @@ class SmartDailyBriefingService:
         sentiment = selection_result.get("sentiment_analysis", {})
         regime = sentiment.get("market_regime", "unknown")
         categories = sentiment.get("recommended_categories", [])
-        
+
         # 翻译分类
         category_labels = [
             StrategyTranslator.get_category_label(c) for c in categories
         ]
-        
+
         env_descriptions = {
             "bull": "牛市环境，建议趋势追踪",
             "bear": "熊市环境，注意防守",
             "sideways": "震荡市，适合高抛低吸",
             "volatile": "高波动市，注意风险",
         }
-        
+
         return {
             "regime": regime,
             "regime_description": env_descriptions.get(regime, regime),
@@ -315,8 +315,8 @@ class SmartDailyBriefingService:
         """生成日报摘要."""
         if not recommendations:
             return "今日暂无推荐"
-        
+
         count = len(recommendations)
         symbols = [r.get("symbol", "") for r in recommendations]
-        
+
         return f"今日为您精选{count}只标的：{', '.join(symbols)}。点击查看详细分析。"

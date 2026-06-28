@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import List, Optional
 
 class IndicatorDTO(BaseModel):
     ma5: float = 0.0
@@ -26,8 +25,8 @@ class TrendDTO(BaseModel):
     ma20: float
 
 class SupportResistanceDTO(BaseModel):
-    support: List[float]
-    resistance: List[float]
+    support: list[float]
+    resistance: list[float]
 
 class FibonacciDTO(BaseModel):
     levels: dict[str, float]

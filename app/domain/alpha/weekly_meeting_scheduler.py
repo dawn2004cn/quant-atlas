@@ -133,7 +133,7 @@ class WeeklyMeetingExecutor:
         if count is None:
             count = self._scheduler.config.max_experiments
 
-        candidates = min(count, max(10, len(self._stale_factors) * 5))
+        min(count, max(10, len(self._stale_factors) * 5))
 
         experiments = []
         return experiments

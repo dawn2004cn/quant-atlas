@@ -71,7 +71,7 @@ class BarContract(BaseModel):
     low: float = Field(gt=0, description="Low price")
     close: float = Field(gt=0, description="Close price")
     volume: int = Field(ge=0, description="Volume")
-    amount: Optional[float] = Field(default=None, ge=0, description="Amount")
+    amount: float | None = Field(default=None, ge=0, description="Amount")
 
     @model_validator(mode="after")
     def validate_price_relationship(self):
@@ -122,16 +122,16 @@ class StrategySignalContract(BaseModel):
     direction: SignalDirection = SignalDirection.LONG
     strength: SignalStrength = SignalStrength.MODERATE
     price: float = Field(gt=0)
-    target_price: Optional[float] = Field(default=None, gt=0)
-    stop_loss: Optional[float] = Field(default=None, gt=0)
+    target_price: float | None = Field(default=None, gt=0)
+    stop_loss: float | None = Field(default=None, gt=0)
     confidence: float = Field(ge=0, le=100, description="Confidence 0-100")
     reason: str = ""
     generated_at: datetime = Field(default_factory=datetime.now)
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
     @computed_field
     @property
-    def risk_reward(self) -> Optional[float]:
+    def risk_reward(self) -> float | None:
         if not all([self.target_price, self.stop_loss, self.price]):
             return None
         reward = abs(self.target_price - self.price)
@@ -161,7 +161,7 @@ class PositionContract(BaseModel):
     avg_cost: float = Field(gt=0)
     current_price: float = Field(gt=0)
     opened_at: datetime
-    closed_at: Optional[datetime] = None
+    closed_at: datetime | None = None
     status: PositionStatus = PositionStatus.OPEN
     tags: list[str] = Field(default_factory=list)
 
@@ -248,13 +248,13 @@ class OrderContract(BaseModel):
     direction: SignalDirection
     order_type: str = Field(description="market, limit")
     quantity: int = Field(gt=0)
-    price: Optional[float] = Field(default=None, gt=0)
+    price: float | None = Field(default=None, gt=0)
     filled_quantity: int = Field(default=0, ge=0)
     filled_price: float = Field(default=0, ge=0)
     status: OrderStatus = OrderStatus.PENDING
     order_id: str = ""
     created_at: datetime = Field(default_factory=datetime.now)
-    filled_at: Optional[datetime] = None
+    filled_at: datetime | None = None
 
     @computed_field
     @property
@@ -298,7 +298,7 @@ class AnalysisResultContract(BaseModel):
     price: float = Field(gt=0)
     trend: str = Field(description="up, down, sideways")
     momentum: float = Field(ge=-100, le=100)
-    indicators: Optional[TechnicalIndicatorContract] = None
+    indicators: TechnicalIndicatorContract | None = None
     support_levels: list[float] = Field(default_factory=list)
     resistance_levels: list[float] = Field(default_factory=list)
     overall_score: float = Field(ge=0, le=100)
@@ -337,11 +337,11 @@ class TaskContract(BaseModel):
     name: str
     priority: str = Field(description="HIGH, MEDIUM, LOW")
     status: str = Field(description="pending, running, completed, failed")
-    result: Optional[Any] = None
-    error: Optional[str] = None
+    result: Any | None = None
+    error: str | None = None
     created_at: datetime
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
 
 
 # ==================== Event DTOs ====================
@@ -351,7 +351,7 @@ class EventContract(BaseModel):
     type: str
     payload: dict[str, Any] = Field(default_factory=dict)
     source: str = ""
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
     timestamp: datetime = Field(default_factory=datetime.now)
 
 

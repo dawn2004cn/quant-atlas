@@ -2,7 +2,6 @@ from __future__ import annotations
 from app.domain.dto.service_result import GenericResponseDTO
 """Quant Jarvis - Smart Command Service for Atlas."""
 
-from typing import Any
 import re
 
 class CommandService:
@@ -12,7 +11,7 @@ class CommandService:
     def parse_intent(self, query: str) -> GenericResponseDTO:
         """将用户自然语言解析为系统动作."""
         q = query.strip()
-        
+
         # 1. 基础正则匹配 (极速响应)
         # 个股分析: "分析 600519" 或 "NVDA"
         code_match = re.search(r'([A-Z0-9\.-]{3,})', q.upper())
@@ -23,18 +22,12 @@ class CommandService:
             if ".HK" in symbol: market = "HK"
             elif any(c.isalpha() for c in symbol) and "-" not in symbol: market = "US"
             elif "-USD" in symbol: market = "CRYPTO"
-            
+
             if "分析" in q or "辩论" in q or "委员会" in q:
                 return {"action": "navigate", "url": f"/ai-committee?symbol={symbol}&market={market}", "label": f"开启 {symbol} AI 投委会辩论"}
             return {"action": "navigate", "url": f"/stock/{symbol}?m={market}", "label": f"查看 {symbol} 个股详情"}
 
         # 2. 复杂意图通过 LLM 解析 (意图识别)
-        prompt = f"""
-        你是量化平台助手。请将用户指令解析为以下 JSON 格式：
-        {{ "action": "navigate" | "action", "url": "路径", "label": "描述" }}
-        可用路径：/global-radar, /backtest, /alpha-factory, /self-stocks, /market-panorama
-        指令："{query}"
-        """
         # 这里可以调用 ollama_prompt_adapter
         # 暂时返回默认值
         if "回测" in q:

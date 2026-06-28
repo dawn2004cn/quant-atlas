@@ -536,7 +536,7 @@ class SignalObservationService:
 
         rows = self._read_rows()
         positions = [r for r in rows if r.get("status") == "position" and r.get("user_id") == user_id]
-        
+
         total_cost = 0.0
         total_value = 0.0
         for pos in positions:
@@ -545,10 +545,10 @@ class SignalObservationService:
             current = pos.get("current_price", 0)
             total_cost += shares * cost
             total_value += shares * current
-        
+
         total_pnl = total_value - total_cost
         total_pnl_pct = (total_pnl / total_cost * 100) if total_cost > 0 else 0
-        
+
         return {
             "positions": positions,
             "count": len(positions),

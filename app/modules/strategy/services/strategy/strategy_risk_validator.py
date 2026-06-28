@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 from app.core.registry import ServiceRegistry
-from app.modules.execution.services.pre_trade_preflight_service import PreTradePreflightService
 from app.modules.strategy.services.strategy.strategy_template_service import StrategyTemplate
 from app.core.logger import get_logger
 
@@ -11,7 +10,7 @@ logger = get_logger(__name__)
 class StrategyRiskValidator:
     """
     Validates if a proposed strategy configuration is safe to deploy.
-    Integrates PreTradePreflightService to verify the strategy's 
+    Integrates PreTradePreflightService to verify the strategy's
     'Default Trade' against risk limits.
     """
 
@@ -21,24 +20,24 @@ class StrategyRiskValidator:
         self.market_svc = registry.get("market_service")
 
     def validate_strategy_config(
-        self, 
-        template: StrategyTemplate, 
-        params: Dict[str, Any], 
-        risk_settings: Dict[str, Any],
+        self,
+        template: StrategyTemplate,
+        params: dict[str, Any],
+        risk_settings: dict[str, Any],
         user_id: int
-    ) -> Tuple[bool, List[Dict[str, Any]]]:
+    ) -> tuple[bool, list[dict[str, Any]]]:
         """
         Simulates a 'first trade' for the strategy and checks if it passes preflight.
         """
         # 1. Extract a 'Representative Asset' for the strategy
         # For a general strategy, we pick a high-liquidity benchmark (e.g., 600519)
         benchmark_symbol = "600519.SH"
-        
+
         # 2. Determine a representative trade size based on user risk settings
         # We assume the user provides 'budget' or 'account_equity' in risk_settings
         equity = float(risk_settings.get("account_equity", 100000.0))
         risk_pct = float(risk_settings.get("risk_per_trade", 0.02))
-        
+
         # 3. Get current price
         price = 100.0 # Default
         if self.market_svc:
@@ -61,14 +60,14 @@ class StrategyRiskValidator:
                 account_equity=equity,
                 risk_per_trade=risk_pct
             )
-            
+
             if not preflight_result.passed:
                 issues = [
                     {"code": i.code, "message": i.message, "severity": i.severity}
                     for i in preflight_result.issues
                 ]
                 return False, issues
-                
+
             return True, []
         except Exception as e:
             logger.error(f"Strategy risk validation failed: {e}")

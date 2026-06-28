@@ -1,7 +1,6 @@
 from __future__ import annotations
 """Global Stock Metadata Accessor — delegates to ``StockMetadataRepository`` Port."""
 
-from typing import Any
 
 from app.core.logger import get_logger
 from app.domain.dto.service_result import GenericResponseDTO

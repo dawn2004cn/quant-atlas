@@ -6,14 +6,14 @@ Ported from Vibe-Trading.
 
 
 import json
-import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from app.infrastructure.agent.swarm.workspace_memory import WorkspaceMemory
 from app.infrastructure.agent.skills.loader import SkillsLoader
 from app.infrastructure.agent.swarm.tools_base import ToolRegistry
 from app.infrastructure.agent.memory.persistent import PersistentMemory
+from app.infrastructure.agent.memory.vector.store import VectorMemoryStore
 
 
 from app.core.logger import get_logger
@@ -99,9 +99,9 @@ class ContextBuilder:
     """Builds message context for AgentLoop."""
 
     def __init__(self, registry: ToolRegistry, memory: WorkspaceMemory,
-                 skills_loader: Optional[SkillsLoader] = None,
-                 persistent_memory: Optional[PersistentMemory] = None,
-                 vector_memory: Optional[VectorMemoryStore] = None) -> None:
+                 skills_loader: SkillsLoader | None = None,
+                 persistent_memory: PersistentMemory | None = None,
+                 vector_memory: VectorMemoryStore | None = None) -> None:
         self.registry = registry
         self.memory = memory
         self.skills_loader = skills_loader or SkillsLoader()
@@ -127,8 +127,8 @@ class ContextBuilder:
             current_datetime=now.strftime("%A, %B %d, %Y %H:%M (local)"),
         )
 
-    def build_messages(self, user_message: str, history: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
-        messages: List[Dict[str, Any]] = [
+    def build_messages(self, user_message: str, history: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+        messages: list[dict[str, Any]] = [
             {"role": "system", "content": self.build_system_prompt(user_message)},
         ]
         if history:
@@ -137,12 +137,12 @@ class ContextBuilder:
         # Context enrichment with persistent and semantic memory
         enriched = user_message
         context_sources = []
-        
+
         if self._persistent_memory:
             try:
                 recalls = self._persistent_memory.find_relevant(user_message, max_results=3)
                 if recalls:
-                    context_sources.append("--- Persistent Memory Recalls ---\n" + 
+                    context_sources.append("--- Persistent Memory Recalls ---\n" +
                                          "\n".join([f"- **{r.title}** ({r.memory_type}): {r.body[:500]}" for r in recalls]))
             except Exception as exc:
                 logger.debug("Auto-recall failed: %s", exc)
@@ -154,7 +154,7 @@ class ContextBuilder:
                     context_sources.append("--- Semantic Knowledge Graph ---\n" + semantic)
             except Exception as exc:
                 logger.debug("Vector memory recall failed: %s", exc)
-            
+
         if context_sources:
             enriched = f"<context>\n{chr(10).join(context_sources)}\n</context>\n\n{user_message}"
 
@@ -175,7 +175,7 @@ class ContextBuilder:
         return "\n\n".join(lines)
 
     @staticmethod
-    def format_tool_result(tool_call_id: str, tool_name: str, result: str) -> Dict[str, Any]:
+    def format_tool_result(tool_call_id: str, tool_name: str, result: str) -> dict[str, Any]:
         return {
             "role": "tool",
             "tool_call_id": tool_call_id,
@@ -186,9 +186,9 @@ class ContextBuilder:
     @staticmethod
     def format_assistant_tool_calls(
         tool_calls: list,
-        content: Optional[str] = None,
-        reasoning_content: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        content: str | None = None,
+        reasoning_content: str | None = None,
+    ) -> dict[str, Any]:
         message = {
             "role": "assistant",
             "content": content,

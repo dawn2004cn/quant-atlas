@@ -8,7 +8,7 @@ from flask_login import current_user, login_required
 from ...application.errors import ValidationError
 from ...core.registry import register_routes
 from .decorators import service_fallback
-from .common import ok_response, parse_market, require_ctx_service
+from .common import ok_response, parse_market
 from .request_parsers import parse_bool_param
 from .v1_context import ApiV1Context
 
@@ -74,6 +74,7 @@ def register_ai_evidence_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None
     @login_required
     @service_fallback("ai_evidence_service")
     def ai_evidence_feedback():
+        svc = getattr(ctx, "ai_evidence_service", None)
         body = request.get_json(silent=True) or {}
         symbol = str(body.get("symbol") or "").strip()
         if not symbol:
@@ -120,6 +121,7 @@ def register_ai_evidence_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None
         """Counterfactual hypothesis against replay context."""
         from ...modules.ai_agent.services.evidence_replay_service import EvidenceReplayService
 
+        evidence_svc = getattr(ctx, "ai_evidence_service", None)
         body = request.get_json(silent=True) or {}
         symbol = str(body.get("symbol") or "").strip().upper()
         hypothesis = str(body.get("user_hypothesis") or body.get("hypothesis") or "").strip()
@@ -147,6 +149,7 @@ def register_ai_evidence_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None
     @service_fallback("ai_evidence_service")
     def ai_evidence_hit_rate():
         """AI diagnosis hit rate for user's focus sectors (plan 2.4)."""
+        svc = getattr(ctx, "ai_evidence_service", None)
         symbols_raw = (request.args.get("symbols") or request.args.get("symbol") or "").strip()
         if not symbols_raw:
             raise ValidationError("symbols_required")

@@ -14,7 +14,6 @@ import logging
 from typing import Any
 
 from app.celery_app import celery_app
-from app.core.logger import get_logger
 from app.tasks.task_wiring import get_current_trace_id, init_opentelemetry
 
 logger = logging.getLogger(__name__)
@@ -28,12 +27,12 @@ def initialize_tracer_task(
     console_export: bool = False,
 ) -> dict[str, Any]:
     """Initialize OpenTelemetry tracer in Celery worker.
-    
+
     Args:
         service_name: Service name for tracing
         jaeger_endpoint: Jaeger collector endpoint
         console_export: Whether to export spans to console
-        
+
     Returns:
         Tracer initialization status
     """
@@ -43,7 +42,7 @@ def initialize_tracer_task(
             jaeger_endpoint=jaeger_endpoint,
             console_export=console_export,
         )
-        
+
         return {
             "status": "success",
             "service_name": service_name,
@@ -60,21 +59,20 @@ def initialize_tracer_task(
 @celery_app.task(name="tracing.export_pending_spans")
 def export_pending_spans_task() -> dict[str, Any]:
     """Force export of pending spans to backend.
-    
+
     Returns:
         Export status
     """
     try:
-        from opentelemetry.sdk.trace.export import BatchSpanProcessor
-        
+
         # Get tracer provider
         from opentelemetry import trace
         provider = trace.get_tracer_provider()
-        
+
         # Force flush all pending spans
         if hasattr(provider, "force_flush"):
             provider.force_flush(timeout_millis=5000)
-        
+
         return {
             "status": "success",
             "message": "Pending spans exported",
@@ -90,7 +88,7 @@ def export_pending_spans_task() -> dict[str, Any]:
 @celery_app.task(name="tracing.get_trace_context")
 def get_trace_context_task() -> dict[str, Any]:
     """Get current trace context for debugging.
-    
+
     Returns:
         Current trace context
     """

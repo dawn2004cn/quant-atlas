@@ -3,8 +3,6 @@ from app.domain.dto.service_result import GenericResponseDTO
 """Industry Chain Map - 产业链机会地图服务."""
 
 
-from datetime import datetime
-from typing import Any
 
 from app.core.registry import register_service
 from app.domain.enums import MarketCode
@@ -139,7 +137,7 @@ class MaterialImpactAnalyzer:
     ) -> GenericResponseDTO:
         """分析原材料价格变化对持仓的影响."""
         material_stocks = cls.MATERIAL_STOCKS.get(material, [])
-        
+
         beneficiaries = []
         victims = []
 

@@ -6,7 +6,7 @@ from flask import Blueprint, request
 from flask_login import login_required
 
 from ...application.errors import NotFoundError, ValidationError
-from .common import ok_resource, ok_response
+from .common import ok_resource
 from .route_deps import MemoryRouteDeps, build_memory_route_deps
 from .v1_context import ApiV1Context
 from app.core.registry import register_routes

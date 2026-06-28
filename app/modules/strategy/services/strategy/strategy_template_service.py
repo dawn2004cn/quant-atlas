@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 from enum import Enum
 
 class StrategyCategory(Enum):
@@ -18,8 +18,8 @@ class StrategyTemplate:
     description: str
     category: StrategyCategory
     base_logic_class: str  # The class path to the strategy implementation
-    default_params: Dict[str, Any] = field(default_factory=dict)
-    required_params: List[str] = field(default_factory=list)
+    default_params: dict[str, Any] = field(default_factory=dict)
+    required_params: list[str] = field(default_factory=list)
     suggested_market: str = "CN"
     risk_profile: str = "moderate"
 
@@ -28,9 +28,9 @@ class StrategyTemplateService:
 
     def __init__(self) -> None:
         # In a real scenario, these could be loaded from a JSON file or Database
-        self._templates: Dict[str, StrategyTemplate] = self._initialize_golden_templates()
+        self._templates: dict[str, StrategyTemplate] = self._initialize_golden_templates()
 
-    def _initialize_golden_templates(self) -> Dict[str, StrategyTemplate]:
+    def _initialize_golden_templates(self) -> dict[str, StrategyTemplate]:
         templates = [
             StrategyTemplate(
                 template_id="trend_following_basic",
@@ -75,19 +75,19 @@ class StrategyTemplateService:
         ]
         return {t.template_id: t for t in templates}
 
-    def list_templates(self, category: Optional[StrategyCategory] = None) -> List[StrategyTemplate]:
+    def list_templates(self, category: StrategyCategory | None = None) -> list[StrategyTemplate]:
         """List all available strategy templates, optionally filtered by category."""
         if category:
             return [t for t in self._templates.values() if t.category == category]
         return list(self._templates.values())
 
-    def get_template(self, template_id: str) -> Optional[StrategyTemplate]:
+    def get_template(self, template_id: str) -> StrategyTemplate | None:
         """Get a specific template by its ID."""
         return self._templates.get(template_id)
 
     def create_template_from_alpha(self, token_id: str, token_service: Any) -> StrategyTemplate:
         """
-        Dynamic Template Generation: Convert a Marketplace Alpha Token 
+        Dynamic Template Generation: Convert a Marketplace Alpha Token
         into a Strategy Template for the Wizard.
         """
         manifest = token_service.get_manifest(token_id)
@@ -97,7 +97,7 @@ class StrategyTemplateService:
         # Map token factor to a category
         # In a real system, the token manifest would store its category.
         category = StrategyCategory.QUANT_FACTOR
-        
+
         # Create a dynamic template
         return StrategyTemplate(
             template_id=f"tpl_alpha_{token_id}",
@@ -110,6 +110,6 @@ class StrategyTemplateService:
             risk_profile="moderate"
         )
 
-    def get_categories(self) -> List[StrategyCategory]:
+    def get_categories(self) -> list[StrategyCategory]:
         """Get all supported strategy categories."""
         return list(StrategyCategory)

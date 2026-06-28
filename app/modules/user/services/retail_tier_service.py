@@ -462,6 +462,28 @@ class AiMentorService:
             "macd": "金叉" if value > 0 else "死叉",
         }
         return interpretations.get(factor, "值=" + str(round(value, 2)))
+@dataclass
+class CopyTradeSubscription:
+    """A copy-trade subscription to a signal provider."""
+    subscription_id: str
+    follower_id: int
+    provider_id: int
+    provider_name: str
+    allocation_pct: float = 10.0
+    active: bool = True
+
+
+@dataclass
+class CopyTradeSignal:
+    """A trading signal from a provider for copy-trading."""
+    signal_id: str
+    provider_id: int
+    symbol: str
+    action: str
+    quantity: int
+    price: float
+
+
 class CopyTradingService:
     """Copy-trading / mirror trading via Alpha Marketplace."""
 

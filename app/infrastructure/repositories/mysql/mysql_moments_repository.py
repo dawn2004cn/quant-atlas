@@ -5,7 +5,7 @@ import json
 import logging
 logger = logging.getLogger(__name__)
 from typing import Any
-from sqlalchemy import select, delete, insert, update, desc, func, and_
+from sqlalchemy import select, desc, func, and_
 
 from ....core.shanghai_time import now_sh_str
 from ...database.mysql_client import mysql_get_connection
@@ -13,8 +13,7 @@ from ...database.models.moments import (
 
     MomentPost as DBPost,
     MomentAttachment as DBAttachment,
-    MomentLike as DBLike,
-    MomentComment as DBComment
+    MomentLike as DBLike
 )
 
 

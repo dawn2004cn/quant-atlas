@@ -36,9 +36,7 @@ from models import (
 
     PANIC_BOTTOM_MODELS,
 
-    INSTITUTIONAL_MODELS,
-
-    ALL_STRATEGIES
+    INSTITUTIONAL_MODELS
 
 )
 

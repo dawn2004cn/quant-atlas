@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from ...agents.evidence_blackboard import (
-    EvidenceType,
     get_evidence_blackboard,
 )
 from ...agents.constants import BlackboardKey

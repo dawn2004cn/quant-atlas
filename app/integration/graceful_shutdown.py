@@ -6,12 +6,11 @@ Handles application shutdown signals and resource cleanup.
 
 
 import asyncio
-import logging
 import signal
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Optional
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
@@ -24,9 +23,9 @@ class ShutdownContext:
     """Shutdown context and state."""
     initiated: bool = False
     reason: str = ""
-    start_time: Optional[datetime] = None
+    start_time: datetime | None = None
     cleanup_done: list[str] = field(default_factory=list)
-    
+
     def mark_initiated(self, reason: str) -> None:
         self.initiated = True
         self.reason = reason
@@ -35,54 +34,54 @@ class ShutdownContext:
 
 class GracefulShutdown:
     """Handles graceful application shutdown."""
-    
+
     def __init__(self):
         self._shutdown_handlers: list[tuple[int, Callable]] = []
         self._context = ShutdownContext()
-        self._shutdown_event: Optional[asyncio.Event] = None
+        self._shutdown_event: asyncio.Event | None = None
         self._registered = False
         logger.info("GracefulShutdown initialized")
-    
+
     def register_handler(self, priority: int, handler: Callable) -> None:
         """Register a shutdown handler.
-        
+
         Priority: lower runs first.
         Handler: async function that returns True on success.
         """
         self._shutdown_handlers.append((priority, handler))
         self._shutdown_handlers.sort(key=lambda x: x[0])
         logger.debug(f"Registered shutdown handler: priority={priority}")
-    
+
     def setup_signals(self) -> None:
         """Setup shutdown signal handlers."""
         if self._registered:
             return
-        
+
         if sys.platform != "win32":
             signal.signal(signal.SIGTERM, self._handle_signal)
             signal.signal(signal.SIGINT, self._handle_signal)
         else:
             signal.signal(signal.SIGTERM, self._handle_signal)
             signal.signal(signal.SIGINT, self._handle_signal)
-        
+
         self._registered = True
         logger.info("Shutdown signals registered")
-    
+
     def _handle_signal(self, signum, frame) -> None:
         """Handle shutdown signal."""
         sig_name = signal.Signals(signum).name if hasattr(signal, 'Signals') else str(signum)
         logger.info(f"Shutdown signal received: {sig_name}")
         self.trigger(sig_name)
-    
+
     async def trigger_async(self, reason: str = "signal") -> bool:
         """Trigger async shutdown."""
         if self._context.initiated:
             logger.warning("Shutdown already in progress")
             return False
-        
+
         self._context.mark_initiated(reason)
         logger.info(f"Starting graceful shutdown: {reason}")
-        
+
         # Run handlers in order
         for priority, handler in self._shutdown_handlers:
             try:
@@ -90,7 +89,7 @@ class GracefulShutdown:
                     success = await handler(self._context)
                 else:
                     success = handler(self._context)
-                
+
                 if success:
                     self._context.cleanup_done.append(f"handler_{priority}")
                     logger.info(f"Shutdown handler completed: priority={priority}")
@@ -98,17 +97,17 @@ class GracefulShutdown:
                     logger.warning(f"Shutdown handler failed: priority={priority}")
             except Exception as e:
                 logger.error(f"Shutdown handler error: {e}")
-        
+
         return True
-    
+
     def trigger(self, reason: str = "signal") -> None:
         """Trigger shutdown (sync wrapper)."""
         if self._context.initiated:
             return
-        
+
         self._context.mark_initiated(reason)
         logger.info(f"Triggering shutdown: {reason}")
-        
+
         # Run handlers synchronously
         for priority, handler in self._shutdown_handlers:
             try:
@@ -117,11 +116,11 @@ class GracefulShutdown:
                     self._context.cleanup_done.append(f"handler_{priority}")
             except Exception as e:
                 logger.error(f"Shutdown handler error: {e}")
-    
+
     def is_shutting_down(self) -> bool:
         """Check if shutdown is in progress."""
         return self._context.initiated
-    
+
     def get_status(self) -> dict:
         """Get shutdown status."""
         return {
@@ -162,7 +161,6 @@ async def flush_cache(ctx: ShutdownContext) -> bool:
 async def close_qlib(ctx: ShutdownContext) -> bool:
     """Close qlib."""
     try:
-        from app.modules.data.services.qlib_service import QlibService
         logger.info("qlib closed")
         return True
     except Exception as e:
@@ -171,7 +169,7 @@ async def close_qlib(ctx: ShutdownContext) -> bool:
 
 
 # Global instance
-_graceful_shutdown: Optional[GracefulShutdown] = None
+_graceful_shutdown: GracefulShutdown | None = None
 
 
 def get_graceful_shutdown() -> GracefulShutdown:

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -16,8 +16,8 @@ class BarData(BaseModel):
     close: float = Field(gt=0, description="Close price")
     volume: int = Field(ge=0, description="Trading volume")
 
-    amount: Optional[float] = Field(default=None, description="Trading amount")
-    turnover: Optional[float] = Field(default=None, description="Turnover rate")
+    amount: float | None = Field(default=None, description="Trading amount")
+    turnover: float | None = Field(default=None, description="Turnover rate")
 
     @field_validator("high")
     @classmethod
@@ -95,7 +95,7 @@ class TickData(BaseModel):
     bid: float = Field(gt=0)
     ask: float = Field(gt=0)
 
-    direction: Optional[str] = Field(default=None, description="buy or sell")
+    direction: str | None = Field(default=None, description="buy or sell")
 
 
 class StockProfile(BaseModel):
@@ -107,11 +107,11 @@ class StockProfile(BaseModel):
     sector: str = ""
     market: str = "CN"
 
-    listing_date: Optional[str] = None
-    delist_date: Optional[str] = None
+    listing_date: str | None = None
+    delist_date: str | None = None
 
-    total_shares: Optional[float] = None
-    circulating_shares: Optional[float] = None
+    total_shares: float | None = None
+    circulating_shares: float | None = None
 
     @property
     def is_listed(self) -> bool:
@@ -155,13 +155,13 @@ class SignalData(BaseModel):
     price: float = Field(gt=0)
     confidence: float = Field(ge=0, le=100)
 
-    target_price: Optional[float] = Field(default=None, gt=0)
-    stop_loss: Optional[float] = Field(default=None, gt=0)
+    target_price: float | None = Field(default=None, gt=0)
+    stop_loss: float | None = Field(default=None, gt=0)
 
     reason: str = ""
 
     generated_at: datetime = Field(default_factory=datetime.now)
-    expires_at: Optional[datetime] = None
+    expires_at: datetime | None = None
 
 
 class PositionData(BaseModel):
@@ -176,7 +176,7 @@ class PositionData(BaseModel):
     current_price: float = Field(gt=0)
 
     opened_at: datetime
-    closed_at: Optional[datetime] = None
+    closed_at: datetime | None = None
 
     status: str = "open"
 

@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import importlib
 import logging
-import pkgutil
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-from app.core.registry import get_module, list_modules
+from app.core.registry import list_modules
 
 
 def discover_modules() -> list[Any]:

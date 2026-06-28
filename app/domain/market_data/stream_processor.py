@@ -8,14 +8,12 @@ from __future__ import annotations
 """
 
 
-import logging
 import time
 from collections import deque
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from app.core.logger import get_logger
-from .data_bus import Subscriber, Tick, Observable
+from .data_bus import Subscriber, Tick
 
 logger = get_logger(__name__)
 

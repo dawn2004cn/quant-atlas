@@ -5,10 +5,8 @@ Implements IStockRepository using SQLAlchemy.
 """
 
 
-import logging
-from typing import Any, Optional
 
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.domain.base import Entity
@@ -23,14 +21,14 @@ logger = get_logger(__name__)
 
 class MySQLStockRepository(IStockRepository):
     """MySQL implementation of stock repository."""
-    
+
     def __init__(self, session_factory):
         self._session_factory = session_factory
-    
+
     def _get_session(self) -> Session:
         return self._session_factory()
-    
-    def get_by_code(self, code: str) -> Optional[StockEntity]:
+
+    def get_by_code(self, code: str) -> StockEntity | None:
         """Get stock by code."""
         with self._get_session() as session:
             from app.infrastructure.database.models.market import Stock
@@ -44,7 +42,7 @@ class MySQLStockRepository(IStockRepository):
                     id=Entity.parse_uuid(result.code) if hasattr(Entity, 'parse_uuid') else None
                 )
             return None
-    
+
     def list_by_market(self, market: str = "A", limit: int = 100) -> list[StockEntity]:
         """List stocks by market."""
         with self._get_session() as session:
@@ -55,7 +53,7 @@ class MySQLStockRepository(IStockRepository):
                 StockEntity(code=r.code, name=r.name, market=market)
                 for r in results
             ]
-    
+
     def search(self, query: str, limit: int = 20) -> list[StockEntity]:
         """Search stocks by name or code."""
         with self._get_session() as session:
@@ -77,13 +75,13 @@ class MySQLStockRepository(IStockRepository):
 
 class MySQLMarketDataRepository(IMarketDataRepository):
     """MySQL implementation of market data repository."""
-    
+
     def __init__(self, session_factory):
         self._session_factory = session_factory
-    
+
     def _get_session(self) -> Session:
         return self._session_factory()
-    
+
     def get_daily(self, code: str, start_date: str, end_date: str) -> list[MarketData]:
         """Get daily market data."""
         with self._get_session() as session:
@@ -108,8 +106,8 @@ class MySQLMarketDataRepository(IMarketDataRepository):
                 )
                 for r in results
             ]
-    
-    def get_latest(self, code: str) -> Optional[MarketData]:
+
+    def get_latest(self, code: str) -> MarketData | None:
         """Get latest market data."""
         with self._get_session() as session:
             from app.infrastructure.database.models.market import StockHistory

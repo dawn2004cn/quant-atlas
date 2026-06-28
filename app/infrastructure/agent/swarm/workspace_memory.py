@@ -6,15 +6,14 @@ Ported from Vibe-Trading.
 
 
 from dataclasses import dataclass, field
-from typing import Dict, Optional
 
 
 @dataclass
 class WorkspaceMemory:
     """Shared workspace state between tools during a single agent run."""
 
-    run_dir: Optional[str] = None
-    counters: Dict[str, int] = field(default_factory=dict)
+    run_dir: str | None = None
+    counters: dict[str, int] = field(default_factory=dict)
 
     def increment(self, key: str) -> int:
         self.counters[key] = self.counters.get(key, 0) + 1

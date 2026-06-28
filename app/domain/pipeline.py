@@ -2,8 +2,8 @@ from __future__ import annotations
 """Pipeline abstraction for data processing flows."""
 
 
-import logging
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Generic, TypeVar
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
@@ -37,7 +37,7 @@ class Pipeline(Generic[T]):
         self.name = name
         self._stages: list[PipelineStage] = []
 
-    def add_stage(self, name: str, processor: Callable) -> "Pipeline":
+    def add_stage(self, name: str, processor: Callable) -> Pipeline:
         """Add a processing stage."""
         self._stages.append(PipelineStage(name, processor))
         return self
@@ -59,12 +59,12 @@ class DataPipeline(Pipeline):
         self._validators: list[Callable] = []
         self._transformers: list[Callable] = []
 
-    def add_validator(self, validator: Callable[[Any], bool]) -> "DataPipeline":
+    def add_validator(self, validator: Callable[[Any], bool]) -> DataPipeline:
         """Add data validation step."""
         self._validators.append(validator)
         return self
 
-    def add_transformer(self, transformer: Callable) -> "DataPipeline":
+    def add_transformer(self, transformer: Callable) -> DataPipeline:
         """Add data transformation step."""
         self._transformers.append(transformer)
         return self

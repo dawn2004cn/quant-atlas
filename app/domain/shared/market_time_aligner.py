@@ -2,7 +2,8 @@ from __future__ import annotations
 """Align events (news, signals) to a unified daily market clock for chart overlays."""
 
 from datetime import date, datetime, timedelta
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.domain.shared.symbol_normalizer import SymbolNormalizer
 

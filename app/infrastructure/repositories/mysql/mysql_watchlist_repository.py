@@ -2,8 +2,6 @@ from __future__ import annotations
 """MySQL Watchlist Repository."""
 
 
-import logging
-from typing import Any
 
 from ....domain.ports import WatchlistRepository
 from ...database.models.market import Watchlist

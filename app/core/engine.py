@@ -1,8 +1,5 @@
 import pandas as pd
-import numpy as np
-from typing import List, Dict, Optional
 
-from app.domain.services.regime_manager import MarketRegimeManager
 
 
 from app.core.logger import get_logger
@@ -27,7 +24,7 @@ class HolyGrailEnsembleEngine:
         self.active_strategies = strategy_list
         logger.info("引擎已成功挂载 %s 个量化模型", len(self.active_strategies))
 
-    def evaluate_single_stock(self, df: pd.DataFrame) -> Optional[Dict]:
+    def evaluate_single_stock(self, df: pd.DataFrame) -> dict | None:
         """
         让所有激活的策略对单只股票进行体检打分
         """
@@ -53,7 +50,7 @@ class HolyGrailEnsembleEngine:
                 if sig_df['Signal'].iloc[-1] == 1:
                     buy_votes += 1
                     triggered_details.append(f"[{strategy.category}] {strategy.name}")
-            except Exception as e:
+            except Exception:
                 # 容错机制：某个策略即便写错了或缺少字段，不能让整个引擎崩溃
                 # print(f"⚠️ 策略 {strategy.name} 执行异常: {e}")
                 continue
@@ -72,7 +69,7 @@ class HolyGrailEnsembleEngine:
             "triggered_models": " | ".join(triggered_details)
         }
 
-    def run_market_scan(self, stock_data_dict: Dict[str, pd.DataFrame]) -> pd.DataFrame:
+    def run_market_scan(self, stock_data_dict: dict[str, pd.DataFrame]) -> pd.DataFrame:
         """
         执行全市场极速扫描
         :param stock_data_dict: 字典格式 {'sh600519': df_maotai, 'sz000001': df_pingan, ...}

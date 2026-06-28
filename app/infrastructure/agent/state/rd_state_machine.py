@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 from app.domain.state.machine import IStateMachine, IStatePersistence
 
 class RDStatePersistence(IStatePersistence):
@@ -12,12 +12,12 @@ class RDStatePersistence(IStatePersistence):
         self.storage_dir = storage_dir
         self.storage_dir.mkdir(parents=True, exist_ok=True)
 
-    def save_snapshot(self, state_id: str, state: str, context: Dict[str, Any]) -> None:
+    def save_snapshot(self, state_id: str, state: str, context: dict[str, Any]) -> None:
         path = self.storage_dir / f"{state_id}.json"
         with path.open("w", encoding="utf-8") as f:
             json.dump({"state": state, "context": context}, f)
 
-    def load_snapshot(self, state_id: str) -> Dict[str, Any] | None:
+    def load_snapshot(self, state_id: str) -> dict[str, Any] | None:
         path = self.storage_dir / f"{state_id}.json"
         if not path.exists():
             return None
@@ -26,9 +26,9 @@ class RDStatePersistence(IStatePersistence):
 
 from app.domain.state.observer import ObservableStateMachine
 
-class RDStateMachine(IStateMachine[str, Dict[str, Any]], ObservableStateMachine):
+class RDStateMachine(IStateMachine[str, dict[str, Any]], ObservableStateMachine):
     """Concrete FSM for RDAgent Run cycles with Observability."""
-    
+
     def __init__(self, state_id: str, persistence: RDStatePersistence):
         super().__init__() # Initialize ObservableStateMachine
         self.state_id = state_id
@@ -37,7 +37,7 @@ class RDStateMachine(IStateMachine[str, Dict[str, Any]], ObservableStateMachine)
         self._current_state = snapshot["state"] if snapshot else "INITIALIZING"
         self._context = snapshot["context"] if snapshot else {}
 
-    def transition_to(self, new_state: str, context: Dict[str, Any]) -> None:
+    def transition_to(self, new_state: str, context: dict[str, Any]) -> None:
         old_state = self._current_state
         self._current_state = new_state
         self._context.update(context)

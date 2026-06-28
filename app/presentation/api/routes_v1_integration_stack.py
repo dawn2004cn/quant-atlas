@@ -5,7 +5,7 @@ from __future__ import annotations
 from flask import Blueprint
 from flask_login import login_required
 
-from .common import ok_response, require_ctx_service
+from .common import ok_response
 from .v1_context import ApiV1Context
 from app.core.registry import register_routes
 

@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 
 def _safe_literal(value: str) -> str:
     """Escape single quotes for safe use in SQL string literals.
-    
+
     Standard SQL escaping: double single quotes (' -> '').
     Input should already be normalized/validated; this is a last-resort defense.
     """

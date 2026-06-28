@@ -1,7 +1,6 @@
 from __future__ import annotations
 """TruthSentry — real-time multi-source data reconciliation on EventBus."""
 
-from typing import Any
 
 from app.core.event_bus import (
     AnalysisStaleEvent,

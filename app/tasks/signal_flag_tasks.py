@@ -3,11 +3,9 @@ from __future__ import annotations
 
 
 from datetime import datetime
-from dataclasses import asdict
 from typing import Any
 
-import logging
-from celery import chord, group
+from celery import chord
 
 from ..application.services.strategy.signal_flag_service import SignalFlagScannerService
 from ..celery_app import celery as _celery
@@ -77,7 +75,7 @@ if _celery is not None:
         all_hits = [item for sublist in results_of_groups for item in sublist]
         svc = _scanner_service()
         n = svc.finalize_pool(pool_date, all_hits)
-        
+
         summary = {
             "pool_date": pool_date,
             "scanned": scanned_count,
@@ -99,7 +97,7 @@ if _celery is not None:
         limit_days: int = 0,
     ) -> dict[str, Any]:
         """历史回填：逐日扫描并入库，走 Celery Worker 异步执行。"""
-        from datetime import date, timedelta
+        from datetime import timedelta
 
         from celery import current_task
         req = getattr(current_task, "request", None)
@@ -159,25 +157,25 @@ if _celery is not None:
         from celery import current_task
         req = getattr(current_task, "request", None)
         task_id = str(getattr(req, "id", "") or "signal-flag-scan")
-        
+
         svc = _scanner_service()
         d0 = (pool_date or datetime.now().strftime("%Y-%m-%d"))[:10]
         universe = svc.get_scan_universe(MarketCode.CN, max_stocks)
-        
+
         if not universe:
             return {"ok": True, "scanned": 0, "message": "No stocks in universe to scan."}
 
         # 创建分布式任务链 (Chord)
         chunks = [universe[i : i + batch_size] for i in range(0, len(universe), batch_size)]
-        
+
         header = [
             scan_batch_worker_task.s(chunk, MarketCode.CN.value, d0, int(lookback_days))
             for chunk in chunks
         ]
         callback = finalize_scan_callback.s(d0, len(universe), task_id)
-        
+
         chord(header)(callback)
-        
+
         return {
             "mode": "distributed",
             "task_id": task_id,

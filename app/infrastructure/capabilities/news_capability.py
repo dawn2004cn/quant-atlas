@@ -6,7 +6,6 @@ from datetime import datetime, timezone, timedelta
 from typing import Any
 
 from app.domain.capabilities.base import BaseCapability
-from app.domain.dto.service_result import GenericResponseDTO
 from app.domain.enums import MarketCode
 from app.infrastructure.capabilities.registry import capability
 

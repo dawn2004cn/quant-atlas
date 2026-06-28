@@ -19,10 +19,8 @@ Usage:
 
 
 import asyncio
-import logging
-import random
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Any
 
 
 from app.core.logger import get_logger
@@ -38,7 +36,7 @@ class ChaosTestResult:
     passed: bool
     fault_injected: str
     recovery_successful: bool
-    error_message: Optional[str] = None
+    error_message: str | None = None
     metrics: dict[str, Any] = None
 
 
@@ -243,7 +241,7 @@ class ChaosCircuitBreakerIntegration:
     ) -> ChaosTestResult:
         """Test circuit transitions to half-open after timeout."""
         test_name = "circuit_half_open"
-        logger.info(f"Testing CircuitBreaker half-open state")
+        logger.info("Testing CircuitBreaker half-open state")
 
         try:
             if self._breaker:

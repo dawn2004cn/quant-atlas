@@ -5,9 +5,7 @@ OpenAPI/Swagger documentation for API endpoints.
 """
 
 
-import logging
 from dataclasses import dataclass
-from typing import Any, Optional
 
 
 from app.core.logger import get_logger
@@ -24,9 +22,9 @@ class APIEndpoint:
     description: str = ""
     tags: list[str] = None
     parameters: list[dict] = None
-    request_body: Optional[dict] = None
+    request_body: dict | None = None
     responses: dict = None
-    
+
     def __post_init__(self):
         if self.tags is None:
             self.tags = []
@@ -38,22 +36,22 @@ class APIEndpoint:
 
 class APIDocumentation:
     """API documentation generator."""
-    
+
     def __init__(self, title: str = "Quant Atlas API", version: str = "1.0.0"):
         self._title = title
         self._version = version
         self._endpoints: list[APIEndpoint] = []
         self._servers: list[dict] = []
         logger.info(f"APIDocumentation initialized: {title} v{version}")
-    
+
     def add_endpoint(self, endpoint: APIEndpoint) -> None:
         """Add endpoint to documentation."""
         self._endpoints.append(endpoint)
-    
+
     def add_server(self, url: str, description: str = "") -> None:
         """Add server."""
         self._servers.append({"url": url, "description": description})
-    
+
     def generate_openapi(self) -> dict:
         """Generate OpenAPI 3.0 specification."""
         spec = {
@@ -71,14 +69,14 @@ class APIDocumentation:
             "tags": self._generate_tags()
         }
         return spec
-    
+
     def _generate_paths(self) -> dict:
         """Generate paths section."""
         paths = {}
         for ep in self._endpoints:
             if ep.path not in paths:
                 paths[ep.path] = {}
-            
+
             paths[ep.path][ep.method.lower()] = {
                 "summary": ep.summary,
                 "description": ep.description,
@@ -88,7 +86,7 @@ class APIDocumentation:
                 "responses": ep.responses
             }
         return paths
-    
+
     def _generate_schemas(self) -> dict:
         """Generate schema definitions."""
         return {
@@ -113,14 +111,14 @@ class APIDocumentation:
                 }
             }
         }
-    
+
     def _generate_tags(self) -> list:
         """Generate tags."""
         tags_set = set()
         for ep in self._endpoints:
             tags_set.update(ep.tags)
         return [{"name": tag} for tag in sorted(tags_set)]
-    
+
     def get_swagger_ui_config(self) -> dict:
         """Get Swagger UI configuration."""
         return {
@@ -184,15 +182,15 @@ def create_api_documentation() -> APIDocumentation:
     """Create default API documentation."""
     doc = APIDocumentation()
     doc.add_server("http://localhost:5000", "Local development")
-    
+
     for endpoint in DEFAULT_ENDPOINTS:
         doc.add_endpoint(endpoint)
-    
+
     return doc
 
 
 # Global instance
-_api_documentation: Optional[APIDocumentation] = None
+_api_documentation: APIDocumentation | None = None
 
 
 def get_api_documentation() -> APIDocumentation:

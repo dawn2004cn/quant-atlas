@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from ..trading_entities import Trade, Order, SignalType
+from ..trading_entities import Trade, Order
 
 
 class StrategyProvider(ABC):

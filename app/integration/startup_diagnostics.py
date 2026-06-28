@@ -5,11 +5,8 @@ Logs and tracks application startup sequence.
 """
 
 
-import logging
 import time
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Optional
+from dataclasses import dataclass
 
 
 from app.core.logger import get_logger
@@ -23,10 +20,10 @@ class StartupStep:
     name: str
     status: str  # "started", "completed", "failed"
     start_time: float
-    end_time: Optional[float] = None
-    duration_ms: Optional[float] = None
-    error: Optional[str] = None
-    
+    end_time: float | None = None
+    duration_ms: float | None = None
+    error: str | None = None
+
     def complete(self, error: str = None) -> None:
         self.status = "completed" if not error else "failed"
         self.end_time = time.perf_counter()
@@ -37,13 +34,13 @@ class StartupStep:
 
 class StartupDiagnostics:
     """Tracks application startup sequence."""
-    
+
     def __init__(self):
         self._steps: list[StartupStep] = []
-        self._current_step: Optional[str] = None
+        self._current_step: str | None = None
         self._start_time = time.perf_counter()
         logger.info("StartupDiagnostics initialized")
-    
+
     def start_step(self, name: str) -> None:
         """Start a startup step."""
         step = StartupStep(
@@ -54,7 +51,7 @@ class StartupDiagnostics:
         self._steps.append(step)
         self._current_step = name
         logger.info(f"Startup step started: {name}")
-    
+
     def complete_step(self, name: str, error: str = None) -> None:
         """Complete a startup step."""
         for step in reversed(self._steps):
@@ -66,14 +63,14 @@ class StartupDiagnostics:
                 else:
                     logger.info(f"Startup step completed: {name} ({step.duration_ms:.1f}ms)")
                 break
-    
+
     def get_summary(self) -> dict:
         """Get startup summary."""
         total_duration = (time.perf_counter() - self._start_time) * 1000
-        
+
         completed = sum(1 for s in self._steps if s.status == "completed")
         failed = sum(1 for s in self._steps if s.status == "failed")
-        
+
         return {
             "total_duration_ms": total_duration,
             "total_steps": len(self._steps),
@@ -89,7 +86,7 @@ class StartupDiagnostics:
                 for s in self._steps
             ]
         }
-    
+
     def log_summary(self) -> None:
         """Log startup summary."""
         summary = self.get_summary()
@@ -105,12 +102,12 @@ class StartupDiagnostics:
             duration = f"{step['duration_ms']:.1f}ms" if step['duration_ms'] else "N/A"
             logger.info(f"  {status_icon} {step['name']}: {step['status']} ({duration})")
         logger.info("="*50)
-    
+
     @property
     def is_complete(self) -> bool:
         """Check if all steps are complete."""
         return all(s.status != "started" for s in self._steps)
-    
+
     @property
     def has_failures(self) -> bool:
         """Check if any step failed."""
@@ -118,7 +115,7 @@ class StartupDiagnostics:
 
 
 # Global instance
-_startup_diagnostics: Optional[StartupDiagnostics] = None
+_startup_diagnostics: StartupDiagnostics | None = None
 
 
 def get_startup_diagnostics() -> StartupDiagnostics:

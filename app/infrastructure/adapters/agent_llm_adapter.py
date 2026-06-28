@@ -3,7 +3,6 @@ from __future__ import annotations
 
 
 import json
-import logging
 from typing import Any
 from app.domain.ports import AgentLLMPort
 from app.domain.agent_entities import MarketInsight, ReportInterpretation
@@ -23,7 +22,7 @@ class AgentLLMAdapter(AgentLLMPort):
         prompt = f"""
         Analyze the following market data and provide a structured JSON response.
         Data: {json.dumps(market_data)}
-        
+
         Required JSON format:
         {{
             "sentiment_score": float (-1.0 to 1.0),
@@ -52,7 +51,7 @@ class AgentLLMAdapter(AgentLLMPort):
         prompt = f"""
         Interpret the following research report and provide a structured JSON response.
         Report: {report_text[:2000]}  # Limit text length
-        
+
         Required JSON format:
         {{
             "report_title": "string",

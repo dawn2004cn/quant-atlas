@@ -22,7 +22,6 @@ from typing import Any
 from app.config import INSTANCE_DIR
 from app.core.logging_config import (
     LoggingSettings,
-    SQL_LOGGER_NAME,
     configure_third_party_loggers,
     install_global_exception_hooks,
     resolve_logging_settings,

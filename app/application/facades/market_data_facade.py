@@ -1,7 +1,7 @@
 from __future__ import annotations
 """Facade for unified market data access."""
 
-from typing import Any, Dict, List
+from typing import Any
 from app.modules.data.services.basic_market_data_service import BasicMarketDataService
 from app.modules.market_data.services.market_service import MarketApplicationService
 
@@ -16,7 +16,7 @@ class MarketDataFacade:
         self._basic_service = basic_service
         self._market_service = market_service
 
-    def get_market_intelligence(self, symbol: str) -> Dict[str, Any]:
+    def get_market_intelligence(self, symbol: str) -> dict[str, Any]:
         """Unified entry point for comprehensive market intelligence."""
         # Aggregate data from multiple services
         return {

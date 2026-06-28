@@ -55,5 +55,5 @@ class SessionUser(UserMixin):
         return self.role in ("admin", "developer", "researcher")
 
     @classmethod
-    def from_entity(cls, user: UserAccount) -> "SessionUser":
+    def from_entity(cls, user: UserAccount) -> SessionUser:
         return cls(user.user_id, user.username, user.role, getattr(user, "avatar_url", "") or "")

@@ -3,14 +3,13 @@ from __future__ import annotations
 
 
 import functools
-from typing import Any, Callable
-from flask import Blueprint
+from typing import Any
+from collections.abc import Callable
 from flask_login import current_user
 
 from ...application.errors import ValidationError
 from ...domain.enums import MarketCode
 from .responses import success_response, serialize
-from .response_builders import with_legacy_aliases
 
 
 def get_service(service_name: str) -> Any:
@@ -33,7 +32,7 @@ def get_service(service_name: str) -> Any:
 
 def require_service(service_attr: str, service_name: str = None) -> Callable:
     """Decorator to check if a service is available before executing endpoint.
-    
+
     Usage:
         @blueprint.get("/example")
         @login_required
@@ -45,7 +44,6 @@ def require_service(service_attr: str, service_name: str = None) -> Callable:
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            from .v1_context import ApiV1Context
             # Get ctx from function globals (injected by register_X_routes)
             ctx = func.__globals__.get('ctx')
             if ctx is None:

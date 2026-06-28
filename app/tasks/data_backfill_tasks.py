@@ -18,7 +18,6 @@ from ..infrastructure.repositories.deps import (
     create_tdx_dayk_sync_service,
 )
 from ..celery_app import celery as _celery
-from ..config import BASE_DIR, get_settings
 from ..core.runtime_config import get_runtime, get_runtime_int
 from ..domain.enums import MarketCode
 from ..domain.shared.qlib_symbol_map import qlib_instrument_to_symbol

@@ -14,10 +14,11 @@ Usage:
 
 
 import asyncio
-import logging
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from enum import Enum
 
 from app.core.logger import get_logger
@@ -70,13 +71,13 @@ class StreamingPipeline:
     ) -> dict[str, Any]:
         """Execute agents with early termination capability."""
         start_time = time.perf_counter()
-        
+
         # ... existing implementation ...
-        
+
         duration_ms = (time.perf_counter() - start_time) * 1000
         self._record_performance(duration_ms)
-        
-        return result
+
+        return {}
 
     def _is_early_termination_signal(self, result: dict[str, Any]) -> bool:
         """Check if result contains early termination signal."""

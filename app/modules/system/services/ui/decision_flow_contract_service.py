@@ -204,7 +204,7 @@ class DecisionFlowContractService:
             "page": "longhu_bang",
             "problem": "dragon-tiger board data lacks freshness trust and decision handoff",
             "endpoints": {
-                "list": f"/api/v1/market/longhu?date={{YYYY-MM-DD}}&limit=400",
+                "list": "/api/v1/market/longhu?date={YYYY-MM-DD}&limit=400",
                 "refresh": "POST /api/v1/market/basic-data/refresh {\"kind\": \"longhu\"}",
                 "stock_band": f"/api/v1/stocks/{market}/{{symbol}}/longhu-band",
             },

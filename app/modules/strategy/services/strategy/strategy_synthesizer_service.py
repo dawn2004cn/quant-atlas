@@ -16,14 +16,11 @@ from __future__ import annotations
 import json
 import logging
 import re
-from dataclasses import asdict
 from typing import Any
 
-from app.domain.dto.service_result import GenericResponseDTO
 from app.domain.strategies.strategy_synthesizer_models import (
     ConditionGroup,
     ExitMode,
-    ExitRule,
     FactorNode,
     LanguageTarget,
     OperatorKind,
@@ -188,37 +185,37 @@ def _compile_python(spec: StrategySpec) -> str:
     lines: list[str] = [
         f"# 策略: {spec.name}",
         f"# {spec.description}",
-        f"# 自动生成 — 请勿手动编辑",
+        "# 自动生成 — 请勿手动编辑",
         "",
         "import pandas as pd",
         "from typing import List, Tuple",
         "",
         "",
         f"class {spec.name.replace(' ', '_').title()}Strategy:",
-        f'    """Auto-generated strategy from NL description."""',
+        '    """Auto-generated strategy from NL description."""',
         "",
-        f"    def __init__(self, **kwargs):",
+        "    def __init__(self, **kwargs):",
         f"        self.name = '{spec.name}'",
         f"        self.description = '{spec.description}'",
         f"        self.max_positions = {spec.max_positions}",
         f"        self.capital_per_trade = {spec.capital_per_trade}",
-        f"",
-        f"    def on_bar(self, bar: dict) -> 'tuple[str, str, int] | None':",
-        f"        '''Called on each bar. Returns (action, symbol, quantity) or None.'''",
-        f"        pass",
+        "",
+        "    def on_bar(self, bar: dict) -> 'tuple[str, str, int] | None':",
+        "        '''Called on each bar. Returns (action, symbol, quantity) or None.'''",
+        "        pass",
         "",
     ]
 
     # Entry conditions stub
-    lines.append(f"    def check_entry(self, bar: dict) -> bool:")
-    lines.append(f"        '''Check entry conditions from AST.'''")
-    lines.append(f"        # TODO: translate entry_conditions AST to Python logic")
-    lines.append(f"        return False")
+    lines.append("    def check_entry(self, bar: dict) -> bool:")
+    lines.append("        '''Check entry conditions from AST.'''")
+    lines.append("        # TODO: translate entry_conditions AST to Python logic")
+    lines.append("        return False")
     lines.append("")
 
     # Exit rules stub
-    lines.append(f"    def check_exit(self, position: dict, bar: dict) -> 'tuple[bool, str]':")
-    lines.append(f"        '''Check exit rules. Returns (should_exit, reason).'''")
+    lines.append("    def check_exit(self, position: dict, bar: dict) -> 'tuple[bool, str]':")
+    lines.append("        '''Check exit rules. Returns (should_exit, reason).'''")
     for i, rule in enumerate(spec.exit_rules):
         if rule.exit_mode == ExitMode.PERCENT_STOP:
             pct = int(rule.threshold * 100)
@@ -230,7 +227,7 @@ def _compile_python(spec: StrategySpec) -> str:
                 lines.append(f"        # Take profit {pct}%")
                 lines.append(f"        if position['pnl_pct'] >= {rule.threshold}:")
                 lines.append(f"            return True, '止盈 {pct}%'")
-    lines.append(f"        return False, ''")
+    lines.append("        return False, ''")
     lines.append("")
 
     return "\n".join(lines)
@@ -239,7 +236,7 @@ def _compile_python(spec: StrategySpec) -> str:
 def _compile_pine(spec: StrategySpec) -> str:
     """Generate PineScript (TradingView) code from StrategySpec."""
     lines: list[str] = [
-        f"//@version=5",
+        "//@version=5",
         f"strategy('{spec.name}', overlay=true)",
         "",
         f"// {spec.description}",
@@ -265,13 +262,13 @@ def _compile_pine(spec: StrategySpec) -> str:
     lines.append("// === 出场规则 ===")
     for i, rule in enumerate(spec.exit_rules):
         if rule.exit_mode == ExitMode.PERCENT_STOP:
-            pct = int(rule.threshold * 100)
+            int(rule.threshold * 100)
             if i < len(spec.exit_rules) // 2:
                 lines.append(f"stop_loss_pct = {rule.threshold}")
-                lines.append(f"strategy.exit('SL', 'stoploss', loss=stop_loss_pct * 100)")
+                lines.append("strategy.exit('SL', 'stoploss', loss=stop_loss_pct * 100)")
             else:
                 lines.append(f"take_profit_pct = {rule.threshold}")
-                lines.append(f"strategy.exit('TP', 'takeprofit', profit=take_profit_pct * 100)")
+                lines.append("strategy.exit('TP', 'takeprofit', profit=take_profit_pct * 100)")
     lines.append("")
 
     lines.append("// === 信号执行 ===")

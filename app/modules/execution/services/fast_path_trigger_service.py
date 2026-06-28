@@ -26,13 +26,13 @@ class FastPathTriggerService(BaseApplicationService):
         self._event_bus = event_bus
         self._orchestrator = orchestrator
         self._param_store = parameter_store
-        
+
         # Subscribe to high‑frequency events
         from app.core.event_bus import MarketDataUpdatedEvent, AnalysisStaleEvent
         self._event_bus.subscribe(MarketDataUpdatedEvent, self._on_market_tick)
         # Placeholder for alpha signals – using AnalysisStaleEvent as a proxy
         self._event_bus.subscribe(AnalysisStaleEvent, self._on_alpha_signal)
-        
+
         logger.info("FastPathTriggerService initialized and subscribed to reflex events.")
 
     def _on_market_tick(self, event: Event) -> None:
@@ -44,14 +44,14 @@ class FastPathTriggerService(BaseApplicationService):
         # For demonstration, we use a placeholder "price" attribute if present.
         symbol = getattr(event, "symbol", None)
         current_price = getattr(event, "price", None)
-        
+
         if not symbol or current_price is None:
             return
 
         # 1. Check for 'Auto-Trigger' settings in the Reflex Map
         trigger_price = self._param_store.get_parameter(symbol, "trigger_price")
         side = self._param_store.get_parameter(symbol, "trigger_side")  # 'buy' or 'sell'
-        
+
         if trigger_price is None or side is None:
             return
 
@@ -61,7 +61,7 @@ class FastPathTriggerService(BaseApplicationService):
             should_execute = True
         elif side == "sell" and current_price >= trigger_price:
             should_execute = True
-            
+
         if should_execute:
             logger.info(
                 "Reflex Trigger Hit [%s]: Price %s %s %s. Executing Fast Path...",
@@ -70,7 +70,7 @@ class FastPathTriggerService(BaseApplicationService):
                 "<=" if side == "buy" else ">=",
                 trigger_price,
             )
-            
+
             # Create a minimal trade request for the orchestrator
             trade_request = {
                 "symbol": symbol,

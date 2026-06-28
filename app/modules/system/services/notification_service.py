@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
-from typing import Any, Dict, List, Optional, Tuple
 from app.core.registry import ServiceRegistry
 from app.core.event_bus import publish_event
 from app.modules.strategy.services.strategy.strategy_sentinel_service import StrategyRegimeMismatchEvent
@@ -18,7 +16,7 @@ class NotificationService:
     def __init__(self, registry: ServiceRegistry) -> None:
         self.registry = registry
 
-    async def send_alert(self, user_id: str, title: str, message: str, level: str = "info", action_url: Optional[str] = None) -> bool:
+    async def send_alert(self, user_id: str, title: str, message: str, level: str = "info", action_url: str | None = None) -> bool:
         """
         Send a notification to the user (via WebSocket, Email, or In-app toast).
         """
@@ -31,9 +29,9 @@ class NotificationService:
             "action_url": action_url,
             "timestamp": asyncio.get_event_loop().time()
         }
-        
+
         logger.info(f"Notification sent to {user_id}: [{level}] {title} - {message}")
-        
+
         # We publish to the event bus so the frontend WebSocket adapter can pick it up
         publish_event("notification.send", alert_payload)
         return True
@@ -48,7 +46,7 @@ class NotificationService:
             f"Current regime is {event.current_regime}. We recommend switching to {event.recommended_category}."
         )
         action_url = "/strategy-wizard"
-        
+
         # Using a dummy user_id for now
         asyncio.run(self.send_alert(
             user_id="current_user",

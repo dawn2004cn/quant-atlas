@@ -8,6 +8,7 @@ from flask_login import current_user, login_required
 from app.application.errors import AuthorizationError
 from app.modules.system.services.admin.admin_stock_service import get_admin_stock_service
 from app.core.registry import register_routes
+from typing import Any
 from .common import ok_response
 from .request_parsers import parse_int_param
 
@@ -34,7 +35,7 @@ def register_admin_stock_cache_routes(blueprint: Blueprint, ctx: Any = None, *, 
             items = service.get_all_stocks()[:limit]
         except Exception:
             items = []
-        
+
         return ok_response(
             data={"stats": stats, "items": items, "returned": len(items)},
             legacy_alias_key=None,

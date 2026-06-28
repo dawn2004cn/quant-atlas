@@ -3,16 +3,13 @@ from __future__ import annotations
 
 
 from dataclasses import dataclass
-from typing import Any, Callable
 
 from app.core.llm_config import get_llm
 from app.core.logger import get_logger
 from app.infrastructure.agent.investment_committee import (
     AIInvestmentCommittee,
     MarketIndex,
-    MarketAnalysis,
     StockSignal,
-    TradeRecord,
     StrategyLibrary,
 )
 from app.infrastructure.agent.investment_committee_db import TradeRecorder, MarketDataProvider

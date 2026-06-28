@@ -1,7 +1,5 @@
 """Evidence management implementation."""
 
-import logging
-from typing import Optional
 from app.domain.dto.evidence_dto import EvidenceDTO, EvidenceType
 from app.infrastructure.database.mysql_client import mysql_connect
 from app.config import AppSettings
@@ -37,7 +35,7 @@ class EvidenceManager:
             logger.error(f"Failed to write evidence {evidence.id}: {e}")
             return False
 
-    def read_evidence(self, evidence_id: str) -> Optional[EvidenceDTO]:
+    def read_evidence(self, evidence_id: str) -> EvidenceDTO | None:
         """Read evidence by ID."""
         try:
             conn = mysql_connect(self._settings.mysql)

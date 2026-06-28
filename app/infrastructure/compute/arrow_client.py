@@ -9,10 +9,7 @@ from __future__ import annotations
 """
 
 
-import logging
-import time
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
 
@@ -160,11 +157,11 @@ class ArrowComputeClient:
         buffer = pa.BufferOutputStream()
         with pa.ipc.new_file(buffer, table.schema) as writer:
             writer.write_table(table)
-        data_bytes = buffer.getvalue().to_pybytes()
+        buffer.getvalue().to_pybytes()
 
         # 发送请求
         ticket = flight.Ticket(endpoint.encode())
-        flight_info = self._client.get_ticket(ticket)
+        self._client.get_ticket(ticket)
         # 注意: 实际应该使用 do_get，这里简化处理
 
         logger.info(f"Flight request sent to {endpoint}")

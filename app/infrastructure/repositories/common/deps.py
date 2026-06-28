@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import Any
 
 from ....config import AppSettings, INSTANCE_DIR
-from .factory import RepositoryType, create_repository
 from ..mysql.mysql_repositories import (
     MySQLStockGroupRepository,
     MySQLUserRepository,
@@ -444,6 +443,7 @@ def create_tdx_block_repository(settings: AppSettings):
     if not settings.use_mysql or settings.mysql is None:
         return None
     from ..mysql.mysql_tdx_block_repository import MySQLTdxBlockRepository
+    return MySQLTdxBlockRepository(settings.mysql)
 
 def create_collaboration_repository(settings, session_factory=None):
     """Create CollaborationRepository with fallback to JSON if MySQL unavailable."""
@@ -456,9 +456,6 @@ def create_collaboration_repository(settings, session_factory=None):
             pass
     from app.infrastructure.repositories.common.json_repositories import JsonCollaborationRepository
     return JsonCollaborationRepository(Path(settings.sqlite_path).parent / "collaboration.json")
-
-
-    return MySQLTdxBlockRepository(settings.mysql)
 
 
 def create_integration_probe_repository(settings: AppSettings):

@@ -120,31 +120,31 @@ class PostMortemAnalysis:
                 f"- 使用 WorldQuant 101 Alpha 库中的验证模板\n"
             ),
             FailureType.BACKTEST_ERROR: (
-                f"[PATCH] 修复回测错误:\n"
-                f"- 检查回测参数是否正确\n"
-                f"- 减少 lookback 或 window 参数\n"
+                "[PATCH] 修复回测错误:\n"
+                "- 检查回测参数是否正确\n"
+                "- 减少 lookback 或 window 参数\n"
             ),
             FailureType.DATA_ERROR: (
-                f"[PATCH] 修复数据错误:\n"
-                f"- 使用更稳健的数据源\n"
-                f"- 添加数据验证逻辑\n"
+                "[PATCH] 修复数据错误:\n"
+                "- 使用更稳健的数据源\n"
+                "- 添加数据验证逻辑\n"
             ),
             FailureType.OVERFITTING: (
-                f"[PATCH] 防止过拟合:\n"
-                f"- 增加训练窗口\n"
-                f"- 减少因子复杂度\n"
-                f"- 使用 walk-forward 验证\n"
+                "[PATCH] 防止过拟合:\n"
+                "- 增加训练窗口\n"
+                "- 减少因子复杂度\n"
+                "- 使用 walk-forward 验证\n"
             ),
             FailureType.LOW_PERFORMANCE: (
-                f"[PATCH] 提升性能:\n"
-                f"- 尝试另一个 Alpha 类别\n"
-                f"- 与现有组合寻求负相关\n"
-                f"- 结合多个短周期因子\n"
+                "[PATCH] 提升性能:\n"
+                "- 尝试另一个 Alpha 类别\n"
+                "- 与现有组合寻求负相关\n"
+                "- 结合多个短周期因子\n"
             ),
             FailureType.TIMEOUT: (
-                f"[PATCH] 优化性能:\n"
-                f"- 减少计算窗口\n"
-                f"- 使用简化算子\n"
+                "[PATCH] 优化性能:\n"
+                "- 减少计算窗口\n"
+                "- 使用简化算子\n"
             ),
         }
         base_patch = patches.get(failure_type, "[PATCH] 检查并修复问题后重试")

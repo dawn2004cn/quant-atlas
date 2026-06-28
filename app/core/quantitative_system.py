@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from enum import Enum
 
 from app.core.logger import get_logger
@@ -188,7 +188,7 @@ class QuantitativeSystem:
         self._components["execution"] = ExecutionComponent()
         self._components["risk"] = RiskComponent()
 
-    def get_component(self, name: str) -> Optional[SystemComponent]:
+    def get_component(self, name: str) -> SystemComponent | None:
         return self._components.get(name)
 
     def get_health(self) -> SystemHealth:
@@ -231,7 +231,7 @@ class QuantitativeSystem:
         logger.info("QuantitativeSystem stopped")
 
 
-_system: Optional[QuantitativeSystem] = None
+_system: QuantitativeSystem | None = None
 
 
 def get_quantitative_system() -> QuantitativeSystem:

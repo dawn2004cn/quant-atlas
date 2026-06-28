@@ -148,7 +148,7 @@ class HighFidelityResearchLoop:
 
         if bt_return == 0:
             deviation = 0.0
-            drift_reason = "Zero backtest return"
+
         else:
             deviation = abs(live_return - bt_return) / abs(bt_return)
 
@@ -382,4 +382,4 @@ def get_production_research_bridge() -> ProductionResearchBridge:
     global _global_bridge
     if _global_bridge is None:
         _global_bridge = ProductionResearchBridge()
-    return _global_bridge
+    return _global_bridge

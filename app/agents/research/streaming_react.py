@@ -13,7 +13,8 @@ Usage:
 
 
 import orjson as json
-from typing import Any, AsyncGenerator
+from typing import Any
+from collections.abc import AsyncGenerator
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
@@ -89,7 +90,7 @@ async def streaming_react_with_tools(
             tool_msg = ToolMessage(content=payload, tool_call_id=tid)
             messages.append(tool_msg)
 
-            yield f"[Tool result received]\n"
+            yield "[Tool result received]\n"
 
 
 class StreamingReactNode:

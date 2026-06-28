@@ -20,7 +20,6 @@ from .evidence_blackboard import (
     EvidenceBlackboard,
     get_evidence_blackboard,
     EvidenceType,
-    EvidenceStrength,
 )
 
 from app.core.logger import get_logger

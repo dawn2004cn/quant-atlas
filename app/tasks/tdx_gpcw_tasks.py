@@ -6,8 +6,6 @@ from __future__ import annotations
 """
 
 
-import json
-import logging
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -330,7 +328,7 @@ def import_tdx_gpcw_for_stock(
     provider = create_cn_tdx_gpcw_provider(tdx_root_path=tdx_path)
     gpcw_dir = provider.gpcw_dir
     if gpcw_dir is None or not gpcw_dir.is_dir():
-        return {"ok": False, "error": f"gpcw directory not found"}
+        return {"ok": False, "error": "gpcw directory not found"}
 
     all_periods = provider.get_all_periods(code)
     if not all_periods:

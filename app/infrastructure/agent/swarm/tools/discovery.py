@@ -4,7 +4,6 @@ Ported from Vibe-Trading.
 """
 
 import importlib
-import logging
 import pkgutil
 from collections import deque
 from pathlib import Path
@@ -55,7 +54,7 @@ def build_registry(*, persistent_memory=None) -> ToolRegistry:
             if not cls.check_available():
                 logger.info("Tool %s unavailable, skipping", cls.name)
                 continue
-            
+
             # Special handling for RememberTool if needed
             # For now, just instantiate
             registry.register(cls())

@@ -35,11 +35,11 @@ class KronosPredictorAdapter(KronosPredictorPort):
         # For this port, we assume model_id refers to a HF path or we use a default
         hf_model_path = model_id if "/" in model_id else f"NeoQuasar/{model_id}"
         tokenizer_path = "NeoQuasar/Kronos-Tokenizer-base" # Default
-        
+
         tokenizer = KronosTokenizer.from_pretrained(tokenizer_path)
         model = Kronos.from_pretrained(hf_model_path)
         predictor = KronosPredictor(model, tokenizer, max_context=512)
-        
+
         self._loaded_predictors[model_id] = predictor
         return predictor
 
@@ -50,7 +50,7 @@ class KronosPredictorAdapter(KronosPredictorPort):
         pred_len: int = 120
     ) -> list[dict[str, Any]]:
         predictor = self._get_predictor(model_id)
-        
+
         # Prepare timestamps as required by KronosPredictor
         # Assuming df has a 'timestamps' column or index
         if 'timestamps' in df.columns:

@@ -4,7 +4,6 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 
 from datetime import datetime, timedelta
-from typing import Any
 
 import numpy as np
 

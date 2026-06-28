@@ -18,7 +18,7 @@ from app.security.prompt_sanitizer import PromptSanitizer
 _sanitizer = PromptSanitizer()
 
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from .agent_memory import get_agent_memory

@@ -218,10 +218,10 @@ class StrategyWizardService:
         params = instance.params
         lines = [
             "from qlib.contrib.strategy import TopkDropoutStrategy",
-            f"strategy = TopkDropoutStrategy(",
+            "strategy = TopkDropoutStrategy(",
             f"    topk={params.get('top_n', 10)},",
             f"    dropout={params.get('dropout', 5)},",
-            f")",
+            ")",
         ]
         return "\n".join(lines)
 

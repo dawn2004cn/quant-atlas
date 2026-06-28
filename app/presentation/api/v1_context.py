@@ -157,7 +157,7 @@ def create_api_v1_context(api_bundle, task_dispatcher=None, task_message_store=N
         except Exception:
             logger.warning("Failed to resolve api_bundle.services.%s", name, exc_info=True)
             return None
-    
+
     ctx = ApiV1Context(
         market_service=_bundle_service("market_service"),
         stock_service=_bundle_service("stock_service"),

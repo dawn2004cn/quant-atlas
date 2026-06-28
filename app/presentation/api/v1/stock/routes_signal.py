@@ -7,7 +7,6 @@ from flask_login import login_required
 
 from app.core.registry import register_routes
 from ...common import ok_response, parse_market
-from ...decorators import service_fallback
 from ...request_parsers import parse_int_param
 
 
@@ -15,7 +14,6 @@ from ...request_parsers import parse_int_param
 def register_stock_signal(blueprint: Blueprint, ctx) -> None:
 
     legacy = ctx.enable_legacy_response_fields
-    stock_service = ctx.stock_service
 
     @blueprint.get("/stocks/<market>/<symbol>/attribution-timeline")
     @login_required

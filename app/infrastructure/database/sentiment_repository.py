@@ -19,7 +19,6 @@ class SentimentRepository:
         """Save market sentiment."""
         total = int(up_count) + int(down_count) + int(flat_count)
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ph = self._ph
         if self._ph == "?":
             sql = """
                 INSERT INTO market_sentiment (market, up_count, down_count, flat_count, total_count, update_time)
@@ -43,7 +42,6 @@ class SentimentRepository:
         total = int(up_count) + int(down_count) + int(flat_count)
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         td = str(trade_date or "")[:10]
-        ph = self._ph
         if self._ph == "?":
             sql = """
                 INSERT INTO market_sentiment_daily (market, trade_date, up_count, down_count, flat_count, total_count, update_time)

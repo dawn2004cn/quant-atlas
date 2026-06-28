@@ -159,7 +159,7 @@ class TechnicalResonanceMeter:
 
         # 均线信号
         ma5 = indicators.get("ma5")
-        ma10 = indicators.get("ma10")
+        indicators.get("ma10")
         ma20 = indicators.get("ma20")
         if ma5 and ma20:
             if ma5 > ma20:
@@ -301,4 +301,4 @@ class VisualDataReducerService:
         elif score <= -0.3:
             return {"signal": "sell", "label": "建议卖出", "score": round(score, 2)}
         else:
-            return {"signal": "hold", "label": "继续观望", "score": round(score, 2)}
+            return {"signal": "hold", "label": "继续观望", "score": round(score, 2)}

@@ -5,7 +5,6 @@ from typing import Any
 
 from app.modules.user.services.user.meta_learning_evolve_service import run_meta_learning_evolve
 from app.core.logger import get_logger
-from app.core.runtime_config import get_runtime_bool
 
 logger = get_logger(__name__)
 

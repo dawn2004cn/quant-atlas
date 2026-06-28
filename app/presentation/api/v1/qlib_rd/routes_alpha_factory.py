@@ -2,8 +2,6 @@ from __future__ import annotations
 
 """Alpha Factory orchestration HTTP routes."""
 
-import uuid
-from datetime import datetime, timedelta
 
 import numpy as np
 from flask import Blueprint, request
@@ -11,8 +9,8 @@ from flask_login import login_required
 
 from app.application.errors import ValidationError
 from app.core.logger import get_logger
-from app.presentation.api.common import ok_response, require_research_write_role
-from app.presentation.api.request_parsers import parse_bool_param, parse_int_param
+from app.presentation.api.common import ok_response
+from app.presentation.api.request_parsers import parse_bool_param
 from app.presentation.api.v1_context import ApiV1Context
 
 logger = get_logger(__name__)
@@ -94,7 +92,7 @@ def register_alpha_factory_routes(blueprint: Blueprint, ctx: ApiV1Context) -> No
     @blueprint.get("/alpha-factory/model/meta-learner")
     @login_required
     def alpha_factory_meta_learner():
-        from app.domain.alpha.meta_learner import select_model, ModelType, MarketCapTier
+        from app.domain.alpha.meta_learner import select_model
         symbols = request.args.get("symbols", "")
         pref = parse_bool_param(request.args.get("prefer_explainability", "false"), name="prefer_explainability")
         model = select_model(symbol=symbols, prefer_explainability=pref)
@@ -107,7 +105,6 @@ def register_alpha_factory_routes(blueprint: Blueprint, ctx: ApiV1Context) -> No
         symbol = (request.args.get("symbol") or "600519").strip()
         if not formula:
             raise ValidationError("formula_required")
-        import numpy as np
         from app.domain.enums import MarketCode
         from datetime import date, timedelta as _td
         import pandas as pd

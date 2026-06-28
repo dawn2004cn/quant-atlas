@@ -1,8 +1,6 @@
 """MySQL implementation for NewsArchiveRepository."""
 
 import hashlib
-import json
-import logging
 from datetime import datetime, timezone
 from typing import Any
 from sqlalchemy import select, and_, func, desc

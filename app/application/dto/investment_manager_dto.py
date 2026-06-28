@@ -2,8 +2,7 @@ from __future__ import annotations
 """DTOs for Investment Manager services."""
 
 
-from typing import Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class InvestmentManagerDTO(BaseModel):
@@ -13,7 +12,7 @@ class InvestmentManagerDTO(BaseModel):
     name: str
     bio: str = ""
     cohort: str
-    deployed_at: Optional[str] = None
+    deployed_at: str | None = None
     active: int = 0
     tagline: str = ""
     specialty: str = ""
@@ -28,7 +27,7 @@ class ManagerProfileDTO(BaseModel):
     name: str
     bio: str
     cohort: str
-    deployed_at: Optional[str] = None
+    deployed_at: str | None = None
     active: int = 0
     tagline: str = ""
     specialty: str = ""

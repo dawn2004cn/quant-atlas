@@ -5,7 +5,8 @@ Provides simple DI for dependency inversion.
 """
 
 
-from typing import Any, Callable, Type, TypeVar
+from typing import Any, TypeVar
+from collections.abc import Callable
 
 
 T = TypeVar("T")
@@ -13,10 +14,10 @@ T = TypeVar("T")
 
 class ServiceDescriptor:
     """Service descriptor."""
-    
+
     def __init__(
         self,
-        interface: Type,
+        interface: type,
         factory: Callable,
         scope: str = "singleton",
     ):
@@ -27,63 +28,63 @@ class ServiceDescriptor:
 
 class DIContainer:
     """Simple dependency injection container."""
-    
-    _instance: "DIContainer | None" = None
-    
+
+    _instance: DIContainer | None = None
+
     def __init__(self):
-        self._descriptors: dict[Type, ServiceDescriptor] = {}
-        self._singletons: dict[Type, Any] = {}
-    
+        self._descriptors: dict[type, ServiceDescriptor] = {}
+        self._singletons: dict[type, Any] = {}
+
     @classmethod
-    def get_instance(cls) -> "DIContainer":
+    def get_instance(cls) -> DIContainer:
         if cls._instance is None:
             cls._instance = DIContainer()
         return cls._instance
-    
+
     @classmethod
     def reset(cls):
         cls._instance = None
-    
+
     def register(
         self,
-        interface: Type[T],
-        factory: Callable[["DIContainer"], T],
+        interface: type[T],
+        factory: Callable[[DIContainer], T],
         scope: str = "singleton",
     ) -> None:
         self._descriptors[interface] = ServiceDescriptor(interface, factory, scope)
-    
+
     def register_singleton(
         self,
-        interface: Type[T],
+        interface: type[T],
         instance: T,
     ) -> None:
         self._descriptors[interface] = ServiceDescriptor(
             interface, lambda _: instance, "singleton"
         )
         self._singletons[interface] = instance
-    
-    def resolve(self, interface: Type[T]) -> T:
+
+    def resolve(self, interface: type[T]) -> T:
         if interface in self._singletons:
             return self._singletons[interface]
-        
+
         desc = self._descriptors.get(interface)
         if not desc:
             raise ValueError(f"Service not registered: {interface}")
-        
+
         if desc.scope == "singleton":
             instance = desc.factory(self)
             self._singletons[interface] = instance
             return instance
-        
+
         return desc.factory(self)
-    
-    def resolve_optional(self, interface: Type[T]) -> T | None:
+
+    def resolve_optional(self, interface: type[T]) -> T | None:
         try:
             return self.resolve(interface)
         except ValueError:
             return None
-    
-    def is_registered(self, interface: Type) -> bool:
+
+    def is_registered(self, interface: type) -> bool:
         return interface in self._descriptors
 
 
@@ -98,18 +99,18 @@ def get_container() -> DIContainer:
 
 
 def register_service(
-    interface: Type[T],
-    factory: Callable[["DIContainer"], T],
+    interface: type[T],
+    factory: Callable[[DIContainer], T],
     scope: str = "singleton",
 ) -> None:
     get_container().register(interface, factory, scope)
 
 
-def resolve_service(interface: Type[T]) -> T:
+def resolve_service(interface: type[T]) -> T:
     return get_container().resolve(interface)
 
 
-def resolve_optional_service(interface: Type[T]) -> T | None:
+def resolve_optional_service(interface: type[T]) -> T | None:
     return get_container().resolve_optional(interface)
 
 

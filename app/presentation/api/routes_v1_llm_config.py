@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-from flask import Blueprint, request
+from flask import request
 
 from ...application.errors import ValidationError
+from ...core.logger import get_logger
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
+
+
+logger = get_logger(__name__)
 from ...presentation.api.common import ok_resource, ok_response
 from ...presentation.api.route_deps import AiRouteDeps
 from ...presentation.api.v1_context import ApiV1Context

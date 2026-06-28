@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import yaml
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 from pydantic import BaseModel, Field
 
 from app.core.logger import get_logger
@@ -83,8 +83,8 @@ class AppConfig(BaseModel):
 class ConfigManager:
     """Configuration manager with environment layering."""
 
-    _instance: Optional["ConfigManager"] = None
-    _config: Optional[AppConfig] = None
+    _instance: ConfigManager | None = None
+    _config: AppConfig | None = None
 
     def __new__(cls):
         if cls._instance is None:
@@ -104,14 +104,14 @@ class ConfigManager:
 
         default_config = config_dir / "settings.yaml"
         if default_config.exists():
-            with open(default_config, "r") as f:
+            with open(default_config) as f:
                 config_data = yaml.safe_load(f) or {}
 
         env = os.getenv("APP_ENV", "development")
 
         env_config = config_dir / f"settings.{env}.yaml"
         if env_config.exists():
-            with open(env_config, "r") as f:
+            with open(env_config) as f:
                 env_data = yaml.safe_load(f) or {}
                 config_data = self._merge_config(config_data, env_data)
 

@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from ..core.base_strategy import BaseTradingStrategy
 from ta.trend import ADXIndicator, SMAIndicator, MACD
 from ta.momentum import RSIIndicator, StochasticOscillator
@@ -61,10 +60,10 @@ class MACDDivergenceStrategy(BaseTradingStrategy):
         # 🚀 优化：确保严谨的价格新低和指标拒绝新低判定
         # 今天收盘价 <= 过去20天的最低价（注意使用 <= 防止平盘干扰）
         price_new_low = df['Close'] <= df['Close'].rolling(20).min().shift(1)
-        
+
         # DIF 必须明确高于过去20天DIF的最低点
         dif_no_new_low = dif > dif.rolling(20).min().shift(1)
-        
+
         # 动能柱拐点确认：今天比昨天强，且昨天是近3天最弱的（确认V型反转拐点）
         hist_turning_up = (macd_hist > macd_hist.shift(1)) & (macd_hist.shift(1) <= macd_hist.shift(2))
 
@@ -148,7 +147,7 @@ class TDXPrecisionStrategy(BaseTradingStrategy):
     def generate_signals(self, df: pd.DataFrame) -> pd.DataFrame:
         df['Signal'] = 0
         adx_ind = ADXIndicator(df['High'], df['Low'], df['Close'], 14)
-        pdi, mdi = adx_ind.adx_pos(), adx_ind.adx_neg()
+        _pdi, mdi = adx_ind.adx_pos(), adx_ind.adx_neg()
         stoch = StochasticOscillator(df['High'], df['Low'], df['Close'], 9, 3)
         k, d = tdx_k_d(stoch)
 

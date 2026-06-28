@@ -1,18 +1,13 @@
 """Evolution Arbiter service — autonomous strategy evolution via champion/challenger mesh."""
 from __future__ import annotations
 
-import logging
-from datetime import datetime
 from typing import Any
 
 from app.core.logger import get_logger
-from app.core.registry import get_registry
 from app.domain.evolution_arbiter import (
-    ChallengerResult,
     EvolutionState,
     Regime,
     RegimeSnapshot,
-    StrategyBias,
 )
 
 logger = get_logger(__name__)

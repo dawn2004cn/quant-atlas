@@ -1,11 +1,10 @@
 from __future__ import annotations
 """Research LangGraph topology descriptor (data-driven, 7.0)."""
 
-from typing import Any
 
 from pydantic import BaseModel, Field
 
-from app.domain.topology_schema import SwarmTopologyDescriptor, TopologyEdge, TopologyNode
+from app.domain.topology_schema import SwarmTopologyDescriptor, TopologyEdge
 
 
 class DebateConfig(BaseModel):

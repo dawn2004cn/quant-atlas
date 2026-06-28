@@ -2,7 +2,6 @@ from __future__ import annotations
 """Domain entities for AI agents (QuantML-Agent port)."""
 
 
-import json
 from dataclasses import dataclass, field
 from datetime import datetime, date
 from typing import Any

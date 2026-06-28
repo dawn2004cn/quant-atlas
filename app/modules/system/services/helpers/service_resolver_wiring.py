@@ -28,6 +28,7 @@ warnings.warn(
 from collections.abc import Callable
 from typing import TypeVar
 
+T = TypeVar("T")
 
 _resolve_optional: Callable[[type[T]], T | None] | None = None
 def bind_service_resolver(resolver: Callable[[type[T]], T | None]) -> None:

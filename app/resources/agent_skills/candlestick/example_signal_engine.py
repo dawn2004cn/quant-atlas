@@ -8,7 +8,6 @@
 信号约定: 1=做多, -1=做空, 0=观望
 """
 
-from typing import Dict
 
 import numpy as np
 import pandas as pd
@@ -185,7 +184,7 @@ class SignalEngine:
         bd = _body(o, c)
         rng = _range(h, l)
         safe_rng = rng.replace(0, np.nan)
-        cond = (bd / safe_rng < self.body_pct) & (rng > 0)
+        (bd / safe_rng < self.body_pct) & (rng > 0)
         # 十字星为中性，不贡献方向分数
         return pd.Series(0, index=o.index)
 
@@ -210,7 +209,7 @@ class SignalEngine:
         us = _upper_shadow(o, c, h)
         ls = _lower_shadow(o, c, l)
         is_doji = (bd / safe_rng < self.body_pct) & (rng > 0)
-        cond = ((bd / safe_rng < 0.3) & (us > bd) & (ls > bd)
+        ((bd / safe_rng < 0.3) & (us > bd) & (ls > bd)
                 & (rng > 0) & ~is_doji)
         # 纺锤线为中性，不贡献方向分数
         return pd.Series(0, index=o.index)
@@ -476,7 +475,7 @@ class SignalEngine:
     # 主入口
     # -----------------------------------------------------------------------
 
-    def generate(self, data_map: Dict[str, pd.DataFrame]) -> Dict[str, pd.Series]:
+    def generate(self, data_map: dict[str, pd.DataFrame]) -> dict[str, pd.Series]:
         """对每个标的运行全部形态检测，汇总评分生成信号。
 
         Args:

@@ -2,13 +2,11 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import threading
-import time
 from datetime import datetime, timezone
 from typing import Any
 
-from app.core.mesh.perception_layer import CollectivePerceptionLayer, PerceptionVector, text_to_embedding
+from app.core.mesh.perception_layer import text_to_embedding
 
 
 class MemoryEntry:

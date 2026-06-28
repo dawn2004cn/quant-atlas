@@ -7,7 +7,7 @@ from flask_login import login_required
 
 from ...application.errors import ValidationError
 from ...core.registry import register_routes
-from .common import ok_resource, ok_response
+from .common import ok_resource
 from .v1_context import ApiV1Context
 from .request_parsers import parse_int_param
 from .decorators import service_fallback
@@ -40,6 +40,7 @@ def register_strategy_optimization_routes(blueprint: Blueprint, ctx: ApiV1Contex
         test_window_days = parse_int_param(body.get("test_window_days"), name="test_window_days", default=63)
         n_windows = parse_int_param(body.get("n_windows"), name="n_windows", default=5)
 
+        service = getattr(ctx, "strategy_optimization_service", None)
         result = service.run_walk_forward(
             symbol=symbol,
             param_space=param_space,

@@ -2,10 +2,9 @@ from __future__ import annotations
 """A 股日 K 东财前复权（AkShare），作通达信/缓存失败时的行情兜底。"""
 
 
-from datetime import date, datetime
+from datetime import date
 from typing import Any
 
-import logging
 import pandas as pd
 
 from ...core.logger import get_logger

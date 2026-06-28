@@ -19,14 +19,14 @@ class AdjustmentFactorRepository:
         """批量保存或更新复权因子."""
         if not factors:
             return
-        
+
         normalized = SymbolNormalizer.to_db_code(stock_code)
         table = "stock_adjustment_factor"
         rows = [
             (normalized, f.get("date"), float(f.get("factor", 1.0)))
             for f in factors
         ]
-        
+
         ph = self._ph
         if self._ph == "?":
             sql = f"""
@@ -47,7 +47,7 @@ class AdjustmentFactorRepository:
         normalized = SymbolNormalizer.to_db_code(stock_code)
         table = "stock_adjustment_factor"
         ph = self._ph
-        
+
         if start_date and end_date:
             sql = f"""
                 SELECT stock_code, date, factor
@@ -64,7 +64,7 @@ class AdjustmentFactorRepository:
                 ORDER BY date
             """
             params = (normalized,)
-        
+
         return self._adapter.execute_select(sql, params)
 
     def get_latest_factor(self, stock_code: str) -> float | None:

@@ -9,7 +9,10 @@ import asyncio
 import concurrent.futures
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.infrastructure.agent.loop import AgentLoop
 
 # Dedicated thread pool limited to four concurrent agents to avoid exhausting the default executor.
 _AGENT_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=4, thread_name_prefix="agent")
@@ -52,10 +55,10 @@ class SessionService:
         self.store = store
         self.event_bus = event_bus
         self.runs_dir = runs_dir
-        self._active_loops: Dict[str, "AgentLoop"] = {}
+        self._active_loops: dict[str, AgentLoop] = {}
         self._search_index = get_shared_index()
 
-    def create_session(self, title: str = "", config: Optional[Dict[str, Any]] = None) -> Session:
+    def create_session(self, title: str = "", config: dict[str, Any] | None = None) -> Session:
         """Create a new session.
 
         Args:
@@ -71,7 +74,7 @@ class SessionService:
         self.event_bus.emit(session.session_id, "session.created", {"session_id": session.session_id, "title": title})
         return session
 
-    def get_session(self, session_id: str) -> Optional[Session]:
+    def get_session(self, session_id: str) -> Session | None:
         """Return a session by ID."""
         return self.store.get_session(session_id)
 
@@ -84,7 +87,7 @@ class SessionService:
         self.event_bus.clear(session_id)
         return self.store.delete_session(session_id)
 
-    async def send_message(self, session_id: str, content: str, role: str = "user") -> Dict[str, Any]:
+    async def send_message(self, session_id: str, content: str, role: str = "user") -> dict[str, Any]:
         """Send a message to a session and trigger execution.
 
         Args:
@@ -117,7 +120,7 @@ class SessionService:
         asyncio.create_task(self._run_attempt(session, attempt))
         return {"message_id": message.message_id, "attempt_id": attempt.attempt_id}
 
-    async def resume_attempt(self, session_id: str, attempt_id: str, user_input: str) -> Dict[str, Any]:
+    async def resume_attempt(self, session_id: str, attempt_id: str, user_input: str) -> dict[str, Any]:
         """Resume an attempt that is waiting for user input.
 
         Args:
@@ -157,7 +160,7 @@ class SessionService:
         """Return all execution attempts."""
         return self.store.list_attempts(session_id)
 
-    def get_attempt(self, session_id: str, attempt_id: str) -> Optional[Attempt]:
+    def get_attempt(self, session_id: str, attempt_id: str) -> Attempt | None:
         """Return a single execution attempt."""
         return self.store.get_attempt(session_id, attempt_id)
 
@@ -219,7 +222,7 @@ class SessionService:
             self.store.update_attempt(attempt)
             self.event_bus.emit(session.session_id, "attempt.failed", {"attempt_id": attempt.attempt_id, "error": str(exc)})
 
-    async def _run_with_agent(self, attempt: Attempt, messages: list = None) -> Dict[str, Any]:
+    async def _run_with_agent(self, attempt: Attempt, messages: list = None) -> dict[str, Any]:
         """Execute an attempt with the V5 AgentLoop.
 
         Args:
@@ -240,7 +243,7 @@ class SessionService:
         session_id = attempt.session_id
         attempt_id = attempt.attempt_id
 
-        def event_callback(event_type: str, data: Dict[str, Any]) -> None:
+        def event_callback(event_type: str, data: dict[str, Any]) -> None:
             """Forward AgentLoop events to the SSE event bus."""
             data["attempt_id"] = attempt_id
             self.event_bus.emit(session_id, event_type, data)
@@ -279,7 +282,7 @@ class SessionService:
         return result
 
     @staticmethod
-    def _convert_messages_to_history(messages: list) -> list[Dict[str, Any]]:
+    def _convert_messages_to_history(messages: list) -> list[dict[str, Any]]:
         """Convert Session messages into OpenAI-format history.
 
         Keeps the readable ``[prev_run: {run_id}]`` marker instead of removing it
@@ -324,14 +327,14 @@ class SessionService:
         return list(reversed(trimmed))
 
     @staticmethod
-    def _load_metrics(run_dir: Path) -> Optional[Dict[str, Any]]:
+    def _load_metrics(run_dir: Path) -> dict[str, Any] | None:
         """Load metrics.csv from a run directory."""
         import csv
         metrics_path = run_dir / "artifacts" / "metrics.csv"
         if not metrics_path.exists():
             return None
         try:
-            with open(metrics_path, "r", encoding="utf-8") as f:
+            with open(metrics_path, encoding="utf-8") as f:
                 rows = list(csv.DictReader(f))
                 if rows:
                     return {k: float(v) for k, v in rows[0].items() if v}

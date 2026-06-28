@@ -8,8 +8,9 @@ from __future__ import annotations
 
 import logging
 import threading
-from dataclasses import dataclass, field
-from typing import Any, Callable
+from dataclasses import dataclass
+from typing import Any
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +152,6 @@ def find_data_source(type: str, *, scope: str | None = None, market: str | None 
 __all__ = [
     "DataSource",
     "DataSourceRegistry",
-    "DataSourceType",
     "get_data_source_registry",
     "reset_data_source_registry",
     "data_source",

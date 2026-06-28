@@ -12,15 +12,13 @@ import ast
 import hashlib
 import importlib
 import logging
-import os
 import pkgutil
-import sys
 import types
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
-from .protocol import PluginMetadata, StrategyPlugin
+from .protocol import StrategyPlugin
 from .registry import StrategyRegistry, get_registry
 
 logger = logging.getLogger(__name__)
@@ -160,7 +158,7 @@ class SandboxedModuleLoader:
         except Exception:
             logger.debug("BaseStrategy not available for plugin sandbox")
 
-        exec(compile(source, str(file_path), "exec"), safe_globals)
+        exec(compile(source, str(file_path), "exec"), safe_globals)  # noqa: S102  # sandboxed plugin loader: restricted builtins + safe_globals only
 
         # Copy public names into the module.
         for name, obj in safe_globals.items():

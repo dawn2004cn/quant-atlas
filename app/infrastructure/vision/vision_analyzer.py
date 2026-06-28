@@ -46,7 +46,7 @@ _CHART_ANALYSIS_SYSTEM_PROMPT = """你是一位资深技术分析师，拥有20�
 
 class VisionAnalyzer:
     """Multimodal LLM service for analyzing market chart images.
-    
+
     Uses vision-capable LLMs (GPT-4o, Claude 3, etc.) to analyze
     chart images and identify patterns, support/resistance, and signals.
     """
@@ -79,13 +79,13 @@ class VisionAnalyzer:
         custom_prompt: str | None = None,
     ) -> dict[str, Any]:
         """Analyze a chart image using multimodal LLM.
-        
+
         Args:
             image_base64: Base64-encoded PNG image
             image_path: Path to image file (alternative to base64)
             symbol: Stock symbol for context
             custom_prompt: Optional custom analysis prompt
-            
+
         Returns:
             Structured analysis result dict
         """
@@ -144,14 +144,14 @@ class VisionAnalyzer:
         indicators: list[str] | None = None,
     ) -> dict[str, Any]:
         """Full pipeline: fetch data → render chart → analyze with vision LLM.
-        
+
         Args:
             stock_service: Service with get_history() method
             symbol: Stock symbol
             market: Market code
             days: Number of trading days
             indicators: Technical indicators to overlay
-            
+
         Returns:
             Combined rendering + analysis result
         """

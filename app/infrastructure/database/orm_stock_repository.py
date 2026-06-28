@@ -14,7 +14,6 @@ from sqlalchemy import select, func
 
 from ..mappers.symbol_normalizer import SymbolNormalizer
 from ..models.market import Stock
-from ..orm import Base, create_session_factory
 
 
 class OrmStockRepository:

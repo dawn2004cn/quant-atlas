@@ -8,11 +8,9 @@ from __future__ import annotations
 """
 
 
-import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Callable
+from collections.abc import Callable
 
 from app.core.logger import get_logger
 from .order_tracker import OrderStateMachine, OrderState, OrderTracker

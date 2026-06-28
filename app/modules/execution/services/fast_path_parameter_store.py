@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import json
-from typing import Any, Optional
+from typing import Any
 from app.core.base_service import BaseApplicationService
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class FastPathParameterStore(BaseApplicationService):
         if symbol not in self._local_cache:
             self._local_cache[symbol] = {}
         self._local_cache[symbol][param_key] = value
-        
+
         # 2. Persist to Redis for cross-process consistency
         if self._redis:
             try:
@@ -39,7 +39,7 @@ class FastPathParameterStore(BaseApplicationService):
         # 1. Try local cache first
         if symbol in self._local_cache and param_key in self._local_cache[symbol]:
             return self._local_cache[symbol][param_key]
-        
+
         # 2. Fallback to Redis
         if self._redis:
             try:
@@ -53,5 +53,5 @@ class FastPathParameterStore(BaseApplicationService):
                     return parsed
             except Exception as e:
                 logger.debug("FastPathStore Redis read failed: %s", e)
-        
+
         return default

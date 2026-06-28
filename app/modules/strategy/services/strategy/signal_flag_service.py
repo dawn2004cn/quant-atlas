@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
@@ -168,7 +167,7 @@ class SignalFlagScannerService:
             code = _strip_cn_code(key)
             if not code or len(code) < 4: continue
             ranked.append({**r, "_scan_code": code})
-        
+
         ranked.sort(key=lambda x: float(x.get("amount") or 0), reverse=True)
         hard_cap = max(800, min(int(os.getenv("SIGNAL_FLAG_UNIVERSE_HARD_CAP", "8000")), 20000))
         lim = min(len(ranked), hard_cap) if int(max_stocks or 0) <= 0 else max(50, min(int(max_stocks), hard_cap))
@@ -337,7 +336,7 @@ class SignalFlagScannerService:
         d0 = (pool_date or datetime.now().strftime("%Y-%m-%d"))[:10]
         if market != MarketCode.CN:
             return SignalFlagScanSummary(pool_date=d0, scanned=0, hits=0, persisted=0, message="仅支持 A 股。")
-        
+
         universe = self.get_scan_universe(market, max_stocks)
         hits = self.scan_batch(universe, market, d0, lookback_days)
         n = self.finalize_pool(d0, hits)

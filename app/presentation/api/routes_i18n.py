@@ -28,9 +28,9 @@ def set_locale():
     """Set locale for session."""
     data = request.get_json() or {}
     locale = data.get("locale", "zh")
-    
+
     if locale not in ("zh", "en"):
         raise ValidationError("invalid_locale", details={"allowed": ["zh", "en"]})
-    
+
     session["locale"] = locale
     return ok_response(data={"locale": locale})

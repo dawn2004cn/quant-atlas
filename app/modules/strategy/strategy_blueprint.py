@@ -69,24 +69,6 @@ def _register_strategy_routes(blueprint: Blueprint, ctx: Any | None = None) -> N
     from app.presentation.api.routes_v1_strategy_snapshots import (
         register_strategy_snapshot_routes,
     )
-    from app.presentation.api.routes_v1_nl_strategy import (
-        register_nl_strategy_routes,
-    )
-    from app.presentation.api.routes_v1_strategy_synthesis import (
-        register_strategy_synthesis_routes,
-    )
-    from app.presentation.api.routes_v1_signal_flag import (
-        register_signal_flag_routes,
-    )
-    from app.presentation.api.routes_v1_signal_observations import (
-        register_signal_observation_routes,
-    )
-    from app.presentation.api.routes_v1_attribution import (
-        register_attribution_routes,
-    )
-    from app.presentation.api.routes_v1_reviews import (
-        register_review_routes,
-    )
     from app.presentation.api.routes_v1_strategy_synthesis import (
         register_strategy_synthesis_routes,
     )

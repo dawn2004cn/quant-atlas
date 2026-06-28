@@ -1,16 +1,14 @@
 from app.domain.dto.service_result import GenericResponseDTO
-import logging
 
 from app.core.logger import get_logger
-from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 import uuid
 
 from app.domain.ports.agent_ports import SwarmOrchestratorPort, ExpertSkillPort
 from app.domain.ports import IExperimentRepository
 from app.domain.entities import Experiment
 from app.modules.system.services.sentinel.agent_telemetry_service import AgentTelemetryService
-from app.domain.schemas.agent_schemas import SwarmRunRequest, SwarmRunResponse
+from app.domain.schemas.agent_schemas import SwarmRunRequest
 
 
 logger = get_logger(__name__)
@@ -22,21 +20,21 @@ class SwarmAgentService:
         self,
         swarm_port: SwarmOrchestratorPort | None = None,
         skill_port: ExpertSkillPort | None = None,
-        experiment_repo: Optional[IExperimentRepository] = None,
-        telemetry: Optional[AgentTelemetryService] = None,
+        experiment_repo: IExperimentRepository | None = None,
+        telemetry: AgentTelemetryService | None = None,
     ):
         self.swarm_port = swarm_port
         self.skill_port = skill_port
         self._experiment_repo = experiment_repo
         self._telemetry = telemetry
-    
+
     @property
     def experiment_repo(self):
         if self._experiment_repo is None:
             from app.modules.system.services.helpers.service_resolver_access import resolve_optional_service
             self._experiment_repo = resolve_optional_service(IExperimentRepository)
         return self._experiment_repo
-    
+
     @property
     def telemetry(self):
         if self._telemetry is None:

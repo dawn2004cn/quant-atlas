@@ -202,7 +202,7 @@ def warm_runtime_extensions(app: Flask, settings: AppSettings) -> dict[str, Any]
             from .config import BASE_DIR
 
 
-            
+
 
 
             engine = None
@@ -223,7 +223,7 @@ def warm_runtime_extensions(app: Flask, settings: AppSettings) -> dict[str, Any]
                 get_logger(__name__).warning(f"QlibBacktestAdapter not available: {e}")
 
 
-            
+
 
 
             if engine:

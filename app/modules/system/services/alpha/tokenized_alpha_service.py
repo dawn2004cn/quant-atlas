@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from app.core.logger import get_logger
 from app.domain.alpha.factor_manager import FactorMetrics
 
 
@@ -45,7 +44,7 @@ class AlphaTokenManifest:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "AlphaTokenManifest":
+    def from_dict(cls, data: dict[str, Any]) -> AlphaTokenManifest:
         return cls(**data)
 
 
@@ -64,7 +63,7 @@ class ReputationShardRecord:
         return self.__dict__.copy()
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "ReputationShardRecord":
+    def from_dict(cls, data: dict[str, Any]) -> ReputationShardRecord:
         return cls(**data)
 
 

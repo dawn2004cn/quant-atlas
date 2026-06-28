@@ -27,7 +27,6 @@ def _ensure_qlib_init(provider_uri: str | None = None) -> bool:
 
     try:
         import qlib
-        from qlib.data import D
 
         provider_uri = provider_uri.replace("\\", "/")
         if provider_uri.endswith(".csv"):

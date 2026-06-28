@@ -7,7 +7,6 @@ V5: Fixes the thread-safety issue caused by calling queue.put_nowait() on asynci
 
 import asyncio
 import json
-import logging
 import threading
 import time
 import uuid
@@ -17,7 +16,8 @@ from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any
+from collections.abc import AsyncIterator
 
 
 @dataclass
@@ -34,7 +34,7 @@ class SSEEvent:
 
     event_id: str = field(default_factory=lambda: uuid.uuid4().hex[:16])
     event_type: str = "message"
-    data: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] = field(default_factory=dict)
     session_id: str = ""
     timestamp: float = field(default_factory=time.time)
 
@@ -72,10 +72,10 @@ class EventBus:
             max_buffer_size: Maximum number of buffered events per session.
         """
         self.max_buffer_size = max_buffer_size
-        self._buffers: Dict[str, List[SSEEvent]] = {}
-        self._subscribers: Dict[str, List[asyncio.Queue]] = {}
+        self._buffers: dict[str, list[SSEEvent]] = {}
+        self._subscribers: dict[str, list[asyncio.Queue]] = {}
         self._lock = threading.Lock()
-        self._loop: Optional[asyncio.AbstractEventLoop] = None
+        self._loop: asyncio.AbstractEventLoop | None = None
 
     def set_loop(self, loop: asyncio.AbstractEventLoop) -> None:
         """Set the asyncio event loop, usually during api_server startup.
@@ -129,7 +129,7 @@ class EventBus:
         self,
         session_id: str,
         event_type: str,
-        data: Optional[Dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
     ) -> SSEEvent:
         """Build and publish an event in one step.
 
@@ -149,7 +149,7 @@ class EventBus:
         self.publish(event)
         return event
 
-    def replay(self, session_id: str, last_event_id: Optional[str] = None) -> List[SSEEvent]:
+    def replay(self, session_id: str, last_event_id: str | None = None) -> list[SSEEvent]:
         """Replay buffered session events for reconnect recovery.
 
         Args:
@@ -164,7 +164,7 @@ class EventBus:
         with self._lock:
             buffer = self._buffers.get(session_id, [])
             found = False
-            result: List[SSEEvent] = []
+            result: list[SSEEvent] = []
             for event in buffer:
                 if found:
                     result.append(event)
@@ -175,7 +175,7 @@ class EventBus:
     async def subscribe(
         self,
         session_id: str,
-        last_event_id: Optional[str] = None,
+        last_event_id: str | None = None,
     ) -> AsyncIterator[SSEEvent]:
         """Subscribe to a session event stream asynchronously.
 

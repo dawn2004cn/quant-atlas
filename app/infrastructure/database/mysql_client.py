@@ -1,14 +1,13 @@
 from __future__ import annotations
 """MySQL access helpers backed by SQLAlchemy connection pooling.
 
-This module provides pooled DBAPI connections while maintaining backward 
+This module provides pooled DBAPI connections while maintaining backward
 compatibility for legacy thread-local connection management.
 """
 
 
-import logging
 import threading
-from typing import Any, Optional
+from typing import Any
 
 import pymysql
 import pymysql.err
@@ -100,7 +99,7 @@ def _get_pooled_conn(ms: MysqlSettings, *, autocommit: bool = False):
             conn = eng.raw_connection()
         else:
             raise
-    
+
     try:
         # DBAPI connection wrapped in fairy
         conn.connection.autocommit(bool(autocommit))
@@ -222,7 +221,7 @@ def mysql_get_read_connection(ms: MysqlSettings) -> Any:
 
 def _get_or_create_tl_conn(ms: MysqlSettings, attr: str) -> Any:
     """Get or create a thread-local connection (legacy behavior).
-    
+
     This is maintained for backward compatibility. New code should use
     mysql_get_connection() directly and manage connections explicitly.
     """

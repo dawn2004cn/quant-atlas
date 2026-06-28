@@ -7,7 +7,7 @@ from flask_login import current_user, login_required
 from ...application.errors import AuthorizationError, ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
-from .common import ok_response, require_ctx_service
+from .common import ok_response
 from .v1_context import ApiV1Context
 from .decorators import service_fallback, require_role
 

@@ -2,8 +2,6 @@ from __future__ import annotations
 """Knowledge Distillation: Converts successful swarm remediations into persistent expert skills."""
 
 
-import logging
-import json
 from typing import Any
 
 from app.core.logger import get_logger
@@ -34,12 +32,12 @@ description: "Automatically distilled knowledge from run {run_id}"
 
 {run.final_report}
 """
-        
+
         # Save using the Swarm SkillWriterTool
         result = self.skill_writer.execute(
             skill_name=skill_name,
             content=content
         )
-        
+
         logger.info(f"Knowledge distilled into skill {skill_name}")
         return {"status": "success", "detail": result}

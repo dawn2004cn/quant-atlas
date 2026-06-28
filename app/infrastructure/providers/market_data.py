@@ -4,14 +4,11 @@ from __future__ import annotations
 
 import math
 import time
-from pathlib import Path
 
-import logging
-import pandas as pd
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from dataclasses import asdict
-from typing import Callable, Any, Dict, Tuple
-import requests
+from typing import Any
+from collections.abc import Callable
 import threading
 
 from ...domain.entities import ChipDistribution, StockQuote
@@ -23,10 +20,9 @@ from ..adapters.legacy_tdx_adapter import LegacyTdxAdapter
 from ..adapters.tencent_quote_gateway import TencentQuoteGateway
 from ..database.stock_cache_db import StockCache
 from ..mappers.symbol_normalizer import SymbolNormalizer
-from ..mappers.tencent_quote_mapper import TencentQuoteMapper, _split_gtimg_fields
+from ..mappers.tencent_quote_mapper import _split_gtimg_fields
 from ..calendar.cn_sse_calendar import is_cn_equity_trading_day
 from ...core.logger import get_logger
-from ...core.runtime_config import get_runtime, get_runtime_int
 import yfinance as yf
 
 
@@ -171,8 +167,8 @@ class MultiSourceMarketProvider(MarketDataProvider):
         self._tdx_factory = tdx_factory or LegacyTdxAdapter
         self._quote_gateway = quote_gateway or TencentQuoteGateway()
         self._tdx_adapter: TdxClient | None = None
-        
-        self._l1_cache: Dict[str, Tuple[StockQuote, datetime]] = {}
+
+        self._l1_cache: dict[str, tuple[StockQuote, datetime]] = {}
         self._l1_ttl = l1_ttl_seconds
 
         self._market_watchlists: dict[MarketCode, list[str]] = {
@@ -275,7 +271,7 @@ class MultiSourceMarketProvider(MarketDataProvider):
                 logger.warning(f"CN quotes fetch failed, fallback to L2: {e}")
                 _mark_market_data_degraded("market_tencent_fallback")
                 return self._get_l2_fallback(market, symbols)
-        
+
         try:
             import akshare as ak
             raw: list[dict[str, Any]] = []
@@ -288,7 +284,7 @@ class MultiSourceMarketProvider(MarketDataProvider):
                         if sym in sym_set:
                             raw.append(self._akrow_to_quote(dict(row), MarketCode.US))
             elif market == MarketCode.HK:
-                if _hk_until > time.time():
+                if _hk_until > time.time():  # noqa: F823
                     logger.debug("HK circuit breaker open, skip primary")
                     _mark_market_data_degraded("market_hk_circuit")
                 else:
@@ -342,7 +338,7 @@ class MultiSourceMarketProvider(MarketDataProvider):
         if market == MarketCode.US:
             _mark_market_data_degraded("market_yfinance_fallback")
             return self._fetch_us_yfinance(symbols)
-        
+
         # Fallback to yfinance for HK stocks
         if market == MarketCode.HK:
             _mark_market_data_degraded("market_yfinance_fallback")
@@ -352,7 +348,7 @@ class MultiSourceMarketProvider(MarketDataProvider):
         if market == MarketCode.CRYPTO:
             _mark_market_data_degraded("market_yfinance_fallback")
             return self._fetch_crypto_yfinance(symbols)
-        
+
         _mark_market_data_degraded("market_l2_cache")
         return self._get_l2_fallback(market, symbols)
 
@@ -515,9 +511,9 @@ class MultiSourceMarketProvider(MarketDataProvider):
                         quotes.append(self._build_quote_from_cache_row(r, market))
                 elif code.startswith(market_prefix) or code.startswith(("US:", "HK:", "CRYPTO:")):
                     quotes.append(self._build_quote_from_cache_row(r, market))
-            
+
             logger.info(f"Loaded {len(quotes)} quotes for {market.value} from cache (lenient age)")
-            
+
             if quotes and market == MarketCode.CN:
                 top_codes = [q.code for q in quotes[:80]]
                 threading.Thread(target=self._fetch_and_sync, args=(market, top_codes), daemon=True).start()
@@ -749,13 +745,13 @@ class MultiSourceMarketProvider(MarketDataProvider):
             code = symbol.split(".")[0]
             if code.startswith("SH") or code.startswith("SZ"):
                 code = code[2:]
-            
+
             df = ak.stock_cyq_em(symbol=code)
             if df is None or df.empty:
                 return None
-            
+
             latest = df.iloc[-1]
-            
+
             def safe_f(v):
                 try:
                     return float(v)

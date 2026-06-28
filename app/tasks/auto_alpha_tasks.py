@@ -20,7 +20,7 @@ def run_auto_alpha_mining(self):
         from app.tasks.task_wiring import create_swarm_agent_service
 
         swarm_service = create_swarm_agent_service()
-        
+
         result = swarm_service.start_research_swarm(
             symbol="000300",  # 沪深300成分股
             topic="挖掘有效的Alpha因子",

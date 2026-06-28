@@ -11,7 +11,6 @@ Usage:
 
 
 import asyncio
-from datetime import datetime
 
 
 async def signal_generation_example():

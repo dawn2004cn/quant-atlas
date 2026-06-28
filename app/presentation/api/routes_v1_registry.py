@@ -20,7 +20,6 @@ def register_registry_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     def registry_routes():
         """List all registered routes with their context and metadata."""
         from ...core.registry import (
-            discover_routes,
             registered_route_names,
             registered_routes_by_context,
             _route_registry,
@@ -63,7 +62,6 @@ def register_registry_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
         """List all registered services with their metadata."""
         from ...core.registry import (
             registered_service_names,
-            is_service_registered,
             _registry,
         )
 

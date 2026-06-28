@@ -9,7 +9,6 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-import yaml
 
 from app.infrastructure.agent.swarm.models import RunStatus, SwarmAgentSpec, SwarmRun, SwarmTask, TaskStatus
 

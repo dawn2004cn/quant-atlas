@@ -1,7 +1,6 @@
 from __future__ import annotations
 """Paper execution driver — immediate simulated fills for all markets."""
 
-import time
 import uuid
 
 from app.domain.execution.driver_protocol import (

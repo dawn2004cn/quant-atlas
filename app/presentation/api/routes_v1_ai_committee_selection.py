@@ -8,7 +8,6 @@ from flask import Blueprint, request
 from flask_login import login_required
 
 from ...core.middleware.request_context import require_authenticated_user_id
-from ...application.errors import ValidationError
 from ...core.registry import register_routes
 from .common import ok_response, require_ctx_service
 from .decorators import require_role

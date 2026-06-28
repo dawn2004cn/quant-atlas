@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 from dataclasses import dataclass
 from app.core.base_service import BaseApplicationService
 
@@ -12,15 +12,15 @@ class SopParameters:
     """The final parameters to be pushed to the Reflex Map."""
     stop_distance: float
     risk_multiplier: float
-    trigger_price: Optional[float] = None
-    trigger_side: Optional[str] = None
+    trigger_price: float | None = None
+    trigger_side: str | None = None
     trigger_qty: int = 100
 
 class StrategySOPService(BaseApplicationService):
     """
-    StrategySOPService (Standard Operating Procedure) translates AI intuitions 
+    StrategySOPService (Standard Operating Procedure) translates AI intuitions
     and Market Regimes into concrete Fast-Path parameters.
-    
+
     It prevents the AI from making 'emotional' or inconsistent parameter choices
     by forcing them through a predefined Strategy Archetype.
     """
@@ -52,9 +52,9 @@ class StrategySOPService(BaseApplicationService):
         return self._symbol_archetype.get(symbol)
 
     def compute_reflex_params(
-        self, 
-        symbol: str, 
-        ai_verdict: dict[str, Any], 
+        self,
+        symbol: str,
+        ai_verdict: dict[str, Any],
         archetype: str = "conservative"
     ) -> SopParameters:
         """
@@ -63,13 +63,13 @@ class StrategySOPService(BaseApplicationService):
         # Resolve per‑symbol archetype overrides first
         if symbol in self._symbol_archetype:
             archetype = self._symbol_archetype[symbol]
-        
+
         regime = self._regime_service.get_current_regime(symbol) if self._regime_service else "neutral"
-        
+
         sop_fn = self._archetypes.get(archetype, self._sop_conservative)
         params = sop_fn(ai_verdict, regime)
-        
-        logger.info("SOP Applied [%s] for %s: Regime=%s, Archetype=%s -> Params=%s", 
+
+        logger.info("SOP Applied [%s] for %s: Regime=%s, Archetype=%s -> Params=%s",
                     symbol, symbol, regime, archetype, params)
         return params
 
@@ -81,10 +81,10 @@ class StrategySOPService(BaseApplicationService):
         # If AI is not highly confident, drastically reduce risk
         confidence = verdict.get("confidence", 0.5)
         risk_mult = 0.5 if confidence < 0.7 else 1.0
-        
+
         # In volatile regimes, tighten the stop
         stop_dist = 0.015 if regime == "volatile" else 0.02
-        
+
         return SopParameters(
             stop_distance=stop_dist,
             risk_multiplier=risk_mult,
@@ -99,7 +99,7 @@ class StrategySOPService(BaseApplicationService):
         """
         risk_mult = 2.0 if verdict.get("confidence", 0.5) > 0.8 else 1.2
         stop_dist = 0.04 # Give the trade room to breathe
-        
+
         return SopParameters(
             stop_distance=stop_dist,
             risk_multiplier=risk_mult,
@@ -116,7 +116,7 @@ class StrategySOPService(BaseApplicationService):
         if regime not in ("range", "mean_reverting"):
             # Fallback to conservative if regime doesn't match
             return self._sop_conservative(verdict, regime)
-            
+
         return SopParameters(
             stop_distance=0.01,
             risk_multiplier=1.0,

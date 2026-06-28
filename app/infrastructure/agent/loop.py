@@ -15,11 +15,11 @@ Tool execution:
 
 import concurrent.futures
 import json
-import logging
 import os
 import time as _time
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
+from collections.abc import Callable
 
 from app.infrastructure.agent.swarm.context import ContextBuilder
 from app.infrastructure.agent.swarm.workspace_memory import WorkspaceMemory
@@ -279,10 +279,10 @@ class AgentLoop:
         self,
         registry: ToolRegistry,
         llm: ChatLLM,
-        memory: Optional[WorkspaceMemory] = None,
-        event_callback: Optional[Callable[[str, Dict[str, Any]], None]] = None,
+        memory: WorkspaceMemory | None = None,
+        event_callback: Callable[[str, dict[str, Any]], None] | None = None,
         max_iterations: int = 50,
-        persistent_memory: Optional[Any] = None,
+        persistent_memory: Any | None = None,
     ) -> None:
         """Initialize AgentLoop.
 
@@ -311,7 +311,7 @@ class AgentLoop:
         """
         self._cancelled = True
 
-    def run(self, user_message: str, history: Optional[List[Dict[str, Any]]] = None, session_id: str = "") -> Dict[str, Any]:
+    def run(self, user_message: str, history: list[dict[str, Any]] | None = None, session_id: str = "") -> dict[str, Any]:
         """Run the ReAct loop synchronously.
 
         Args:
@@ -341,7 +341,7 @@ class AgentLoop:
         context = ContextBuilder(self.registry, self.memory,
                                   persistent_memory=self._persistent_memory)
         messages = context.build_messages(user_message, history)
-        react_trace: List[Dict[str, Any]] = []
+        react_trace: list[dict[str, Any]] = []
 
         trace = TraceWriter(run_dir)
         trace.write({"type": "start", "prompt": user_message[:500]})
@@ -383,7 +383,7 @@ class AgentLoop:
                 logger.info(f"ReAct iteration {iteration}/{self.max_iterations}")
 
                 # Streaming output + collect thinking text
-                thinking_chunks: List[str] = []
+                thinking_chunks: list[str] = []
 
                 def _on_text_chunk(delta: str) -> None:
                     thinking_chunks.append(delta)
@@ -778,7 +778,7 @@ class AgentLoop:
         # Fix orphaned tool pairs in the reconstructed message list
         _fix_tool_pairs(messages)
 
-    def _emit(self, event_type: str, data: Dict[str, Any]) -> None:
+    def _emit(self, event_type: str, data: dict[str, Any]) -> None:
         """Fire an event via the callback."""
         if self._event_callback:
             try:

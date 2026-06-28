@@ -1,0 +1,459 @@
+
+--- agent_center.html ---
+  Detected encoding: utf-8_with_fffd
+  → Error: 'gbk' codec can't decode byte 0xad in position 57: illegal multibyte sequence
+
+--- agent_lab.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- ai_analysis.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- ai_chat.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- ai_committee_dashboard.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- ai_committee_selection.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- ai_hedge_fund.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- ai_investment_committee.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- ai_research_report.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- alert_center.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- alpha_factory.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- architecture_roadmap.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- attribution_dashboard.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- backtest.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- base.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- capabilities.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- collaboration_workspace.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\collaboration\cross_team_pulse.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\collaboration\team_blackboard.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\collaboration\team_context_bar.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\collaboration\team_research_feed.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\collaboration\team_workflow_panel.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\risk\trading_dna_spiral.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\skeleton.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\stock\attribution_timeline.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\stock\decision_brief_strip.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\stock\evidence_replay.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\stock\live_research_lab.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\stock\resonance_meter.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\stock\strategy_copilot.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\stock\workspace_shell.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\strategy\evidence_card.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\truth\truth_droplet.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\ui_macros.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- components\wisdom\wisdom_mesh_browser.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- daily_workbench.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- data_lake_health.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- decision_replay_space.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- decision_snapshot.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- decision_snapshot_public.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- error_404.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- error_500.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- experiment_reporter.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- expert_teams.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- factor_detail.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- factor_evolution.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- factor_repository.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- feature_retired.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- global_radar.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- hot_sectors.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- index.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- integration_hub.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- investment_manager_detail.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- investment_managers.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- layouts\design_showcase_base.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- layouts\minimal_base.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- layouts\zen_base.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- login.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- long_term_select.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- longhu_bang.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- market_panorama.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- marketplace.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- message_center.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- moments.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- nl_strategy.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- nl_strategy_v2.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- observability.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- optimize.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- partials\global_focus_bar.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- partials\jarvis_proactive_panel.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- partials\macros.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- partials\research_lane.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- portfolio.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- portfolio_detail.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- portfolio_resonance.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- professional_workbench.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- profile.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- quant_lab.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- register.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- research_canvas.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- research_pipeline.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- retail_assistant.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- run_history.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- selection_result.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- self_stocks.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- shadow_account.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- signal_flag.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- signal_observations.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- stock_detail.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- stock_selector.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- stocks_manage.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- strategy_compare.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- strategy_snapshots.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- strategy_wizard.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- swarm_dashboard.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- swarm_designer.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- swarm_designer_flow.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- task_center.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- task_detail.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- tdx_blocks.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- truth_droplet.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- ui_showcase.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- user_spectrum_hub.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- user_tiers_boutique.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- user_tiers_fund.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- user_tiers_institution.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- user_tiers_investment.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- user_tiers_retail.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- users_manage.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- voice_briefing.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- war_room.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- yanbao_hub.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- zen_dashboard.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+--- zen_terminal.html ---
+  Detected encoding: utf-8
+  → OK: valid UTF-8
+
+
+=== Summary: 114 files, 0 fixed, 1 errors ===

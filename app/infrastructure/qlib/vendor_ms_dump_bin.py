@@ -8,7 +8,7 @@ import abc
 import shutil
 import traceback
 from pathlib import Path
-from typing import Iterable, List, Union
+from collections.abc import Iterable
 from functools import partial
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 
@@ -23,7 +23,7 @@ from app.core.logger import get_logger
 logger = get_logger(__name__)
 
 
-def read_as_df(file_path: Union[str, Path], **kwargs) -> pd.DataFrame:
+def read_as_df(file_path: str | Path, **kwargs) -> pd.DataFrame:
     """
     Read a csv or parquet file into a pandas DataFrame.
 
@@ -183,21 +183,21 @@ class DumpDataBase:
             df = df.dropna(subset=[self.date_field_name])
         # df.drop_duplicates([self.date_field_name], inplace=True)
         return df
-    
+
     def _clean_invalid_dates(self, df: pd.DataFrame) -> pd.DataFrame:
         """清洗无效的日期数据"""
         if self.date_field_name not in df.columns:
             return df
-        
+
         # 定义有效日期的正则表达式模式 (YYYY-MM-DD)
         import re
         date_pattern = re.compile(r'^\d{4}-\d{2}-\d{2}$')
-        
+
         # 标记无效的日期
         mask = df[self.date_field_name].apply(
             lambda x: isinstance(x, str) and bool(date_pattern.match(x))
         )
-        
+
         # 记录清洗掉的无效日期数量
         invalid_count = (~mask).sum()
         if invalid_count > 0:
@@ -216,7 +216,7 @@ class DumpDataBase:
         )
 
     @staticmethod
-    def _read_calendars(calendar_path: Path) -> List[pd.Timestamp]:
+    def _read_calendars(calendar_path: Path) -> list[pd.Timestamp]:
         return sorted(
             map(
                 pd.Timestamp,
@@ -243,7 +243,7 @@ class DumpDataBase:
         result_calendars_list = [self._format_datetime(x) for x in calendars_data]
         np.savetxt(calendars_path, result_calendars_list, fmt="%s", encoding="utf-8")
 
-    def save_instruments(self, instruments_data: Union[list, pd.DataFrame]):
+    def save_instruments(self, instruments_data: list | pd.DataFrame):
         self._instruments_dir.mkdir(parents=True, exist_ok=True)
         instruments_path = str(self._instruments_dir.joinpath(self.INSTRUMENTS_FILE_NAME).resolve())
         if isinstance(instruments_data, pd.DataFrame):
@@ -256,7 +256,7 @@ class DumpDataBase:
         else:
             np.savetxt(instruments_path, instruments_data, fmt="%s", encoding="utf-8")
 
-    def data_merge_calendar(self, df: pd.DataFrame, calendars_list: List[pd.Timestamp]) -> pd.DataFrame:
+    def data_merge_calendar(self, df: pd.DataFrame, calendars_list: list[pd.Timestamp]) -> pd.DataFrame:
         # calendars
         calendars_df = pd.DataFrame(data=calendars_list, columns=[self.date_field_name])
         calendars_df[self.date_field_name] = calendars_df[self.date_field_name].astype("datetime64[ns]")
@@ -271,10 +271,10 @@ class DumpDataBase:
         return r_df
 
     @staticmethod
-    def get_datetime_index(df: pd.DataFrame, calendar_list: List[pd.Timestamp]) -> int:
+    def get_datetime_index(df: pd.DataFrame, calendar_list: list[pd.Timestamp]) -> int:
         return calendar_list.index(df.index.min())
 
-    def _data_to_bin(self, df: pd.DataFrame, calendar_list: List[pd.Timestamp], features_dir: Path):
+    def _data_to_bin(self, df: pd.DataFrame, calendar_list: list[pd.Timestamp], features_dir: Path):
         if df.empty:
             logger.warning(f"{features_dir.name} data is None or empty")
             return
@@ -300,7 +300,7 @@ class DumpDataBase:
                 # append; self._mode == self.ALL_MODE or not bin_path.exists()
                 np.hstack([date_index, _df[field]]).astype("<f").tofile(str(bin_path.resolve()))
 
-    def _dump_bin(self, file_or_data: [Path, pd.DataFrame], calendar_list: List[pd.Timestamp]):
+    def _dump_bin(self, file_or_data: [Path, pd.DataFrame], calendar_list: list[pd.Timestamp]):
         if not calendar_list:
             logger.warning("calendar_list is empty")
             return

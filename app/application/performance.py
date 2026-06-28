@@ -3,7 +3,8 @@ from __future__ import annotations
 
 from functools import wraps
 import time
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 
 from app.core.logger import get_logger
 from app.infrastructure.memory_cache import CacheEntry, MemoryCache, get_cache
@@ -14,7 +15,7 @@ logger = get_logger(__name__)
 class CachedDomainService:
     """Domain service with caching."""
 
-    def __init__(self, cache: Optional[MemoryCache] = None):
+    def __init__(self, cache: MemoryCache | None = None):
         self._cache = cache or get_cache()
 
     def cache_result(
@@ -28,7 +29,7 @@ class CachedDomainService:
         return self._cache.get_or_compute(key, lambda: fn(*args, **kwargs), ttl)
 
 
-def cached(ttl: int = 300, key_fn: Optional[Callable] = None):
+def cached(ttl: int = 300, key_fn: Callable | None = None):
     """Decorator for caching function results."""
     cache = get_cache()
 

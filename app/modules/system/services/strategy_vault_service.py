@@ -6,12 +6,10 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
-import struct
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from app.core.logger import get_logger
 

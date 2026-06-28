@@ -3,8 +3,6 @@ from __future__ import annotations
 
 
 import pandas as pd
-import io
-import contextlib
 from typing import Any
 from datetime import datetime, timedelta
 import numpy as np
@@ -16,13 +14,6 @@ from ...core.engine import HolyGrailEnsembleEngine
 from ...core.factory import StrategyFactory
 from ...core.risk_controls import (
     RiskControlParams,
-    TradeCostParams,
-    compute_atr,
-    compute_liquidity_filters,
-    load_default_risk_params,
-    load_default_trade_cost_params,
-    load_default_position_sizing_params,
-    round_shares_for_market,
 )
 from ...models import ALL_STRATEGIES
 
@@ -49,7 +40,7 @@ class DefaultStrategyProvider(StrategyProvider):
         import time
         t0 = time.monotonic()
         target_models = []
-        
+
         if strategy_name.startswith("horizon:"):
             target_horizon = strategy_name.replace("horizon:", "").strip()
             target_models = [m for m in self._all_models if target_horizon in m.horizon_tags()]
@@ -60,7 +51,7 @@ class DefaultStrategyProvider(StrategyProvider):
             target_models = self._all_models
         else:
             target_models = [
-                m for m in self._all_models 
+                m for m in self._all_models
                 if strategy_name.lower() in m.name.lower() or strategy_name.lower() in m.__class__.__name__.lower()
             ]
 
@@ -88,7 +79,7 @@ class DefaultStrategyProvider(StrategyProvider):
                 "rating": "A" if row["共振得分"] >= 80 else "B",
                 "buy_signals": row["主力买入逻辑"].split(" | ")
             })
-        
+
         total_ms = (time.monotonic() - t0) * 1000
         logger.info(
             "[%s] 挂载 %s 模型 | 准备 %sms | 扫描 %sms | 总计 %sms",
@@ -106,7 +97,7 @@ class DefaultStrategyProvider(StrategyProvider):
         try:
             end_date = datetime.now().strftime("%Y-%m-%d")
             start_date = (datetime.now() - timedelta(days=220)).strftime("%Y-%m-%d")
-            
+
             if market == MarketCode.CN:
                 from ..database.stock_cache_db import StockCache
                 cache = self._cache or StockCache()
@@ -129,7 +120,7 @@ class DefaultStrategyProvider(StrategyProvider):
                         data_dict[code].attrs["name"] = name
         except Exception as e:
             logger.warning("Prepare scan data failed [%s]: %s", market.value, e, exc_info=True)
-        
+
         return data_dict
 
     def _history_to_df(self, history: list[dict[str, Any]]) -> pd.DataFrame:
@@ -210,7 +201,7 @@ class DefaultBacktestProvider(BacktestProvider):
             history = provider.get_stock_history(sym, MarketCode.CN, start, end)
             if not history:
                 continue
-            
+
             # First, deduplicate any duplicate keys in history records
             deduped = []
             for rec in history:
@@ -223,7 +214,7 @@ class DefaultBacktestProvider(BacktestProvider):
                         new_rec[k_lower if k_lower in ('date','open','high','low','close','volume','amount') else k] = v
                         seen.add(k_lower)
                 deduped.append(new_rec)
-            
+
             df = pd.DataFrame(deduped)
             rename_map = {
                 'date': 'Date', 'open': 'Open', 'high': 'High',
@@ -249,7 +240,7 @@ class DefaultBacktestProvider(BacktestProvider):
         else:
             report = self._simulate_portfolio_backtest(dfs, strategy, initial_capital)
             sym_out = ",".join(dfs.keys())
-        
+
         return BacktestReport(
             strategy=strategy.name,
             symbol=sym_out,
@@ -368,215 +359,6 @@ class DefaultBacktestProvider(BacktestProvider):
         """多标的组合回测 - 委托给BacktestEngine."""
         engine = BacktestEngine()
         return engine.simulate_portfolio_backtest(dfs, strategy, initial_capital)
-        positions: dict[str, dict[str, float]] = {}  # sym -> {shares, entry_px, entry_cost, high}
-        trades: list[dict[str, Any]] = []
-
-        diag = {
-            "blocked_buy_liquidity": 0,
-            "blocked_buy_sentiment": 0,
-            "blocked_buy_constraints": 0,
-            "blocked_sell_constraints": 0,
-            "stop_loss_count": 0,
-            "total_fee": 0.0,
-            "total_tax": 0.0,
-            "max_positions": int(max(1, sizing.max_positions)),
-            "sizing_mode": sizing.mode,
-        }
-
-        use_sent_bt = bool(risk.sentiment_gate) and bool(risk.backtest_sentiment_gate)
-        diag["sentiment_gate_backtest"] = use_sent_bt
-        diag["sentiment_score_latest_cache"] = float(self._latest_cn_sentiment_score())
-
-        for t in range(len(cal)):
-            # 先处理止损/卖出
-            for sym in list(positions.keys()):
-                x = df_by_sym[sym]
-                if t >= len(x):
-                    continue
-                row = x.iloc[t]
-                px = float(pd.to_numeric(pd.Series([row.get("Close")]), errors="coerce").iloc[0] or 0)
-                if px <= 0 or not np.isfinite(px):
-                    continue
-                pos = positions[sym]
-                shares = int(pos["shares"])
-                entry_px = float(pos["entry_px"])
-                high_px = float(pos.get("high_px") or entry_px)
-                high_px = max(high_px, px)
-                pos["high_px"] = high_px
-
-                hard_stop = entry_px * (1.0 + float(risk.stop_loss_pct))
-                trail_stop = hard_stop
-                a = atr_map[sym].iat[t] if t < len(atr_map[sym]) else np.nan
-                if risk.trailing_atr and pd.notna(a) and a > 0:
-                    trail_stop = max(trail_stop, high_px - float(risk.atr_mult) * float(a))
-
-                want_sell = (sig_map[sym].iat[t] == -1)
-                stop_hit = px < trail_stop
-                if not (want_sell or stop_hit):
-                    continue
-
-                ok, reason = self._can_trade_cn(x, t, side="SELL", limit_thr=sizing.limit_threshold)
-                if not ok:
-                    diag["blocked_sell_constraints"] += 1
-                    continue
-                slip = float(costs.slippage_bps) / 10000.0
-                exec_px = px * (1.0 - slip)
-                gross = exec_px * float(shares)
-                fee = max(float(costs.min_fee), gross * float(costs.close_commission))
-                tax = gross * float(costs.stamp_duty)
-                net = gross - fee - tax
-                cash += net
-                diag["total_fee"] += float(fee)
-                diag["total_tax"] += float(tax)
-                profit = net - float(pos["entry_cost"])
-                trades.append(
-                    {
-                        "date": str(row.get("Date")),
-                        "symbol": sym,
-                        "action": "SELL",
-                        "reason": "STOP_LOSS" if stop_hit else "SIGNAL",
-                        "price": float(exec_px),
-                        "quantity": shares,
-                        "qty": shares,
-                        "profit": float(profit),
-                        "fee": float(fee),
-                        "tax": float(tax),
-                        "slippage_bps": float(costs.slippage_bps),
-                    }
-                )
-                if stop_hit:
-                    diag["stop_loss_count"] += 1
-                del positions[sym]
-
-            # 再处理买入（受 max_positions 约束）
-            if len(positions) >= int(max(1, sizing.max_positions)):
-                continue
-
-            if use_sent_bt:
-                sent_t = self._cn_sentiment_for_trade_date(cal[t], df_by_sym=df_by_sym, bar_index=t)
-                if float(sent_t) < float(risk.sentiment_min_score):
-                    # 逐日情绪门：库表 / 组合横截面 / 回退
-                    for sym, x in df_by_sym.items():
-                        if sym in positions or t >= len(x):
-                            continue
-                        if int(sig_map[sym].iat[t]) == 1:
-                            diag["blocked_buy_sentiment"] += 1
-                    continue
-
-            for sym, x in df_by_sym.items():
-                if sym in positions:
-                    continue
-                if len(positions) >= int(max(1, sizing.max_positions)):
-                    break
-                if t >= len(x):
-                    continue
-                if int(sig_map[sym].iat[t]) != 1:
-                    continue
-                if t < len(filt_map[sym]) and not bool(filt_map[sym].iat[t]):
-                    diag["blocked_buy_liquidity"] += 1
-                    continue
-                ok, reason = self._can_trade_cn(x, t, side="BUY", limit_thr=sizing.limit_threshold)
-                if not ok:
-                    diag["blocked_buy_constraints"] += 1
-                    continue
-                row = x.iloc[t]
-                px = float(pd.to_numeric(pd.Series([row.get("Close")]), errors="coerce").iloc[0] or 0)
-                if px <= 0 or not np.isfinite(px):
-                    continue
-                slip = float(costs.slippage_bps) / 10000.0
-                exec_px = px * (1.0 + slip)
-                if exec_px <= 0:
-                    continue
-
-                equity = float(cash)
-                max_shares_cash = int(equity // exec_px)
-                max_shares_weight = int((equity * float(sizing.max_weight)) // exec_px) if 0 < sizing.max_weight < 1 else max_shares_cash
-
-                hard_stop_px = exec_px * (1.0 + float(risk.stop_loss_pct))
-                a = atr_map[sym].iat[t] if t < len(atr_map[sym]) else np.nan
-                stop_px = max(hard_stop_px, exec_px - float(risk.atr_mult) * float(a)) if pd.notna(a) and a > 0 else hard_stop_px
-                per_share_risk = max(0.0, exec_px - float(stop_px))
-                risk_shares = max_shares_cash
-                if per_share_risk > 0 and sizing.risk_per_trade > 0:
-                    risk_budget = equity * float(sizing.risk_per_trade)
-                    risk_shares = int(risk_budget // per_share_risk)
-
-                mode = (sizing.mode or "hybrid").strip().lower()
-                if mode == "full":
-                    desired = max_shares_cash
-                elif mode == "max_weight":
-                    desired = min(max_shares_cash, max_shares_weight)
-                elif mode == "risk":
-                    desired = min(max_shares_cash, risk_shares)
-                else:
-                    desired = min(max_shares_cash, max_shares_weight, risk_shares)
-
-                shares = round_shares_for_market(desired, market="CN", lot_size_cn=sizing.cn_lot_size)
-                if shares <= 0:
-                    continue
-                gross = exec_px * float(shares)
-                fee = max(float(costs.min_fee), gross * float(costs.open_commission))
-                total = gross + fee
-                if total > cash:
-                    step = int(sizing.cn_lot_size) if int(sizing.cn_lot_size) > 0 else 100
-                    shares = round_shares_for_market(max(0, shares - step), market="CN", lot_size_cn=sizing.cn_lot_size)
-                    if shares <= 0:
-                        continue
-                    gross = exec_px * float(shares)
-                    fee = max(float(costs.min_fee), gross * float(costs.open_commission))
-                    total = gross + fee
-                if total > cash:
-                    continue
-                cash -= total
-                diag["total_fee"] += float(fee)
-                trades.append(
-                    {
-                        "date": str(row.get("Date")),
-                        "symbol": sym,
-                        "action": "BUY",
-                        "reason": "SIGNAL",
-                        "price": float(exec_px),
-                        "quantity": int(shares),
-                        "qty": int(shares),
-                        "profit": 0.0,
-                        "fee": float(fee),
-                        "tax": 0.0,
-                        "slippage_bps": float(costs.slippage_bps),
-                    }
-                )
-                positions[sym] = {"shares": float(shares), "entry_px": float(exec_px), "entry_cost": float(total), "high_px": float(exec_px)}
-
-        # 期末估值：按可卖出净值估计（含滑点/费税）
-        equity = cash
-        for sym, pos in positions.items():
-            x = df_by_sym[sym]
-            if x.empty:
-                continue
-            px = float(pd.to_numeric(x["Close"], errors="coerce").iloc[-1] or 0)
-            if px <= 0 or not np.isfinite(px):
-                continue
-            slip = float(costs.slippage_bps) / 10000.0
-            exec_px = px * (1.0 - slip)
-            gross = exec_px * float(pos["shares"])
-            fee = max(float(costs.min_fee), gross * float(costs.close_commission))
-            tax = gross * float(costs.stamp_duty)
-            equity += gross - fee - tax
-
-        total_return = (equity - float(initial_capital)) / float(initial_capital) * 100.0 if initial_capital > 0 else 0.0
-        metrics = {
-            "final_value": round(float(equity), 2),
-            "total_return": round(float(total_return), 2),
-            "annual_return": round(float(total_return), 2),
-            "max_drawdown": 0,
-            "sharpe_ratio": 0,
-            "stock_data": {},
-            "diagnostics": {
-                **diag,
-                "total_fee": round(float(diag["total_fee"]), 2),
-                "total_tax": round(float(diag["total_tax"]), 2),
-            },
-        }
-        return {"metrics": metrics, "trades": trades}
 
     def _simulate_backtest(self, df: pd.DataFrame, initial_capital: float) -> dict:
         """单标的回测 - 委托给BacktestEngine."""

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from celery import shared_task
 from app.core.logger import get_logger
-from app.config import AppSettings, BASE_DIR, get_settings
+from app.config import AppSettings, get_settings
 
 
 logger = get_logger(__name__)
@@ -20,9 +20,9 @@ def _get_analysis_repo(s: AppSettings):
 def scheduled_daily_analysis(user_id: int):
     """每日自选股定时分析任务。"""
     logger.info(f"触发每日自选股分析任务: user_id={user_id}")
-    
+
     settings = get_settings()
-    
+
     from app.bootstrap_components.repositories import create_repositories
     from app.modules.ai_agent.services.fingpt_application_service import FinGPTApplicationService
     from app.agents.trading_agents_service import TradingAgentsService
@@ -37,11 +37,11 @@ def scheduled_daily_analysis(user_id: int):
     )
     agents_service = TradingAgentsService(fingpt_application_service=fingpt_app)
     service = DailyAnalysisApplicationService(agents_service)
-    
+
     from app.application.request_executor import run_async
 
     run_async(service.run_daily_watchlist_analysis(user_id))
-    
+
     logger.info("每日自选股分析任务完成")
 
 
@@ -49,18 +49,18 @@ def scheduled_daily_analysis(user_id: int):
 def validate_ai_predictions():
     """验证 AI 历史预测的准确性任务。"""
     logger.info("触发 AI 预测验证任务...")
-    
+
     settings = get_settings()
-    
+
     from app.modules.ai_agent.services.analysis.analysis_prediction_service import AnalysisPredictionService
     from app.bootstrap_components.providers import create_providers
-    
+
     repo = _get_analysis_repo(settings)
     providers = create_providers()
     validator = AnalysisPredictionService(repo, providers.market_provider)
-    
+
     from app.application.request_executor import run_async
 
     run_async(validator.validate_all_pending())
-    
+
     logger.info("AI 预测验证任务完成")

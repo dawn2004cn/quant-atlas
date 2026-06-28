@@ -8,9 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import logging
 
-from app.core.key_encryption import KeyEncryptionService, encrypt, decrypt
+from app.core.key_encryption import encrypt, decrypt
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)

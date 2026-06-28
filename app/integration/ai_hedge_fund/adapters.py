@@ -2,10 +2,9 @@ from __future__ import annotations
 """Adapters for AI Hedge Fund integration."""
 
 
-import logging
 from typing import Any
 
-from app.integration.hedge_fund.agents.runner import run_agent, run_agents
+from app.integration.hedge_fund.agents.runner import run_agents
 from app.integration.hedge_fund.agents.base import AgentAnalysisContext
 from app.integration.hedge_fund.agents import list_all_agents
 
@@ -148,11 +147,11 @@ class RDAgentValidationAdapter:
         search_space = "stocks"
 
         if signal == "bullish":
-            factor_type = "momentum"
+            pass
         elif signal == "bearish":
-            factor_type = "reversal"
+            pass
         else:
-            factor_type = "alpha"
+            pass
 
         thesis = f"AI-Hedge-Fund {signal.upper()} signal for {symbol}. "
         thesis += " ".join([

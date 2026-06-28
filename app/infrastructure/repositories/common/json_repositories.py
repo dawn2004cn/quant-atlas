@@ -371,7 +371,7 @@ class JsonWatchlistRepository(WatchlistRepository):
 
     def _read(self) -> dict:
         if self._path.exists():
-            with open(self._path, "r", encoding="utf-8") as f:
+            with open(self._path, encoding="utf-8") as f:
                 return json.load(f)
         return {}
 
@@ -421,7 +421,7 @@ class JsonStockGroupRepository(StockGroupRepository):
 
     def _read(self) -> dict:
         if self._path.exists():
-            with open(self._path, "r", encoding="utf-8") as f:
+            with open(self._path, encoding="utf-8") as f:
                 return json.load(f)
         return {}
 

@@ -12,7 +12,7 @@ import traceback
 from collections.abc import Callable
 from typing import Any
 
-from flask import jsonify, Response
+from flask import Response
 from flask_login import current_user
 
 from app.application.errors import ApplicationError, ExternalServiceError, ValidationError

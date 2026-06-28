@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar, Optional
+from typing import Generic, TypeVar
+from collections.abc import Callable
 
 T = TypeVar('T')
 
@@ -16,23 +17,23 @@ class Page(Generic[T]):
     page: int
     page_size: int
     total_items: int
-    
+
     @property
     def total_pages(self) -> int:
         return math.ceil(self.total_items / self.page_size) if self.page_size else 1
-    
+
     @property
     def has_next(self) -> bool:
         return self.page < self.total_pages
-    
+
     @property
     def has_previous(self) -> bool:
         return self.page > 1
-    
+
     @property
     def start_index(self) -> int:
         return (self.page - 1) * self.page_size + 1
-    
+
     @property
     def end_index(self) -> int:
         return min(self.page * self.page_size, self.total_items)
@@ -48,11 +49,11 @@ def paginate(
         page = 1
     if page_size < 1:
         page_size = 20
-    
+
     total = len(items)
     start = (page - 1) * page_size
     end = start + page_size
-    
+
     return Page(
         items=items[start:end],
         page=page,
@@ -65,19 +66,19 @@ def paginate_query(
     query_fn: Callable[[int, int], list[T]],
     page: int = 1,
     page_size: int = 20,
-    total_fn: Optional[Callable[[], int]] = None
+    total_fn: Callable[[], int] | None = None
 ) -> Page[T]:
     """Paginate a database query."""
     if page < 1:
         page = 1
     if page_size < 1:
         page_size = 20
-    
+
     total = total_fn() if total_fn else 0
     offset = (page - 1) * page_size
-    
+
     items = query_fn(offset, page_size)
-    
+
     return Page(
         items=items,
         page=page,
@@ -88,14 +89,14 @@ def paginate_query(
 
 class Paginator:
     """Paginator for iterables."""
-    
+
     def __init__(self, items: list[T], page_size: int = 20):
         self._items = items
         self._page_size = page_size
-    
+
     def get_page(self, page: int) -> Page[T]:
         return paginate(self._items, page, self._page_size)
-    
+
     def get_all_pages(self) -> list[Page[T]]:
         total_pages = math.ceil(len(self._items) / self._page_size)
         return [self.get_page(i) for i in range(1, total_pages + 1)]

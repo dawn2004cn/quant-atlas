@@ -7,27 +7,27 @@ from typing import Any
 from sqlalchemy import select, desc
 
 from app.domain.ports import PaymentRepository
-from app.domain.payment_entities import PaymentIntent, Refund, GatewayConfig, PaymentStatus, RefundStatus
+from app.domain.payment_entities import PaymentIntent, Refund, GatewayConfig, PaymentStatus
 from app.infrastructure.database.models.trading import GatewayConfig as DBGatewayConfig, PaymentIntent as DBPaymentIntent, PaymentRefund as DBPaymentRefund
 
 
 class MySQLPaymentRepository(PaymentRepository):
     def __init__(self, session_factory):
         self._session_factory = session_factory
-    
+
     def create_payment(self, payment_data: dict) -> dict:
         """Create a new payment."""
         payment_id = payment_data.get("id", "payment_stub")
         return {"id": payment_id, "status": "pending", **payment_data}
-    
+
     def get_payment(self, payment_id: str) -> Any | None:
         """Get payment by ID (stub for interface compatibility)."""
         return None
-    
+
     def update_payment_status(self, payment_id: str, status: str) -> bool:
         """Update payment status (stub for interface compatibility)."""
         return True
-    
+
     def save_payment(self, payment: Any) -> str:
         """Save payment (stub for interface compatibility)."""
         if hasattr(payment, 'intent_id'):
@@ -41,7 +41,7 @@ class MySQLPaymentRepository(PaymentRepository):
             if not db_intent:
                 db_intent = DBPaymentIntent(intent_id=intent.intent_id)
                 session.add(db_intent)
-            
+
             db_intent.amount = intent.amount
             db_intent.currency = intent.currency
             db_intent.status = intent.status.value
@@ -50,7 +50,7 @@ class MySQLPaymentRepository(PaymentRepository):
             db_intent.customer_id = intent.customer_id
             db_intent.metadata_json = json.dumps(intent.metadata)
             db_intent.error_message = intent.error_message
-            
+
             session.commit()
         except Exception:
             session.rollback()
@@ -87,13 +87,13 @@ class MySQLPaymentRepository(PaymentRepository):
             if not db_refund:
                 db_refund = DBPaymentRefund(refund_id=refund.refund_id)
                 session.add(db_refund)
-            
+
             db_refund.intent_id = refund.intent_id
             db_refund.amount = refund.amount
             db_refund.status = refund.status.value
             db_refund.external_refund_id = refund.external_refund_id
             db_refund.error_message = refund.error_message
-            
+
             session.commit()
         except Exception:
             session.rollback()

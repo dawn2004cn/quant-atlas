@@ -3,7 +3,6 @@ from __future__ import annotations
 
 
 from dataclasses import dataclass, field
-from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -167,7 +166,7 @@ class DefaultWalkForwardOptimizer(WalkForwardOptimizerPort):
         prices = data["Close"] if "Close" in data.columns else data.iloc[:, 0]
 
         period = int(params.get("period", 20))
-        threshold = params.get("threshold", 0.02)
+        params.get("threshold", 0.02)
 
         if len(prices) < period + 1:
             return {"sharpe_ratio": -999, "total_return": -1}

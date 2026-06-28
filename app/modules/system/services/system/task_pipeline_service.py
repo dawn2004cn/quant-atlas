@@ -1,7 +1,6 @@
 from __future__ import annotations
 """Task pipeline application service for DAG visualization."""
 
-from typing import List, Optional
 
 from app.core.base_service import BaseApplicationService
 from app.core.registry import register_service
@@ -56,7 +55,7 @@ class TaskPipelineService(BaseApplicationService):
         status = "failed" if error else "completed"
         self._tracker.complete_node(pipeline_id, task_id, status, error)
 
-    def get_pipeline(self, pipeline_id: str) -> Optional[PipelineDTO]:
+    def get_pipeline(self, pipeline_id: str) -> PipelineDTO | None:
         pipeline = self._tracker.get_pipeline(pipeline_id)
         if not pipeline:
             return None
@@ -81,7 +80,7 @@ class TaskPipelineService(BaseApplicationService):
             root_task_ids=pipeline.root_task_ids,
         )
 
-    def list_pipelines(self) -> List[PipelineSummaryDTO]:
+    def list_pipelines(self) -> list[PipelineSummaryDTO]:
         pipelines = self._tracker.list_active_pipelines()
         return [self._format_summary(p) for p in pipelines]
 

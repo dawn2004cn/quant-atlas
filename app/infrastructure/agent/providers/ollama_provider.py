@@ -2,11 +2,9 @@ from __future__ import annotations
 """Local LLM provider using Ollama for high-performance, private inference."""
 
 
-import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 import requests
 
-from app.infrastructure.agent.swarm.tools_base import BaseTool
 from app.infrastructure.agent.providers.chat import LLMResponse
 
 
@@ -21,14 +19,14 @@ class OllamaProvider:
         self.model_name = model_name
         self.base_url = base_url
 
-    def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None) -> LLMResponse:
+    def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> LLMResponse:
         """Call local Ollama model."""
         payload = {
             "model": self.model_name,
             "messages": messages,
             "stream": False
         }
-        
+
         try:
             response = requests.post(
                 f"{self.base_url}/api/chat",
@@ -37,10 +35,10 @@ class OllamaProvider:
             )
             response.raise_for_status()
             data = response.json()
-            
+
             content = data.get("message", {}).get("content", "")
             return LLMResponse(content=content, finish_reason="stop")
-            
+
         except Exception as e:
             logger.error(f"Ollama local inference failed: {e}")
             return LLMResponse(content=f"Inference error: {str(e)}", finish_reason="error")

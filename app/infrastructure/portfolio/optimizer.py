@@ -2,9 +2,7 @@ from __future__ import annotations
 """Portfolio optimization implementations."""
 
 
-import logging
 import numpy as np
-from typing import Any
 
 from ...domain.ports.portfolio_ports import (
     PortfolioAsset,
@@ -121,7 +119,7 @@ class MarkowitzOptimizer(PortfolioOptimizerPort):
         )
 
     def _build_cov_matrix(self, volatilities: np.ndarray) -> np.ndarray:
-        n = len(volatilities)
+        len(volatilities)
         cov = np.outer(volatilities, volatilities)
         np.fill_diagonal(cov, volatilities ** 2)
         return cov
@@ -231,7 +229,7 @@ class BlackLittermanOptimizer(PortfolioOptimizerPort):
         )
 
     def _build_cov_matrix(self, volatilities: np.ndarray) -> np.ndarray:
-        n = len(volatilities)
+        len(volatilities)
         cov = np.outer(volatilities, volatilities)
         np.fill_diagonal(cov, volatilities ** 2)
         return cov

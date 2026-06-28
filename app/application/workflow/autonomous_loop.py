@@ -2,11 +2,10 @@ from __future__ import annotations
 """Autonomous Loop Controller - Self-Driving Pipeline for Alpha Factory."""
 
 
-import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from app.domain.alpha.dynamic_strategy_synthesis import (
     MarketRegime,
@@ -15,13 +14,11 @@ from app.domain.alpha.dynamic_strategy_synthesis import (
 from app.domain.alpha.dynamic_search import get_decay_analyzer
 from app.domain.alpha.postmortem_analysis import get_postmortem_analyzer
 from app.domain.alpha.high_fidelity_research import (
-    HighFidelityResearchLoop,
     get_production_research_bridge,
 )
 
 from app.domain.events_core import DomainEvent, EventType, EventPriority, publish_event_async
 from app.domain.events_core import FactorDecayDetectedEvent, MarketRegimeChangedEvent
-from app.domain.ports import IKnowledgeStore
 
 from app.modules.data.services.rdagent_run_service import RDAgentRunService
 
@@ -146,7 +143,6 @@ class AutonomousLoopController:
         - Uses log-return difference for stable measure
         - Handles negative returns correctly
         """
-        import math
 
         if backtest_return == 0:
             return None

@@ -1,7 +1,8 @@
 from __future__ import annotations
 """Unified L1 (memory) + L2 (Redis) cache facade."""
 
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.infrastructure.cache.coalesce import get_or_set_coalesced
 
@@ -11,7 +12,7 @@ from app.infrastructure.memory_cache import MemoryCache, get_cache
 
 logger = get_logger(__name__)
 
-_manager: "CacheManager | None" = None
+_manager: CacheManager | None = None
 
 
 class CacheManager:

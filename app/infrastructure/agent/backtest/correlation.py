@@ -6,7 +6,7 @@ over a configurable lookback window. Used by the /correlation API endpoint.
 """
 
 
-from typing import Dict, Literal
+from typing import Literal
 
 import pandas as pd
 import numpy as np
@@ -33,7 +33,7 @@ def infer_market(code: str) -> str:
 
 
 def _rolling_correlation_matrix(
-    price_series: Dict[str, pd.DataFrame],
+    price_series: dict[str, pd.DataFrame],
     window: int,
     method: Literal["pearson", "spearman"],
 ) -> tuple[list[str], list[list[float]]]:
@@ -111,7 +111,7 @@ def compute_correlation_matrix(
     codes: list[str],
     days: int = 90,
     method: Literal["pearson", "spearman"] = "pearson",
-) -> Dict[str, object]:
+) -> dict[str, object]:
     """Fetch price data and compute correlation matrix for a list of assets.
 
     Args:
@@ -130,7 +130,7 @@ def compute_correlation_matrix(
     # Import here to avoid circular
     from backtest.loaders.registry import resolve_loader
 
-    price_series: Dict[str, pd.DataFrame] = {}
+    price_series: dict[str, pd.DataFrame] = {}
 
     for code in codes:
         market = infer_market(code)

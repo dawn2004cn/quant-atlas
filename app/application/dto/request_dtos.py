@@ -2,7 +2,6 @@ from __future__ import annotations
 """Example DTOs for API request validation."""
 
 
-from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -36,7 +35,7 @@ class PortfolioRequestDTO(BaseModel):
     action: str = Field(description="buy, sell, adjust")
     symbol: str
     quantity: float = Field(gt=0, description="Quantity must be positive")
-    price: Optional[float] = Field(default=None, description="Limit price")
+    price: float | None = Field(default=None, description="Limit price")
 
     @field_validator('action')
     @classmethod

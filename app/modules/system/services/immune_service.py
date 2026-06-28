@@ -3,8 +3,7 @@ from app.domain.dto.service_result import GenericResponseDTO
 """Strategy Immune System: Automated self-healing for trading strategies."""
 
 
-import logging
-from typing import Any, Optional
+from typing import Any
 from app.core.logger import get_logger
 from app.modules.system.services.sentinel.sentinel_service import SentinelService
 
@@ -15,7 +14,7 @@ class StrategyImmuneService:
 
     def __init__(
         self,
-        sentinel: Optional[SentinelService] = None,
+        sentinel: SentinelService | None = None,
         runtime: object = None,
     ):
         self.sentinel = sentinel or SentinelService()
@@ -32,12 +31,12 @@ class StrategyImmuneService:
     def process_strategy_failure(self, strategy_id: str, diagnostics: dict[str, Any]) -> GenericResponseDTO:
         """Automatically analyze failure and patch the strategy."""
         logger.warning(f"Immune System activated for strategy {strategy_id}")
-        
+
         run = self._runtime.start_run(
             preset_name="red_teaming_swarm",
             user_vars={"strategy_id": strategy_id, "diagnostics": str(diagnostics)}
         )
-        
+
         return {
             "status": "remediating",
             "run_id": run.id,

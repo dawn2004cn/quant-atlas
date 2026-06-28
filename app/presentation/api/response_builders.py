@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
-from .responses import success_response, serialize
+from .responses import serialize
 
 
 def build_success_payload(*, data: Any, meta: dict[str, Any] | None = None) -> dict[str, Any]:

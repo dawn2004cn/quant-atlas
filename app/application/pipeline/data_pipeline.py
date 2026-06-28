@@ -9,7 +9,8 @@ for standardized data processing workflows.
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Generic, TypeVar
+from collections.abc import Callable
 
 from app.core.logger import get_logger
 
@@ -242,22 +243,22 @@ class PipelineBuilder:
         self._transformers: list[Transformer] = []
         self._writers: list[Writer] = []
 
-    def with_reader(self, source: str, read_fn: Callable[[], list[dict]]) -> "PipelineBuilder":
+    def with_reader(self, source: str, read_fn: Callable[[], list[dict]]) -> PipelineBuilder:
         """Add reader stage."""
         self._reader = Reader(source, read_fn)
         return self
 
-    def with_validator(self, validators: list[Callable[[dict], bool]]) -> "PipelineBuilder":
+    def with_validator(self, validators: list[Callable[[dict], bool]]) -> PipelineBuilder:
         """Add validator stage."""
         self._validators.append(Validator(validators))
         return self
 
-    def with_transformer(self, transformers: list[Callable[[dict], dict]]) -> "PipelineBuilder":
+    def with_transformer(self, transformers: list[Callable[[dict], dict]]) -> PipelineBuilder:
         """Add transformer stage."""
         self._transformers.append(Transformer(transformers))
         return self
 
-    def with_writer(self, destination: str, write_fn: Callable[[list[dict]], bool]) -> "PipelineBuilder":
+    def with_writer(self, destination: str, write_fn: Callable[[list[dict]], bool]) -> PipelineBuilder:
         """Add writer stage."""
         self._writers.append(Writer(destination, write_fn))
         return self

@@ -29,10 +29,10 @@ class OBVAccumulationStrategy(BaseTradingStrategy):
         # 优化：提取重复计算，提升性能
         roll_15_max = df['Close'].rolling(15).max()
         roll_15_min = df['Close'].rolling(15).min()
-        
+
         # 优化：防止除以0
         price_flat = (roll_15_max - roll_15_min) / roll_15_min.replace(0, np.nan) < 0.05
-        
+
         # OBV 创出 20 天新高
         obv_breakout = obv > obv.rolling(20).max().shift(1)
 
@@ -301,7 +301,7 @@ class VWAPPullbackStrategy(BaseTradingStrategy):
         # 计算 20 日滚动 VWAP (简化版锚定 VWAP)
         typical_price = (df['High'] + df['Low'] + df['Close']) / 3
         vol_price = typical_price * df['Volume']
-        
+
         # 优化：防止成交量为0导致的除零异常
         vol_sum = df['Volume'].rolling(20).sum()
         rolling_vwap = vol_price.rolling(20).sum() / vol_sum.replace(0, np.nan)
@@ -371,13 +371,13 @@ class ChoppinessIndexStrategy(BaseTradingStrategy):
         n = 14
         tr = AverageTrueRange(df['High'], df['Low'], df['Close'], 1).average_true_range()
         atr_sum = tr.rolling(n).sum()
-        
+
         high_max = df['High'].rolling(n).max()
         low_min = df['Low'].rolling(n).min()
-        
+
         # 优化：极其关键的除零保护！如果股价长达14天不动（一字板），high_max - low_min 会等于0
         price_range = (high_max - low_min).replace(0, np.nan)
-        
+
         # 计算 CHOP 指数
         chop = 100 * np.log10(atr_sum / price_range) / np.log10(n)
 

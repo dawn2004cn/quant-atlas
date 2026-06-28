@@ -1,14 +1,12 @@
 from __future__ import annotations
 from flask import Blueprint
-from flask_login import login_required
 from app.core.registry import register_routes
 from ...v1_context import ApiV1Context
 from app.core.logger import get_logger
 from app.domain.enums import MarketCode
 from app.domain.dto.stock_request_dto import StockHistoryRequest
 
-from ...common import ok_collection, ok_response, parse_market
-from ...decorators import service_fallback
+from ...common import ok_collection, parse_market
 from ...dto_validation import validate_request
 
 logger = get_logger(__name__)
@@ -16,7 +14,6 @@ logger = get_logger(__name__)
 @register_routes(name="stock_history", context="market_data", description="Stock history Kline")
 def register_stock_history(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     legacy = ctx.enable_legacy_response_fields
-    stock_service = ctx.stock_service
 
     @blueprint.get("/stocks/<market>/<symbol>/history")
 

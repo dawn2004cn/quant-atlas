@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ class UserLifecycleService:
 
     def __init__(
         self,
-        store_path: Optional[Path] = None,
+        store_path: Path | None = None,
         access_policy_service: Any | None = None,
         investment_profile_service: Any | None = None,
         page_preference_service: Any | None = None,
@@ -29,12 +29,12 @@ class UserLifecycleService:
         self._watchlist = watchlist_service
         self._groups = stock_group_service
         self._collab = collaboration_repository
-        self._data: Dict[str, Any] = self._load()
+        self._data: dict[str, Any] = self._load()
 
-    def _load(self) -> Dict[str, Any]:
+    def _load(self) -> dict[str, Any]:
         if self._store_path.exists():
             try:
-                with open(self._store_path, "r", encoding="utf-8") as f:
+                with open(self._store_path, encoding="utf-8") as f:
                     return json.load(f)
             except (json.JSONDecodeError, OSError):
                 return {}
@@ -45,12 +45,12 @@ class UserLifecycleService:
         with open(self._store_path, "w", encoding="utf-8") as f:
             json.dump(self._data, f, ensure_ascii=False, indent=2)
 
-    def get_settings(self, user: Any) -> Dict[str, Any]:
+    def get_settings(self, user: Any) -> dict[str, Any]:
         uid = getattr(user, "id", None) or getattr(user, "user_id", None)
         if uid is None:
             return {"error": "user has no id"}
 
-        settings: Dict[str, Any] = self._data.get(str(uid), {})
+        settings: dict[str, Any] = self._data.get(str(uid), {})
 
         # If collaboration repo is available, prefer SQL tenant data
         if self._collab is not None:

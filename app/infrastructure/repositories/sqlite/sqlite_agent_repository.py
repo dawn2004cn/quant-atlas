@@ -3,7 +3,6 @@
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any
 
 from app.domain.ports import AgentRepository
 from app.domain.agent_entities import MarketInsight, ReportInterpretation

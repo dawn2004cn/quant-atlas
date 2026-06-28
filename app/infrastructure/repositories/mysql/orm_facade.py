@@ -10,13 +10,11 @@
 5. MySQLSignalObservationRepository (高频信号记录)
 """
 from __future__ import annotations
-from typing import Any, Optional, List
 from datetime import datetime
-from sqlalchemy import select, func, and_, desc, update, delete
+from sqlalchemy import select, and_, desc, delete
 from sqlalchemy.orm import joinedload
 
 from app.core.logger import get_logger
-from app.infrastructure.database.orm import bootstrap_schema
 from app.infrastructure.database.models.auth import User, Role
 from app.infrastructure.database.models.market import (
     Watchlist, StockGroup, StockGroupItem, StockHistory
@@ -31,7 +29,7 @@ class ORMUserFacade:
     def __init__(self, session_factory):
         self._session_factory = session_factory
 
-    def list_users(self) -> List[dict]:
+    def list_users(self) -> list[dict]:
         """替代 list_users() - 使用 ORM eager load"""
         session = self._session_factory()
         try:
@@ -55,7 +53,7 @@ class ORMUserFacade:
             session.close()
             self._session_factory.remove()
 
-    def get_by_username(self, username: str) -> Optional[dict]:
+    def get_by_username(self, username: str) -> dict | None:
         """替代 get_by_username()"""
         session = self._session_factory()
         try:
@@ -109,7 +107,7 @@ class ORMWatchlistFacade:
     def __init__(self, session_factory):
         self._session_factory = session_factory
 
-    def list_symbols(self, user_id: int = 1) -> List[str]:
+    def list_symbols(self, user_id: int = 1) -> list[str]:
         """替代 list_symbols() - 使用 ORM where"""
         session = self._session_factory()
         try:
@@ -168,7 +166,7 @@ class ORMStockGroupFacade:
     def __init__(self, session_factory):
         self._session_factory = session_factory
 
-    def list_groups(self, user_id: int = 1) -> List[dict]:
+    def list_groups(self, user_id: int = 1) -> list[dict]:
         """替代 list_groups() - 使用 ORM order_by"""
         session = self._session_factory()
         try:
@@ -271,7 +269,7 @@ class ORMMarketDataFacade:
         start_date: str,
         end_date: str,
         limit: int = 1000
-    ) -> List[dict]:
+    ) -> list[dict]:
         """替代 get_history() - 使用 ORM filter + limit"""
         session = self._session_factory()
         try:
@@ -339,7 +337,7 @@ class ORMSignalObservationFacade:
         self,
         user_id: int = 1,
         limit: int = 100
-    ) -> List[dict]:
+    ) -> list[dict]:
         """?? list_recent() - ORM ????"""
         session = self._session_factory()
         try:

@@ -8,7 +8,6 @@ Ported from Vibe-Trading.
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
 
 from app.infrastructure.agent.utils.frontmatter import parse_frontmatter as _parse_frontmatter
 
@@ -42,7 +41,7 @@ def _tokenize(text: str) -> set[str]:
 class PersistentMemory:
     """File-based persistent memory that survives across sessions."""
 
-    def __init__(self, memory_dir: Optional[Path] = None) -> None:
+    def __init__(self, memory_dir: Path | None = None) -> None:
         self._dir = memory_dir or MEMORY_BASE
         self._dir.mkdir(parents=True, exist_ok=True)
         self._index_path = self._dir / "MEMORY.md"
@@ -62,8 +61,8 @@ class PersistentMemory:
     def snapshot(self) -> str:
         return self._snapshot
 
-    def _scan_entries(self) -> List[MemoryEntry]:
-        entries: List[MemoryEntry] = []
+    def _scan_entries(self) -> list[MemoryEntry]:
+        entries: list[MemoryEntry] = []
         for path in sorted(self._dir.glob("*.md")):
             if path.name == "MEMORY.md":
                 continue
@@ -82,7 +81,7 @@ class PersistentMemory:
             ))
         return entries
 
-    def find_relevant(self, query: str, max_results: int = MAX_RESULTS) -> List[MemoryEntry]:
+    def find_relevant(self, query: str, max_results: int = MAX_RESULTS) -> list[MemoryEntry]:
         query_tokens = _tokenize(query)
         if not query_tokens:
             return []

@@ -34,11 +34,6 @@ from .nodes import (
     sentiment_analyst_node,
     supervisor_node,
     technical_analyst_node,
-    TOOLS_COMMON,
-    TOOLS_FUNDAMENTAL,
-    TOOLS_BACKTEST,
-    TOOLS_TECHNICAL,
-    TOOLS_SENTIMENT,
     write_macro_evidence,
     write_fundamental_evidence,
 )
@@ -69,10 +64,10 @@ def build_custom_trading_graph(
     from ...agents.tiered_llm import create_orchestrator as get_tiered_llm_orchestrator
     from ...agents.global_tool_wrapper import get_global_tool_wrapper as get_evidence_aware_wrapper
 
-    bb = get_evidence_blackboard()
-    router = get_evidence_router()
-    tiered_llm = get_tiered_llm_orchestrator()
-    tool_wrapper = get_evidence_aware_wrapper()
+    get_evidence_blackboard()
+    get_evidence_router()
+    get_tiered_llm_orchestrator()
+    get_evidence_aware_wrapper()
 
     # Catalog (used by backtest node)
     strategy_catalog_text()

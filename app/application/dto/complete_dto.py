@@ -7,7 +7,7 @@ Following Phase 7: DTO Standardization plan.
 
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -104,25 +104,25 @@ class StockAnalysisResultDTO(BaseModel):
     code: str
     name: str = ""
     market: str = "CN"
-    
+
     quote: QuoteDTO | None = None
     profile: StockProfileDTO | None = None
-    
+
     indicators: list[TechnicalIndicatorDTO] = Field(default_factory=list)
     signals: list[str] = Field(default_factory=list)
-    
+
     sentiment: str = "neutral"
     score: float = 50.0  # 0-100 overall score
-    
+
     recommendation: str = "hold"  # buy, sell, hold
     confidence: float = 50.0
-    
+
     target_price: float | None = None
     stop_loss: float | None = None
-    
+
     risks: list[str] = Field(default_factory=list)
     highlights: list[str] = Field(default_factory=list)
-    
+
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
@@ -376,10 +376,10 @@ class WatchlistItemDTO(BaseModel):
     name: str = ""
     market: str = "CN"
     group_id: int = 0
-    
+
     current_price: float = 0.0
     change_pct: float = 0.0
-    
+
     added_at: datetime | None = None
     priority: int = 0
 
@@ -448,13 +448,13 @@ class AlertDTO(BaseModel):
     id: str = ""
     type: str  # risk, price, signal, system
     level: str = "info"  # info, warning, error, critical
-    
+
     title: str
     message: str
-    
+
     code: str | None = None
     related_id: str | None = None
-    
+
     read: bool = False
     created_at: datetime = Field(default_factory=datetime.now)
 
@@ -465,16 +465,16 @@ class TaskResultDTO(BaseModel):
     """Background task result DTO."""
     task_id: str
     status: str = "pending"  # pending, running, success, failed
-    
+
     result: Any = None
     error: str | None = None
-    
+
     progress: float = 0.0  # 0-100
     message: str = ""
-    
+
     started_at: datetime | None = None
     completed_at: datetime | None = None
-    
+
     @property
     def duration_seconds(self) -> float | None:
         if self.started_at and self.completed_at:
@@ -494,7 +494,7 @@ class APIResponse(BaseModel):
     @staticmethod
     def ok(data: Any = None) -> APIResponse:
         return APIResponse(success=True, data=data)
-    
+
     @staticmethod
     def error_response(message: str, data: Any = None) -> APIResponse:
         return APIResponse(success=False, error=message, data=data)
@@ -507,7 +507,7 @@ class PaginatedResponse(BaseModel):
     page: int = 1
     page_size: int = 20
     has_next: bool = False
-    
+
     @classmethod
     def create(cls, items: list[Any], total: int, page: int = 1, page_size: int = 20) -> PaginatedResponse:
         has_next = (page * page_size) < total

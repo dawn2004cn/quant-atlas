@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from .market_use_cases import (
     GetStockQuotesUseCase,
-    GetStockQuotesByStockServiceUseCase,
     GetMarketPanoramaUseCase,
     GetMarketMovementsUseCase,
     GetMarketSentimentUseCase,

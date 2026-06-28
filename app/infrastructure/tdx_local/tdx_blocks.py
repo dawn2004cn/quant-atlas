@@ -3,7 +3,6 @@ from __future__ import annotations
 
 
 from pathlib import Path
-from typing import Any
 
 
 def _norm_code6(s: str) -> str:

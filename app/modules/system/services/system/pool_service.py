@@ -18,7 +18,7 @@ class PoolApplicationService:
         symbols = [item.get("code", "") for item in strategy_payload.get("candidates", [])]
         quotes = self._market_service.list_quotes(market, symbols)
         quote_map = {q.code: q for q in quotes}
-        
+
         rows = []
         for idx, candidate in enumerate(strategy_payload.get("candidates", []), start=1):
             code = candidate.get("code", "")

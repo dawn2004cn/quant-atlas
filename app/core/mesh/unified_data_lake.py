@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 from dataclasses import dataclass
 from enum import Enum
 import pandas as pd
@@ -16,10 +16,10 @@ class DataScope(Enum):
 class DataQuery:
     symbol: str
     market: str
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
     interval: str = "1d"
-    columns: Optional[List[str]] = None
+    columns: list[str] | None = None
     scope: DataScope = DataScope.HISTORICAL
 
 class UnifiedDataStore(ABC):
@@ -40,7 +40,7 @@ class UnifiedDataStore(ABC):
         pass
 
     @abstractmethod
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Return storage health, latency, and capacity."""
         pass
 
@@ -53,7 +53,7 @@ class DataQualityFirewall:
     def __init__(self, strict_mode: bool = False):
         self.strict_mode = strict_mode
 
-    def validate(self, df: pd.DataFrame, query: DataQuery) -> Tuple[pd.DataFrame, List[str]]:
+    def validate(self, df: pd.DataFrame, query: DataQuery) -> tuple[pd.DataFrame, list[str]]:
         """
         Validates the dataframe against the query.
         Returns: (cleaned_df, list_of_warnings)

@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Any
 import requests
 import json
-import logging
 from snownlp import SnowNLP
 
 from app.core.logger import get_logger

@@ -6,7 +6,7 @@ from app.infrastructure.mappers.domain_mappers.base import DataMapper
 import json
 
 class MarketInsightMapper(DataMapper[MarketInsight, AgentMarketInsight]):
-    
+
     @staticmethod
     def to_domain(model: AgentMarketInsight) -> MarketInsight:
         return MarketInsight(

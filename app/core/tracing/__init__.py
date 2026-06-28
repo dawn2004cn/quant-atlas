@@ -14,7 +14,7 @@ from typing import Optional, Dict, Any
 # Lightweight trace ID propagation (contextvars) — always available
 # ---------------------------------------------------------------------------
 
-_trace_id_ctx: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
+_trace_id_ctx: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "trace_id", default=None
 )
 
@@ -32,12 +32,12 @@ def get_trace_id() -> str | None:
     return val
 
 
-def get_context_snapshot() -> Dict[contextvars.ContextVar, Any]:
+def get_context_snapshot() -> dict[contextvars.ContextVar, Any]:
     """Capture current context variables for propagation."""
     return {_trace_id_ctx: _trace_id_ctx.get()}
 
 
-def restore_context(snapshot: Dict[contextvars.ContextVar, Any]):
+def restore_context(snapshot: dict[contextvars.ContextVar, Any]):
     """Restore context variables in a child thread/context."""
     for var, value in snapshot.items():
         var.set(value)
@@ -62,7 +62,7 @@ except ImportError:
 
 def setup_otel(
     service_name: str = "quant-atlas",
-    jaeger_endpoint: Optional[str] = None,
+    jaeger_endpoint: str | None = None,
     console_export: bool = False,
 ) -> None:
     """Set up OpenTelemetry tracing.

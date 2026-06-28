@@ -3,7 +3,6 @@ from app.domain.dto.service_result import GenericResponseDTO
 """AI committee short-term stock selection service."""
 
 
-import hashlib
 import logging
 import uuid
 from dataclasses import dataclass

@@ -8,8 +8,7 @@ This module implements the outcome tracking from midify_plan8.md:
 """
 
 
-import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -112,7 +111,6 @@ class OutcomeRepository:
         """
         correct = 0
         total = 0
-        confidence_sum = 0.0
 
         for symbol, records in self._memory_store.items():
             for record in records:

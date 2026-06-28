@@ -3,9 +3,7 @@ from app.domain.dto.service_result import GenericResponseDTO
 """Daily analysis and reporting service."""
 
 
-import asyncio
 from datetime import datetime
-from typing import Any
 
 from app.core.logger import get_logger
 from app.domain.enums import MarketCode

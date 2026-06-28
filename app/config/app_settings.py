@@ -28,15 +28,13 @@ Migration strategy:
 from __future__ import annotations
 
 import os
-from enum import Enum
-from functools import cached_property
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from app.config.database_settings import AppEnvironment, DatabaseBackend, DatabaseConfig
-from app.config.infra_settings import CeleryConfig, TdxConfig, TdxServersConfig, FrontendConfig, WechatConfig, QmtConfig, ThsConfig
+from app.config.database_settings import AppEnvironment, DatabaseBackend, DatabaseConfig, MysqlSettings, PostgresSettings
+from app.config.infra_settings import CeleryConfig, TdxConfig, FrontendConfig, WechatConfig, QmtConfig, ThsConfig
 
 # ── Path constants ────────────────────────────────────────────────────
 

@@ -6,10 +6,8 @@ from app.core.runtime_config import get_runtime
 
 
 import json
-import os
-import logging
-from typing import Any, Callable
-import redis
+from typing import Any
+from collections.abc import Callable
 from app.infrastructure.redis_client import RedisClientPool, delete_keys_by_pattern
 
 

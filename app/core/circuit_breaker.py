@@ -3,13 +3,12 @@ from __future__ import annotations
 
 
 import functools
-import logging
 import threading
 import time
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 import collections
 
 
@@ -51,18 +50,18 @@ class CircuitBreaker:
             return requests.post(url, json={"prompt": prompt})
     """
 
-    def __init__(self, name: str, config: Optional[CircuitBreakerConfig] = None):
+    def __init__(self, name: str, config: CircuitBreakerConfig | None = None):
         self.name = name
         self.config = config or CircuitBreakerConfig()
-        
+
         self._state = CircuitState.CLOSED
         self._failure_count = 0
         self._success_count = 0
-        self._last_failure_time: Optional[float] = None
+        self._last_failure_time: float | None = None
         self._lock = threading.RLock()
         # Phase 6: adaptive + shadow
         self._recent_outcomes: collections.deque = collections.deque(maxlen=self.config.adapt_window)
-        self._shadow_probe_function: Optional[Callable] = None
+        self._shadow_probe_function: Callable | None = None
 
     def _adapt_params(self, succeeded: bool) -> None:
         """Tune timeout and failure_threshold based on recent success/failure history."""
@@ -245,7 +244,7 @@ class CircuitBreakerRegistry:
     _lock = threading.Lock()
 
     @classmethod
-    def get(cls, name: str, config: Optional[CircuitBreakerConfig] = None) -> CircuitBreaker:
+    def get(cls, name: str, config: CircuitBreakerConfig | None = None) -> CircuitBreaker:
         """Get or create a circuit breaker."""
         with cls._lock:
             if name not in cls._breakers:

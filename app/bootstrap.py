@@ -7,11 +7,12 @@ import time
 from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
 
 from flask import Flask
 
 from app.core.runtime_config import get_runtime_bool
+
+logger = logging.getLogger(__name__)
 
 # Flasks test_client expects werkzeug.__version__ on older Werkzeug.
 # Werkzeug 3 removed this attribute; tests rely on a lightweight shim.
@@ -46,9 +47,6 @@ from .presentation.csrf_protection import csrf_protect
 from .bootstrap_components.presentation import configure_login_manager
 from .bootstrap_components.security_headers import configure_security_headers, csp_nonce
 from app.presentation.api.error_handlers import register_api_error_handlers, setup_flask_login_errors
-
-logger = logging.getLogger(__name__)
-
 
 def _load_warm_runtime_extensions():
     import app.warm_runtime_extensions  # noqa: F401

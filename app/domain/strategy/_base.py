@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 import pandas as pd
 
-from app.domain.trading_entities import SignalType, Trade
+from app.domain.trading_entities import Trade
 
 
 class BaseStrategy(ABC):

@@ -119,7 +119,7 @@ def ths_login(username: str, password: str) -> requests.Session | None:
         )
     except req_exc.RequestException as exc:
         logger.warning("THS login request failed for user=%s: %s", username, exc)
-    except Exception as exc:
+    except Exception:
         logger.warning("THS login error for user=%s", username, exc_info=True)
 
     return None
@@ -369,7 +369,7 @@ def _fetch_board_index_akshare(ths_kind: ThsBoardKind, *, limit: int, source_lab
         import akshare as ak
     except ImportError:
         return []
-    
+
     try:
         if ths_kind == "concept":
             df = ak.stock_board_concept_name_ths()
@@ -378,15 +378,15 @@ def _fetch_board_index_akshare(ths_kind: ThsBoardKind, *, limit: int, source_lab
         else:
             # region 和 csrc 没有 akshare 接口
             return []
-        
+
         if df is None or df.empty:
             return []
-        
+
         # 修复编码问题
         for col in df.columns:
             if df[col].dtype == object:
                 df[col] = df[col].apply(lambda x: _fix_encoding(x) if isinstance(x, str) else x)
-        
+
         sector_kind = _KIND_META[ths_kind]["sector_kind"]
         rows = []
         for _, row in df.head(limit).iterrows():

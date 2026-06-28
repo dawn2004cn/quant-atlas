@@ -3,8 +3,7 @@ from app.domain.dto.service_result import GenericResponseDTO
 """Whale Tracker - 主力追踪与资金流分析服务."""
 
 
-from datetime import datetime, timedelta
-from typing import Any
+from datetime import datetime
 
 from app.domain.enums import MarketCode
 from app.domain.ports import MarketDataProvider
@@ -33,7 +32,7 @@ class WhaleTrackerService:
                 continue
 
             change_pct = float(profile.get("change_pct", 0) or 0)
-            
+
             # 简单估算主力行为
             net_inflow = self._estimate_net_inflow(profile)
             holder_type = self._classify_holder_type(net_inflow, change_pct)
@@ -60,7 +59,7 @@ class WhaleTrackerService:
 
     def _estimate_net_inflow(self, profile: dict) -> float:
         """估算净流入."""
-        amount = float(profile.get("amount", 0) or 0)
+        float(profile.get("amount", 0) or 0)
         volume = float(profile.get("volume", 0) or 0)
         change_pct = float(profile.get("change_pct", 0) or 0)
 
@@ -140,7 +139,7 @@ class ChipConcentrationAnalyzer:
             }
         elif delta < -0.2:
             return {
-                "status": "warning", 
+                "status": "warning",
                 "message": "筹码正在分散，主力可能正在撤离",
             }
         else:

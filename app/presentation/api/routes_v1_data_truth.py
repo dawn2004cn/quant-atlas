@@ -35,6 +35,7 @@ def register_data_truth_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     @login_required
     @service_fallback("data_truth_guardian_service")
     def data_truth_scan():
+        svc = getattr(ctx, "data_truth_guardian_service", None)
         body = request.get_json(silent=True) or {}
         symbols = body.get("symbols") or []
         if isinstance(symbols, str):
@@ -54,6 +55,7 @@ def register_data_truth_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     @login_required
     @service_fallback("data_truth_guardian_service")
     def data_truth_quorum():
+        svc = getattr(ctx, "data_truth_guardian_service", None)
         body = request.get_json(silent=True) or {}
         symbols = body.get("symbols") or []
         if isinstance(symbols, str):
@@ -74,6 +76,7 @@ def register_data_truth_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     @require_role("can_manage_users")
     @service_fallback("data_truth_guardian_service")
     def data_truth_heal():
+        svc = getattr(ctx, "data_truth_guardian_service", None)
         body = request.get_json(silent=True) or {}
         symbol = str(body.get("symbol") or "").strip()
         if not symbol:

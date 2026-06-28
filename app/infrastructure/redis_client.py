@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 import redis
 from redis import Redis
@@ -15,7 +14,7 @@ class RedisClientPool:
     Replaces ad-hoc ``redis.from_url()`` calls across the codebase.
     """
 
-    _instances: dict[str, "RedisClientPool"] = {}
+    _instances: dict[str, RedisClientPool] = {}
     _default_url: str = ""
 
     def __init__(self, url: str) -> None:
@@ -25,7 +24,7 @@ class RedisClientPool:
         self._client_binary: Redis | None = None
 
     @classmethod
-    def get(cls, url: str | None = None) -> "RedisClientPool":
+    def get(cls, url: str | None = None) -> RedisClientPool:
         """Get or create a RedisClientPool for the given URL."""
         resolved = url or cls._default_url
         if resolved not in cls._instances:

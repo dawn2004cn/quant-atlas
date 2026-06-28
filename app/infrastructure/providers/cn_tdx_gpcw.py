@@ -16,7 +16,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import logging
 import pandas as pd
 from struct import unpack, calcsize
 from .cn_tdx_gpcw_fields import GPCW_FIELD_NAMES

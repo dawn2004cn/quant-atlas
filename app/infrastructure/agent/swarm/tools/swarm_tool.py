@@ -7,7 +7,6 @@ Blocks synchronously until the run completes and returns a JSON summary.
 
 
 import json
-import logging
 import os
 import re
 import time

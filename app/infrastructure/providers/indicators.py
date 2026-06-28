@@ -6,7 +6,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-import ta
 from ...core.kdj import tdx_k_d
 from ta.momentum import RSIIndicator, StochasticOscillator
 from ta.trend import MACD, EMAIndicator, SMAIndicator, ADXIndicator, CCIIndicator
@@ -28,7 +27,7 @@ class TaIndicatorProvider(IndicatorProvider):
             return {}
 
         frame = pd.DataFrame(history)
-        
+
         # 🟢 修复处：统一列名映射 (兼容 Close/close, Open/open 等)
         col_map = {col.lower(): col for col in frame.columns}
         def get_col(name):
@@ -39,47 +38,47 @@ class TaIndicatorProvider(IndicatorProvider):
             close = pd.to_numeric(get_col("close"), errors="coerce")
             high = pd.to_numeric(get_col("high"), errors="coerce")
             low = pd.to_numeric(get_col("low"), errors="coerce")
-            
+
             # 计算常用指标
             res = {}
-            
+
             # MA/EMA
             res["ma20"] = SMAIndicator(close, window=20).sma_indicator().iloc[-1]
             res["ema12"] = EMAIndicator(close, window=12).ema_indicator().iloc[-1]
             res["ema26"] = EMAIndicator(close, window=26).ema_indicator().iloc[-1]
-            
+
             # MACD
             macd = MACD(close)
             res["macd"] = macd.macd().iloc[-1]
             res["macd_signal"] = macd.macd_signal().iloc[-1]
             res["macd_diff"] = macd.macd_diff().iloc[-1]
-            
+
             # RSI
             res["rsi14"] = RSIIndicator(close, window=14).rsi().iloc[-1]
-            
+
             # KDJ (Stochastic) — 通达信 K/D 与 ta 的 stoch / stoch_signal 对调
             stoch = StochasticOscillator(high, low, close, window=9, smooth_window=3)
             kdj_k, kdj_d = tdx_k_d(stoch)
             res["kdj_k"] = kdj_k.iloc[-1]
             res["kdj_d"] = kdj_d.iloc[-1]
             res["kdj_j"] = (3 * res["kdj_k"]) - (2 * res["kdj_d"])
-            
+
             # Bollinger Bands
             bb = BollingerBands(close, window=20, window_dev=2.0)
             res["bb_high"] = bb.bollinger_hband().iloc[-1]
             res["bb_mid"] = bb.bollinger_mavg().iloc[-1]
             res["bb_low"] = bb.bollinger_lband().iloc[-1]
-            
+
             # ATR & ADX
             res["atr"] = AverageTrueRange(high, low, close, window=14).average_true_range().iloc[-1]
             res["adx"] = ADXIndicator(high, low, close, window=14).adx().iloc[-1]
-            
+
             # CCI
             res["cci"] = CCIIndicator(high, low, close, window=20).cci().iloc[-1]
-            
+
             # 清理 NaN
             return {k: (0 if pd.isna(v) else float(v)) for k, v in res.items()}
-            
+
         except Exception as e:
             logger.warning("指标计算失败: %s", e, exc_info=True)
             return {}

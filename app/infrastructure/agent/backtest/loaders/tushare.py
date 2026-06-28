@@ -5,7 +5,6 @@ Minute data uses ``pro.stk_mins()`` (Tushare points >= 2000).
 """
 
 import os
-from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -40,12 +39,12 @@ class DataLoader:
 
     def fetch(
         self,
-        codes: List[str],
+        codes: list[str],
         start_date: str,
         end_date: str,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
         interval: str = "1D",
-    ) -> Dict[str, pd.DataFrame]:
+    ) -> dict[str, pd.DataFrame]:
         """Fetch A-share bars via Tushare API.
 
         Args:
@@ -65,7 +64,7 @@ class DataLoader:
 
         sd = start_date.replace("-", "")
         ed = end_date.replace("-", "")
-        result: Dict[str, pd.DataFrame] = {}
+        result: dict[str, pd.DataFrame] = {}
 
         for code in codes:
             try:
@@ -90,12 +89,12 @@ class DataLoader:
 
     def _merge_basic_fields(
         self,
-        result: Dict[str, pd.DataFrame],
-        codes: List[str],
+        result: dict[str, pd.DataFrame],
+        codes: list[str],
         start_date: str,
         end_date: str,
-        fields: Optional[List[str]],
-    ) -> Dict[str, pd.DataFrame]:
+        fields: list[str] | None,
+    ) -> dict[str, pd.DataFrame]:
         """Merge fundamental columns from daily_basic API.
 
         Args:
@@ -136,11 +135,11 @@ class DataLoader:
 
     def _fetch_minutes(
         self,
-        codes: List[str],
+        codes: list[str],
         start_date: str,
         end_date: str,
         interval: str,
-    ) -> Dict[str, pd.DataFrame]:
+    ) -> dict[str, pd.DataFrame]:
         """Intraday bars via stk_mins.
 
         Args:
@@ -160,7 +159,7 @@ class DataLoader:
 
         sd = start_date.replace("-", "")
         ed = end_date.replace("-", "")
-        result: Dict[str, pd.DataFrame] = {}
+        result: dict[str, pd.DataFrame] = {}
 
         for code in codes:
             try:

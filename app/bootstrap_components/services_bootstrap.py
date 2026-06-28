@@ -8,10 +8,9 @@ here to enable plugin‑style service registration.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from app.bootstrap_components.service_wiring import _get_registry
-from app.core.registry import ServiceRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +34,8 @@ class ServiceBootstrap:
         entries = registry.get_all_entries()
 
         # Build adjacency list and in‑degree map
-        graph: Dict[str, List[str]] = {}
-        in_degree: Dict[str, int] = {}
+        graph: dict[str, list[str]] = {}
+        in_degree: dict[str, int] = {}
         for name, entry in entries.items():
             deps = entry.depends or []
             graph[name] = deps
@@ -101,7 +100,7 @@ class ServiceBootstrap:
 # Legacy init helpers  extracted verbatim from the original ``services.py``
 # ---------------------------------------------------------------------------
 
-def init_watchlist_services(services: Any, repositories: Optional[Any] = None) -> None:
+def init_watchlist_services(services: Any, repositories: Any | None = None) -> None:
     """Initialize ``watchlist_service`` and ``stock_group_service``.
 
     This mirrors the former ``_try_init_watchlist_service`` and
@@ -150,7 +149,7 @@ def init_watchlist_services(services: Any, repositories: Optional[Any] = None) -
         logger.warning("Could not initialize watchlist services: %s", exc)
 
 
-def init_signal_flag_service(services: Any, settings: Optional[Any] = None) -> None:
+def init_signal_flag_service(services: Any, settings: Any | None = None) -> None:
     """Initialize ``signal_flag_service``.
 
     Mirrors the original ``_try_init_signal_flag_service`` implementation.
@@ -174,7 +173,7 @@ def init_signal_flag_service(services: Any, settings: Optional[Any] = None) -> N
         logger.warning("Could not initialize signal_flag_service: %s", exc)
 
 
-def init_user_services(services: Any, repositories: Optional[Any] = None) -> None:
+def init_user_services(services: Any, repositories: Any | None = None) -> None:
     """Initialize ``auth_service`` and ``user_service`` when a user repository is present."""
     if services.auth_service is not None and services.user_service is not None:
         return

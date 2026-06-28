@@ -10,7 +10,6 @@ from app.core.logger import get_logger
 from app.modules.portfolio_risk.services.entangled_risk_monitor import EntangledRiskMonitor
 from app.domain.models.risk_models import (
     RiskCalculator,
-    RiskMetrics,
     RiskLevel,
 )
 from app.application.dto.complete_dto import (

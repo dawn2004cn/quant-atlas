@@ -15,7 +15,7 @@ Usage:
 """
 
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from .dynamic_personality import MarketRegime, MarketRegimeManager

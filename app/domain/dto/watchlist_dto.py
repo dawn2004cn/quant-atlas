@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import List
 
 class QuoteItem(BaseModel):
     code: str
@@ -13,7 +12,7 @@ class QuoteItem(BaseModel):
     industry: str
 
 class WatchlistResponse(BaseModel):
-    items: List[QuoteItem]
+    items: list[QuoteItem]
     total: int
     page: int
     page_size: int

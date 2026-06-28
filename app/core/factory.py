@@ -2,7 +2,7 @@ from __future__ import annotations
 """Strategy factory for dynamic instantiation."""
 
 
-from typing import Any, Iterator, Type
+from collections.abc import Iterator
 from ..domain.entities import StrategyConfig
 from .base_strategy import BaseTradingStrategy
 
@@ -14,10 +14,10 @@ logger = get_logger(__name__)
 class StrategyFactory:
     """Creates strategy instances based on configuration."""
 
-    _registry: dict[str, Type[BaseTradingStrategy]] = {}
+    _registry: dict[str, type[BaseTradingStrategy]] = {}
 
     @classmethod
-    def register(cls, strategy_id: str, strategy_class: Type[BaseTradingStrategy]):
+    def register(cls, strategy_id: str, strategy_class: type[BaseTradingStrategy]):
         cls._registry[strategy_id] = strategy_class
 
     @classmethod
@@ -26,7 +26,7 @@ class StrategyFactory:
         strategy_class = cls._registry.get(config.strategy_id)
         if not strategy_class:
             return None
-        
+
         try:
             # 使用配置中的参数进行实例化
             return strategy_class(**config.parameters)

@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 from enum import Enum
-from typing import Optional
 from datetime import datetime
 
 class SignalDirection(str, Enum):
@@ -15,6 +14,6 @@ class TradeSignalDTO(BaseModel):
     price: float
     quantity: int
     strategy_id: str
-    user_id: Optional[int] = None
-    reasoning: Optional[str] = None
+    user_id: int | None = None
+    reasoning: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat())

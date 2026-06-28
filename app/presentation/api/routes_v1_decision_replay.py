@@ -35,6 +35,7 @@ def register_decision_replay_routes(blueprint: Blueprint, ctx: ApiV1Context) -> 
             min_value=5,
         )
         minutes_back = min(minutes_back, 720)
+        svc = getattr(ctx, "decision_replay_space_service", None)
         payload = svc.build_space(
             _uid(),
             symbol=symbol,

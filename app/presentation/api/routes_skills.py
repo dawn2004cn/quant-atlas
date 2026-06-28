@@ -66,7 +66,7 @@ def _get_builtin_catalog_skills() -> list[dict]:
     installed_manifests = registry.discover_skills()
     installed_names = {m.name for m in installed_manifests}
 
-    base_url = url_for("static", filename="")
+    url_for("static", filename="")
 
     # Catalog of available skills (installed + available in marketplace)
     catalog = []
@@ -208,7 +208,7 @@ def register_routes(bp: Blueprint) -> None:
         skills_dir = BASE_DIR / "skills"
 
         try:
-            installer = SkillInstaller(skills_dir)
+            SkillInstaller(skills_dir)
             # For now, we simulate installation from a built-in template
             # In production, this would fetch from a registry/git repo
             # For demo: create a minimal skill dir

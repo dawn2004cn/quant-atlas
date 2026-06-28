@@ -26,16 +26,16 @@ def start_perception_bridge(
     embedding_dimensions: int = 64,
 ) -> CollectivePerceptionLayer | None:
     """Initialize and start the perception layer bridge.
-    
+
     This sets up the CollectivePerceptionLayer and subscribes to Redis
     perception channels for cross-node resonance.
-    
+
     Args:
         node_id: This node's identifier
         region: This node's region (CN/US/HK/EU)
         redis_client: Redis client for cross-process sharing
         embedding_dimensions: Dimensionality of embedding vectors
-        
+
     Returns:
         The initialized CollectivePerceptionLayer, or None on failure
     """
@@ -127,13 +127,13 @@ def publish_perception(
     ttl_seconds: int = 300,
 ) -> dict[str, Any]:
     """Convenience function to publish a perception vector.
-    
+
     Args:
         text: Text description of the perception
         embedding: Pre-computed embedding
         metadata: Additional context
         ttl_seconds: Time-to-live
-        
+
     Returns:
         Published vector dict, or error dict
     """
@@ -162,14 +162,14 @@ def subscribe_perception(
     label: str = "",
 ) -> dict[str, Any]:
     """Convenience function to subscribe to perception resonance.
-    
+
     Args:
         text: What to watch for
         embedding: Pre-computed embedding
         threshold: Minimum similarity
         callback: Resonance callback
         label: Human-readable label
-        
+
     Returns:
         Subscription info dict, or error dict
     """

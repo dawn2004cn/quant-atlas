@@ -19,7 +19,8 @@ from __future__ import annotations
 
 import functools
 from logging import Logger, getLogger
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
+from collections.abc import Callable
 
 _T = TypeVar("_T")
 

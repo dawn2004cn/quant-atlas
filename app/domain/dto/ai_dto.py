@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Any
+from typing import Any
 
 class AgentResultDTO(BaseModel):
     agent_id: str
@@ -15,5 +15,5 @@ class DebateResponseDTO(BaseModel):
     symbol: str
     market: str
     timestamp: str
-    steps: List[AgentResultDTO]
+    steps: list[AgentResultDTO]
     consensus: dict[str, Any]

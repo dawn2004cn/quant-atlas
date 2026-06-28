@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Any
+from typing import Any
 
 
 class QuoteDTO(BaseModel):
@@ -15,10 +15,10 @@ class QuoteDTO(BaseModel):
 class PanoramaDTO(BaseModel):
     market_status: str
     sentiment_score: float
-    gainers: List[QuoteDTO]
-    losers: List[QuoteDTO]
-    amounts: List[QuoteDTO]
-    turnovers: List[QuoteDTO]
+    gainers: list[QuoteDTO]
+    losers: list[QuoteDTO]
+    amounts: list[QuoteDTO]
+    turnovers: list[QuoteDTO]
 
 
 class LonghuEntry(BaseModel):

@@ -2,8 +2,7 @@ from __future__ import annotations
 """Observer pattern for state transitions."""
 
 from abc import ABC, abstractmethod
-from typing import List, Any
-from app.domain.state.machine import IStateMachine
+from typing import Any
 
 class StateObserver(ABC):
     """Observer interface for state changes."""
@@ -15,7 +14,7 @@ class StateObserver(ABC):
 class ObservableStateMachine:
     """A wrapper or base to support state observers."""
     def __init__(self):
-        self._observers: List[StateObserver] = []
+        self._observers: list[StateObserver] = []
 
     def attach(self, observer: StateObserver):
         self._observers.append(observer)

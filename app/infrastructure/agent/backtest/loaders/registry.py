@@ -9,8 +9,7 @@ of import order.
 """
 
 
-import logging
-from typing import Any, Type
+from typing import Any
 
 from backtest.loaders.base import NoAvailableSourceError
 
@@ -23,12 +22,12 @@ logger = get_logger(__name__)
 # Global registry: source_name -> loader class
 # ---------------------------------------------------------------------------
 
-LOADER_REGISTRY: dict[str, Type[Any]] = {}
+LOADER_REGISTRY: dict[str, type[Any]] = {}
 
 _registered = False
 
 
-def register(cls: Type[Any]) -> Type[Any]:
+def register(cls: type[Any]) -> type[Any]:
     """Class decorator: register a loader into the global registry.
 
     The class must have a ``name`` class attribute.
@@ -119,7 +118,7 @@ def resolve_loader(market: str) -> Any:
     )
 
 
-def get_loader_cls_with_fallback(source: str) -> Type[Any]:
+def get_loader_cls_with_fallback(source: str) -> type[Any]:
     """Return a loader *class* for *source*, falling back if unavailable.
 
     Args:

@@ -67,7 +67,7 @@ register_factory("smart_daily_briefing_service", _make_smart_daily_briefing_serv
 
 
 def _make_tool_facade_service(_reg: Any) -> Any:
-    from app.modules.system.services.tools.tool_facade_service import ToolFacadeService, get_tool_facade_service
+    from app.modules.system.services.tools.tool_facade_service import ToolFacadeService
 
     return ToolFacadeService()
 
@@ -268,7 +268,7 @@ def _make_signal_observation_service(reg: Any) -> Any:
     from app.modules.strategy.services.strategy.signal_observation_service import SignalObservationService
     from app.infrastructure.repositories.deps import create_signal_observation_repository
     from app.config import get_settings
-    settings = get_settings()
+    get_settings()
     sf = getattr(reg, "_session_factory", None)
     repo = create_signal_observation_repository(sf)
     return SignalObservationService(observation_repository=repo, store_path=getattr(repo, "_store_path", None))

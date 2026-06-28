@@ -5,13 +5,11 @@ Following Phase 6: Reactive Architecture - adding async support to data layer.
 """
 
 
-import asyncio
-from typing import Any, Generic, TypeVar, Type, List, Optional
-from contextlib import asynccontextmanager
+from typing import Any, Generic, TypeVar
 from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy import select, update, insert
+from sqlalchemy import select, update
 from sqlalchemy.orm import DeclarativeBase
 
 from app.core.logger import get_logger
@@ -30,30 +28,30 @@ class Base(DeclarativeBase):
 @dataclass
 class AsyncRepository(Generic[T]):
     """Async repository for database operations.
-    
+
     Usage:
         class UserRepository(AsyncRepository[User]):
             pass
-            
+
         repo = UserRepository(User, session)
         users = await repo.find_all()
         user = await repo.find_by_id(1)
     """
 
-    model: Type[T]
+    model: type[T]
     session: AsyncSession
 
-    async def find_all(self, limit: int = 100, offset: int = 0) -> List[T]:
+    async def find_all(self, limit: int = 100, offset: int = 0) -> list[T]:
         """Find all records."""
         stmt = select(self.model).limit(limit).offset(offset)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def find_by_id(self, id: int) -> Optional[T]:
+    async def find_by_id(self, id: int) -> T | None:
         """Find by primary key."""
         return await self.session.get(self.model, id)
 
-    async def find_by(self, **kwargs) -> List[T]:
+    async def find_by(self, **kwargs) -> list[T]:
         """Find by filter criteria."""
         stmt = select(self.model)
         for key, value in kwargs.items():
@@ -61,7 +59,7 @@ class AsyncRepository(Generic[T]):
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
-    async def find_one(self, **kwargs) -> Optional[T]:
+    async def find_one(self, **kwargs) -> T | None:
         """Find single record."""
         results = await self.find_by(**kwargs)
         return results[0] if results else None
@@ -100,7 +98,7 @@ class AsyncRepository(Generic[T]):
 
 class AsyncUnitOfWork:
     """Async Unit of Work pattern for transaction management.
-    
+
     Usage:
         async with AsyncUnitOfWork(session_factory) as uow:
             user = await uow.users.create(name="test")
@@ -111,7 +109,7 @@ class AsyncUnitOfWork:
         self._session_factory = session_factory
         self._session: AsyncSession | None = None
 
-    async def __aenter__(self) -> 'AsyncUnitOfWork':
+    async def __aenter__(self) -> AsyncUnitOfWork:
         self._session = self._session_factory()
         return self
 
@@ -146,7 +144,7 @@ _async_session_factory = None
 def get_async_engine(settings: AppSettings) -> Any:
     """Get or create async engine."""
     global _async_engine
-    
+
     if _async_engine is None:
         # Convert sync DB URL to async
         db_url = settings.database_uri
@@ -156,21 +154,21 @@ def get_async_engine(settings: AppSettings) -> Any:
             db_url = db_url.replace('mysql://', 'mysql+aiomysql://')
         elif db_url.startswith('postgresql'):
             db_url = db_url.replace('postgresql://', 'postgresql+asyncpg://')
-            
+
         _async_engine = create_async_engine(
             db_url,
             echo=settings.debug,
             pool_size=5,
             max_overflow=10,
         )
-        
+
     return _async_engine
 
 
 def get_async_session_factory(settings: AppSettings) -> async_sessionmaker:
     """Get or create async session factory."""
     global _async_session_factory
-    
+
     if _async_session_factory is None:
         engine = get_async_engine(settings)
         _async_session_factory = async_sessionmaker(
@@ -178,7 +176,7 @@ def get_async_session_factory(settings: AppSettings) -> async_sessionmaker:
             class_=AsyncSession,
             expire_on_commit=False,
         )
-        
+
     return _async_session_factory
 
 
@@ -191,7 +189,7 @@ async def init_async_db(settings: AppSettings):
 async def close_async_db():
     """Close async database connections."""
     global _async_engine, _async_session_factory
-    
+
     if _async_engine:
         await _async_engine.dispose()
         _async_engine = None

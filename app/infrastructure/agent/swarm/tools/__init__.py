@@ -15,6 +15,7 @@ from collections import deque
 from pathlib import Path
 
 from app.infrastructure.agent.swarm.tools_base import BaseTool, ToolRegistry
+from app.infrastructure.agent.memory.persistent import PersistentMemory
 
 
 from app.core.logger import get_logger

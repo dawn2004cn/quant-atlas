@@ -123,7 +123,7 @@ def _patch_qlibfb_workspace_execute() -> None:
             env.update(run_env)
         ws_path = str(self.workspace_path)
 
-        qrun_result = subprocess.run(
+        qrun_result = subprocess.run(  # noqa: S603  # qrun from local PATH; qlib_config_name defaults to conf.yaml
             ["qrun", qlib_config_name],
             cwd=ws_path,
             env={**env, "PYTHONPATH": "./"},
@@ -142,7 +142,7 @@ def _patch_qlibfb_workspace_execute() -> None:
         ret_path = self.workspace_path / "ret.pkl"
         if ret_path.exists():
             try:
-                pd.read_pickle(ret_path)
+                pd.read_pickle(ret_path)  # noqa: S301  # reads from locally-generated workspace file (controlled path)
             except Exception:
                 logger.debug("Failed to read ret.pkl from path=%s", ret_path)
 
@@ -214,9 +214,7 @@ def _is_number(v: Any) -> bool:
 def _patch_select_for_windows() -> None:
     import select as _select_mod
     if not hasattr(_select_mod, "poll"):
-        import collections
         import threading
-        import time
 
         _select_mod.POLLIN = 1
         _select_mod.POLLOUT = 4

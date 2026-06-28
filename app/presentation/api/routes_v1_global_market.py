@@ -2,7 +2,6 @@ from __future__ import annotations
 """Global market data API routes."""
 
 
-import logging
 from flask import Blueprint, request
 from flask_login import login_required
 
@@ -29,13 +28,13 @@ def register_global_market_routes(
     route_deps = deps or build_market_route_deps(ctx)
     global_market_service = route_deps.global_market_service
     enable_legacy_response_fields = route_deps.enable_legacy_response_fields
-    
+
     @blueprint.get("/global/quote")
     @login_required
     def get_global_quote():
         symbol = request.args.get("symbol", "").strip().upper()
         market = request.args.get("market", "US").strip().upper()
-        
+
         if not symbol:
             raise ValidationError("symbol_required")
 
@@ -59,14 +58,14 @@ def register_global_market_routes(
                 "global_quote_failed",
                 details={"symbol": symbol, "market": market, "reason": str(exc)},
             ) from exc
-    
+
     @blueprint.get("/global/history")
     @login_required
     def get_global_history():
         symbol = request.args.get("symbol", "").strip().upper()
         market = request.args.get("market", "US").strip().upper()
         days = int(request.args.get("days", 30))
-        
+
         if not symbol:
             raise ValidationError("symbol_required")
 

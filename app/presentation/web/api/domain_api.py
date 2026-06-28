@@ -5,7 +5,6 @@ REST endpoints for domain operations using CQRS and aggregates.
 """
 
 
-import logging
 from flask import Blueprint, request, jsonify
 
 from app.application.mediator import send, fetch
@@ -35,13 +34,13 @@ domain_bp = Blueprint("domain", __name__, url_prefix="/api/domain")
 def create_stock():
     """Create a new stock."""
     data = request.get_json() or {}
-    
+
     result = send(CreateStockCommand(
         stock_code=data.get("stock_code", ""),
         name=data.get("name", ""),
         market=data.get("market", "A"),
     ))
-    
+
     return jsonify(result)
 
 
@@ -49,7 +48,7 @@ def create_stock():
 def get_stock(stock_code):
     """Get stock details."""
     result = fetch(GetStockQuery(stock_code=stock_code))
-    
+
     return jsonify(result)
 
 
@@ -57,9 +56,9 @@ def get_stock(stock_code):
 def screen_stocks():
     """Screen stocks with criteria."""
     criteria = request.get_json() or {}
-    
+
     result = send(ScreenStocksCommand(criteria=criteria))
-    
+
     return jsonify(result)
 
 
@@ -67,12 +66,12 @@ def screen_stocks():
 def get_signals(stock_code):
     """Get signals for stock."""
     active_only = request.args.get("active_only", "false").lower() == "true"
-    
+
     result = fetch(GetSignalsQuery(
         stock_code=stock_code,
         active_only=active_only,
     ))
-    
+
     return jsonify(result)
 
 
@@ -80,12 +79,12 @@ def get_signals(stock_code):
 def generate_signal(stock_code):
     """Generate signal for stock."""
     indicators = request.get_json() or {}
-    
+
     result = send(GenerateSignalCommand(
         stock_code=stock_code,
         indicators=indicators,
     ))
-    
+
     return jsonify(result)
 
 
@@ -93,7 +92,7 @@ def generate_signal(stock_code):
 def get_portfolio(portfolio_id):
     """Get portfolio details."""
     result = fetch(GetPortfolioQuery(portfolio_id=portfolio_id))
-    
+
     return jsonify(result)
 
 
@@ -101,7 +100,7 @@ def get_portfolio(portfolio_id):
 def add_position(portfolio_id):
     """Add position to portfolio."""
     data = request.get_json() or {}
-    
+
     result = send(UpdatePositionCommand(
         portfolio_id=portfolio_id,
         stock_code=data.get("stock_code", ""),
@@ -109,7 +108,7 @@ def add_position(portfolio_id):
         price=data.get("price", 0),
         action=data.get("action", "add"),
     ))
-    
+
     return jsonify(result)
 
 
@@ -117,12 +116,12 @@ def add_position(portfolio_id):
 def get_orders(portfolio_id):
     """Get orders for portfolio."""
     status = request.args.get("status")
-    
+
     result = fetch(GetOrdersQuery(
         portfolio_id=portfolio_id,
         status=status,
     ))
-    
+
     return jsonify(result)
 
 
@@ -130,7 +129,7 @@ def get_orders(portfolio_id):
 def submit_order(portfolio_id):
     """Submit an order."""
     data = request.get_json() or {}
-    
+
     result = send(SubmitOrderCommand(
         portfolio_id=portfolio_id,
         stock_code=data.get("stock_code", ""),
@@ -139,7 +138,7 @@ def submit_order(portfolio_id):
         quantity=data.get("quantity", 0),
         price=data.get("price"),
     ))
-    
+
     return jsonify(result)
 
 
@@ -147,10 +146,10 @@ def submit_order(portfolio_id):
 def get_aggregate_stats():
     """Get aggregate registry stats."""
     from app.application.aggregate_registry import get_aggregate_registry
-    
+
     registry = get_aggregate_registry()
     stats = registry.get_stats()
-    
+
     return jsonify({
         "status": "success",
         "stats": stats,

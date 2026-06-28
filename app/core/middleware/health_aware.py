@@ -23,7 +23,7 @@ def build_degraded_user_message(reasons: list[str] | None = None) -> str:
     """Human-readable notice when the system is in degraded mode."""
     labels = []
     for raw in reasons or get_degraded_reasons():
-        key = str(raw).split("_")[0] if raw else ""
+        str(raw).split("_")[0] if raw else ""
         label = _REASON_LABELS.get(str(raw), str(raw))
         if label and label not in labels:
             labels.append(label)

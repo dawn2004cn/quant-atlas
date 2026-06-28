@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, session, url_for, current_app
 from flask_login import current_user, login_required, login_user, logout_user
-from markupsafe import escape
 
 from ...infrastructure.external.wechat_web_login import (
     build_qrconnect_url,
@@ -41,11 +40,11 @@ _register_limiter = HybridRateLimiter("auth_register", window=3600, max_attempts
 
 
 def create_auth_blueprint(
-    auth_service: "AuthService" = None,
-    user_service: "UserApplicationService" = None,
+    auth_service: AuthService = None,
+    user_service: UserApplicationService = None,
     *,
-    app_settings: "AppSettings" = None,
-    oauth_provider: "OAuthProviderPort | None" = None,
+    app_settings: AppSettings = None,
+    oauth_provider: OAuthProviderPort | None = None,
 ):
     """Build auth routes (注册、微信扫码、账号密码登录)。"""
     if auth_service is None or user_service is None or app_settings is None:

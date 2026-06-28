@@ -102,7 +102,7 @@ class QlibDataAdapter:
                     },
                 )
             self._stock_cache.save_stock_history(key, rows)
-        except Exception:  # noqa: BLE001 as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning("data_adapter.py._persist_cn_cache: %s", e)
 
     def bars_to_dataframe(self, bars: list[dict[str, Any]]) -> pd.DataFrame:

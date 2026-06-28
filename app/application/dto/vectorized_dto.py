@@ -12,7 +12,7 @@ Usage:
 
 
 from dataclasses import dataclass, field
-from typing import Any, Iterator
+from typing import Any
 
 import numpy as np
 

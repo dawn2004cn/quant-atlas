@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flask import Blueprint, jsonify
+from flask import Blueprint
 from ..responses import success_response
 
 def create_system_blueprint(ctx):

@@ -5,12 +5,10 @@ Provides a unified interface for creating and accessing repositories.
 """
 
 
-import logging
-from typing import Optional
 
 from app.domain.repositories.stock import IStockRepository, IMarketDataRepository
 from app.domain.repositories.signal import ISignalRepository
-from app.domain.ports.repository_ports import UserRepository, WatchlistRepository, StockGroupRepository
+from app.domain.ports.repository_ports import UserRepository, WatchlistRepository
 
 
 from app.core.logger import get_logger
@@ -20,45 +18,45 @@ logger = get_logger(__name__)
 
 class RepositoryRegistry:
     """Central registry for all repositories."""
-    
-    _instance: Optional["RepositoryRegistry"] = None
+
+    _instance: RepositoryRegistry | None = None
     _repositories: dict = {}
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._repositories = {}
         return cls._instance
-    
+
     def register(self, name: str, repo: any) -> None:
         """Register a repository."""
         self._repositories[name] = repo
         logger.info(f"Registered repository: {name}")
-    
-    def get(self, name: str) -> Optional[any]:
+
+    def get(self, name: str) -> any | None:
         """Get a registered repository."""
         return self._repositories.get(name)
-    
-    def get_stock_repo(self) -> Optional[IStockRepository]:
+
+    def get_stock_repo(self) -> IStockRepository | None:
         """Get stock repository."""
         return self._repositories.get("stock")
-    
-    def get_signal_repo(self) -> Optional[ISignalRepository]:
+
+    def get_signal_repo(self) -> ISignalRepository | None:
         """Get signal repository."""
         return self._repositories.get("signal")
-    
-    def get_market_data_repo(self) -> Optional[IMarketDataRepository]:
+
+    def get_market_data_repo(self) -> IMarketDataRepository | None:
         """Get market data repository."""
         return self._repositories.get("market_data")
-    
-    def get_user_repo(self) -> Optional[UserRepository]:
+
+    def get_user_repo(self) -> UserRepository | None:
         """Get user repository."""
         return self._repositories.get("user")
-    
-    def get_watchlist_repo(self) -> Optional[WatchlistRepository]:
+
+    def get_watchlist_repo(self) -> WatchlistRepository | None:
         """Get watchlist repository."""
         return self._repositories.get("watchlist")
-    
+
     def clear(self) -> None:
         """Clear all repositories (for testing)."""
         self._repositories.clear()

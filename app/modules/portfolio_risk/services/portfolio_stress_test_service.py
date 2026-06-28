@@ -4,7 +4,6 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 
 from datetime import datetime
-from typing import Any
 
 from app.core.base_service import BaseApplicationService
 from app.domain.enums import MarketCode

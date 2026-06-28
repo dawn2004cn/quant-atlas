@@ -2,7 +2,6 @@ from __future__ import annotations
 """Memory data store for backtesting to eliminate redundant I/O."""
 
 from collections import OrderedDict
-from typing import Dict, Optional
 
 import pandas as pd
 
@@ -20,7 +19,7 @@ class MemoryDataStore:
         self._max_entries = max_entries or get_runtime_int("BACKTEST_MEMORY_STORE_MAX", 64)
         self._enabled = True
 
-    def get(self, key: str) -> Optional[pd.DataFrame]:
+    def get(self, key: str) -> pd.DataFrame | None:
         if not self._enabled:
             return None
         frame = self._cache.get(key)

@@ -7,7 +7,7 @@ Ported from Vibe-Trading.
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from app.infrastructure.agent.utils.frontmatter import parse_frontmatter as _parse_frontmatter
 
@@ -20,10 +20,10 @@ class Skill:
     description: str = ""
     category: str = "other"
     body: str = ""
-    dir_path: Optional[Path] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    dir_path: Path | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def load_support_file(self, filename: str) -> Optional[str]:
+    def load_support_file(self, filename: str) -> str | None:
         if not self.dir_path:
             return None
         path = self.dir_path / filename
@@ -35,7 +35,7 @@ class Skill:
             return None
 
 
-def _load_skill_dir(dir_path: Path) -> Optional[Skill]:
+def _load_skill_dir(dir_path: Path) -> Skill | None:
     skill_file = dir_path / "SKILL.md"
     if not skill_file.exists():
         return None
@@ -65,11 +65,11 @@ USER_SKILLS_DIR = Path("instance/agents/skills/user")
 class SkillsLoader:
     """Load skills from bundled skills/ directory and user skills directory."""
 
-    def __init__(self, skills_dir: Optional[Path] = None,
-                 user_skills_dir: Optional[Path] = None) -> None:
+    def __init__(self, skills_dir: Path | None = None,
+                 user_skills_dir: Path | None = None) -> None:
         self.skills_dir = skills_dir or Path("app/resources/agent_skills")
         self._user_skills_dir = user_skills_dir or USER_SKILLS_DIR
-        self.skills: List[Skill] = []
+        self.skills: list[Skill] = []
         self._load()
 
     def _load(self) -> None:
@@ -93,14 +93,14 @@ class SkillsLoader:
         if not self.skills:
             return "(no skills)"
 
-        groups: Dict[str, List[Skill]] = {}
+        groups: dict[str, list[Skill]] = {}
         for skill in self.skills:
             groups.setdefault(skill.category, []).append(skill)
 
         ordered_cats = [c for c in self._CATEGORY_ORDER if c in groups]
         ordered_cats += [c for c in sorted(groups) if c not in ordered_cats]
 
-        lines: List[str] = []
+        lines: list[str] = []
         for cat in ordered_cats:
             lines.append(f"\n### {cat}")
             for skill in groups[cat]:

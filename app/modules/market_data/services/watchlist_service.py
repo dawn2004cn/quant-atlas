@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from app.core.logger import get_logger
 from app.domain.dto.service_result import GenericResponseDTO
+from app.domain.dto.watchlist_dto import QuoteItem, WatchlistResponse
 
 import json
 import threading
@@ -13,6 +15,8 @@ from app.domain.enums import MarketCode
 from app.domain.ports import MarketDataProvider, StockGroupRepository, WatchlistRepository
 from app.modules.system.services.helpers.stock_metadata import get_stock_metadata_batch
 from app.domain.shared.symbol_normalizer import SymbolNormalizer
+
+logger = get_logger(__name__)
 
 
 class SortBy(str, Enum):
@@ -138,8 +142,6 @@ class WatchlistApplicationService:
             result[group["name"]] = symbols
         return result
 
-    from app.domain.dto.watchlist_dto import QuoteItem, WatchlistResponse
-
     def get_sorted_quotes(
         self,
         user_id: int,
@@ -153,12 +155,12 @@ class WatchlistApplicationService:
         symbols = self._fetch_symbols(user_id, group_name)
         if not symbols:
             return WatchlistResponse(items=[], total=0, page=page, page_size=page_size, pages=0)
-        
+
         items = self._fetch_and_enrich_quotes(symbols)
-        
+
         # Apply sorting
         self._apply_sorting(items, sort_by, ascending)
-        
+
         # Apply pagination
         return self._apply_pagination(items, page, page_size)
 
@@ -173,7 +175,7 @@ class WatchlistApplicationService:
         items = []
         if not self._market_provider:
             return [QuoteItem(code=s, name="", price=0, change_pct=0, change_amount=0, volume=0, amount=0, turnover=0, industry="") for s in symbols]
-            
+
         try:
             quotes = self._market_provider.get_realtime_quotes(symbols=symbols, market=MarketCode.CN)
             quote_map = {str(q.code).zfill(6): q for q in quotes}
@@ -197,7 +199,7 @@ class WatchlistApplicationService:
             sym_normalized = sym.lower().replace("sh", "").replace("sz", "").zfill(6)
             q = quote_map.get(sym) or quote_map.get(sym_normalized)
             industry = meta_map.get(sym_normalized, {}).get("industry", "") or getattr(q, 'industry', "") or "未分类"
-            
+
             items.append(QuoteItem(
                 code=sym,
                 name=q.name if q else "",

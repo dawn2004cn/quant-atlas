@@ -11,7 +11,8 @@ Usage:
 """
 
 
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Generic, TypeVar
+from collections.abc import Callable
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session

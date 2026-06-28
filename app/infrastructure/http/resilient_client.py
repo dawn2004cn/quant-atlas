@@ -12,17 +12,16 @@ Usage:
 """
 
 
-import logging
-import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from ...core.resilience import CircuitBreaker, CircuitBreakerConfig, CircuitState
+from ...core.resilience import CircuitBreaker, CircuitBreakerConfig
 
 
 from app.core.logger import get_logger
@@ -218,7 +217,7 @@ def resilient_http(
         def fetch_data():
             return requests.get("https://api.example.com/data").json()
     """
-    client = ResilientHttpClient(base_url, config, service_name)
+    ResilientHttpClient(base_url, config, service_name)
 
     def decorator(func: Callable) -> Callable:
         def wrapper(*args, **kwargs):

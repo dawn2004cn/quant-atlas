@@ -2,10 +2,8 @@ from __future__ import annotations
 """UseCase Router Adapter - Gradual integration with existing routes."""
 
 
-from functools import wraps
 from flask import jsonify
 
-from .use_cases import UseCaseResult
 
 
 class UseCaseRouter:
@@ -38,7 +36,6 @@ class UseCaseRouter:
         from flask import request
 
         def handler():
-            from ..common import parse_market
 
             market = request.args.get("market", market_default).strip().upper()
             use_case = getattr(self._factory, use_case_method)()

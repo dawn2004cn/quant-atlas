@@ -149,7 +149,7 @@ class SQLiteInvestmentManagerRepository:
             rows = cur.fetchall()
             if not rows:
                 return []
-            
+
             ids = [r["manager_id"] for r in rows]
             # Update them to active
             conn.execute(

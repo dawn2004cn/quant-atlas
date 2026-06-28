@@ -2,12 +2,9 @@ from __future__ import annotations
 """Background scanner service with priority queues and health monitoring."""
 
 
-import logging
 import threading
 import time
 from datetime import datetime
-from typing import Any, List, Optional
-from concurrent.futures import ThreadPoolExecutor
 
 from app.domain.ports import MarketDataProvider
 from app.domain.ports.stock_cache_port import StockCachePort
@@ -33,23 +30,23 @@ class ScannerApplicationService:
         self._cache = stock_cache
         self._is_running = False
         self._threads: list[threading.Thread] = []
-        self._all_codes: List[str] = []
-        self._core_codes: List[str] = CORE_TICKERS
-        
-        self._last_full_scan_at: Optional[datetime] = None
+        self._all_codes: list[str] = []
+        self._core_codes: list[str] = CORE_TICKERS
+
+        self._last_full_scan_at: datetime | None = None
         self._scan_count = 0
 
     def start_background_scan(self):
         if self._is_running:
             return
-        
+
         self._is_running = True
         t_core = threading.Thread(target=self._core_scan_loop, daemon=True)
         t_rot = threading.Thread(target=self._market_rotation_loop, daemon=True)
         t_core.start()
         t_rot.start()
         self._threads = [t_core, t_rot]
-        
+
         logger.info("Background priority scanning system activated.")
 
     def get_status(self) -> ScannerStatusDTO:
@@ -91,7 +88,7 @@ class ScannerApplicationService:
         while self._is_running:
             try:
                 rotation_pool = self.get_rotation_symbols()
-                
+
                 if not rotation_pool:
                     time.sleep(60)
                     continue
@@ -108,7 +105,7 @@ class ScannerApplicationService:
                 self.refresh_market_sentiment()
 
                 logger.info(f"Full market rotation #{self._scan_count} finished at {self._last_full_scan_at.strftime('%H:%M:%S')}")
-                
+
                 wait = 900 if is_trading_time_cn() else 3600
                 time.sleep(wait)
 
@@ -116,12 +113,12 @@ class ScannerApplicationService:
                 logger.error(f"Rotation scan loop error: {e}", exc_info=True)
                 time.sleep(60)
 
-    def get_rotation_symbols(self) -> List[str]:
+    def get_rotation_symbols(self) -> list[str]:
         """Get symbols excluding core tickers."""
         all_codes = self._discover_all_codes()
         return [c for c in all_codes if c not in self._core_codes]
 
-    def process_quote_batch(self, symbols: List[str]):
+    def process_quote_batch(self, symbols: list[str]):
         """Process a single batch of symbols (fetch and update sentiment)."""
         self._provider.get_realtime_quotes(symbols)
         self.refresh_market_sentiment()
@@ -155,7 +152,7 @@ class ScannerApplicationService:
         except Exception as e:
             logger.warning(f"Failed to refresh market sentiment: {e}")
 
-    def _discover_all_codes(self) -> List[str]:
+    def _discover_all_codes(self) -> list[str]:
         try:
             import akshare as ak
             import io
@@ -202,7 +199,7 @@ class ScannerApplicationService:
 
             self._last_full_scan_at = datetime.now()
             self._scan_count += 1
-            
+
             return ScanResultDTO(
                 ok=True,
                 codes_count=len(rotation_pool),

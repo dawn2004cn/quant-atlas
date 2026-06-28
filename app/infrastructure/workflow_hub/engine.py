@@ -1,3 +1,4 @@
+from app.domain.workflow_hub.models import WorkflowInstance
 from app.domain.workflow_hub.ports import WorkflowEngine
 
 

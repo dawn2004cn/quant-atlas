@@ -10,7 +10,6 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 from app.core.logger import get_logger
 

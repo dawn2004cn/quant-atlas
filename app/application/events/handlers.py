@@ -23,16 +23,16 @@ class EventHandlerRegistry:
         """Register all event handlers."""
         # Data sync handlers
         self._bus.subscribe(EventType.DATA_SYNCED)(self._handle_data_synced)
-        
-        # Quote update handlers  
+
+        # Quote update handlers
         self._bus.subscribe(EventType.QUOTE_UPDATED)(self._handle_quote_updated)
-        
+
         # Signal handlers
         self._bus.subscribe(EventType.SIGNAL_GENERATED)(self._handle_signal_generated)
-        
+
         # Risk alert handlers
         self._bus.subscribe(EventType.RISK_ALERT)(self._handle_risk_alert)
-        
+
         # Position handlers
         self._bus.subscribe(EventType.POSITION_OPENED)(self._handle_position_opened)
         self._bus.subscribe(EventType.POSITION_CLOSED)(self._handle_position_closed)
@@ -40,11 +40,11 @@ class EventHandlerRegistry:
     def _handle_data_synced(self, event: Event):
         """Handle data sync completion."""
         logger.info("Event: Data synced for market %s", event.payload.get('market'))
-        
+
         # Trigger related services
         from app.modules.system.services.helpers.quote_cache_access import get_quote_cache_port
         get_quote_cache_port().clear_expired()
-        
+
     def _handle_quote_updated(self, event: Event):
         """Handle quote update."""
         code = event.payload.get('code')
@@ -56,7 +56,7 @@ class EventHandlerRegistry:
         signal_code = event.payload.get('code')
         signal_type = event.payload.get('type')
         logger.info("Event: Signal generated - %s %s", signal_code, signal_type)
-        
+
     def _handle_risk_alert(self, event: Event):
         """Handle risk alert."""
         level = event.payload.get('level')
@@ -68,7 +68,7 @@ class EventHandlerRegistry:
         code = event.payload.get('code')
         quantity = event.payload.get('quantity')
         logger.info("Event: Position opened - %s x%d", code, quantity)
-        
+
     def _handle_position_closed(self, event: Event):
         """Handle position closed."""
         code = event.payload.get('code')

@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, TYPE_CHECKING
 
-import logging
 
 from ...domain.enums import MarketCode
 from ...domain.ports import QlibDataProviderPort
@@ -15,7 +14,7 @@ from .artifact_registry import RDAgentArtifactRegistry
 from .factor_expression_gate import evaluate_factor_expression_gate
 
 if TYPE_CHECKING:
-    from app.modules.data.services.qlib_pipeline_service import QlibPipelineService
+    pass
 
 
 

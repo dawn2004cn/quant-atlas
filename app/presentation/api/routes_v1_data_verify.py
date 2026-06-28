@@ -25,7 +25,7 @@ def data_verify(market: str, symbol: str):
     try:
         guardian = DataTruthGuardianService()
         manifest = guardian.get_manifest()
-        sources = manifest.get("sources", ["TDX", "Qlib", "AkShare"])
+        manifest.get("sources", ["TDX", "Qlib", "AkShare"])
         threshold = float(manifest.get("diff_threshold_pct", 0.5))
         quotes: list[SourceQuote] = []
 

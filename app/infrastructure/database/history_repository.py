@@ -2,7 +2,6 @@ from __future__ import annotations
 """History Repository - Single Responsibility for K-line Data."""
 
 
-from datetime import datetime, timedelta
 from typing import Any
 
 from app.core.sql_safety import safe_sql_identifier
@@ -81,7 +80,7 @@ class HistoryRepository:
         table_name = self._get_table_name(normalized)
         s0 = str(start_date or "")[:10]
         e0 = str(end_date or "")[:10]
-        
+
         ph = self._ph
         sql = f"""
             SELECT stock_code, date, open, high, low, close, volume, amount
@@ -97,7 +96,7 @@ class HistoryRepository:
         """Get latest history for a stock."""
         normalized = SymbolNormalizer.to_db_code(stock_code)
         table_name = self._get_table_name(normalized)
-        
+
         ph = self._ph
         sql = f"""
             SELECT stock_code, date, open, high, low, close, volume, amount

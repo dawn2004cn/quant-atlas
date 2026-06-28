@@ -6,8 +6,8 @@ Preserves semantic type + payload via ApplicationEventForwardedEvent.
 
 from __future__ import annotations
 
-import logging
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.application.events.event_bus import Event, EventType, get_event_bus as get_app_event_bus
 from app.core.event_bus import (

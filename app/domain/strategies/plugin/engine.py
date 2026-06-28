@@ -12,15 +12,15 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from .protocol import (
     PluginConfig,
     PluginState,
     StrategyPlugin,
-    StrategyResult,
     StrategySignal,
 )
 from .registry import StrategyRegistry, get_registry

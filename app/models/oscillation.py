@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from ..core.base_strategy import BaseTradingStrategy
 from ta.momentum import StochasticOscillator
 from ..core.kdj import tdx_k_d

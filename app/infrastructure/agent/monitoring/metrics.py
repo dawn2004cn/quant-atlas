@@ -5,7 +5,7 @@ Exports agent performance, latency, and success rates for Prometheus integration
 """
 
 
-from prometheus_client import Counter, Gauge, Histogram
+from prometheus_client import Counter, Histogram
 
 # Swarm Metrics
 SWARM_RUN_TOTAL = Counter("swarm_runs_total", "Total Swarm runs", ["preset"])

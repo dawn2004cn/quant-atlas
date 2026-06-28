@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import List, Optional
 
 class TableInfoDTO(BaseModel):
     name: str
@@ -11,7 +10,7 @@ class MemoryStatsDTO(BaseModel):
     num_tables: int
     total_rows: int
     total_memory_bytes: int
-    tables: List[TableInfoDTO]
+    tables: list[TableInfoDTO]
 
 class OptimizationResultDTO(BaseModel):
     success: bool
@@ -20,4 +19,4 @@ class OptimizationResultDTO(BaseModel):
     num_rows: int
     num_columns: int
     memory_usage_bytes: int
-    error: Optional[str] = None
+    error: str | None = None

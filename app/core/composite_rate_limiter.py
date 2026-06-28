@@ -14,9 +14,10 @@ from __future__ import annotations
 
 import functools
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from threading import Lock
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 
 from flask import request
 from flask_login import current_user
@@ -67,7 +68,7 @@ class CompositeRateLimiter:
         cutoff = now - window
         return [t for t in bucket if t > cutoff]
 
-    def is_allowed(self, key: str, rule: LimitRule, now: Optional[float] = None) -> bool:
+    def is_allowed(self, key: str, rule: LimitRule, now: float | None = None) -> bool:
         """Check if a request identified by *key* is allowed under *rule*."""
         ts = now or time.time()
         lock = self._get_lock(key)
@@ -87,7 +88,7 @@ class CompositeRateLimiter:
 
             return allowed
 
-    def get_remaining(self, key: str, rule: LimitRule, now: Optional[float] = None) -> int:
+    def get_remaining(self, key: str, rule: LimitRule, now: float | None = None) -> int:
         """Return remaining calls for the key under the rule."""
         ts = now or time.time()
         lock = self._get_lock(key)

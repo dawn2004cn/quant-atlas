@@ -6,7 +6,8 @@ import contextvars
 import time
 import uuid
 from functools import wraps
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.core.circuit_breaker import (
     CircuitBreaker as _CircuitBreaker,

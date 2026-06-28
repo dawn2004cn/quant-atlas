@@ -9,7 +9,7 @@ from app.application.workflows.base_workflow import BaseWorkflow
 from app.domain.agent_workflow import WorkflowContext
 from app.domain.enums import MarketCode
 from app.infrastructure.capabilities.registry import CapabilityRegistry
-from app.core.event_bus import get_event_bus, emit_workflow_completed
+from app.core.event_bus import emit_workflow_completed
 
 
 class ResearchWorkflow(BaseWorkflow):

@@ -50,7 +50,8 @@ class CnAkShareFundamentalsProvider:
 
     def _check_tushare(self) -> bool:
         try:
-            import os, tushare as ts  # noqa: PLC0415
+            import os
+            import tushare as ts  # noqa: PLC0415
             token = os.getenv("TUSHARE_TOKEN", "")
             if not token:
                 return False
@@ -154,11 +155,11 @@ class CnAkShareFundamentalsProvider:
         cap = max(1, min(int(limit), 100))
         try:
             df = ak.stock_research_report_em(symbol=code)
-            
+
             # Convert DF to list of dicts
             if df is None or df.empty:
                 return [], None
-            
+
             rows = df.head(cap).to_dict("records")
             return rows, None
         except Exception as exc:  # noqa: BLE001

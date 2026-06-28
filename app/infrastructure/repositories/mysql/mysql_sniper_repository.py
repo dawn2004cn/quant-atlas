@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any
 from sqlalchemy import Table, Column, Integer, String, DateTime, Text, JSON, MetaData, Numeric, select, update
 from app.domain.sniper_entities import SniperSelection, MarketRegime
 
@@ -52,13 +52,13 @@ class MySQLSniperRepository:
             session.commit()
             return result.inserted_primary_key[0]
 
-    def list_active(self) -> List[SniperSelection]:
+    def list_active(self) -> list[SniperSelection]:
         with self._session_factory() as session:
             stmt = select(self._table).where(self._table.c.status == "holding")
             rows = session.execute(stmt).fetchall()
             return [self._row_to_entity(row) for row in rows]
 
-    def get_selection_summary(self, selection_id: int) -> Optional[dict[str, Any]]:
+    def get_selection_summary(self, selection_id: int) -> dict[str, Any] | None:
         with self._session_factory() as session:
             stmt = select(self._table).where(self._table.c.id == selection_id)
             row = session.execute(stmt).fetchone()

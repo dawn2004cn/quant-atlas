@@ -3,7 +3,7 @@
 Iterative refinement so w_i * MRC_i is approximately equal across assets.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,7 @@ from backtest.optimizers.base import BaseOptimizer
 class RiskParityOptimizer(BaseOptimizer):
     """Spinu (2013)-style inverse-vol seed + Newton-style refinement."""
 
-    def _calc_weights(self, ctx: Dict[str, Any]) -> np.ndarray:
+    def _calc_weights(self, ctx: dict[str, Any]) -> np.ndarray:
         """Equal risk contribution weights."""
         cov = ctx["cov"]
         n = cov.shape[0]

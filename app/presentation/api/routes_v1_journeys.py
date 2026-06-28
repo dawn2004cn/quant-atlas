@@ -18,7 +18,6 @@ from .journeys import (
     build_journey_context,
     get_journey_metadata,
     get_route_modules_for_journey,
-    get_journey_for_route_module,
 )
 from .v1_context import ApiV1Context
 

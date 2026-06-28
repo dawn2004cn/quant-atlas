@@ -2,7 +2,6 @@ from __future__ import annotations
 """Async market data provider using aiotdx or httpx."""
 
 
-import logging
 from typing import Any
 
 
@@ -35,13 +34,13 @@ class AsyncMarketProvider:
         """Get real-time quote asynchronously."""
         if not self._initialized:
             await self.initialize()
-        
+
         if self._tdx:
             try:
                 return await self._async_quote_from_tdx(code, market)
             except Exception as e:
                 logger.debug("TDX quote failed: %s", e)
-        
+
         return await self._fallback_quote(code, market)
 
     async def get_history(
@@ -54,13 +53,13 @@ class AsyncMarketProvider:
         """Get history data asynchronously."""
         if not self._initialized:
             await self.initialize()
-        
+
         if self._tdx:
             try:
                 return self._tdx.get_history(code, market, start, end)
             except Exception as e:
                 logger.debug("TDX history failed: %s", e)
-        
+
         return await self._fallback_history(code, market, start, end)
 
     async def _async_quote_from_tdx(self, code: str, market: str) -> dict[str, Any]:
@@ -72,7 +71,6 @@ class AsyncMarketProvider:
     async def _fallback_quote(self, code: str, market: str) -> dict[str, Any]:
         """Fallback to AkShare for quotes."""
         try:
-            import akshare as ak
             import asyncio
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(None, lambda: self._get_akshare_quote(code))
@@ -139,21 +137,21 @@ def to_async_provider(sync_provider: Any) -> AsyncMarketProvider:
             super().__init__()
             self._sync_provider = provider
             self._initialized = True
-        
+
         async def get_quote(self, code: str, market: str = "CN") -> dict[str, Any]:
             import asyncio
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(
                 None, lambda: getattr(self._sync_provider, "get_quote", lambda c, m: {})(code, market)
             )
-        
+
         async def get_history(self, code: str, market: str, start: str, end: str) -> list[dict[str, Any]]:
             import asyncio
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(
                 None, lambda: getattr(self._sync_provider, "get_history", lambda *a: [])(code, market, start, end)
             )
-    
+
     return WrappedProvider(sync_provider)
 
 

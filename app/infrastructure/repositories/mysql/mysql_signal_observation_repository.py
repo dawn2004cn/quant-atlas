@@ -2,11 +2,10 @@ from __future__ import annotations
 """MySQL implementation of Signal Observation Repository."""
 
 
-import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
-from sqlalchemy import select, delete, update, func, and_, desc, text
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 
@@ -78,7 +77,7 @@ class MySQLSignalObservationRepository(SignalObservationRepository):
         "closed_at", "close_reason",
     })
 
-    def update_observation(self, observation_id: str, user_id: int, data: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def update_observation(self, observation_id: str, user_id: int, data: dict[str, Any]) -> dict[str, Any] | None:
         """Update an observation by ID."""
         self._ensure_session()
         data["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -91,7 +90,7 @@ class MySQLSignalObservationRepository(SignalObservationRepository):
         self._commit()
         return self.get_observation(observation_id, user_id)
 
-    def get_observation(self, observation_id: str, user_id: int) -> Optional[dict[str, Any]]:
+    def get_observation(self, observation_id: str, user_id: int) -> dict[str, Any] | None:
         """Get a single observation by ID."""
         self._ensure_session()
         result = self._session.execute(
@@ -129,7 +128,7 @@ class MySQLSignalObservationRepository(SignalObservationRepository):
         observation_id: str,
         user_id: int,
         reason: str = "manual_close"
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Close an observation."""
         self._ensure_session()
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

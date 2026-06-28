@@ -12,9 +12,7 @@ Strategy extraction → backtest bridge still pending (Phase 4c).
 
 
 import json
-import logging
 from collections import defaultdict, deque
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -22,7 +20,6 @@ import pandas as pd
 from app.infrastructure.agent.swarm.tools_base import BaseTool
 from app.infrastructure.agent.swarm.tools.path_utils import safe_user_path
 from app.infrastructure.agent.swarm.tools.trade_journal_parsers import (
-    TradeRecord,
     parse_file,
     records_to_dataframe,
 )

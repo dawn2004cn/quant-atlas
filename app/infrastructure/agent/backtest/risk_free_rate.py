@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 from functools import lru_cache
-from typing import Optional
 
 from app.core.runtime_config import get_runtime, get_runtime_float
 
@@ -17,7 +16,7 @@ _CN_10Y_LABELS = (
 )
 
 
-def _parse_yield_percent(value: object) -> Optional[float]:
+def _parse_yield_percent(value: object) -> float | None:
     try:
         pct = float(value)
     except (TypeError, ValueError):
@@ -28,7 +27,7 @@ def _parse_yield_percent(value: object) -> Optional[float]:
 
 
 @lru_cache(maxsize=1)
-def fetch_cn_10y_bond_yield_annual() -> Optional[float]:
+def fetch_cn_10y_bond_yield_annual() -> float | None:
     """Fetch latest China 10Y government bond yield as annual decimal."""
     try:
         import akshare as ak

@@ -3,8 +3,12 @@ from __future__ import annotations
 """Command-first planning for compound Jarvis instructions."""
 
 import re
-from app.domain.intent_decomposer import ExecutionPlan, ExecutionStep, StepStatus, StepType
+from typing import Any
+from app.core.logger import get_logger
+from app.domain.intent_decomposer import ExecutionPlan
 from urllib.parse import urlencode
+
+logger = get_logger(__name__)
 
 _PATTERN_STYLE_RE = re.compile(
     r"赚钱|成功模式|去年|风格|偏好|适合我",

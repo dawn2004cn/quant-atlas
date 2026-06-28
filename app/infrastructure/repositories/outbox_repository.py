@@ -16,7 +16,6 @@ from datetime import datetime
 from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy import select, update, delete
-from sqlalchemy.orm import selectinload
 
 from app.infrastructure.database.models.trading import TransactionalOutbox
 

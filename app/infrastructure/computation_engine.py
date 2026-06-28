@@ -3,8 +3,8 @@ from __future__ import annotations
 
 
 import asyncio
-from dataclasses import dataclass
-from typing import Any, Optional, Callable
+from typing import Any
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 
@@ -190,7 +190,7 @@ class VectorizedCalculator:
         return max_dd, start_idx, end_idx
 
 
-_computation_engine: Optional[ComputationEngine] = None
+_computation_engine: ComputationEngine | None = None
 
 
 def get_computation_engine() -> ComputationEngine:

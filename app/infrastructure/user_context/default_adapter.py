@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
 
 from app.domain.user_context.models import DashboardLayoutDTO, JourneyHint, QuickAction
 from app.domain.user_context.ports import UserContextPort

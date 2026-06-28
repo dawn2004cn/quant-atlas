@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class RedisShadowVenue(ExecutionVenue):
     """Redis-based shadow/paper trading venue.
-    
+
     Executes trades in a shadow ledger for testing and strategy validation.
     No real market interaction - all fills are simulated.
     """
@@ -56,7 +56,7 @@ class RedisShadowVenue(ExecutionVenue):
                     request.symbol,
                 )
             slippage = base_price * (self._slippage_bps / 10000)
-            
+
             if request.side == OrderSide.BUY:
                 fill_price = base_price + slippage
             else:
@@ -138,7 +138,7 @@ class RedisShadowVenue(ExecutionVenue):
 
 class MockQMTVenue(ExecutionVenue):
     """Mock QMT (Quant Master Terminal) venue for testing.
-    
+
     Simulates QMT execution with realistic latency and occasional failures.
     """
 
@@ -214,7 +214,7 @@ class MockQMTVenue(ExecutionVenue):
 
 class DeFiBridgeVenue(ExecutionVenue):
     """DeFi bridge venue for on-chain execution (mock implementation).
-    
+
     Simulates DEX aggregator execution with gas costs and slippage.
     """
 
@@ -239,7 +239,7 @@ class DeFiBridgeVenue(ExecutionVenue):
         # Calculate fill with higher slippage
         base_price = request.price or 100.0
         slippage = base_price * (self._slippage_bps / 10000)
-        
+
         if request.side == OrderSide.BUY:
             fill_price = base_price + slippage
         else:

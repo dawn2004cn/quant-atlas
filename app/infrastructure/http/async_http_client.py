@@ -12,7 +12,7 @@ Benefits:
 
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -57,8 +57,8 @@ class AsyncHTTPClient:
     async def get(
         self,
         url: str,
-        params: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, str]] = None,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> httpx.Response:
         """Make async GET request."""
@@ -77,9 +77,9 @@ class AsyncHTTPClient:
     async def post(
         self,
         url: str,
-        data: Optional[dict[str, Any]] = None,
-        json: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, str]] = None,
+        data: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
         **kwargs: Any,
     ) -> httpx.Response:
         """Make async POST request."""
@@ -100,7 +100,7 @@ class AsyncHTTPClient:
         if self._client and not self._client.is_closed:
             await self._client.aclose()
 
-    async def __aenter__(self) -> "AsyncHTTPClient":
+    async def __aenter__(self) -> AsyncHTTPClient:
         await self._get_client()
         return self
 

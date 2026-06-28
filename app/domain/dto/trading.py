@@ -3,7 +3,7 @@ from __future__ import annotations
 
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from enum import Enum
 from pydantic import BaseModel, Field, computed_field
 
@@ -143,7 +143,7 @@ class BacktestConfigContract(BaseModel):
     end_date: str
     codes: list[str] = Field(min_length=1)
     frequency: str = Field(default="daily", description="daily, weekly, monthly")
-    benchmark: Optional[str] = None
+    benchmark: str | None = None
 
 
 class BacktestResultContract(BaseModel):

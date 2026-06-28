@@ -19,10 +19,8 @@ All methods return a structured ``OverfittingReport`` with verdict.
 
 from __future__ import annotations
 
-import dataclasses
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -109,13 +107,13 @@ class OverfittingReport:
     severity: Severity = Severity.LOW
 
     # Individual test results
-    degradation: List[MetricDelta] = field(default_factory=list)
-    parameter_stability: List[ParameterStabilityResult] = field(default_factory=list)
-    walk_forward: Optional[WalkForwardResult] = None
-    permutation_test: Optional[PermutationTestResult] = None
+    degradation: list[MetricDelta] = field(default_factory=list)
+    parameter_stability: list[ParameterStabilityResult] = field(default_factory=list)
+    walk_forward: WalkForwardResult | None = None
+    permutation_test: PermutationTestResult | None = None
 
     # Summary flags
-    flags: List[str] = field(default_factory=list)
+    flags: list[str] = field(default_factory=list)
 
     def add_flag(self, msg: str, severity: Severity) -> None:
         self.flags.append(f"[{severity.value.upper()}] {msg}")
@@ -170,18 +168,18 @@ class OverfittingDetector:
         )
     """
 
-    def __init__(self, thresholds: Optional[Dict[str, float]] = None):
+    def __init__(self, thresholds: dict[str, float] | None = None):
         self.thresh = {**_DEFAULT_THRESHOLDS, **(thresholds or {})}
 
     # ── 1. IS vs OOS degradation ──────────────────────────────────────
 
     def check_degradation(
         self,
-        is_metrics: Dict[str, float],
-        oos_metrics: Dict[str, float],
-    ) -> List[MetricDelta]:
+        is_metrics: dict[str, float],
+        oos_metrics: dict[str, float],
+    ) -> list[MetricDelta]:
         """Compare in-sample vs out-of-sample metrics."""
-        deltas: List[MetricDelta] = []
+        deltas: list[MetricDelta] = []
         mapping = {
             "sharpe": ("sharpe_degradation_pct", Severity.MEDIUM),
             "total_return": ("return_degradation_pct", Severity.HIGH),
@@ -221,8 +219,8 @@ class OverfittingDetector:
     def check_parameter_stability(
         self,
         base_performance: float,
-        grid_results: Dict[str, List[float]],
-    ) -> List[ParameterStabilityResult]:
+        grid_results: dict[str, list[float]],
+    ) -> list[ParameterStabilityResult]:
         """Check if performance spikes only at nominal parameters.
 
         Args:
@@ -233,7 +231,7 @@ class OverfittingDetector:
         Returns:
             One result per parameter.
         """
-        results: List[ParameterStabilityResult] = []
+        results: list[ParameterStabilityResult] = []
         cv_threshold = self.thresh["param_cv_threshold"]
         for param, perf_list in grid_results.items():
             arr = np.array(perf_list, dtype=float)
@@ -283,7 +281,7 @@ class OverfittingDetector:
                 consistency_score=0.0, severity=Severity.LOW,
             )
 
-        oos_sharpes: List[float] = []
+        oos_sharpes: list[float] = []
         for start in range(0, n - window_size, step_size):
             end = start + window_size
             window = returns.iloc[start:end]
@@ -380,10 +378,10 @@ class OverfittingDetector:
     def analyze(
         self,
         strategy_name: str,
-        is_metrics: Optional[Dict[str, float]] = None,
-        oos_metrics: Optional[Dict[str, float]] = None,
-        returns: Optional[pd.Series] = None,
-        grid_results: Optional[Dict[str, List[float]]] = None,
+        is_metrics: dict[str, float] | None = None,
+        oos_metrics: dict[str, float] | None = None,
+        returns: pd.Series | None = None,
+        grid_results: dict[str, list[float]] | None = None,
         base_performance: float = 0.0,
         n_permutations: int = 1000,
     ) -> OverfittingReport:

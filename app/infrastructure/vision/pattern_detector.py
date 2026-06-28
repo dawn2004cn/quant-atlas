@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class PatternDetector:
     """Detects chart patterns using numerical analysis, enhanced by vision LLM.
-    
+
     Combines traditional technical analysis (support/resistance, trend detection)
     with vision LLM pattern recognition for comprehensive analysis.
     """
@@ -23,11 +23,11 @@ class PatternDetector:
         vision_analysis: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Detect patterns from bar data, optionally merging vision LLM results.
-        
+
         Args:
             bars: OHLCV bar data
             vision_analysis: Optional vision LLM analysis to merge
-            
+
         Returns:
             Structured pattern detection result
         """

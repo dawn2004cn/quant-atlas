@@ -368,7 +368,7 @@ class AuditTrailService:
 
     @classmethod
     def _chain_hash(cls, previous_hash: str, content_hash: str) -> str:
-        return hashlib.sha256(f"{previous_hash}:{content_hash}".encode("utf-8")).hexdigest()
+        return hashlib.sha256(f"{previous_hash}:{content_hash}".encode()).hexdigest()
 
     def _get_last_chain_hash(self) -> str:
         """Query the last chain_hash from the DB."""

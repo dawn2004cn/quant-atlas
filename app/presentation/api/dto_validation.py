@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import functools
 import inspect
-import logging
-from typing import Any, Callable, Type
+from typing import Any
+from collections.abc import Callable
 
 from pydantic import BaseModel
 from pydantic import ValidationError as PydanticValidationError
@@ -18,7 +18,7 @@ from app.core.logger import get_logger
 logger = get_logger(__name__)
 
 
-def validate_request(dto_class: Type[BaseModel], source: str = "json"):
+def validate_request(dto_class: type[BaseModel], source: str = "json"):
     """Decorator to validate request parameters against a Pydantic DTO.
 
     Usage:
@@ -69,7 +69,7 @@ def validate_request(dto_class: Type[BaseModel], source: str = "json"):
     return decorator
 
 
-def validate_response(dto_class: Type[BaseModel]):
+def validate_response(dto_class: type[BaseModel]):
     """Decorator to validate response data against a Pydantic DTO.
 
     Usage:

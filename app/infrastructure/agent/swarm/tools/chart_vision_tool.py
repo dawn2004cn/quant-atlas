@@ -3,7 +3,6 @@ from __future__ import annotations
 
 
 import base64
-import logging
 from typing import Any
 
 from app.infrastructure.agent.swarm.tools_base import BaseTool
@@ -32,14 +31,14 @@ class ChartVisionTool(BaseTool):
     def execute(self, **kwargs: Any) -> str:
         image_path = kwargs["image_path"]
         question = kwargs["question"]
-        
+
         try:
             with open(image_path, "rb") as f:
                 image_data = base64.b64encode(f.read()).decode("utf-8")
-            
+
             # Using the existing LLM provider which is now configured for multimodal
             llm = build_llm(model_name="gpt-4o") # Example model that supports vision
-            
+
             messages = [
                 {
                     "role": "user",
@@ -49,10 +48,10 @@ class ChartVisionTool(BaseTool):
                     ],
                 }
             ]
-            
+
             response = llm.invoke(messages)
             return str(response.content)
-            
+
         except Exception as e:
             logger.error(f"Chart vision analysis failed: {e}")
             return f"Error analyzing chart: {str(e)}"

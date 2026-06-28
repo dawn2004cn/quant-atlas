@@ -6,12 +6,11 @@ Ported from Vibe-Trading.
 
 
 import json
-import logging
 import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable
+from collections.abc import Callable
 
 from app.infrastructure.agent.skills.loader import SkillsLoader
 from app.infrastructure.agent.providers.chat import ChatLLM
@@ -146,7 +145,7 @@ def run_worker(
     event_callback: Callable[[SwarmEvent], None] | None = None,
 ) -> WorkerResult:
     from app.infrastructure.agent.swarm.context import ContextBuilder
-    
+
     agent_id = agent_spec.id
     task_id = task.id
     max_iterations = agent_spec.max_iterations or _DEFAULT_MAX_ITERATIONS
@@ -228,7 +227,7 @@ def run_worker(
 
         try:
             remaining_timeout = max(10, int(timeout - elapsed))
-            
+
             def _on_text_chunk(delta: str) -> None:
                 _emit(event_callback, "worker_text", agent_id, task_id,
                       {"content": delta, "iteration": iteration})
@@ -270,7 +269,7 @@ def run_worker(
             args = {**tc.arguments, "run_dir": str(artifact_dir)}
             result = registry.execute(tc.name, args)
             tc_elapsed = time.monotonic() - tc_start
-            _emit(event_callback, "tool_result", agent_id, task_id, 
+            _emit(event_callback, "tool_result", agent_id, task_id,
                   {"tool": tc.name, "elapsed_ms": int(tc_elapsed * 1000), "status": "ok", "iteration": iteration})
             messages.append(ContextBuilder.format_tool_result(tc.id, tc.name, result[:10_000]))
 

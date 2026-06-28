@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from typing import Optional
 
 
 class StockSearchRequest(BaseModel):
@@ -24,5 +23,5 @@ class StockHistoryRequest(BaseModel):
 
 
 class StockAnalysisRequest(BaseModel):
-    user_hypothesis: Optional[str] = Field(default=None, description="User hypothesis text")
-    hypothesis_id: Optional[str] = Field(default=None, description="Hypothesis ID")
+    user_hypothesis: str | None = Field(default=None, description="User hypothesis text")
+    hypothesis_id: str | None = Field(default=None, description="Hypothesis ID")

@@ -77,7 +77,7 @@ class DeIdentifiedStrategy:
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "DeIdentifiedStrategy":
+    def from_dict(cls, data: dict[str, Any]) -> DeIdentifiedStrategy:
         return cls(
             id=data.get("id", uuid4().hex[:12]),
             anonymized_id=data.get("anonymized_id", uuid4().hex),

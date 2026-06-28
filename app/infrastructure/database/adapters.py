@@ -7,7 +7,6 @@ import sqlite3
 import threading
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from datetime import datetime
 from typing import Any
 
 from ...config import AppSettings, get_settings
@@ -295,7 +294,7 @@ def create_database_adapter(settings: AppSettings | None = None) -> DatabaseAdap
     if settings is None:
         settings = get_settings()
 
-    backend = (os.getenv("DATABASE_BACKEND") or settings.database_backend or "").strip().lower()
+    (os.getenv("DATABASE_BACKEND") or settings.database_backend or "").strip().lower()
 
     if settings.use_mysql and settings.mysql is not None:
         return MysqlAdapter(settings.mysql)

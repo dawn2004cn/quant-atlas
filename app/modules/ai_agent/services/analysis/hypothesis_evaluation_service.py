@@ -202,7 +202,8 @@ class HypothesisEvaluationService:
         rsi = _safe_float(m.get("rsi"), 50.0)
         support: list[HypothesisEvidenceItemDTO] = []
         contradict: list[HypothesisEvidenceItemDTO] = []
-        ev = lambda *a, **k: _ev(*a, symbol=sym, market=mkt, **k)
+        def ev(*a, **k):
+            return _ev(*a, symbol=sym, market=mkt, **k)
 
         if price > ma20 > 0 or change_pct > 0:
             support.append(ev(f"价格 {price:.2f} 高于 MA20 {ma20:.2f} 或当日涨幅 {change_pct:.2f}%", confidence=0.72, section_id="stock-detail-hero", field="price"))
@@ -234,7 +235,8 @@ class HypothesisEvaluationService:
         macd_signal = _safe_float(m.get("macd_signal"))
         support: list[HypothesisEvidenceItemDTO] = []
         contradict: list[HypothesisEvidenceItemDTO] = []
-        ev = lambda *a, **k: _ev(*a, symbol=sym, market=mkt, **k)
+        def ev(*a, **k):
+            return _ev(*a, symbol=sym, market=mkt, **k)
 
         if ma5 > ma20 > 0 and price >= ma20:
             support.append(ev(f"MA5 {ma5:.2f} > MA20 {ma20:.2f}，价格 {price:.2f} 站上 MA20", confidence=0.78, section_id="stockChart"))
@@ -262,7 +264,8 @@ class HypothesisEvaluationService:
         ma5 = _safe_float(m.get("ma5"))
         support: list[HypothesisEvidenceItemDTO] = []
         contradict: list[HypothesisEvidenceItemDTO] = []
-        ev = lambda *a, **k: _ev(*a, symbol=sym, market=mkt, **k)
+        def ev(*a, **k):
+            return _ev(*a, symbol=sym, market=mkt, **k)
 
         if rsi <= 38:
             support.append(ev(f"RSI {rsi:.1f} 处于偏低区域，存在超卖修复基础", confidence=0.7, field="rsi"))
@@ -290,7 +293,8 @@ class HypothesisEvaluationService:
         change_pct = _safe_float(m.get("change_pct"))
         support: list[HypothesisEvidenceItemDTO] = []
         contradict: list[HypothesisEvidenceItemDTO] = []
-        ev = lambda *a, **k: _ev(*a, symbol=sym, market=mkt, **k)
+        def ev(*a, **k):
+            return _ev(*a, symbol=sym, market=mkt, **k)
 
         if price < ma20 or ma5 < ma20:
             support.append(ev(f"价格 {price:.2f} 或 MA5 {ma5:.2f} 低于 MA20 {ma20:.2f}", confidence=0.76, section_id="stockChart"))
@@ -318,7 +322,8 @@ class HypothesisEvaluationService:
         ma20 = _safe_float(m.get("ma20"))
         rsi = _safe_float(m.get("rsi"), 50.0)
         change_pct = _safe_float(m.get("change_pct"))
-        ev = lambda *a, **k: _ev(*a, symbol=sym, market=mkt, **k)
+        def ev(*a, **k):
+            return _ev(*a, symbol=sym, market=mkt, **k)
 
         if any(k in label for k in ("反弹", "回升", "修复")):
             if change_pct > 0 or price > ma20:

@@ -3,10 +3,8 @@ from app.domain.dto.service_result import GenericResponseDTO
 """Attribution Dashboard - Explain where returns come from."""
 
 
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
 
 
 from app.core.logger import get_logger
@@ -56,15 +54,15 @@ class AttributionReport:
     strategy_name: str
     period: str
     total_return: float
-    
+
     market_effect: MarketEffect
-    factors: List[FactorContribution] = field(default_factory=list)
-    sectors: List[SectorContribution] = field(default_factory=list)
-    stocks: List[StockContribution] = field(default_factory=list)
-    
-    top_contributors: List[StockContribution] = field(default_factory=list)
-    bottom_contributors: List[StockContribution] = field(default_factory=list)
-    
+    factors: list[FactorContribution] = field(default_factory=list)
+    sectors: list[SectorContribution] = field(default_factory=list)
+    stocks: list[StockContribution] = field(default_factory=list)
+
+    top_contributors: list[StockContribution] = field(default_factory=list)
+    bottom_contributors: list[StockContribution] = field(default_factory=list)
+
     generated_at: datetime = field(default_factory=datetime.now)
 
 
@@ -75,11 +73,11 @@ class AttributionAnalyzer:
         self,
         strategy_name: str,
         period: str,
-        positions: List[Dict],
+        positions: list[dict],
         benchmark_return: float = 0.0
     ) -> AttributionReport:
         """Generate attribution report."""
-        
+
         # Calculate total portfolio value and return
         total_value = sum(p.get("value", 0) for p in positions)
         if total_value == 0:
@@ -132,9 +130,9 @@ class AttributionAnalyzer:
 
     def _calculate_stock_contributions(
         self,
-        positions: List[Dict],
+        positions: list[dict],
         total_value: float
-    ) -> List[StockContribution]:
+    ) -> list[StockContribution]:
         """Calculate individual stock contributions."""
         contributions = []
 
@@ -156,11 +154,11 @@ class AttributionAnalyzer:
 
     def _calculate_sector_contributions(
         self,
-        positions: List[Dict],
+        positions: list[dict],
         total_value: float
-    ) -> List[SectorContribution]:
+    ) -> list[SectorContribution]:
         """Calculate sector contributions."""
-        sector_data: Dict[str, Dict] = {}
+        sector_data: dict[str, dict] = {}
 
         for p in positions:
             sector = p.get("sector", "未知")
@@ -190,8 +188,8 @@ class AttributionAnalyzer:
 
     def _calculate_factor_contributions(
         self,
-        positions: List[Dict]
-    ) -> List[FactorContribution]:
+        positions: list[dict]
+    ) -> list[FactorContribution]:
         """Calculate factor-based contributions (simplified)."""
         # In real implementation, would use actual factor exposures
         factors = [
@@ -228,7 +226,7 @@ class AttributionAnalyzer:
         ]
         return factors
 
-    def _estimate_beta(self, positions: List[Dict], benchmark_return: float) -> float:
+    def _estimate_beta(self, positions: list[dict], benchmark_return: float) -> float:
         """Estimate portfolio beta (simplified)."""
         if not positions or benchmark_return == 0:
             return 1.0
@@ -279,13 +277,13 @@ class AttributionAnalyzer:
 class WhatIfAnalyzer:
     """What-if scenario analyzer for factor adjustments."""
 
-    def __init__(self, base_positions: List[Dict]):
+    def __init__(self, base_positions: list[dict]):
         self.base_positions = base_positions
         self.analyzer = AttributionAnalyzer()
 
     def simulate(
         self,
-        factor_adjustments: Dict[str, float]
+        factor_adjustments: dict[str, float]
     ) -> GenericResponseDTO:
         """Simulate what happens if factor weights are adjusted.
 

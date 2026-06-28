@@ -49,15 +49,15 @@ class StockGroupApplicationService:
     def remove_symbol(self, group_id: int, symbol: str, user_id: int = 1) -> tuple[bool, str]:
         if not symbol:
             return False, "股票代码不能为空"
-        
+
         from app.domain.shared.symbol_normalizer import SymbolNormalizer
         normalized = SymbolNormalizer.to_db_code(symbol)
-        
+
         # Check if symbol exists in group
         existing = self._repository.list_group_symbols(group_id, user_id=user_id)
         if normalized not in existing:
             return False, f"股票 {symbol} 不在当前分组中"
-        
+
         if not self._repository.remove_symbol_from_group(group_id, symbol, user_id=user_id):
             return False, "移除失败，请重试"
         return True, "移除成功"

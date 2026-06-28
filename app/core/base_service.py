@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import functools
 import threading
-from typing import Any, Callable, Awaitable
+from typing import Any
+from collections.abc import Callable, Awaitable
 from functools import wraps
 
 from app.core.logger import get_logger
@@ -95,13 +96,13 @@ def async_task(func: Callable[..., Awaitable[Any]]) -> Callable[..., Any]:
 
 class BaseApplicationService:
     """Base class for all application services.
-    
+
     Provides common functionality like logging and async HTTP client access.
     """
-    
+
     def __init__(self, logger_name: str | None = None):
         self._logger = get_logger(logger_name or self.__class__.__name__)
-    
+
     @property
     def logger(self):
         return self._logger

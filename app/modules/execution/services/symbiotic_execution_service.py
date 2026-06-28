@@ -3,9 +3,7 @@ AI-based smart order splitting and sentiment-based cool-down confirmation."""
 
 from __future__ import annotations
 
-import json
 import math
-from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Literal
 
@@ -39,7 +37,7 @@ class SymbioticExecutionService:
         self._book = book_service
         self._profiler = execution_profiler
         self._sentiment_cache: dict[int, SentimentProfile] = {}
-    
+
     def parse_sentiment(self, user_id: int) -> SentimentProfile:
         """Get or infer user sentiment."""
         cached = self._sentiment_cache.get(user_id)
@@ -51,7 +49,7 @@ class SymbioticExecutionService:
         fresh = self._risk.assess_user_risk_profile(user_id)
         self._sentiment_cache[user_id] = fresh
         return fresh
-    
+
     def detect_triggers(self, profile: SentimentProfile) -> list[SentimentTrigger]:
         """Detect emotion triggers."""
         triggers = []
@@ -64,14 +62,14 @@ class SymbioticExecutionService:
         if profile.position_volatility > 0.3:
             triggers.append("fear")
         return triggers
-    
+
     def calculate_split(self, req: SymbioticExecutionRequest, depth: MarketDepthSnapshot) -> list[SplitOrder]:
         """Split single large order into smaller hidden child orders."""
         splits = []
         remaining = req.quantity
         spread = depth.ask - depth.bid
         book_balance = math.sqrt((depth.bid_size + depth.ask_size) / 2)
-        
+
         split_size = max(5, min(req.quantity // 5, book_balance * 0.25))
         while remaining > split_size:
             splits.append(SplitOrder(
@@ -83,7 +81,7 @@ class SymbioticExecutionService:
             ))
             remaining -= split_size
             split_size *= 1.1  # increase subsequent child order size
-        
+
         if remaining > 0:
             splits.append(SplitOrder(
                 order_id=f"child-{req.symbol}-{len(splits)}",
@@ -93,12 +91,12 @@ class SymbioticExecutionService:
                 delay_ms=100,
             ))
         return splits
-    
+
     def symbiotic_execute(self, req: SymbioticExecutionRequest) -> SymbioticExecutionResult:
         """Main symbiotic execution entry."""
         profile = self.parse_sentiment(req.user_id)
         triggers = self.detect_triggers(profile)
-        
+
         # --- Cool-down intervention ----------------------------------------------
         cool_down = None
         if triggers:
@@ -112,7 +110,7 @@ class SymbioticExecutionService:
                 suggested_delay_seconds=cool_down.suggested_delay,
                 sentiment_triggers=triggers,
             )
-        
+
         # --- Smart order splitting ----------------------------------------------
         try:
             depth = None
@@ -125,20 +123,20 @@ class SymbioticExecutionService:
                     bid_size=100,
                     ask_size=100,
                 )
-            
+
             splits = self.calculate_split(req, depth)
             if not splits:
                 return SymbioticExecutionResult(
                     ok=False,
                     error="Empty splits",
                 )
-            
+
             # --- Dispatch ---------------------------------------------------------
             dispatched = []
             for split_req in splits:
                 success = self._dispatch_child_order(split_req, req.user_id, req.strategy_id)
                 dispatched.append(success)
-            
+
             return SymbioticExecutionResult(
                 ok=True,
                 splits=[
@@ -152,14 +150,14 @@ class SymbioticExecutionService:
                 ],
                 child_count=len([1 for d in dispatched if d]),
             )
-        
+
         except Exception as exc:
             logger.warning("Symbiotic execute failed for %s: %s", req.symbol, exc)
             return SymbioticExecutionResult(
                 ok=False,
                 error=str(exc),
             )
-    
+
     def _request_cool_down(
         self, user_id: int, profile: SentimentProfile, triggers: list[SentimentTrigger]
     ) -> Any | None:
@@ -175,7 +173,7 @@ class SymbioticExecutionService:
                 "intervention_message": narrative,
             }
         return None
-    
+
     def _dispatch_child_order(self, order: SplitOrder, user_id: int, strategy_id: str | None) -> bool:
         """Dispatch child order to execution module."""
         try:

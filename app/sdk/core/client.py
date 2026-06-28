@@ -2,7 +2,8 @@ from __future__ import annotations
 
 """Quant Atlas SDK: high-level client and strategy helpers."""
 
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from dataclasses import dataclass
 

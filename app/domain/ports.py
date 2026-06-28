@@ -14,16 +14,11 @@ This file will be removed in a future version.
 
 from .ports import (
     MarketDataProvider,
-    MarketOverviewPort,
-    QuotePort,
-    HistoryPort,
-    ChipDataPort,
     NewsProvider,
     WebSearchProvider,
     SentimentProvider,
     FinGPTPersistencePort,
     IndicatorProvider,
-    IndustryProvider,
     StrategyProvider,
     BacktestProvider,
     TradeRepository,

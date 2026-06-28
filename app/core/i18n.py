@@ -7,8 +7,8 @@ from __future__ import annotations
 
 
 import json
-import os
-from functools import lru_cache
+
+
 from pathlib import Path
 from typing import Any
 
@@ -122,4 +122,4 @@ def create_jinja2_env(locale: str = DEFAULT_LOCALE):
     env = Environment(loader=DictLoader({"index.html": ""}))
     env.globals["t"] = translate
     env.globals["i18n"] = i18n.all()
-    return env
+    return env

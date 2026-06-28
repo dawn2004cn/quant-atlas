@@ -1,7 +1,7 @@
 from __future__ import annotations
 """Port for dumping qlib_export CSV into qlib_bin."""
 
-from typing import Any, Protocol
+from typing import Protocol
 
 
 class QlibBinDumperPort(Protocol):

@@ -5,8 +5,8 @@ Ported from Vibe-Trading.
 """
 
 
-import logging
 import threading
+import time
 from concurrent.futures import (
     Future,
     ThreadPoolExecutor,
@@ -15,7 +15,7 @@ from concurrent.futures import (
 )
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable
+from collections.abc import Callable
 
 from app.infrastructure.agent.swarm.models import (
     RunStatus,
@@ -27,6 +27,7 @@ from app.infrastructure.agent.swarm.models import (
     WorkerResult,
 )
 from app.infrastructure.agent.swarm.store import SwarmStore
+from app.infrastructure.agent.monitoring.metrics import record_swarm_start, record_task_result
 from app.infrastructure.agent.swarm.task_store import (
     TaskStore,
     resolve_dependencies,
@@ -61,7 +62,7 @@ class SwarmRuntime:
         record_swarm_start(preset_name)
         # Note: build_run_from_preset will be ported later in presets.py
         from app.infrastructure.agent.swarm.presets import build_run_from_preset
-        
+
         run = build_run_from_preset(preset_name, user_vars)
         validate_dag(run.tasks)
         self._store.create_run(run)
@@ -335,7 +336,7 @@ class SwarmRuntime:
         run_id: str,
     ) -> WorkerResult:
         from app.infrastructure.agent.swarm.worker import run_worker
-        
+
         t0 = time.time()
         max_retries = agent_spec.max_retries
         cumulative_input_tokens = 0

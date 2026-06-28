@@ -3,10 +3,9 @@
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any
 
 from app.domain.ports import PaymentRepository
-from app.domain.payment_entities import PaymentIntent, Refund, GatewayConfig, PaymentStatus, RefundStatus
+from app.domain.payment_entities import PaymentIntent, Refund, GatewayConfig, PaymentStatus
 
 
 class SQLitePaymentRepository(PaymentRepository):

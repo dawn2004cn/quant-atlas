@@ -44,7 +44,7 @@ class TradeExecutionStub:
             return False
         try:
             import grpc  # type: ignore[import-untyped]
-            from . import trade_execution_pb2, trade_execution_pb2_grpc  # type: ignore[import-untyped]
+            from . import trade_execution_pb2_grpc  # type: ignore[import-untyped]
             self._channel = grpc.insecure_channel(self._target)
             self._client = trade_execution_pb2_grpc.TradeExecutionStub(self._channel)
             return True

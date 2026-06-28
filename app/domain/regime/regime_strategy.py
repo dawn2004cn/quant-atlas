@@ -12,8 +12,7 @@ Usage:
 """
 
 
-import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
@@ -26,7 +25,7 @@ from typing import Any
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.agents.dynamic_personality import MarketRegime
+    pass
 
 from app.core.logger import get_logger
 

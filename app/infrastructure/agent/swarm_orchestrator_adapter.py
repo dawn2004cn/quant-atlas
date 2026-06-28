@@ -69,7 +69,7 @@ class SwarmOrchestratorAdapter(SwarmOrchestratorPort):
         """Get the status of a specific swarm run."""
         if self.store is None:
             return None
-        
+
         run = self.store.load_run(run_id)
         return run.model_dump() if run else None
 
@@ -78,7 +78,6 @@ class SwarmOrchestratorAdapter(SwarmOrchestratorPort):
         if self.store is None:
             return []
         try:
-            from pathlib import Path
             runs = []
             for f in sorted(self.storage_path.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)[:limit]:
                 try:

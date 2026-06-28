@@ -2,7 +2,6 @@ from __future__ import annotations
 """Analysis application service using domain models."""
 
 
-from datetime import datetime
 from typing import Any
 
 from app.core.logger import get_logger
@@ -11,9 +10,6 @@ from app.domain.models.analysis_models import (
     AnalysisService,
     Analyzer,
     AnalysisResult,
-)
-from app.application.dto.complete_dto import (
-    QuoteDTO,
 )
 from app.application.events import EventType, publish_event
 from app.domain.dto.request_dtos import BatchAnalysisRequestDTO

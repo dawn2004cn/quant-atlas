@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from typing import Any
+from app.core.logger import get_logger
 
 from app.modules.data.services.basic_market_data_service import BasicMarketDataService
 
@@ -19,6 +20,9 @@ from app.config import BASE_DIR, get_settings
 from app.domain.ports.market_ports import MarketDataProvider, NewsProvider
 
 _worker_session_factory: Any | None = None
+
+logger = get_logger(__name__)
+
 
 def _create_basic_market_data_repository(settings: Any) -> Any:
 

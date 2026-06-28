@@ -20,14 +20,13 @@ Usage:
 
 
 import asyncio
-import logging
 import random
-import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
@@ -80,7 +79,7 @@ class ExperimentResult:
     faults_injected: list[str]
     system_recovered: bool
     recovery_time_ms: int
-    error_message: Optional[str] = None
+    error_message: str | None = None
     metrics: dict[str, Any] = field(default_factory=dict)
 
 
@@ -118,7 +117,7 @@ class NetworkLatencyFault(ChaosFault):
 
     async def recover(self) -> None:
         if self._injected:
-            logger.info(f"[CHAOS] Recovering from network latency fault")
+            logger.info("[CHAOS] Recovering from network latency fault")
             self._injected = False
 
     def get_fault_type(self) -> FaultType:
@@ -142,7 +141,7 @@ class NetworkTimeoutFault(ChaosFault):
 
     async def recover(self) -> None:
         if self._injected:
-            logger.info(f"[CHAOS] Recovering from network timeout fault")
+            logger.info("[CHAOS] Recovering from network timeout fault")
             self._injected = False
 
     def get_fault_type(self) -> FaultType:
@@ -161,7 +160,7 @@ class DatabaseConnectionFault(ChaosFault):
         await asyncio.sleep(self.duration_seconds)
 
     async def recover(self) -> None:
-        logger.info(f"[CHAOS] Recovering from database connection fault")
+        logger.info("[CHAOS] Recovering from database connection fault")
 
     def get_fault_type(self) -> FaultType:
         return FaultType.DATABASE_CONNECTION_FAILURE
@@ -177,7 +176,7 @@ class DatabaseQueryTimeoutFault(ChaosFault):
         logger.warning(f"[CHAOS] Injecting database query timeout: {self.timeout_ms}ms")
 
     async def recover(self) -> None:
-        logger.info(f"[CHAOS] Recovering from database query timeout")
+        logger.info("[CHAOS] Recovering from database query timeout")
 
     def get_fault_type(self) -> FaultType:
         return FaultType.DATABASE_QUERY_TIMEOUT
@@ -196,7 +195,7 @@ class APIFailureFault(ChaosFault):
             raise Exception(f"Simulated API failure: {self.api_name}")
 
     async def recover(self) -> None:
-        logger.info(f"[CHAOS] Recovering from API failure")
+        logger.info("[CHAOS] Recovering from API failure")
 
     def get_fault_type(self) -> FaultType:
         return FaultType.API_FAILURE
@@ -213,7 +212,7 @@ class DataQualityAnomalyFault(ChaosFault):
         logger.warning(f"[CHAOS] Injecting data quality anomaly: {self.anomaly_type} (magnitude: {self.magnitude})")
 
     async def recover(self) -> None:
-        logger.info(f"[CHAOS] Recovering from data quality anomaly")
+        logger.info("[CHAOS] Recovering from data quality anomaly")
 
     def get_fault_type(self) -> FaultType:
         return FaultType.DATA_QUALITY_ANOMALY
@@ -229,7 +228,7 @@ class CircuitBreakerTriggerFault(ChaosFault):
         logger.warning(f"[CHAOS] Triggering circuit breaker with {self.failure_count} failures")
 
     async def recover(self) -> None:
-        logger.info(f"[CHAOS] Circuit breaker should now be open")
+        logger.info("[CHAOS] Circuit breaker should now be open")
 
     def get_fault_type(self) -> FaultType:
         return FaultType.CIRCUIT_BREAKER_TRIGGER
@@ -238,7 +237,7 @@ class CircuitBreakerTriggerFault(ChaosFault):
 class ChaosEngine:
     """Main chaos engineering engine."""
 
-    def __init__(self, config: Optional[ChaosConfig] = None):
+    def __init__(self, config: ChaosConfig | None = None):
         self._config = config or ChaosConfig()
         self._faults: list[ChaosFault] = []
         self._running = False
@@ -346,7 +345,7 @@ class ChaosEngine:
 def create_chaos_engine(
     enabled: bool = False,
     probability: float = 0.1,
-    fault_types: Optional[list[FaultType]] = None,
+    fault_types: list[FaultType] | None = None,
 ) -> ChaosEngine:
     """Factory function to create a configured chaos engine."""
     config = ChaosConfig(

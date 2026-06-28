@@ -3,7 +3,6 @@ from __future__ import annotations
 
 
 from datetime import datetime
-from typing import Optional
 from sqlalchemy import String, Integer, Double, DateTime, ForeignKey, PrimaryKeyConstraint, JSON, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -32,7 +31,7 @@ class StockGroup(Base):
         UniqueConstraint('user_id', 'name', name='uq_stock_group_user_name'),
     )
 
-    items: Mapped[list["StockGroupItem"]] = relationship(
+    items: Mapped[list[StockGroupItem]] = relationship(
         "StockGroupItem", back_populates="group", cascade="all, delete-orphan", lazy="selectin"
     )
 
@@ -42,10 +41,10 @@ class StockGroupItem(Base):
     group_id: Mapped[int] = mapped_column(ForeignKey("stock_groups.id"), primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, nullable=False, server_default="1")
     symbol: Mapped[str] = mapped_column(String(16), primary_key=True)
-    added_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=datetime.now)
+    added_at: Mapped[datetime | None] = mapped_column(DateTime, default=datetime.now)
     is_removed: Mapped[int] = mapped_column(Integer, default=0)
 
-    group: Mapped["StockGroup"] = relationship("StockGroup", back_populates="items")
+    group: Mapped[StockGroup] = relationship("StockGroup", back_populates="items")
 
 
 class Stock(Base):
@@ -65,7 +64,7 @@ class Stock(Base):
     pb: Mapped[float] = mapped_column(Double, default=0.0)
     total_market_cap: Mapped[float] = mapped_column(Double, default=0.0)
     industry: Mapped[str] = mapped_column(String(128), default="")
-    update_time: Mapped[Optional[datetime]] = mapped_column(DateTime, index=True)
+    update_time: Mapped[datetime | None] = mapped_column(DateTime, index=True)
 
 
 class StockHistory(Base):
@@ -133,7 +132,7 @@ class CNFinanceSnapshot(Base):
     revenue: Mapped[float] = mapped_column(Double, default=0.0)
     fetched_at: Mapped[str] = mapped_column(String(64), nullable=False)
     source: Mapped[str] = mapped_column(String(64), nullable=False)
-    raw_json: Mapped[Optional[dict]] = mapped_column(JSON)
+    raw_json: Mapped[dict | None] = mapped_column(JSON)
 
     __table_args__ = (
         PrimaryKeyConstraint("symbol", "report_date"),
@@ -146,7 +145,7 @@ class TDXWatchlist(Base):
     source_path: Mapped[str] = mapped_column(String(1024), nullable=False)
     updated_at: Mapped[str] = mapped_column(String(64), nullable=False)
 
-    items: Mapped[list["TDXWatchlistItem"]] = relationship(
+    items: Mapped[list[TDXWatchlistItem]] = relationship(
         "TDXWatchlistItem", back_populates="watchlist", cascade="all, delete-orphan", lazy="selectin"
     )
 
@@ -157,7 +156,7 @@ class TDXWatchlistItem(Base):
     symbol: Mapped[str] = mapped_column(String(32), primary_key=True, index=True)
     updated_at: Mapped[str] = mapped_column(String(64), nullable=False)
 
-    watchlist: Mapped["TDXWatchlist"] = relationship("TDXWatchlist", back_populates="items")
+    watchlist: Mapped[TDXWatchlist] = relationship("TDXWatchlist", back_populates="items")
 
 
 class MarketSentiment(Base):
@@ -167,7 +166,7 @@ class MarketSentiment(Base):
     down_count: Mapped[int] = mapped_column(Integer, default=0)
     flat_count: Mapped[int] = mapped_column(Integer, default=0)
     total_count: Mapped[int] = mapped_column(Integer, default=0)
-    update_time: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    update_time: Mapped[datetime | None] = mapped_column(DateTime)
 
 
 class MarketSentimentDaily(Base):
@@ -178,7 +177,7 @@ class MarketSentimentDaily(Base):
     down_count: Mapped[int] = mapped_column(Integer, default=0)
     flat_count: Mapped[int] = mapped_column(Integer, default=0)
     total_count: Mapped[int] = mapped_column(Integer, default=0)
-    update_time: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    update_time: Mapped[datetime | None] = mapped_column(DateTime)
 
     __table_args__ = (
         PrimaryKeyConstraint("market", "trade_date"),
@@ -190,8 +189,8 @@ class LonghuDaily(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     trade_date: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
     code: Mapped[str] = mapped_column(String(16), nullable=False, index=True)
-    name: Mapped[Optional[str]] = mapped_column(String(64))
-    reason: Mapped[Optional[str]] = mapped_column(String(512))
+    name: Mapped[str | None] = mapped_column(String(64))
+    reason: Mapped[str | None] = mapped_column(String(512))
     raw_json: Mapped[str] = mapped_column(Text, nullable=False)
     updated_at: Mapped[str] = mapped_column(String(64), nullable=False)
 

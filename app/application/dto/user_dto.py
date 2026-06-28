@@ -2,7 +2,6 @@ from __future__ import annotations
 """DTOs for User and Authentication services."""
 
 
-from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -43,10 +42,10 @@ class CreateUserCommand(BaseModel):
 
 class ChangePasswordCommand(BaseModel):
     """Command to change user password."""
-    target_username: Optional[str] = None
+    target_username: str | None = None
     new_password: str = Field(..., min_length=6)
     confirm_password: str
-    old_password: Optional[str] = None
+    old_password: str | None = None
 
 
 UserCreateDTO = CreateUserCommand
@@ -54,6 +53,6 @@ UserCreateDTO = CreateUserCommand
 
 class UserUpdateDTO(BaseModel):
     """DTO for updating user information."""
-    username: Optional[str] = Field(default=None, min_length=3, max_length=32)
-    role: Optional[str] = None
-    avatar_url: Optional[str] = None
+    username: str | None = Field(default=None, min_length=3, max_length=32)
+    role: str | None = None
+    avatar_url: str | None = None

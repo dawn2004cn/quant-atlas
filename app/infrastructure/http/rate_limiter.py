@@ -13,7 +13,8 @@ import threading
 import time
 from dataclasses import dataclass, field
 from functools import wraps
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from flask import Flask, request, jsonify
 

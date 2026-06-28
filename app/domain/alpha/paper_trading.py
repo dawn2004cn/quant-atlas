@@ -5,8 +5,8 @@ from __future__ import annotations
 """
 
 
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -311,4 +311,4 @@ def get_paper_trading_scheduler() -> PaperTradingScheduler:
     global _global_scheduler
     if _global_scheduler is None:
         _global_scheduler = PaperTradingScheduler()
-    return _global_scheduler
+    return _global_scheduler

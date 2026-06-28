@@ -7,7 +7,8 @@ import time
 import uuid
 from collections import deque
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.core.mesh.node_registry import MeshNodeRegistry, default_local_node
 from app.core.mesh.protocol import (

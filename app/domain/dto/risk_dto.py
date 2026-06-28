@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
 from datetime import datetime
 
 class RiskLevel(BaseModel):
@@ -13,8 +12,8 @@ class RiskAlertDTO(BaseModel):
     risk_level: str
     signal: str
     reasoning: str
-    support_levels: List[float]
-    resistance_levels: List[float]
+    support_levels: list[float]
+    resistance_levels: list[float]
     current_position: str
 
 class WatchlistRiskReportDTO(BaseModel):
@@ -22,4 +21,4 @@ class WatchlistRiskReportDTO(BaseModel):
     symbols_analyzed: int
     alerts_count: int
     summary: RiskLevel
-    alerts: List[RiskAlertDTO]
+    alerts: list[RiskAlertDTO]

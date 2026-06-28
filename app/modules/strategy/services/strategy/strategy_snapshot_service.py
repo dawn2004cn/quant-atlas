@@ -7,7 +7,8 @@ import shutil
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.application.errors import NotFoundError, ValidationError
 from app.modules.system.services.helpers.code_checkout import checkout_code_revision, is_code_checkout_allowed

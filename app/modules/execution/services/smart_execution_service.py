@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import json
-import math
-import random
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
 from app.core.logger import get_logger
 
@@ -171,7 +169,7 @@ class ExecutionAlgorithmService:
 
 class HardCircuitBreaker:
     """Hard circuit breaker — independent of AI, runs on GlobalStateBus.
-    
+
     Triggers:
     - Daily loss > threshold (e.g., 5%)
     - Position limit exceeded

@@ -5,11 +5,9 @@ Unified error responses and exception handlers.
 """
 
 
-import logging
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
 
 from flask import jsonify
 
@@ -38,9 +36,9 @@ class APIError:
     """API error response."""
     code: ErrorCode
     message: str
-    details: Optional[dict] = None
-    request_id: Optional[str] = None
-    
+    details: dict | None = None
+    request_id: str | None = None
+
     def to_dict(self) -> dict:
         """Convert to dictionary."""
         result = {
@@ -55,7 +53,7 @@ class APIError:
         if self.request_id:
             result["error"]["request_id"] = self.request_id
         return result
-    
+
     def to_response(self, status_code: int):
         """Convert to Flask response."""
         return jsonify(self.to_dict()), status_code
@@ -63,7 +61,7 @@ class APIError:
 
 class APIException(Exception):
     """Base API exception."""
-    
+
     def __init__(
         self,
         message: str,
@@ -76,7 +74,7 @@ class APIException(Exception):
         self.status_code = status_code
         self.details = details
         super().__init__(message)
-    
+
     def to_response(self):
         """Convert to Flask response."""
         error = APIError(
@@ -89,7 +87,7 @@ class APIException(Exception):
 
 class NotFoundException(APIException):
     """Resource not found."""
-    
+
     def __init__(self, resource: str, identifier: str = None):
         msg = f"{resource} not found"
         if identifier:
@@ -103,7 +101,7 @@ class NotFoundException(APIException):
 
 class ValidationException(APIException):
     """Validation error."""
-    
+
     def __init__(self, message: str, details: dict = None):
         super().__init__(
             message,
@@ -115,7 +113,7 @@ class ValidationException(APIException):
 
 class UnauthorizedException(APIException):
     """Unauthorized access."""
-    
+
     def __init__(self, message: str = "Unauthorized"):
         super().__init__(
             message,
@@ -126,7 +124,7 @@ class UnauthorizedException(APIException):
 
 class ForbiddenException(APIException):
     """Forbidden access."""
-    
+
     def __init__(self, message: str = "Forbidden"):
         super().__init__(
             message,
@@ -137,7 +135,7 @@ class ForbiddenException(APIException):
 
 class ConflictException(APIException):
     """Resource conflict."""
-    
+
     def __init__(self, message: str):
         super().__init__(
             message,
@@ -148,7 +146,7 @@ class ConflictException(APIException):
 
 class RateLimitedException(APIException):
     """Rate limited."""
-    
+
     def __init__(self, retry_after: int = 60):
         super().__init__(
             f"Rate limited. Retry after {retry_after} seconds",
@@ -160,7 +158,7 @@ class RateLimitedException(APIException):
 
 class ServiceUnavailableException(APIException):
     """Service unavailable."""
-    
+
     def __init__(self, message: str = "Service unavailable"):
         super().__init__(
             message,
@@ -173,9 +171,9 @@ def handle_exception(exc: Exception) -> tuple:
     """Handle any exception."""
     if isinstance(exc, APIException):
         return exc.to_response(exc.status_code)
-    
+
     logger.exception(f"Unhandled exception: {exc}")
-    
+
     error = APIError(
         code=ErrorCode.INTERNAL_ERROR,
         message="Internal server error"

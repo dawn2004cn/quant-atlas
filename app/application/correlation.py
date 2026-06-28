@@ -38,7 +38,7 @@ import logging
 import uuid
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import Optional, Generator
+from collections.abc import Generator
 
 
 from app.core.logger import get_logger
@@ -48,7 +48,7 @@ logger = get_logger(__name__)
 CONTEXT_VAR_NAME = "correlation_id"
 
 
-_context_var: ContextVar[Optional[str]] = ContextVar(CONTEXT_VAR_NAME, default=None)
+_context_var: ContextVar[str | None] = ContextVar(CONTEXT_VAR_NAME, default=None)
 
 
 def generate_correlation_id() -> str:
@@ -97,8 +97,8 @@ def clear_correlation_id() -> None:
 
 @contextmanager
 def correlation_id_context(
-    operation_name: Optional[str] = None,
-    correlation_id: Optional[str] = None,
+    operation_name: str | None = None,
+    correlation_id: str | None = None,
 ) -> Generator[str, None, None]:
     """Context manager for correlation ID scope.
 
@@ -140,9 +140,9 @@ class CorrelationContext:
 
     def __init__(self, operation_name: str = ""):
         self.operation_name = operation_name
-        self.correlation_id: Optional[str] = None
+        self.correlation_id: str | None = None
 
-    def __enter__(self) -> "CorrelationContext":
+    def __enter__(self) -> CorrelationContext:
         self.correlation_id = generate_correlation_id()
         if self.operation_name:
             self.correlation_id = f"{self.correlation_id}-{self.operation_name}"

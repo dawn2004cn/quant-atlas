@@ -3,7 +3,6 @@
 Converts domain entities to DTOs for API responses.
 """
 
-from typing import Optional
 
 from app.domain.repositories import Stock, Signal
 from app.application.interfaces import StockDTO, SignalDTO
@@ -11,13 +10,13 @@ from app.application.interfaces import StockDTO, SignalDTO
 
 class StockMapper:
     """Maps Stock entity to DTO."""
-    
+
     @staticmethod
     def to_dto(
         stock: Stock,
-        price: Optional[float] = None,
-        change: Optional[float] = None,
-        volume: Optional[int] = None,
+        price: float | None = None,
+        change: float | None = None,
+        volume: int | None = None,
     ) -> StockDTO:
         return StockDTO(
             code=stock.code,
@@ -31,7 +30,7 @@ class StockMapper:
 
 class SignalMapper:
     """Maps Signal entity to DTO."""
-    
+
     @staticmethod
     def to_dto(signal: Signal) -> SignalDTO:
         return SignalDTO(
@@ -46,7 +45,7 @@ class SignalMapper:
 
 class AnalysisResultMapper:
     """Maps analysis result to DTO."""
-    
+
     @staticmethod
     def to_dto(
         stock_code: str,

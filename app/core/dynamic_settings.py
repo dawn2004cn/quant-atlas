@@ -2,7 +2,8 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Callable, List
+from typing import Any
+from collections.abc import Callable
 from threading import RLock
 
 class DynamicSettings:
@@ -10,8 +11,8 @@ class DynamicSettings:
 
     def __init__(self, config_path: str | Path):
         self._path = Path(config_path)
-        self._settings: Dict[str, Any] = {}
-        self._observers: List[Callable[[Dict[str, Any]], None]] = []
+        self._settings: dict[str, Any] = {}
+        self._observers: list[Callable[[dict[str, Any]], None]] = []
         self._lock = RLock()
         self.reload()
 
@@ -19,7 +20,7 @@ class DynamicSettings:
         """Reload settings from disk."""
         if self._path.exists():
             with self._lock:
-                with open(self._path, "r", encoding="utf-8") as f:
+                with open(self._path, encoding="utf-8") as f:
                     self._settings = json.load(f)
                 for observer in self._observers:
                     observer(self._settings)
@@ -28,7 +29,7 @@ class DynamicSettings:
         with self._lock:
             return self._settings.get(key, default)
 
-    def subscribe(self, observer: Callable[[Dict[str, Any]], None]) -> None:
+    def subscribe(self, observer: Callable[[dict[str, Any]], None]) -> None:
         with self._lock:
             self._observers.append(observer)
             # Initial callback

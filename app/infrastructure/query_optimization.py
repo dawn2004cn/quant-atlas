@@ -5,9 +5,8 @@ Supports efficient batch queries with connection reuse.
 """
 
 
-import logging
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar
+from typing import TypeVar
 
 
 from app.core.logger import get_logger
@@ -27,14 +26,14 @@ class QueryResult:
 
 class BatchQueryExecutor:
     """Executes optimized batch queries."""
-    
+
     def __init__(self, cache_ttl: int = 60):
         self._cache: dict = {}
         self._cache_ttl = cache_ttl
         self._query_count = 0
         self._cache_hits = 0
         logger.info(f"BatchQueryExecutor initialized: ttl={cache_ttl}s")
-    
+
     def execute(
         self,
         query_fn,
@@ -43,29 +42,29 @@ class BatchQueryExecutor:
     ) -> list:
         """Execute batch query with caching."""
         self._query_count += 1
-        
+
         # Check cache
         cache_key = str(keys)
         if cache_key in self._cache:
             self._cache_hits += 1
             logger.debug(f"Cache hit: {len(keys)} keys")
             return self._cache[cache_key]
-        
+
         # Execute batch
         result = query_fn(keys, **kwargs)
-        
+
         # Cache result
         self._cache[cache_key] = result
-        
+
         return result
-    
+
     def invalidate(self, key: str = None) -> None:
         """Invalidate cache."""
         if key:
             self._cache.pop(key, None)
         else:
             self._cache.clear()
-    
+
     def get_stats(self) -> dict:
         """Get query stats."""
         hit_rate = (

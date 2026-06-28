@@ -2,9 +2,7 @@ from __future__ import annotations
 """Futu OpenAPI-backed loader for HK and China A-share OHLCV data."""
 
 
-import logging
 import os
-from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -109,13 +107,13 @@ class FutuLoader:
 
     def fetch(
         self,
-        codes: List[str],
+        codes: list[str],
         start_date: str,
         end_date: str,
         *,
         interval: str = "1D",
-        fields: Optional[List[str]] = None,
-    ) -> Dict[str, pd.DataFrame]:
+        fields: list[str] | None = None,
+    ) -> dict[str, pd.DataFrame]:
         """Fetch OHLCV history from Futu OpenAPI.
 
         Args:
@@ -145,7 +143,7 @@ class FutuLoader:
                 f"Cannot connect to FutuOpenD at {self._host}:{self._port}: {exc}"
             ) from exc
 
-        results: Dict[str, pd.DataFrame] = {}
+        results: dict[str, pd.DataFrame] = {}
         try:
             for code in codes:
                 futu_code = _to_futu_symbol(code)

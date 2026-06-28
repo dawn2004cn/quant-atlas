@@ -10,7 +10,6 @@ Following the principle: "Complex matrix operations in Infrastructure, not Appli
 """
 
 
-import logging
 from typing import Any
 
 import numpy as np
@@ -333,7 +332,7 @@ class PerformanceOptimizer:
         volumes = [s.get("volume", 0) or 0 for s in securities]
         changes = [s.get("change_pct", 0) or 0 for s in securities]
 
-        symbols_arr = np.array(symbols, dtype=object)
+        np.array(symbols, dtype=object)
         prices_arr = np.array(prices, dtype=np.float64)
         volumes_arr = np.array(volumes, dtype=np.float64)
         changes_arr = np.array(changes, dtype=np.float64)

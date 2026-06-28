@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from typing import Any
 from sqlalchemy import select, desc
-import redis
 from app.infrastructure.redis_client import RedisClientPool
 
 from app.domain.ports import AgentRepository

@@ -2,7 +2,8 @@ from __future__ import annotations
 """Single-flight (thundering-herd) guard for cache get-or-set paths."""
 
 import threading
-from typing import Callable, TypeVar
+from typing import TypeVar
+from collections.abc import Callable
 
 T = TypeVar("T")
 

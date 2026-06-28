@@ -1,5 +1,4 @@
 from app.core.logger import get_logger
-from pathlib import Path
 from typing import Any
 
 from app.domain.ports.agent_ports import ExpertSkillPort

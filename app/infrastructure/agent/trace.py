@@ -8,7 +8,7 @@ One JSON record per line; append + flush guarantees no data loss on crash.
 import json
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 import logging
@@ -29,7 +29,7 @@ class TraceWriter:
         self.path = run_dir / "trace.jsonl"
         self._file = open(self.path, "a", encoding="utf-8")
 
-    def write(self, entry: Dict[str, Any]) -> None:
+    def write(self, entry: dict[str, Any]) -> None:
         """Write a trace record.
 
         Args:
@@ -45,7 +45,7 @@ class TraceWriter:
         self._file.close()
 
     @staticmethod
-    def read(run_dir: Path) -> List[Dict[str, Any]]:
+    def read(run_dir: Path) -> list[dict[str, Any]]:
         """Read trace.jsonl and return records.
 
         Args:
@@ -57,7 +57,7 @@ class TraceWriter:
         path = run_dir / "trace.jsonl"
         if not path.exists():
             return []
-        entries: List[Dict[str, Any]] = []
+        entries: list[dict[str, Any]] = []
         for line in path.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if line:

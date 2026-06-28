@@ -20,9 +20,8 @@ Usage:
 
 import asyncio
 import json
-import logging
-from datetime import datetime
-from typing import Any, Callable, Awaitable
+from typing import Any
+from collections.abc import Callable, Awaitable
 
 
 from app.core.logger import get_logger

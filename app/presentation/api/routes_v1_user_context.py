@@ -4,7 +4,6 @@ from __future__ import annotations
 from flask import Blueprint
 from flask_login import login_required
 
-from app.core.registry import register_routes
 from .common import ok_response
 from .v1_context import ApiV1Context
 

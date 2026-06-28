@@ -7,7 +7,6 @@ without modifying the main MultiSourceMarketProvider class.
 
 
 from abc import ABC, abstractmethod
-from typing import Any
 
 from app.domain.entities import StockQuote
 from app.domain.enums import MarketCode

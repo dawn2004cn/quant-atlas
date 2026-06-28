@@ -15,11 +15,10 @@ import json
 from datetime import datetime
 from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import select, delete, update, desc, func, and_
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select, delete, update, desc
 
 from app.domain.entities import UserAccount
-from app.core.query_limits import MAX_STOCK_GROUP_SYMBOLS, MAX_USER_TEAMS, MAX_WATCHLIST_SYMBOLS
+from app.core.query_limits import MAX_WATCHLIST_SYMBOLS
 from app.infrastructure.database.models.auth import User
 from app.infrastructure.repositories.common.user_mapper import user_row_to_account
 from app.infrastructure.database.models.market import Watchlist, StockGroup, StockGroupItem

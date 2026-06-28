@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import uuid
 import contextvars
-from typing import Optional, Dict, Any
+from typing import Any
 
 # Context variable to hold the current TraceID
-_trace_id_ctx: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar("trace_id", default=None)
+_trace_id_ctx: contextvars.ContextVar[str | None] = contextvars.ContextVar("trace_id", default=None)
 
 def set_trace_id(trace_id: str | None = None) -> str:
     """Set the trace ID for the current context."""
@@ -19,11 +19,11 @@ def get_trace_id() -> str | None:
     val = _trace_id_ctx.get()
     return val
 
-def get_context_snapshot() -> Dict[contextvars.ContextVar, Any]:
+def get_context_snapshot() -> dict[contextvars.ContextVar, Any]:
     """Capture current context variables for propagation."""
     return {_trace_id_ctx: _trace_id_ctx.get()}
 
-def restore_context(snapshot: Dict[contextvars.ContextVar, Any]):
+def restore_context(snapshot: dict[contextvars.ContextVar, Any]):
     """Restore context variables in a child thread/context."""
     for var, value in snapshot.items():
         var.set(value)

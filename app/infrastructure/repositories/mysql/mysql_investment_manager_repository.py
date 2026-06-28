@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import select, delete, insert, update, desc, func, and_
+from sqlalchemy import select, desc, func, and_
 
 from ...database.mysql_client import mysql_get_connection
 from ...database.models.investment import (
@@ -92,7 +92,7 @@ class MySQLInvestmentManagerRepository:
         def _rows_to_dicts(cur, rows):
             cols = [c[0] for c in cur.description]
             return [dict(zip(cols, r)) for r in rows]
-        
+
         if self._session_factory:
             session = self._session_factory()
             try:

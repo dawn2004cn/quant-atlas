@@ -1,6 +1,5 @@
 """Sentinel for monitoring market data freshness."""
 
-import logging
 from datetime import datetime, timedelta
 import pymysql
 from app.config import AppSettings
@@ -45,13 +44,6 @@ class DataFreshnessSentinel:
                 database=mysql.database
             )
             with conn.cursor() as cur:
-                query = (
-                    f"SELECT '{t}' AS table_name, MAX(date) AS latest_date "
-                    f"FROM {t} "
-                    f"UNION ALL "
-                    f"SELECT '{t2}' AS table_name, MAX(date) AS latest_date "
-                    f"FROM {t2}".format(t="stock_history_sh", t2="stock_history_sz")
-                )
                 cur.execute("SELECT 'stock_history_sh' AS table_name, MAX(date) as latest_date FROM stock_history_sh "
                            "UNION ALL "
                            "SELECT 'stock_history_sz' AS table_name, MAX(date) as latest_date FROM stock_history_sz "
@@ -104,7 +96,7 @@ class DataFreshnessSentinel:
                 if not res or not res[0]:
                     logger.error(f"No data found in {table}")
                     return False
-                
+
                 latest_date = res[0]
                 if isinstance(latest_date, str):
                     try:
@@ -112,15 +104,15 @@ class DataFreshnessSentinel:
                     except ValueError:
                         logger.error(f"Unexpected date format in {table}: {latest_date}")
                         return False
-                
+
                 delay = datetime.now() - latest_date
-                
+
                 SYNC_LATENCY.observe(delay.total_seconds())
-                
+
                 if delay > timedelta(minutes=max_delay_minutes):
                     logger.critical(f"Data freshness alert: {table} is {delay} old!")
                     return False
-                    
+
             return True
         except Exception as e:
             logger.error(f"Freshness check failed: {e}")

@@ -5,7 +5,6 @@ from __future__ import annotations
 from flask import Blueprint, request
 from flask_login import login_required
 
-from ...application.errors import ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from .common import ok_response, parse_market, ensure_service
 from .request_parsers import parse_optional_bool_param

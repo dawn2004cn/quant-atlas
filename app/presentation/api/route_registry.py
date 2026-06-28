@@ -7,7 +7,7 @@ while maintaining compatibility with the existing Flask blueprint system.
 
 
 from dataclasses import dataclass, field
-from typing import Callable
+from collections.abc import Callable
 
 from flask import Blueprint
 

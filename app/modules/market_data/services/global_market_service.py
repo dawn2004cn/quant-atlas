@@ -2,12 +2,11 @@ from __future__ import annotations
 """Application service for global market data (OpenBB port)."""
 
 
-import logging
 from datetime import datetime, timedelta
 from typing import Any
 
 from app.domain.ports import MarketDataProvider, OpenBBRepository
-from app.domain.market_entities import GlobalQuote, ProviderConfig
+from app.domain.market_entities import ProviderConfig
 from app.domain.enums import MarketCode
 from app.domain.dto import GlobalQuoteDTO, GlobalHistoryDTO, GlobalMarketConfigDTO
 
@@ -46,7 +45,7 @@ class GlobalMarketService:
                 return result
         except Exception as e:
             logger.warning(f"Failed to fetch global quote for {symbol}: {e}")
-        
+
         return GlobalQuoteDTO(symbol=symbol, name=symbol)
 
     def get_global_history(self, symbol: str, market: MarketCode, days: int = 30) -> GlobalHistoryDTO:
@@ -59,7 +58,7 @@ class GlobalMarketService:
 
             end = datetime.now().strftime("%Y-%m-%d")
             start = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
-            
+
             history = self._provider.get_stock_history(symbol, market, start, end)
             if history:
                 result = GlobalHistoryDTO(
@@ -72,7 +71,7 @@ class GlobalMarketService:
                 return result
         except Exception as e:
             logger.warning(f"Failed to fetch global history for {symbol}: {e}")
-            
+
         return GlobalHistoryDTO(symbol=symbol, market=market.value)
 
     def configure_provider(self, provider_name: str, settings: dict[str, Any]) -> GlobalMarketConfigDTO:

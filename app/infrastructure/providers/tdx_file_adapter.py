@@ -2,16 +2,13 @@ from __future__ import annotations
 """TDX local file data source adapter - direct file access for maximum speed."""
 
 
-from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 
 from ...domain.ports.market_ports import HistoryPort
 from ...domain.enums import MarketCode
-from ..tdx_local.lday_reader import parse_lday_bytes, read_lday_file
+from ..tdx_local.lday_reader import read_lday_file
 from ..tdx_local.paths import TdxLocalPaths, resolve_tdx_root
 
 

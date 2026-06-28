@@ -2,7 +2,6 @@ from __future__ import annotations
 """Market-related UseCases - abstracts business logic from API routes."""
 
 
-from typing import Any
 
 from app.domain.enums import MarketCode
 from ..use_cases import UseCase, UseCaseResult
@@ -45,7 +44,7 @@ class GetStockQuotesByStockServiceUseCase(UseCase):
         limit: int = 12000,
     ) -> UseCaseResult:
         try:
-            market_code = MarketCode.CN if market.upper() == "CN" else MarketCode.HK
+            MarketCode.CN if market.upper() == "CN" else MarketCode.HK
             quotes = self._stock_service.list_quotes(market, symbols)
 
             if limit and limit > 0 and len(quotes) > limit:

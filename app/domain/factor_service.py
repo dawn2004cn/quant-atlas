@@ -12,7 +12,7 @@ This module provides:
 import logging
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 import numpy as np
 from typing import TYPE_CHECKING
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class FactorService:
     """Service for managing factor lifecycle and performance."""
 
-    def __init__(self, factor_repository: "_FactorRepo"):
+    def __init__(self, factor_repository: _FactorRepo):
         self._repo = factor_repository
 
     async def register_factor(
@@ -137,7 +137,7 @@ class FactorService:
 
     async def _record_ic_history(self, factor_id: str, ic_series: list[float]) -> None:
         """Record IC history for a factor."""
-        today = datetime.now().strftime("%Y-%m-%d")
+        datetime.now().strftime("%Y-%m-%d")
 
         for i, ic_value in enumerate(ic_series[-60:]):
             calc_date = (datetime.now() - timedelta(days=59 - i)).strftime("%Y-%m-%d")
@@ -234,7 +234,7 @@ class FactorService:
 
     async def get_factor_leaderboard(
         self,
-        category: Optional[str] = None,
+        category: str | None = None,
         limit: int = 20,
     ) -> list[dict[str, Any]]:
         """Get factor leaderboard by IR.

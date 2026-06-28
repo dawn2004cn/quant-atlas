@@ -58,8 +58,6 @@ def create_services(
 
             # Bind the low?level infrastructure (DB, cache, etc.)
             from app.bootstrap_components.infrastructure_binding import bind_application_infrastructure
-            from app.bootstrap_components.module_wiring import initialize_all_modules
-            from app.bootstrap_components.service_wiring import _get_registry, _wire_from_registry
             from app.config import get_settings
             from app.infrastructure.repositories.deps import create_stock_cache
 

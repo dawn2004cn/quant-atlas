@@ -5,8 +5,7 @@ from __future__ import annotations
 """
 
 
-import re
-from typing import Any, Callable
+from typing import Any
 
 
 class AlphaToken:

@@ -1,5 +1,4 @@
 import time
-import traceback
 from pytdx.hq import TdxHq_API
 from pytdx.exhq import TdxExHq_API
 
@@ -57,7 +56,7 @@ class TdxBestServersConnect:
         #for name, ip, port in self.server_pool:
         for idx, s in enumerate(self.server_pool):
             self.test_server(s['name'], s['ip'], s['port'])
-        
+
         return sorted(self.best_servers, key=lambda x: x['ms'])
 # ==========================================
 # 🚀 运行验证：不复权 vs 前复权

@@ -14,7 +14,7 @@ class TdxTradeApiWrapper(BasePytdxApi):
     module = "trade"
 
     def __init__(self, *, endpoint: str | None = None) -> None:
-        settings = get_settings()
+        get_settings()
         self._endpoint = (
             endpoint
             or get_runtime("TDX_TRADE_ENDPOINT", "")

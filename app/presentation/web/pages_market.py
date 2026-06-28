@@ -4,23 +4,17 @@ from __future__ import annotations
 
 from flask import (
     Blueprint,
-    Response,
-    abort,
-    make_response,
-    redirect,
     render_template,
-    request,
     url_for,
 )
 from flask_login import current_user, login_required
-from werkzeug.utils import safe_join
 
 from app.modules.system.services.integration.integration_hub_service import (
     build_integration_hub_context,
 )
-from app.config import BASE_DIR, get_settings
+from app.config import get_settings
 from app.models import STRATEGY_REGISTRY_GROUPS
-from app.presentation.web.page_shell import render_page_shell, ux_env_hints as _ux_env_hints
+from app.presentation.web.page_shell import ux_env_hints as _ux_env_hints
 
 def register_pages(blueprint: Blueprint) -> None:
     @blueprint.route("/")

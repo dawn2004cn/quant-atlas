@@ -3,14 +3,11 @@ from __future__ import annotations
 
 
 import uuid
-from datetime import datetime
 from typing import Any
 
 from app.core.event_bus import (
-    get_event_bus,
     CapabilityExecutedEvent,
     WorkflowCompletedEvent,
-    ServiceStartedEvent,
     on_event,
 )
 from app.core.registry import register_service

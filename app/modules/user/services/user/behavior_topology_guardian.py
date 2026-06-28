@@ -1,23 +1,23 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
 
 def enrich_psychology_with_topology(
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     user_knowledge_service: Any | None = None,
-    user_id: Optional[int] = None,
-) -> Dict[str, Any]:
+    user_id: int | None = None,
+) -> dict[str, Any]:
     """
     Enriches psychology guardian results with behavior topology context.
 
     If user_knowledge_service is provided, calls analyze_topology() to fetch
     real bias/fatigue/alert data and merges it into the payload.
     """
-    topology_context: Dict[str, Any] = {
+    topology_context: dict[str, Any] = {
         "cluster_risk": "stable",
         "bias_type": "neutral",
         "topology_score": 0.5,

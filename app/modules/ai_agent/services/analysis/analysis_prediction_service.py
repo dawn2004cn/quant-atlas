@@ -2,9 +2,7 @@ from __future__ import annotations
 """AI prediction validation service."""
 
 
-import logging
 from datetime import datetime, timedelta
-from typing import Any
 
 from app.core.logger import get_logger
 from app.domain.enums import MarketCode

@@ -8,7 +8,7 @@ Can be called before coding (to inform strategy design) or after backtest (to an
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -325,13 +325,13 @@ def run_pattern(run_dir: str, patterns: str = "all", window: int = 10) -> str:
         if not selected:
             return json.dumps({"status": "error", "error": f"Invalid pattern name(s). Available: {', '.join(_PATTERN_FUNCS.keys())}"}, ensure_ascii=False)
 
-    results: Dict[str, Any] = {}
+    results: dict[str, Any] = {}
     for f in ohlcv_files:
         code = f.stem.replace("ohlcv_", "")
         df = pd.read_csv(f, index_col=0, parse_dates=True)
         if df.empty:
             continue
-        code_results: Dict[str, Any] = {}
+        code_results: dict[str, Any] = {}
         for pattern_name in selected:
             func = _PATTERN_FUNCS[pattern_name]
             code_results[pattern_name] = func(df, window)

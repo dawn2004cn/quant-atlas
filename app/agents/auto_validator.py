@@ -13,11 +13,11 @@ Usage:
 """
 
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
-from .agent_memory import get_agent_memory, AgentMemory
+from .agent_memory import get_agent_memory
 
 from app.core.logger import get_logger
 

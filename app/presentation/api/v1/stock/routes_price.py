@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """Stock price resonance route."""
 
-from flask import Blueprint, request
+from flask import Blueprint
 from flask_login import login_required
 
 from app.core.logger import get_logger
@@ -57,7 +57,7 @@ def register_stock_price(blueprint: Blueprint, ctx) -> None:
 
             items = []
 
-        payload = TechnicalResonanceMeter((_IndicatorImpl() if _IndicatorImpl else None)).calculate_resonance(items)
+        payload = TechnicalResonanceMeter(_IndicatorImpl() if _IndicatorImpl else None).calculate_resonance(items)
 
         payload["symbol"] = symbol.upper()
 

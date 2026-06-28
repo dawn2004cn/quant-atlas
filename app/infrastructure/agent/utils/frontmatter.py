@@ -6,16 +6,16 @@ Ported from Vibe-Trading.
 
 
 import re
-from typing import Any, Dict
+from typing import Any
 
 
-def parse_frontmatter(text: str) -> tuple[Dict[str, Any], str]:
+def parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     """Parse YAML-like frontmatter and body from a markdown file."""
     match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)", text, re.DOTALL)
     if not match:
         return {}, text.strip()
 
-    meta: Dict[str, Any] = {}
+    meta: dict[str, Any] = {}
     for line in match.group(1).strip().split("\n"):
         line = line.strip()
         if ":" not in line:

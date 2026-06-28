@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
+from app.domain.enums import MarketCode
 from langchain_core.tools import tool
 from app.core.logger import get_logger
 

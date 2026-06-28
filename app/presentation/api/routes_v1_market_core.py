@@ -4,13 +4,12 @@ from __future__ import annotations
 from flask import Blueprint, request
 from flask_login import login_required
 
-from ...application.errors import ValidationError
 from ...core.logger import get_logger
 from ...core.registry import register_routes
 from app.modules.system.services.ui.data_freshness_service import enrich_market_payload
 
 from .decorators import service_fallback
-from .common import ok_collection, ok_resource, ok_response, parse_market, require_ctx_service
+from .common import ok_resource, ok_response, parse_market
 from .request_parsers import parse_int_param
 from .v1_context import ApiV1Context
 
@@ -68,7 +67,7 @@ def register_market_core_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None
     @login_required
     @service_fallback("pool_service")
     def live_pool(market: str):
-        market_service = getattr(ctx, "pool_service", None)
+        pool_service = getattr(ctx, "pool_service", None)
         top_n = parse_int_param(request.args.get("top_n"), name="top_n", default=20, min_value=1)
         payload = pool_service.get_live_pool(parse_market(market), top_n=top_n)
         return ok_resource(
@@ -109,6 +108,7 @@ def register_market_core_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None
     @service_fallback("market_service")
     def market_rankings_legacy():
         """Legacy alias for /api/v1/markets/CN/panorama (rankings subset)."""
+        market_service = getattr(ctx, "market_service", None)
         panorama = market_service.get_panorama(parse_market("CN"))
         panorama_dict = panorama.model_dump() if hasattr(panorama, "model_dump") else {}
         return ok_response(

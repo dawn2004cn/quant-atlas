@@ -2,9 +2,7 @@ from __future__ import annotations
 """Architectural Compliance Agent: Guards system layer boundaries."""
 
 import ast
-import logging
 from pathlib import Path
-from typing import List
 
 
 from app.core.logger import get_logger
@@ -22,14 +20,14 @@ class ArchAuditAgent:
         }
     }
 
-    def audit(self, path: Path) -> List[str]:
+    def audit(self, path: Path) -> list[str]:
         """Audit a file for layer violations."""
         violations = []
         if not path.exists() or path.suffix != ".py":
             return violations
 
         tree = ast.parse(path.read_text(encoding="utf-8"))
-        
+
         # Determine current layer from path
         layer = self._get_layer(path)
         if layer not in self.RULES:
@@ -40,7 +38,7 @@ class ArchAuditAgent:
                 module = node.module or ""
                 if any(f.startswith(f) for f in self.RULES[layer]["forbidden"] for f in [module]):
                     violations.append(f"Layer violation: {layer} imports {module}")
-        
+
         return violations
 
     def _get_layer(self, path: Path) -> str:

@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify
 
 from app.core.hybrid_rate_limiter import HybridRateLimiter
 from app.core.logger import get_logger
-from app.core.runtime_config import get_runtime_bool, get_runtime_int
+from app.core.runtime_config import get_runtime_int
 
 logger = get_logger(__name__)
 

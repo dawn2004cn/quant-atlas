@@ -3,7 +3,7 @@ from __future__ import annotations
 
 
 from abc import ABC, abstractmethod
-from typing import Any, List
+from typing import Any
 
 class PipelineStep(ABC):
     """Abstract step in the data pipeline."""
@@ -38,13 +38,13 @@ class TransformationStep(PipelineStep):
 
 class Pipeline:
     """The full data pipeline."""
-    def __init__(self, steps: List[PipelineStep]):
+    def __init__(self, steps: list[PipelineStep]):
         self.steps = steps
         # Chain them together
         for i in range(len(steps) - 1):
             steps[i].next_step = steps[i+1]
-    
-    def execute(self, data_list: List[dict]) -> List[dict]:
+
+    def execute(self, data_list: list[dict]) -> list[dict]:
         results = []
         for item in data_list:
             res = self.steps[0].handle(item)

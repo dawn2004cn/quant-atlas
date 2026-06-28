@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from sqlalchemy import DateTime, Double, ForeignKey, Integer, SmallInteger, String, Text, Index
 from sqlalchemy.orm import Mapped, mapped_column
@@ -26,9 +25,9 @@ class ComplianceRule(Base):
     target: Mapped[str] = mapped_column(String(128), default="*")
     limit_value: Mapped[float] = mapped_column(Double, default=0.0)
     enabled: Mapped[int] = mapped_column(SmallInteger, default=1)
-    description: Mapped[Optional[str]] = mapped_column(String(256))
+    description: Mapped[str | None] = mapped_column(String(256))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime)
 
     def __repr__(self) -> str:
         return f"<ComplianceRule {self.rule_code} target={self.target} enabled={bool(self.enabled)}>"

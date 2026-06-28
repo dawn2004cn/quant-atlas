@@ -9,6 +9,6 @@ from .routes_v1_trade_plan import trade_plan_bp
 
 __all__ = [
     "portfolio_bp",
-    "signal_flag_bp", 
+    "signal_flag_bp",
     "trade_plan_bp",
 ]

@@ -5,12 +5,11 @@ Provides annualisation helpers, trade statistics, and full metric calculation.
 """
 
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from app.core.runtime_config import get_runtime_float
 
 from backtest.models import TradeRecord
 from backtest.risk_free_rate import resolve_annual_risk_free_rate
@@ -44,7 +43,7 @@ def calc_bars_per_year(interval: str = "1D", source: str = "tushare") -> int:
     return trading_days * bars_per_day
 
 
-def win_rate_and_stats(trades: List[TradeRecord]) -> Dict[str, float]:
+def win_rate_and_stats(trades: list[TradeRecord]) -> dict[str, float]:
     """Win rate and P&L statistics from completed trades.
 
     Args:
@@ -97,7 +96,7 @@ def win_rate_and_stats(trades: List[TradeRecord]) -> Dict[str, float]:
     }
 
 
-def by_symbol_stats(trades: List[TradeRecord]) -> Dict[str, Dict[str, Any]]:
+def by_symbol_stats(trades: list[TradeRecord]) -> dict[str, dict[str, Any]]:
     """Per-symbol trade statistics.
 
     Args:
@@ -106,7 +105,7 @@ def by_symbol_stats(trades: List[TradeRecord]) -> Dict[str, Dict[str, Any]]:
     Returns:
         {symbol: {count, win_rate, total_pnl, avg_pnl}}.
     """
-    groups: Dict[str, list] = {}
+    groups: dict[str, list] = {}
     for t in trades:
         groups.setdefault(t.symbol, []).append(t)
 
@@ -123,7 +122,7 @@ def by_symbol_stats(trades: List[TradeRecord]) -> Dict[str, Dict[str, Any]]:
     return result
 
 
-def by_exit_reason_stats(trades: List[TradeRecord]) -> Dict[str, Dict[str, Any]]:
+def by_exit_reason_stats(trades: list[TradeRecord]) -> dict[str, dict[str, Any]]:
     """Per-exit-reason trade statistics.
 
     Args:
@@ -132,7 +131,7 @@ def by_exit_reason_stats(trades: List[TradeRecord]) -> Dict[str, Dict[str, Any]]
     Returns:
         {reason: {count, total_pnl}}.
     """
-    groups: Dict[str, list] = {}
+    groups: dict[str, list] = {}
     for t in trades:
         groups.setdefault(t.exit_reason, []).append(t)
 
@@ -148,11 +147,11 @@ def by_exit_reason_stats(trades: List[TradeRecord]) -> Dict[str, Dict[str, Any]]
 
 def calc_metrics(
     equity_curve: pd.Series,
-    trades: List[TradeRecord],
+    trades: list[TradeRecord],
     initial_cash: float,
-    bars_per_year: Optional[int] = 252,
-    bench_ret: Optional[pd.Series] = None,
-) -> Dict[str, Any]:
+    bars_per_year: int | None = 252,
+    bench_ret: pd.Series | None = None,
+) -> dict[str, Any]:
     """Full set of performance metrics.
 
     Args:
@@ -248,7 +247,7 @@ def calc_metrics(
     }
 
 
-def _empty_metrics(initial_cash: float) -> Dict[str, Any]:
+def _empty_metrics(initial_cash: float) -> dict[str, Any]:
     """Return zero-valued metrics when no data is available."""
     return {
         "final_value": initial_cash,

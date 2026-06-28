@@ -12,9 +12,6 @@ from typing import Any
 
 from app.domain.events.cache_invalidation import (
     CacheInvalidationEvent,
-    invalidate_market_panorama,
-    invalidate_quote,
-    invalidate_strategy_cache,
 )
 
 logger = logging.getLogger(__name__)

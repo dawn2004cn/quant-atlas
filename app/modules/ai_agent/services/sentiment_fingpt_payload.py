@@ -4,7 +4,6 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 
 import re
-from typing import Any
 
 
 def build_sentiment_payload_from_analyst_report(narrative: str) -> GenericResponseDTO:

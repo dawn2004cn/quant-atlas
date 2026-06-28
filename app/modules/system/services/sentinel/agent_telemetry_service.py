@@ -5,12 +5,12 @@ Provides a unified interface for the message store system.
 """
 
 
-from typing import Any, Optional
+from typing import Any
 
 class AgentTelemetryService:
     """Service for reporting agent task progress."""
 
-    def __init__(self, store: Optional[Any] = None):
+    def __init__(self, store: Any | None = None):
         if store is not None:
             self.store = store
         else:

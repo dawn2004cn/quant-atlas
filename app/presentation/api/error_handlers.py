@@ -2,7 +2,6 @@ from __future__ import annotations
 """Global API error handlers."""
 
 
-import logging
 import uuid
 from urllib.parse import urlparse
 from flask import Flask, has_request_context, jsonify, request, redirect, url_for
@@ -14,7 +13,6 @@ from app.core.exceptions import CoreError
 from app.domain.exceptions import AppError
 from app.presentation.api_errors import APIException
 from .actionable_error_catalog import enrich_error_payload
-from .degraded_response import apply_degraded_headers
 from ..http_static import is_static_asset_request
 
 from app.core.logger import get_logger

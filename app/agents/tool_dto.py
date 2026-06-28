@@ -122,7 +122,7 @@ class ToolResultBuilder:
         self._evidence_points: list[EvidencePoint] = []
         self._metadata: dict[str, Any] = {}
 
-    def with_data(self, key: str, value: Any) -> "ToolResultBuilder":
+    def with_data(self, key: str, value: Any) -> ToolResultBuilder:
         """Add data to result."""
         self._data[key] = value
         return self
@@ -133,7 +133,7 @@ class ToolResultBuilder:
         value: Any,
         strength: str = "medium",
         source: str = "",
-    ) -> "ToolResultBuilder":
+    ) -> ToolResultBuilder:
         """Add evidence point."""
         self._evidence_points.append(EvidencePoint(
             key=key,
@@ -143,7 +143,7 @@ class ToolResultBuilder:
         ))
         return self
 
-    def with_metadata(self, key: str, value: Any) -> "ToolResultBuilder":
+    def with_metadata(self, key: str, value: Any) -> ToolResultBuilder:
         """Add metadata."""
         self._metadata[key] = value
         return self

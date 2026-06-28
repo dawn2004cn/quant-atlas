@@ -2,7 +2,6 @@
 
 from app.infrastructure.pipeline.base import DataProcessor
 from typing import Any
-import logging
 
 
 from app.core.logger import get_logger

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import uuid
 from datetime import datetime
@@ -29,11 +28,11 @@ logger = logging.getLogger(__name__)
 
 class ExecutionFailoverEvent(Event):
     """Event published when execution fails over to a different venue."""
-    
+
     event_type = "execution_failover"
     priority = 50  # HIGH
     ttl_seconds = 3600
-    
+
     def __init__(
         self,
         *,
@@ -54,11 +53,11 @@ class ExecutionFailoverEvent(Event):
 
 class ExecutionRecoveryEvent(Event):
     """Event published when a venue recovers from UNHEALTHY status."""
-    
+
     event_type = "execution_recovery"
     priority = 30  # NORMAL
     ttl_seconds = 1800
-    
+
     def __init__(
         self,
         *,
@@ -75,7 +74,7 @@ class ExecutionRecoveryEvent(Event):
 
 class SelfHealingExecutionService:
     """Self-healing execution service with automatic failover and EventBus integration.
-    
+
     This service wraps the CrossChainDriver and provides:
     - Automatic venue registration on startup
     - EventBus integration for real-time monitoring
@@ -97,10 +96,10 @@ class SelfHealingExecutionService:
         self._event_bus = get_event_bus()
         self._enable_monitoring = enable_monitoring
         self._venue_status_history: dict[str, list[dict[str, Any]]] = {}
-        
+
         # Register default venues
         self._register_default_venues()
-        
+
         # Start health monitoring
         if enable_monitoring:
             self._registry.start_monitoring()
@@ -110,15 +109,15 @@ class SelfHealingExecutionService:
         # QMT venue (highest priority for CN market)
         qmt = MockQMTVenue(failure_rate=0.05, latency_range=(50.0, 200.0))
         self._registry.register(qmt)
-        
+
         # Redis shadow venue (fallback for paper trading)
         shadow = RedisShadowVenue(redis_client=self._redis, slippage_bps=5.0)
         self._registry.register(shadow)
-        
+
         # DeFi bridge venue (for crypto/cross-chain)
         defi = DeFiBridgeVenue(gas_cost_usd=5.0, slippage_bps=30.0)
         self._registry.register(defi)
-        
+
         logger.info("registered %d default execution venues", len(self._registry.get_all_venues()))
 
     async def submit_order(
@@ -134,7 +133,7 @@ class SelfHealingExecutionService:
         timeout_seconds: int = 30,
     ) -> dict[str, Any]:
         """Submit an order with automatic failover.
-        
+
         Args:
             symbol: Trading symbol
             side: "buy" or "sell"
@@ -144,7 +143,7 @@ class SelfHealingExecutionService:
             venue_preference: Preferred venue IDs to try first
             idempotency_key: Optional idempotency key for safe retries
             timeout_seconds: Execution timeout per venue
-            
+
         Returns:
             Execution result dict
         """
@@ -153,17 +152,17 @@ class SelfHealingExecutionService:
             order_side = OrderSide(side.lower())
         except ValueError:
             return {"ok": False, "error": f"invalid_side: {side}"}
-        
+
         # Parse order type
         try:
             otype = OrderType(order_type.lower())
         except ValueError:
             return {"ok": False, "error": f"invalid_order_type: {order_type}"}
-        
+
         # Generate idempotency key if not provided
         if not idempotency_key:
             idempotency_key = f"order-{uuid.uuid4().hex[:16]}"
-        
+
         # Perception-aware venue preference (10.0 Neural Resonance)
         effective_venue_preference = venue_preference or []
         if not effective_venue_preference:
@@ -172,7 +171,7 @@ class SelfHealingExecutionService:
             if perception_preference:
                 effective_venue_preference = perception_preference
                 logger.debug("using perception-aware venue preference: %s", perception_preference)
-        
+
         # Build execution request
         request = ExecutionRequest(
             symbol=symbol,
@@ -189,18 +188,18 @@ class SelfHealingExecutionService:
                 "perception_aware": bool(perception_preference) if not venue_preference else False,
             },
         )
-        
+
         # Execute with failover
         try:
             result = await self._driver.execute(request, preferred_venues=venue_preference)
-            
+
             # Publish failover event if execution required multiple attempts
             if not result.success and result.metadata.get("attempts", 1) > 1:
                 self._publish_failover_event(symbol, result)
-            
+
             # Publish execution result to perception layer (10.0 Neural Resonance)
             self._publish_execution_to_perception(symbol, side, result)
-            
+
             return {
                 "ok": result.success,
                 "order_id": result.order_id,
@@ -212,7 +211,7 @@ class SelfHealingExecutionService:
                 "error": result.error if not result.success else None,
                 "idempotency_key": idempotency_key,
             }
-            
+
         except Exception as exc:
             logger.error("execution failed for %s: %s", symbol, exc)
             # Publish failure to perception layer
@@ -241,14 +240,14 @@ class SelfHealingExecutionService:
         result: ExecutionResult,
     ) -> None:
         """Publish execution result to perception layer for cross-node resonance (10.0).
-        
+
         This allows other nodes to detect execution patterns and react accordingly.
         For example, if multiple nodes are buying the same symbol, it may indicate
         a strong signal that triggers additional research or position sizing adjustments.
         """
         try:
             from app.core.mesh.perception_bridge import publish_perception
-            
+
             if result.success:
                 # Publish successful execution
                 perception_text = f"execution_success:{symbol}:{side}"
@@ -283,7 +282,7 @@ class SelfHealingExecutionService:
                     ttl_seconds=300,
                 )
                 logger.debug("published execution failure to perception: %s %s", symbol, side)
-                
+
         except Exception as exc:
             logger.debug("perception layer publish skipped: %s", exc)
 
@@ -296,7 +295,7 @@ class SelfHealingExecutionService:
         """Publish execution exception to perception layer."""
         try:
             from app.core.mesh.perception_bridge import publish_perception
-            
+
             perception_text = f"execution_exception:{symbol}:{side}"
             publish_perception(
                 text=perception_text,
@@ -319,25 +318,25 @@ class SelfHealingExecutionService:
         side: str,
     ) -> list[str]:
         """Query perception layer to determine optimal venue preference (10.0).
-        
+
         This method checks the perception layer for recent execution signals related
         to the given symbol. If other nodes have successfully executed on a specific
         venue, we prefer that venue to leverage their proven path.
-        
+
         Args:
             symbol: Trading symbol
             side: "buy" or "sell"
-            
+
         Returns:
             List of preferred venue IDs, ordered by preference
         """
         try:
             from app.core.mesh.perception_layer import get_perception_layer
-            
+
             layer = get_perception_layer()
             if not layer:
                 return []
-            
+
             # Query for recent execution signals
             query_text = f"execution_success:{symbol}"
             results = layer.query(
@@ -345,10 +344,10 @@ class SelfHealingExecutionService:
                 top_k=10,
                 min_similarity=0.6,
             )
-            
+
             if not results:
                 return []
-            
+
             # Count venue successes
             venue_scores: dict[str, dict[str, Any]] = {}
             for r in results:
@@ -359,43 +358,43 @@ class SelfHealingExecutionService:
                     continue
                 if metadata.get("side") != side:
                     continue
-                    
+
                 venue_id = metadata.get("venue_id", "")
                 if not venue_id:
                     continue
-                
+
                 if venue_id not in venue_scores:
                     venue_scores[venue_id] = {
                         "count": 0,
                         "avg_latency": 0.0,
                         "total_latency": 0.0,
                     }
-                
+
                 venue_scores[venue_id]["count"] += 1
                 latency = metadata.get("latency_ms", 0.0)
                 venue_scores[venue_id]["total_latency"] += latency
-            
+
             # Calculate average latency and sort by score
             for venue_id, stats in venue_scores.items():
                 if stats["count"] > 0:
                     stats["avg_latency"] = stats["total_latency"] / stats["count"]
-            
+
             # Sort by: (1) success count desc, (2) avg latency asc
             sorted_venues = sorted(
                 venue_scores.items(),
                 key=lambda x: (-x[1]["count"], x[1]["avg_latency"]),
             )
-            
+
             preferred = [v[0] for v in sorted_venues]
-            
+
             if preferred:
                 logger.info(
                     "perception-aware routing for %s %s: %s",
                     symbol, side, preferred,
                 )
-            
+
             return preferred
-            
+
         except Exception as exc:
             logger.debug("perception-aware routing skipped: %s", exc)
             return []
@@ -434,10 +433,10 @@ class SelfHealingExecutionService:
         venue = self._registry.get_venue(venue_id)
         if not venue:
             return {"ok": False, "error": f"venue_not_found: {venue_id}"}
-        
+
         previous_status = venue.status.value
         venue.reset_status()
-        
+
         # Publish recovery event
         try:
             event = ExecutionRecoveryEvent(
@@ -448,7 +447,7 @@ class SelfHealingExecutionService:
             self._event_bus.publish(event)
         except Exception as exc:
             logger.debug("failed to publish recovery event: %s", exc)
-        
+
         return {"ok": True, "venue_id": venue_id, "status": "healthy"}
 
     async def health_check_all(self) -> dict[str, Any]:

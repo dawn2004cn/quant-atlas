@@ -5,7 +5,8 @@ from __future__ import annotations
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from functools import wraps
-from typing import Any, Callable, TypeVar, Awaitable
+from typing import Any, TypeVar
+from collections.abc import Callable, Awaitable
 
 from app.core.logger import get_logger
 
@@ -19,13 +20,13 @@ _io_executor = ThreadPoolExecutor(max_workers=8, thread_name_prefix="sync_to_asy
 
 def asyncify(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:
     """Decorator to convert sync function to async.
-    
+
     Usage:
         class MyService:
             @asyncify
             def fetch_data(self, url):
                 return requests.get(url).json()
-                
+
         # Now can be called as: await service.fetch_data(url)
     """
     @wraps(func)
@@ -37,7 +38,7 @@ def asyncify(func: Callable[..., T]) -> Callable[..., Awaitable[T]]:
 
 def asyncify_batch(items: list[Any], func: Callable[[Any], Any], max_concurrency: int = 10) -> Awaitable[list[Any]]:
     """Run async function on batch of items with concurrency limit.
-    
+
     Usage:
         results = await asyncify_batch(
             symbols,
@@ -56,12 +57,12 @@ def asyncify_batch(items: list[Any], func: Callable[[Any], Any], max_concurrency
 
 class AsyncServiceMixin:
     """Mixin class providing async wrapper for sync service methods.
-    
+
     Usage:
         class MyService(AsyncServiceMixin):
             def get_quotes(self, codes):
                 return self._provider.get_quotes(codes)
-                
+
             async def get_quotes_async(self, codes):
                 return await self._run_async(self.get_quotes, codes)
     """

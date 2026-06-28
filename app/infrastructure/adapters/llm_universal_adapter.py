@@ -6,7 +6,6 @@ and error rate tracking via callbacks on the LangChain client.
 
 from __future__ import annotations
 
-import logging
 import time
 from typing import Any
 

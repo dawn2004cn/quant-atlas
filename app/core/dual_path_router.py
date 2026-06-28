@@ -9,7 +9,8 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum, auto
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.core.logger import get_logger
 from app.core.mesh.global_state_bus import get_global_state_bus
@@ -56,12 +57,12 @@ class PathMetrics:
 
 class DualPathRouter:
     """Routes tasks to Fast or Slow path based on type and priority.
-    
+
     Fast Path (execution/risk):
     - Direct call via GlobalStateBus
     - No AI inference in the loop
     - Target: < 10ms for stop-loss, < 100ms for order execution
-    
+
     Slow Path (cognition):
     - Async observer pattern
     - AI analysis, strategy suggestions, parameter tuning

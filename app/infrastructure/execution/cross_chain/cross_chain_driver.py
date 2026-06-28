@@ -11,8 +11,6 @@ from typing import Any
 from .execution_venue import (
     ExecutionRequest,
     ExecutionResult,
-    ExecutionVenue,
-    VenueStatus,
 )
 from .venue_registry import VenueRegistry
 
@@ -21,14 +19,14 @@ logger = logging.getLogger(__name__)
 
 class CrossChainDriver:
     """Self-healing execution router with automatic failover.
-    
+
     Features:
     - Automatic venue selection by priority and health
     - Transparent failover on execution failure
     - Idempotency key support for safe retries
     - Execution tracing and audit trail
     - Cross-venue arbitrage detection
-    
+
     Usage:
         driver = CrossChainDriver(registry)
         result = await driver.execute(request)
@@ -54,20 +52,20 @@ class CrossChainDriver:
         preferred_venues: list[str] | None = None,
     ) -> ExecutionResult:
         """Execute a trade with automatic failover.
-        
+
         Tries venues in priority order, failing over to the next venue
         if execution fails. Supports idempotency keys for safe retries.
-        
+
         Args:
             request: The execution request
             preferred_venues: Optional list of venue IDs to try first
-            
+
         Returns:
             ExecutionResult from the first successful venue, or last failure
         """
         # Check idempotency cache
         if request.idempotency_key and request.idempotency_key in self._idempotency_cache:
-            logger.debug("returning cached result for idempotency_key=%s", 
+            logger.debug("returning cached result for idempotency_key=%s",
                         request.idempotency_key)
             return self._idempotency_cache[request.idempotency_key]
 
@@ -79,7 +77,7 @@ class CrossChainDriver:
 
         # Get venues in priority order
         venues = self._registry.get_healthy_venues(preferred=all_preferred or None)
-        
+
         if not venues:
             return ExecutionResult(
                 success=False,
@@ -96,7 +94,7 @@ class CrossChainDriver:
 
         for venue in venues:
             if attempts >= self._max_total_retries:
-                logger.warning("max retries (%d) reached for %s", 
+                logger.warning("max retries (%d) reached for %s",
                              self._max_total_retries, request.symbol)
                 break
 
@@ -104,7 +102,7 @@ class CrossChainDriver:
             start_time = time.monotonic()
 
             try:
-                logger.info("attempting execution on venue %s (attempt %d)", 
+                logger.info("attempting execution on venue %s (attempt %d)",
                            venue.venue_id, attempts)
 
                 result = await asyncio.wait_for(
@@ -148,12 +146,12 @@ class CrossChainDriver:
                         if len(self._execution_log) > 10000:
                             self._execution_log = self._execution_log[-5000:]
 
-                    logger.info("execution succeeded on venue %s (latency=%.1fms)", 
+                    logger.info("execution succeeded on venue %s (latency=%.1fms)",
                                venue.venue_id, latency_ms)
                     return result
 
                 # Execution failed, try next venue
-                logger.warning("execution failed on venue %s: %s", 
+                logger.warning("execution failed on venue %s: %s",
                              venue.venue_id, result.error)
                 last_result = result
 
@@ -166,7 +164,7 @@ class CrossChainDriver:
                     "latency_ms": latency_ms,
                     "error": "timeout",
                 })
-                logger.warning("execution timeout on venue %s (%.1fms)", 
+                logger.warning("execution timeout on venue %s (%.1fms)",
                              venue.venue_id, latency_ms)
                 last_result = ExecutionResult(
                     success=False,
@@ -184,7 +182,7 @@ class CrossChainDriver:
                     "latency_ms": latency_ms,
                     "error": str(exc),
                 })
-                logger.error("execution exception on venue %s: %s", 
+                logger.error("execution exception on venue %s: %s",
                            venue.venue_id, exc)
                 last_result = ExecutionResult(
                     success=False,
@@ -213,7 +211,7 @@ class CrossChainDriver:
                 "timestamp": datetime.now().isoformat(),
             })
 
-        logger.error("all venues exhausted for %s, last error: %s", 
+        logger.error("all venues exhausted for %s, last error: %s",
                     request.symbol, last_result.error)
         return last_result
 
@@ -223,11 +221,11 @@ class CrossChainDriver:
         venue_id: str | None = None,
     ) -> bool:
         """Cancel an order on a specific venue or try all venues.
-        
+
         Args:
             order_id: The order to cancel
             venue_id: Optional specific venue to try
-            
+
         Returns:
             True if cancellation succeeded
         """
@@ -242,7 +240,7 @@ class CrossChainDriver:
         for venue in venues:
             try:
                 if await venue.cancel_order(order_id):
-                    logger.info("order %s cancelled on venue %s", 
+                    logger.info("order %s cancelled on venue %s",
                                order_id, venue.venue_id)
                     return True
             except Exception as exc:
@@ -257,11 +255,11 @@ class CrossChainDriver:
         limit: int = 100,
     ) -> list[dict[str, Any]]:
         """Get execution history.
-        
+
         Args:
             symbol: Optional filter by symbol
             limit: Maximum results to return
-            
+
         Returns:
             List of execution records
         """
@@ -272,7 +270,7 @@ class CrossChainDriver:
 
     def get_manifest(self) -> dict[str, Any]:
         """Get driver status manifest.
-        
+
         Returns:
             Dict with driver statistics
         """

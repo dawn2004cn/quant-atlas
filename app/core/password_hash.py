@@ -28,7 +28,6 @@ from __future__ import annotations
 import hashlib
 import logging
 import secrets
-from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +155,7 @@ def needs_rehash(stored_hash: str) -> bool:
     return not stored_hash.startswith(_V1_MARKER)
 
 
-def get_hash_info(stored_hash: str) -> Tuple[str, bool]:
+def get_hash_info(stored_hash: str) -> tuple[str, bool]:
     """Return ``(algorithm, needs_rehash)`` for migration tracking.
 
     Examples:

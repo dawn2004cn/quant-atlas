@@ -13,15 +13,18 @@ import json
 import sys
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
+from collections.abc import Callable
 
-import numpy as np
 import pandas as pd
 
 
 from app.core.logger import get_logger
+from app.infrastructure.memory_cache import MemoryCache
 
 logger = get_logger(__name__)
+
+memory_store = MemoryCache()
 
 from backtest.metrics import (
     by_exit_reason_stats,
@@ -54,10 +57,10 @@ def _detect_market_for_align(code: str) -> str:
 
 
 def _align(
-    data_map: Dict[str, pd.DataFrame],
-    signal_map: Dict[str, pd.Series],
-    codes: List[str],
-    optimizer: Optional[Callable] = None,
+    data_map: dict[str, pd.DataFrame],
+    signal_map: dict[str, pd.Series],
+    codes: list[str],
+    optimizer: Callable | None = None,
     max_leverage: float = 1.0,
 ) -> tuple:
     """Build aligned date index, close matrix, target-position matrix, return matrix.
@@ -94,7 +97,7 @@ def _align(
         logger.warning("Symbols dropped (no usable price data): %s", all_nan_cols)
         codes = [c for c in codes if c not in all_nan_cols]
         if not codes:
-            raise ValueError(f"All symbols have no data in the requested date range")
+            raise ValueError("All symbols have no data in the requested date range")
         close = close[codes]
 
     pos = pd.DataFrame(0.0, index=dates, columns=codes)
@@ -121,7 +124,7 @@ def _align(
     return dates, close, pos, ret
 
 
-def _load_optimizer(config: Dict[str, Any]) -> Optional[Callable]:
+def _load_optimizer(config: dict[str, Any]) -> Callable | None:
     """Dynamically load an optimizer function from config.
 
     Args:
@@ -165,11 +168,11 @@ class BaseEngine(ABC):
         self.initial_capital: float = config.get("initial_cash", 1_000_000)
         self.default_leverage: float = config.get("leverage", 1.0)
         self.capital: float = self.initial_capital
-        self.positions: Dict[str, Position] = {}
-        self.trades: List[TradeRecord] = []
-        self.equity_snapshots: List[EquitySnapshot] = []
+        self.positions: dict[str, Position] = {}
+        self.trades: list[TradeRecord] = []
+        self.equity_snapshots: list[EquitySnapshot] = []
         self._bar_idx: int = 0
-        self._trade_ts: Optional[pd.Timestamp] = None
+        self._trade_ts: pd.Timestamp | None = None
         self._active_symbol: str = ""  # set by _rebalance/_close_position for subclass use
 
     # ── Market rule interface (subclass must implement) ──
@@ -257,12 +260,12 @@ class BaseEngine(ABC):
 
     def run_backtest(
         self,
-        config: Dict[str, Any],
+        config: dict[str, Any],
         loader: Any,
         signal_engine: Any,
         run_dir: Path,
         bars_per_year: int = 252,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Full backtest pipeline.
 
         Signature matches ``daily_portfolio.run_backtest`` for drop-in replacement.
@@ -307,7 +310,7 @@ class BaseEngine(ABC):
                 key = f"{code}_{config.get('start_date')}_{config.get('end_date')}"
                 memory_store.set(key, validated_df)
                 data_map[code] = validated_df
-        
+
         if not data_map:
             write_stdout_json({"error": "No data fetched"}, indent=None)
             sys.exit(1)
@@ -392,10 +395,10 @@ class BaseEngine(ABC):
     def _execute_bars(
         self,
         dates: pd.DatetimeIndex,
-        data_map: Dict[str, pd.DataFrame],
+        data_map: dict[str, pd.DataFrame],
         close_df: pd.DataFrame,
         target_pos: pd.DataFrame,
-        codes: List[str],
+        codes: list[str],
     ) -> None:
         """Bar-by-bar execution with market rule enforcement."""
         for i, ts in enumerate(dates):
@@ -450,7 +453,7 @@ class BaseEngine(ABC):
         self,
         symbol: str,
         target_weight: float,
-        df: Optional[pd.DataFrame],
+        df: pd.DataFrame | None,
         ts: pd.Timestamp,
         equity: float,
     ) -> None:
@@ -574,14 +577,14 @@ class BaseEngine(ABC):
     def _write_artifacts(
         self,
         run_dir: Path,
-        data_map: Dict[str, pd.DataFrame],
+        data_map: dict[str, pd.DataFrame],
         dates: pd.DatetimeIndex,
         equity_series: pd.Series,
         bench_equity: pd.Series,
         bench_ret: pd.Series,
         target_pos: pd.DataFrame,
         metrics: dict,
-        codes: List[str],
+        codes: list[str],
     ) -> None:
         """Write CSV artifacts compatible with daily_portfolio format."""
         out = run_dir / "artifacts"

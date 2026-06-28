@@ -17,6 +17,7 @@ def register_factor_self_correction_routes(blueprint: Blueprint, ctx: ApiV1Conte
     @require_role("can_manage_users")
     @service_fallback("factor_self_correction_service")
     def factor_record_performance():
+        svc = getattr(ctx, "factor_self_correction_service", None)
         body = request.get_json(silent=True) or {}
         factor_name = body.get("factor_name", "").strip()
         period = body.get("period", "").strip()

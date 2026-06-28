@@ -14,11 +14,11 @@ Usage:
 
 
 import asyncio
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
@@ -185,7 +185,7 @@ class ReactiveStrategyTrigger:
             for symbol in event.data.get("held_symbols", []):
                 current_weights[symbol] = 0.1
 
-            new_weights = {k: v * 0.5 for k, v in current_weights.items()}
+            {k: v * 0.5 for k, v in current_weights.items()}
 
             logger.info(f"Emergency: reduced positions by 50% for {event.symbol}")
 

@@ -149,7 +149,6 @@ register_factory(
 def _make_auth_service(reg: Any) -> Any:
     from app.modules.user.services.user.auth_service import AuthService
     from app.infrastructure.repositories.common.json_repositories import JsonUserRepository
-    from pathlib import Path
     from app.config import CONFIG_DIR
 
     repo = JsonUserRepository(CONFIG_DIR / "users.json")
@@ -159,7 +158,6 @@ def _make_auth_service(reg: Any) -> Any:
 def _make_user_application_service(reg: Any) -> Any:
     from app.modules.user.services.user.user_service import UserApplicationService
     from app.infrastructure.repositories.common.json_repositories import JsonUserRepository
-    from pathlib import Path
     from app.config import CONFIG_DIR
 
     repo = JsonUserRepository(CONFIG_DIR / "users.json")

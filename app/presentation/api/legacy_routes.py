@@ -7,7 +7,7 @@ small deprecated route surface during the migration period.
 
 
 from flask import Blueprint, request
-from .common import ok_response, ok_resource
+from .common import ok_response
 from flask_login import login_required
 
 from ...core.middleware.request_context import require_authenticated_user_id

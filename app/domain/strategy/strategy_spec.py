@@ -18,7 +18,7 @@ class StrategySpec:
     children: list[dict[str, Any]] = field(default_factory=list)
 
     @classmethod
-    def from_canvas(cls, canvas_json: dict[str, Any]) -> "StrategySpec":
+    def from_canvas(cls, canvas_json: dict[str, Any]) -> StrategySpec:
         spec = canvas_json.get("spec", {}) if isinstance(canvas_json, dict) else {}
         return cls(
             strategy_id=str(canvas_json.get("strategy_id") or spec.get("strategy_id") or canvas_json.get("name") or "canvas_strategy"),

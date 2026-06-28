@@ -6,7 +6,7 @@ from flask import Blueprint, request
 from flask_login import login_required
 
 from ...core.middleware.request_context import require_authenticated_user_id
-from .common import ok_response, require_ctx_service
+from .common import ok_response
 from .v1_context import ApiV1Context
 from app.core.registry import register_routes
 from .decorators import service_fallback

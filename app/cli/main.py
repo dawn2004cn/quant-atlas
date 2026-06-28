@@ -36,7 +36,7 @@ def _parser() -> argparse.ArgumentParser:
     lh = sub.add_parser("longhu", help="龙虎榜明细入库（AkShare → instance/basic_market_data.db）")
     lh.add_argument("--lookback-days", type=int, default=14, dest="lookback", help="回溯自然日")
 
-    yb = sub.add_parser("yanbao", help="东财研报列表页入库（→ instance/basic_market_data.db）")
+    sub.add_parser("yanbao", help="东财研报列表页入库（→ instance/basic_market_data.db）")
 
     ts = sub.add_parser(
         "timeseries-backfill",

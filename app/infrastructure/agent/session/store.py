@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from app.infrastructure.agent.session.models import Attempt, Message, Session
 
@@ -72,7 +72,7 @@ class SessionStore:
         self._write_json(self._session_file(session.session_id), session.to_dict())
         return session
 
-    def get_session(self, session_id: str) -> Optional[Session]:
+    def get_session(self, session_id: str) -> Session | None:
         """Read a session.
 
         Args:
@@ -111,7 +111,7 @@ class SessionStore:
         shutil.rmtree(session_dir, ignore_errors=True)
         return True
 
-    def list_sessions(self, limit: int = 50) -> List[Session]:
+    def list_sessions(self, limit: int = 50) -> list[Session]:
         """List all sessions in descending update-time order.
 
         Args:
@@ -120,7 +120,7 @@ class SessionStore:
         Returns:
             List of Session objects.
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         if not self.base_dir.exists():
             return sessions
         for session_dir in self.base_dir.iterdir():
@@ -146,7 +146,7 @@ class SessionStore:
         with path.open("a", encoding="utf-8") as f:
             f.write(json.dumps(message.to_dict(), ensure_ascii=False) + "\n")
 
-    def get_messages(self, session_id: str, limit: int = 100) -> List[Message]:
+    def get_messages(self, session_id: str, limit: int = 100) -> list[Message]:
         """Read all messages for a session.
 
         Args:
@@ -159,7 +159,7 @@ class SessionStore:
         path = self._messages_file(session_id)
         if not path.exists():
             return []
-        messages: List[Message] = []
+        messages: list[Message] = []
         for line in path.read_text(encoding="utf-8").strip().splitlines():
             if line.strip():
                 messages.append(Message.from_dict(json.loads(line)))
@@ -184,7 +184,7 @@ class SessionStore:
         )
         return attempt
 
-    def get_attempt(self, session_id: str, attempt_id: str) -> Optional[Attempt]:
+    def get_attempt(self, session_id: str, attempt_id: str) -> Attempt | None:
         """Read an execution attempt.
 
         Args:
@@ -211,7 +211,7 @@ class SessionStore:
             attempt.to_dict(),
         )
 
-    def list_attempts(self, session_id: str) -> List[Attempt]:
+    def list_attempts(self, session_id: str) -> list[Attempt]:
         """List all execution attempts for a session.
 
         Args:
@@ -223,7 +223,7 @@ class SessionStore:
         attempts_dir = self._session_dir(session_id) / "attempts"
         if not attempts_dir.exists():
             return []
-        attempts: List[Attempt] = []
+        attempts: list[Attempt] = []
         for attempt_dir in attempts_dir.iterdir():
             if not attempt_dir.is_dir():
                 continue
@@ -237,7 +237,7 @@ class SessionStore:
     # ---- IO Helpers ----
 
     @staticmethod
-    def _write_json(path: Path, data: Dict[str, Any]) -> None:
+    def _write_json(path: Path, data: dict[str, Any]) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
             json.dumps(data, ensure_ascii=False, indent=2),
@@ -245,7 +245,7 @@ class SessionStore:
         )
 
     @staticmethod
-    def _read_json(path: Path) -> Optional[Dict[str, Any]]:
+    def _read_json(path: Path) -> dict[str, Any] | None:
         if not path.exists():
             return None
         try:

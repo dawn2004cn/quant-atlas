@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any
 
 from app.core.logger import get_logger
 from app.modules.execution.services.trade_outcome_review_service import TradeOutcomeReviewService
-from app.domain.risk.risk_companion_models import SentimentProfile
 
 logger = get_logger(__name__)
 

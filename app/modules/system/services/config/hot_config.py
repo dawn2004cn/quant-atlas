@@ -4,13 +4,15 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 
 import json
-import logging
 import threading
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any
+from collections.abc import Callable
 
 
 from app.core.logger import get_logger
+from app.core.runtime_config import get_runtime
+from app.domain.dto.config_dto import ConfigEntryDTO
 
 logger = get_logger(__name__)
 
@@ -18,7 +20,7 @@ logger = get_logger(__name__)
 class HotReloadConfig:
     """Configuration that can be updated without restarting."""
 
-    def __init__(self, key: str, default_value: object = None, reload_callback: Optional[Callable] = None):
+    def __init__(self, key: str, default_value: object = None, reload_callback: Callable | None = None):
         self.key = key
         self._value = default_value
         self._default = default_value
@@ -80,7 +82,7 @@ class ConfigManager:
         self,
         key: str,
         default_value: object,
-        reload_callback: Optional[Callable] = None
+        reload_callback: Callable | None = None
     ) -> HotReloadConfig:
         """Register a configuration key."""
         with self._lock:
@@ -88,7 +90,7 @@ class ConfigManager:
                 return self._configs[key]
 
             config = HotReloadConfig(key, default_value, reload_callback)
-            
+
             # Try to load from Redis
             if self._redis:
                 try:
@@ -102,9 +104,8 @@ class ConfigManager:
             self._configs[key] = config
             return config
 
-    def get_config_dto(self, key: str) -> Optional[ConfigEntryDTO]:
+    def get_config_dto(self, key: str) -> ConfigEntryDTO | None:
         """Get config as DTO."""
-        from app.domain.dto.config_dto import ConfigEntryDTO
         config = self._configs.get(key)
         if not config:
             return None
@@ -144,7 +145,7 @@ class ConfigManager:
         """Publish config change for other instances."""
         if self._redis:
             try:
-                self._redis.publish(f"config:changes", json.dumps({
+                self._redis.publish("config:changes", json.dumps({
                     "key": key,
                     "value": value,
                     "timestamp": datetime.now().isoformat()
@@ -200,7 +201,7 @@ class ConfigManager:
 
 
 # Global config manager
-_config_manager: Optional[ConfigManager] = None
+_config_manager: ConfigManager | None = None
 
 
 def get_config_manager() -> ConfigManager:
@@ -211,7 +212,7 @@ def get_config_manager() -> ConfigManager:
     return _config_manager
 
 
-def config_value(key: str, default: object = None, reload_callback: Optional[Callable] = None) -> object:
+def config_value(key: str, default: object = None, reload_callback: Callable | None = None) -> object:
     """Decorator/function to get hot-reloadable config.
 
     Usage:

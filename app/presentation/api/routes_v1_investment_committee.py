@@ -5,11 +5,11 @@ Replaces direct infrastructure imports with application-level service calls
 from the ``ApiV1Context``.
 """
 
-from flask import Blueprint, request
+from flask import Blueprint
 from flask_login import login_required
 
 from ...core.registry import register_routes
-from .common import ok_resource, ok_response, require_ctx_service
+from .common import ok_resource, require_ctx_service
 from .v1_context import ApiV1Context
 from .decorators import require_role
 

@@ -13,12 +13,10 @@ Usage:
 """
 
 
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from collections import defaultdict
 
 
 from app.core.logger import get_logger
@@ -149,7 +147,6 @@ class BlackSwanStressTester:
         focus_types: list[ScenarioType] = None,
     ) -> list[StressScenario]:
         """Generate stress scenarios."""
-        import uuid
 
         if focus_types:
             candidates = [s for s in self._scenarios if s.scenario_type in focus_types]
@@ -337,10 +334,10 @@ class BlackSwanStressTester:
 
 from enum import Enum
 
-_global_stress_tester: "BlackSwanStressTester" | None = None
+_global_stress_tester: BlackSwanStressTester | None = None
 
 
-def get_stress_tester() -> "BlackSwanStressTester":
+def get_stress_tester() -> BlackSwanStressTester:
     """Get global stress tester."""
     global _global_stress_tester
     if _global_stress_tester is None:

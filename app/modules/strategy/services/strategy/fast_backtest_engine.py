@@ -1,9 +1,8 @@
 ﻿from __future__ import annotations
 
 import warnings
-import numpy as np
 import pandas as pd
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from app.core.mesh.unified_data_lake import DataQuery, DataScope
 from app.modules.data.services.data_lake_manager import DataLakeManager
 from datetime import datetime, timedelta
@@ -29,7 +28,7 @@ class FastBacktestEngine:
         )
         self.lake_manager = lake_manager
 
-    async def run_preview(self, symbol: str, market: str, params: Dict[str, Any], template_id: str) -> Dict[str, Any]:
+    async def run_preview(self, symbol: str, market: str, params: dict[str, Any], template_id: str) -> dict[str, Any]:
         """Runs a rapid simulation on the last 6 months of real data from the lake."""
         end_date = datetime.now()
         start_date = end_date - timedelta(days=180)
@@ -93,7 +92,7 @@ class FastBacktestEngine:
             "warning": "Preview based on recent 6M window. Final results require full backtest via CompositeEngine."
         }
 
-    def _apply_strategy_logic(self, df: pd.DataFrame, params: Dict[str, Any], template_id: str) -> pd.Series:
+    def _apply_strategy_logic(self, df: pd.DataFrame, params: dict[str, Any], template_id: str) -> pd.Series:
         """Apply a simplified version of the strategy logic to the data."""
         if 'close' not in df.columns:
             price_col = next((c for c in df.columns if 'close' in c.lower()), None)

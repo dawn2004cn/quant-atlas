@@ -1,7 +1,6 @@
 """Evolution Arbiter service — autonomous strategy evolution via champion/challenger mesh."""
 from __future__ import annotations
 
-import logging
 import dataclasses
 from datetime import datetime
 from typing import Any

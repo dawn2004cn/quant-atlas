@@ -3,7 +3,6 @@ from __future__ import annotations
 import threading
 from collections import defaultdict
 from datetime import datetime
-from typing import Any
 
 from app.domain.workflow_hub.models import (
     WorkflowCheckpoint,

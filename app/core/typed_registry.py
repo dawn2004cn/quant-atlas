@@ -50,7 +50,8 @@ from __future__ import annotations
 
 import logging
 import warnings
-from typing import Any, Callable, Protocol
+from typing import Any, Protocol
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -368,7 +369,6 @@ class TypedServiceRegistry:
 
     def topological_order(self) -> list[str]:
         """Return registered service names in dependency order (topological sort)."""
-        visited: set[str] = set()
         order: list[str] = []
         visiting: set[str] = set()  # cycle detection
 

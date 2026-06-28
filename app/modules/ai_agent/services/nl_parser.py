@@ -3,11 +3,10 @@ from app.domain.dto.service_result import GenericResponseDTO
 """Advanced Natural Language Understanding for Jarvis."""
 
 
-import logging
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 from app.core.logger import get_logger
@@ -18,8 +17,8 @@ logger = get_logger(__name__)
 @dataclass
 class TimeRange:
     """Parsed time range."""
-    start: Optional[datetime]
-    end: Optional[datetime]
+    start: datetime | None
+    end: datetime | None
     description: str
 
 
@@ -36,11 +35,11 @@ class FactorCondition:
 class NLQuery:
     """Parsed natural language query."""
     intent: str
-    factors: List[FactorCondition] = None
-    time_range: Optional[TimeRange] = None
+    factors: list[FactorCondition] = None
+    time_range: TimeRange | None = None
     sort_by: str = ""
     limit: int = 20
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
 
 
 class AdvancedNLParser:
@@ -150,7 +149,7 @@ class AdvancedNLParser:
 
         return result
 
-    def _extract_time_range(self, query: str) -> Optional[TimeRange]:
+    def _extract_time_range(self, query: str) -> TimeRange | None:
         """Extract time range from query."""
         for pattern, extractor in self.TIME_PATTERNS.items():
             match = re.search(pattern, query)
@@ -158,7 +157,7 @@ class AdvancedNLParser:
                 return extractor(match)
         return None
 
-    def _extract_factors(self, query: str) -> List[FactorCondition]:
+    def _extract_factors(self, query: str) -> list[FactorCondition]:
         """Extract factor conditions from query."""
         factors = []
 
@@ -180,7 +179,7 @@ class AdvancedNLParser:
         self,
         query: str,
         factor: str
-    ) -> Optional[Dict]:
+    ) -> dict | None:
         """Extract operator and value for a factor."""
         # Find position of factor in query
         pos = query.find(factor)

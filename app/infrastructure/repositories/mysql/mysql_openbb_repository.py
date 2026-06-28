@@ -46,7 +46,7 @@ class MySQLOpenBBRepository(OpenBBRepository):
             if not db_config:
                 db_config = OpenBBProviderConfig(provider_name=config.provider_name)
                 session.add(db_config)
-            
+
             db_config.is_enabled = 1 if config.is_enabled else 0
             db_config.settings_json = json.dumps(config.settings)
             session.commit()

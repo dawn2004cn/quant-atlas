@@ -5,8 +5,6 @@ from __future__ import annotations
 
 import json
 import mmap
-import os
-import struct
 import threading
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -41,7 +39,7 @@ class GridMessage:
 
 class SharedMemoryHyperGrid:
     """Distributed shared memory grid using mmap and global_state_bus."""
-    
+
     def __init__(self, grid_size_mb: int = 1024):
         self._grid_size = grid_size_mb * 1024 * 1024
         self._grid_path = Path(__file__).resolve().parents[3] / "instance" / "hyper_grid.bin"
@@ -53,7 +51,7 @@ class SharedMemoryHyperGrid:
         self._bus = get_global_state_bus()
         self._broadcast_area = 0  # Reserved offset 0 for broadcast messages
         self._init_grid()
-    
+
     def _init_grid(self):
         """Initialize shared memory file and mmap."""
         if self._grid_path.stat().st_size < self._grid_size:
@@ -70,18 +68,18 @@ class SharedMemoryHyperGrid:
             _os.close(fd)
             raise
         logger.info("Hyper-Grid initialized: %d MB", self._grid_size // 1024 // 1024)
-    
+
     def register_node(self, node_id: str, memory_mb: int = 64, cpu_cores: float = 1.0) -> GridNode:
         """Register a new node in the grid."""
         with self._lock:
             if node_id in self._nodes:
                 return self._nodes[node_id]
-            
+
             # Find free memory slot
             offset = self._find_free_slot(memory_mb * 1024 * 1024)
             if offset is None:
                 raise MemoryError("No free memory slot in Hyper-Grid")
-            
+
             node = GridNode(
                 node_id=node_id,
                 memory_offset=offset,
@@ -90,7 +88,7 @@ class SharedMemoryHyperGrid:
                 last_heartbeat=datetime.now(timezone.utc).isoformat(),
             )
             self._nodes[node_id] = node
-            
+
             # Register to global bus for cross-process sync
             self._bus.write_state(f"hyper_grid.{node_id}", {
                 "node_id": node_id,
@@ -99,33 +97,33 @@ class SharedMemoryHyperGrid:
                 "cpu": cpu_cores,
                 "status": "active",
             })
-            
+
             logger.info("Node %s registered in Hyper-Grid at offset %d MB", node_id, offset // 1024 // 1024)
             return node
-    
+
     def _find_free_slot(self, required_size: int) -> int | None:
         """Find a free memory slot of given size."""
         used = sorted([n.memory_offset + n.memory_size for n in self._nodes.values()])
         if not used:
             return 0
-        
+
         # Check before first block
         if used[0] >= required_size:
             return 0
-        
+
         # Check between blocks
         for i in range(1, len(used)):
             free_start = used[i - 1]
             free_end = used[i]
             if free_end - free_start >= required_size:
                 return free_start
-        
+
         # Check after last block
         if self._grid_size - used[-1] >= required_size:
             return used[-1]
-        
+
         return None
-    
+
     def write_memory(self, node_id: str, offset: int, data: bytes) -> bool:
         """Write data to shared memory."""
         # Broadcast area is a special zone at offset 0
@@ -150,22 +148,22 @@ class SharedMemoryHyperGrid:
         except Exception as exc:
             logger.warning("Hyper-Grid write failed: %s", exc)
             return False
-    
+
     def read_memory(self, node_id: str, offset: int, size: int) -> bytes | None:
         """Read data from shared memory."""
         node = self._nodes.get(node_id)
         if not node:
             return None
-        
+
         if offset < 0 or offset + size > node.memory_size:
             return None
-        
+
         try:
             return self._mmap[node.memory_offset + offset : node.memory_offset + offset + size]
         except Exception as exc:
             logger.warning("Hyper-Grid read failed: %s", exc)
             return None
-    
+
     def broadcast_message(self, sender: str, message_type: str, payload: Any):
         """Broadcast a message to all nodes."""
         msg = GridMessage(
@@ -175,17 +173,17 @@ class SharedMemoryHyperGrid:
             payload=payload,
         )
         data = json.dumps(msg.__dict__).encode("utf-8")
-        
+
         # Write to broadcast area
         self.write_memory("broadcast", 0, data)
-        
+
         # Sync via global bus
-        self._bus.write_state(f"hyper_grid.broadcast", {
+        self._bus.write_state("hyper_grid.broadcast", {
             "sender": sender,
             "type": message_type,
             "timestamp": msg.timestamp,
         })
-    
+
     def sync_all(self) -> dict[str, Any]:
         """Sync all node states."""
         with self._lock:
@@ -195,7 +193,7 @@ class SharedMemoryHyperGrid:
                 "cpu_cores": node.cpu_cores,
                 "last_heartbeat": node.last_heartbeat,
             } for node_id, node in self._nodes.items()}
-    
+
     def cleanup(self):
         """Cleanup shared memory."""
         if self._mmap:

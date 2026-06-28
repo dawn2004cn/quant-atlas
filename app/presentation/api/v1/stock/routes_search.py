@@ -7,7 +7,6 @@ from ...v1_context import ApiV1Context
 from ...common import ok_response, parse_market
 from ...decorators import service_fallback
 from ...dto_validation import validate_request
-from .....application.dto.market_data_dto import StockHistoryDTO as StockHistoryRequest
 
 
 class StockSearchRequest(BaseModel):

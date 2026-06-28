@@ -19,7 +19,6 @@ from app.infrastructure.redis_client import RedisClientPoolEvidenceBlackboard
 
 
 import orjson as json
-import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any

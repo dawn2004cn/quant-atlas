@@ -2,14 +2,12 @@ from __future__ import annotations
 """Technical trend analysis - pure domain logic."""
 
 
-import logging
-from typing import Any
 
 import pandas as pd
 
 from ...core.logger import get_logger
 from ...domain.entities import TrendAnalysisResult
-from ...domain.enums import BuySignal, MACDStatus, RSIStatus, TrendStatus, VolumeStatus
+from ...domain.enums import TrendStatus
 
 
 

@@ -13,9 +13,7 @@ This guarantees that either both succeed or both fail.
 
 
 import json
-import logging
 from datetime import datetime
-from typing import Any, Optional
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy import select
 
@@ -65,7 +63,6 @@ class TradingService:
         async with self._session_factory() as session:
             from app.infrastructure.database.models.trading import (
                 FTTrade,
-                FTOrder,
                 TransactionalOutbox,
             )
             trade = FTTrade(

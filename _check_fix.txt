@@ -1,0 +1,9 @@
+app/presentation/web/templates/integration_hub.html: {% block title %}闂嗗棙鍨氭稉灑 - Quant Atlas{% endblock %}
+
+app/presentation/web/templates/architecture_roadmap.html: {% block title %}鏋舵瀯婕旇繘 - Quant Atlas{% endblock %}
+
+app/presentation/web/templates/alpha_factory.html:   璇曡瘯鏂扮増 &#8594;
+
+app/presentation/web/templates/backtest.html:   璇曡瘯鏂扮増 &#8594;
+
+app/presentation/web/templates/marketplace.html: {% block title %}Alpha Marketplace - 鍥犲瓙甯傚満{% endblock %}

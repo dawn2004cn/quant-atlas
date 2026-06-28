@@ -1,0 +1,85 @@
+HTML编码修复报告
+================================================================================
+
+✅ 移除BOM: agent_center.html
+✅ 移除BOM: agent_lab.html
+✅ 移除BOM: ai_analysis.html
+✅ 移除BOM: ai_chat.html
+✅ 移除BOM: ai_committee_dashboard.html
+✅ 移除BOM: ai_committee_selection.html
+✅ 移除BOM: ai_hedge_fund.html
+✅ 移除BOM: ai_investment_committee.html
+✅ 移除BOM: ai_research_report.html
+✅ 移除BOM: alert_center.html
+✅ 移除BOM: alpha_factory.html
+✅ 移除BOM: architecture_roadmap.html
+✅ 移除BOM: attribution_dashboard.html
+✅ 移除BOM: backtest.html
+✅ 移除BOM: capabilities.html
+✅ 移除BOM: collaboration_workspace.html
+✅ 移除BOM: daily_workbench.html
+✅ 移除BOM: decision_replay_space.html
+✅ 移除BOM: decision_snapshot.html
+✅ 移除BOM: experiment_reporter.html
+✅ 移除BOM: expert_teams.html
+✅ 移除BOM: factor_detail.html
+✅ 移除BOM: factor_evolution.html
+✅ 移除BOM: factor_repository.html
+✅ 移除BOM: global_radar.html
+✅ 移除BOM: hot_sectors.html
+✅ 移除BOM: index.html
+✅ 移除BOM: integration_hub.html
+✅ 移除BOM: investment_managers.html
+✅ 移除BOM: investment_manager_detail.html
+✅ 移除BOM: login.html
+✅ 移除BOM: longhu_bang.html
+✅ 移除BOM: long_term_select.html
+✅ 移除BOM: marketplace.html
+✅ 移除BOM: market_panorama.html
+✅ 移除BOM: message_center.html
+✅ 移除BOM: moments.html
+✅ 移除BOM: nl_strategy.html
+✅ 移除BOM: nl_strategy_v2.html
+✅ 移除BOM: observability.html
+✅ 移除BOM: optimize.html
+✅ 移除BOM: portfolio.html
+✅ 移除BOM: portfolio_detail.html
+✅ 移除BOM: portfolio_resonance.html
+✅ 移除BOM: professional_workbench.html
+✅ 移除BOM: profile.html
+✅ 移除BOM: quant_lab.html
+✅ 移除BOM: research_canvas.html
+✅ 移除BOM: research_pipeline.html
+✅ 移除BOM: retail_assistant.html
+✅ 移除BOM: run_history.html
+✅ 移除BOM: selection_result.html
+✅ 移除BOM: self_stocks.html
+✅ 移除BOM: shadow_account.html
+✅ 移除BOM: signal_flag.html
+✅ 移除BOM: signal_observations.html
+✅ 移除BOM: stocks_manage.html
+✅ 移除BOM: stock_detail.html
+✅ 移除BOM: stock_selector.html
+✅ 移除BOM: strategy_compare.html
+✅ 移除BOM: strategy_snapshots.html
+✅ 移除BOM: strategy_wizard.html
+✅ 移除BOM: swarm_dashboard.html
+✅ 移除BOM: swarm_designer.html
+✅ 移除BOM: task_center.html
+✅ 移除BOM: task_detail.html
+✅ 移除BOM: tdx_blocks.html
+✅ 移除BOM: users_manage.html
+✅ 移除BOM: user_spectrum_hub.html
+✅ 移除BOM: user_tiers_boutique.html
+✅ 移除BOM: user_tiers_fund.html
+✅ 移除BOM: user_tiers_institution.html
+✅ 移除BOM: user_tiers_investment.html
+✅ 移除BOM: voice_briefing.html
+✅ 移除BOM: war_room.html
+✅ 移除BOM: yanbao_hub.html
+✅ 移除BOM: zen_terminal.html
+
+总计: 114 个文件
+✅ 已修复: 77 个
+❌ 失败: 0 个
+➖ 未变更: 37 个

@@ -10,9 +10,8 @@ Enhanced QMTExecutor to:
 - Propagate trace context across execution
 """
 
-import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from app.core.runtime_config import get_runtime_bool
 from app.domain.ports.execution_ports import ITradeExecutor
@@ -68,7 +67,7 @@ class QMTExecutor(ITradeExecutor):
         self,
         account_id: str,
         qmt_path: str,
-        feedback_repo: Optional[ExecutionFeedbackRepository] = None,
+        feedback_repo: ExecutionFeedbackRepository | None = None,
         *,
         live_submit: bool | None = None,
     ):
@@ -107,10 +106,10 @@ class QMTExecutor(ITradeExecutor):
     def execute(self, signal: TradeSignalDTO) -> str:
         """
         Execute trade using QMT API with slippage tracking.
-        
+
         Args:
             signal: Trade signal with expected price and quantity
-            
+
         Returns:
             Order ID
         """
@@ -190,13 +189,13 @@ class QMTExecutor(ITradeExecutor):
         order_id: str,
         fill_price: float,
         fill_volume: int,
-        fill_time: Optional[datetime] = None,
+        fill_time: datetime | None = None,
     ) -> None:
         """
         Handle order fill event and record execution feedback.
-        
+
         This should be called by the QMT callback handler when an order is filled.
-        
+
         Args:
             order_id: Order ID from execute()
             fill_price: Actual fill price

@@ -2,7 +2,6 @@ from __future__ import annotations
 """Market Data Plugin implementation."""
 
 
-from pathlib import Path
 from app.core.plugins import QuantPlugin
 
 

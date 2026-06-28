@@ -3,7 +3,7 @@
 import json
 from datetime import datetime, timezone
 from typing import Any
-from sqlalchemy import select, delete, insert, update, desc, func, and_
+from sqlalchemy import select, delete, desc, func
 
 import pymysql
 from pymysql.cursors import DictCursor

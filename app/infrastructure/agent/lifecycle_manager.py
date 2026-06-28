@@ -2,7 +2,6 @@ from __future__ import annotations
 """Lifecycle Manager: Archives stale experiment data."""
 
 
-import logging
 import shutil
 import time
 from pathlib import Path
@@ -24,7 +23,7 @@ class LifecycleManager:
         """Move stale experiments to archive."""
         count = 0
         now = time.time()
-        
+
         for path in self.data_dir.glob("*.json"):
             if path.is_file():
                 # Check modification time

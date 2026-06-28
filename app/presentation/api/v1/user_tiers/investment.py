@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from flask import Blueprint, request
-from flask_login import login_required, current_user
+from flask_login import login_required
 
 from app.core.registry import register_routes
-from app.presentation.api.v1.user_tiers._http import tier_not_found, tier_success
+from app.presentation.api.v1.user_tiers._http import tier_success
 
 _bp = Blueprint("investment", __name__)
 

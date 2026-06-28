@@ -3,9 +3,8 @@ from __future__ import annotations
 
 
 import json
-import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 
 from app.core.logger import get_logger
@@ -28,14 +27,14 @@ class StrategyConfig:
     """Strategy configuration using DSL."""
     name: str
     description: str = ""
-    factors: List[FactorConfig] = field(default_factory=list)
+    factors: list[FactorConfig] = field(default_factory=list)
     min_score: float = 0.0
     max_results: int = 100
     order_by: str = "score"
     ascending: bool = False
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "StrategyConfig":
+    def from_dict(cls, data: dict[str, Any]) -> StrategyConfig:
         """Create from dictionary (JSON/YAML parsed)."""
         factors = []
         for f in data.get("factors", []):
@@ -57,17 +56,17 @@ class StrategyConfig:
         )
 
     @classmethod
-    def from_json(cls, json_str: str) -> "StrategyConfig":
+    def from_json(cls, json_str: str) -> StrategyConfig:
         """Create from JSON string."""
         return cls.from_dict(json.loads(json_str))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert back to dictionary."""
         return {
             "name": self.name,
             "description": self.description,
             "factors": [
-                {"name": f.name, "field": f.field, "operator": f.operator, 
+                {"name": f.name, "field": f.field, "operator": f.operator,
                  "value": f.value, "weight": f.weight}
                 for f in self.factors
             ],
@@ -93,7 +92,7 @@ class StrategyEngine:
             "contains": lambda x, y: str(y) in str(x),
         }
 
-    def evaluate(self, strategy: StrategyConfig, stocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def evaluate(self, strategy: StrategyConfig, stocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Evaluate stocks against strategy and return ranked results."""
         if not stocks:
             return []
@@ -114,7 +113,7 @@ class StrategyEngine:
 
         return results[:strategy.max_results]
 
-    def _calculate_score(self, strategy: StrategyConfig, stock: Dict[str, Any]) -> float:
+    def _calculate_score(self, strategy: StrategyConfig, stock: dict[str, Any]) -> float:
         """Calculate weighted score for a stock."""
         total_score = 0.0
         total_weight = 0.0
@@ -126,7 +125,7 @@ class StrategyEngine:
 
             try:
                 op_func = self._operators.get(factor.operator, lambda x, y: False)
-                
+
                 # Handle special operators
                 if factor.operator == "between":
                     match = op_func(value, factor.value)
@@ -186,17 +185,17 @@ EXAMPLE_STRATEGIES = {
 }
 
 
-def get_strategy(name: str) -> Optional[StrategyConfig]:
+def get_strategy(name: str) -> StrategyConfig | None:
     """Get a predefined strategy by name."""
     if name in EXAMPLE_STRATEGIES:
         return StrategyConfig.from_dict(EXAMPLE_STRATEGIES[name])
     return None
 
 
-def load_strategy_from_file(path: str) -> Optional[StrategyConfig]:
+def load_strategy_from_file(path: str) -> StrategyConfig | None:
     """Load strategy from JSON/YAML file."""
     try:
-        with open(path, "r", encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         return StrategyConfig.from_dict(data)
     except Exception as e:

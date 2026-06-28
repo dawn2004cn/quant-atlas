@@ -2,13 +2,9 @@
 
 from __future__ import annotations
 
-import json
 import math
-import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
 from app.core.logger import get_logger
 
@@ -46,7 +42,7 @@ class MultiStrategyOptimizerService:
         if n == 0:
             return PortfolioOptimizationResult()
 
-        total_vol = sum(s.get("volatility", 1) for s in strategies)
+        sum(s.get("volatility", 1) for s in strategies)
         allocations: list[StrategyAllocation] = []
         for s in strategies:
             inv_vol = 1.0 / max(s.get("volatility", 1), 0.001)
@@ -135,9 +131,9 @@ class MacroRegimeService:
         """Detect macro regime from economic indicators."""
         gdp_growth = indicators.get("gdp_growth", 0)
         inflation = indicators.get("inflation", 0)
-        unemployment = indicators.get("unemployment", 0)
+        indicators.get("unemployment", 0)
         vix = indicators.get("vix", 20)
-        interest_rate = indicators.get("interest_rate", 0)
+        indicators.get("interest_rate", 0)
 
         turbulence = min(1.0, vix / 50)
 

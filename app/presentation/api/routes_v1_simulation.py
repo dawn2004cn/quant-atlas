@@ -79,6 +79,7 @@ def register_simulation_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     @login_required
     @service_fallback("hyper_simulator_service")
     def hyper_sim_run():
+        svc = getattr(ctx, "hyper_simulator_service", None)
         body = request.get_json(silent=True) or {}
         try:
             req = HyperSimRunRequest.model_validate(body)

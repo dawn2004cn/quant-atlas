@@ -2,10 +2,9 @@ from __future__ import annotations
 """Standardized AgentContext for consistent data passing between agents."""
 
 
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 from app.core.logger import get_logger
@@ -22,8 +21,8 @@ class MarketSnapshot:
     volume: int = 0
     turnover: float = 0.0
     timestamp: str = ""
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "market": self.market,
             "index": self.index,
@@ -45,8 +44,8 @@ class StockData:
     amount: float = 0.0
     industry: str = ""
     market_cap: float = 0.0
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "code": self.code,
             "name": self.name,
@@ -64,12 +63,12 @@ class UserPreference:
     """User investment preferences."""
     risk_tolerance: str = "moderate"  # "conservative", "moderate", "aggressive"
     investment_horizon: str = "medium"  # "short", "medium", "long"
-    sectors: List[str] = field(default_factory=list)
-    excluded_sectors: List[str] = field(default_factory=list)
+    sectors: list[str] = field(default_factory=list)
+    excluded_sectors: list[str] = field(default_factory=list)
     max_position_size: float = 10.0  # percentage
     min_dividend_yield: float = 0.0
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "risk_tolerance": self.risk_tolerance,
             "investment_horizon": self.investment_horizon,
@@ -83,28 +82,28 @@ class UserPreference:
 @dataclass
 class HistoryMemory:
     """Historical context for the agent session."""
-    recent_queries: List[str] = field(default_factory=list)
-    selected_stocks: List[str] = field(default_factory=list)
-    executed_trades: List[Dict[str, Any]] = field(default_factory=list)
+    recent_queries: list[str] = field(default_factory=list)
+    selected_stocks: list[str] = field(default_factory=list)
+    executed_trades: list[dict[str, Any]] = field(default_factory=list)
     session_start: str = ""
-    
+
     def add_query(self, query: str) -> None:
         self.recent_queries.append(query)
         if len(self.recent_queries) > 10:
             self.recent_queries = self.recent_queries[-10:]
-    
+
     def add_stock(self, code: str) -> None:
         if code not in self.selected_stocks:
             self.selected_stocks.append(code)
             if len(self.selected_stocks) > 20:
                 self.selected_stocks = self.selected_stocks[-20:]
-    
-    def add_trade(self, trade: Dict[str, Any]) -> None:
+
+    def add_trade(self, trade: dict[str, Any]) -> None:
         self.executed_trades.append(trade)
         if len(self.executed_trades) > 50:
             self.executed_trades = self.executed_trades[-50:]
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "recent_queries": self.recent_queries,
             "selected_stocks": self.selected_stocks,
@@ -119,13 +118,13 @@ class AgentContext:
     user_id: str = ""
     session_id: str = ""
     market_snapshot: MarketSnapshot = field(default_factory=MarketSnapshot)
-    current_stock: Optional[StockData] = None
-    watchlist: List[StockData] = field(default_factory=list)
+    current_stock: StockData | None = None
+    watchlist: list[StockData] = field(default_factory=list)
     user_preference: UserPreference = field(default_factory=UserPreference)
     history: HistoryMemory = field(default_factory=HistoryMemory)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict[str, Any]:
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "user_id": self.user_id,
@@ -137,33 +136,33 @@ class AgentContext:
             "history": self.history.to_dict(),
             "metadata": self.metadata
         }
-    
+
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "AgentContext":
+    def from_dict(cls, data: dict[str, Any]) -> AgentContext:
         """Create from dictionary."""
         ctx = cls(
             user_id=data.get("user_id", ""),
             session_id=data.get("session_id", ""),
             metadata=data.get("metadata", {})
         )
-        
+
         if "market_snapshot" in data:
             ctx.market_snapshot = MarketSnapshot(**data["market_snapshot"])
-        
+
         if "current_stock" in data and data["current_stock"]:
             ctx.current_stock = StockData(**data["current_stock"])
-        
+
         if "watchlist" in data:
             ctx.watchlist = [StockData(**s) for s in data["watchlist"]]
-        
+
         if "user_preference" in data:
             ctx.user_preference = UserPreference(**data["user_preference"])
-        
+
         if "history" in data:
             ctx.history = HistoryMemory(**data["history"])
-        
+
         return ctx
-    
+
     def to_prompt_context(self) -> str:
         """Generate prompt-friendly context summary."""
         lines = [
@@ -171,13 +170,13 @@ class AgentContext:
             f"Market: {self.market_snapshot.market} Index: {self.market_snapshot.index:.2f}",
             f"Risk Tolerance: {self.user_preference.risk_tolerance}",
         ]
-        
+
         if self.current_stock:
             lines.append(f"Current Stock: {self.current_stock.code} {self.current_stock.name}")
-        
+
         if self.history.selected_stocks:
             lines.append(f"Recent: {', '.join(self.history.selected_stocks[-3:])}")
-        
+
         return "\n".join(lines)
 
 
@@ -185,8 +184,8 @@ class AgentContext:
 def create_agent_context(
     user_id: str,
     session_id: str,
-    market_data: Optional[Dict[str, Any]] = None,
-    user_prefs: Optional[Dict[str, Any]] = None
+    market_data: dict[str, Any] | None = None,
+    user_prefs: dict[str, Any] | None = None
 ) -> AgentContext:
     """Factory function to create AgentContext with defaults."""
     ctx = AgentContext(
@@ -194,19 +193,19 @@ def create_agent_context(
         session_id=session_id,
         history=HistoryMemory(session_start=datetime.now().isoformat())
     )
-    
+
     if market_data:
         ctx.market_snapshot = MarketSnapshot(**market_data)
-    
+
     if user_prefs:
         ctx.user_preference = UserPreference(**user_prefs)
-    
+
     return ctx
 
 
 __all__ = [
     "AgentContext",
-    "MarketSnapshot", 
+    "MarketSnapshot",
     "StockData",
     "UserPreference",
     "HistoryMemory",

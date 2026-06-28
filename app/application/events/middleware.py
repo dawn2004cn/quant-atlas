@@ -2,11 +2,10 @@ from __future__ import annotations
 """Event middleware for cross-cutting concerns."""
 
 
-from typing import Any
 from datetime import datetime
 import time
 
-from app.application.events.event_bus import Event, EventType
+from app.application.events.event_bus import Event
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -14,20 +13,20 @@ logger = get_logger(__name__)
 
 def event_logging_middleware(event: Event) -> Event | None:
     """Log all events with timing information."""
-    start_time = time.perf_counter()
-    
+    time.perf_counter()
+
     # Add timing metadata
     event.payload['_timing'] = {
         'received_at': datetime.now().isoformat(),
     }
-    
+
     logger.debug(
         "Event received: type=%s source=%s payload_keys=%s",
         event.type.value,
         event.source,
         list(event.payload.keys())
     )
-    
+
     return event
 
 
@@ -45,7 +44,7 @@ def event_metrics_middleware(event: Event) -> Event | None:
         }
     except Exception as e:
         logger.warning("middleware.py.event_metrics_middleware: %s", e)
-    
+
     return event
 
 
@@ -54,11 +53,11 @@ def event_validation_middleware(event: Event) -> Event | None:
     if not event.type:
         logger.warning("Event missing type, filtering out")
         return None
-        
+
     if not event.payload:
         logger.warning("Event %s has no payload", event.type.value)
         return None
-        
+
     return event
 
 
@@ -67,7 +66,7 @@ def event_filter_middleware(event: Event) -> Event | None:
     # Filter test events in production
     if event.source == 'test' and not __debug__:
         return None
-        
+
     return event
 
 

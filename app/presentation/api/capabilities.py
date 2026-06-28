@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Set
+from collections.abc import Callable
 
 from flask_login import current_user
 
@@ -8,7 +8,7 @@ from app.application.errors import ValidationError
 from app.domain.authorization_capabilities import Capability
 
 
-def _get_user_capabilities() -> Set[Capability]:
+def _get_user_capabilities() -> set[Capability]:
     fn = getattr(current_user, "capabilities", None)
     if callable(fn):
         return {Capability(c) for c in fn() if c in Capability._value2member_map_}

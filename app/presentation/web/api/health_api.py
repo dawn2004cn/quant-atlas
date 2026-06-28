@@ -5,7 +5,6 @@ REST endpoints for system health checks.
 """
 
 
-import logging
 from flask import Blueprint, jsonify
 from datetime import datetime
 
@@ -33,11 +32,11 @@ def domain_health_check():
         from app.application.domain_facade import get_domain_facade
         from app.application.aggregate_registry import get_aggregate_registry
         from app.domain.events.handlers import get_event_bus
-        
-        facade = get_domain_facade()
+
+        get_domain_facade()
         registry = get_aggregate_registry()
         event_bus = get_event_bus()
-        
+
         return jsonify({
             "status": "healthy",
             "domain_services": {
@@ -66,9 +65,9 @@ def event_store_health_check():
     """Event store health check."""
     try:
         from app.infrastructure.events.event_store import get_event_store
-        
+
         store = get_event_store()
-        
+
         return jsonify({
             "status": "healthy",
             "event_count": store.get_event_count(),
@@ -88,9 +87,9 @@ def cqrs_health_check():
     """CQRS health check."""
     try:
         from app.application.mediator import get_mediator
-        
+
         mediator = get_mediator()
-        
+
         return jsonify({
             "status": "healthy",
             "command_handlers": len(mediator._command_handlers),

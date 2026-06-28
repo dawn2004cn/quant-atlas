@@ -12,7 +12,7 @@ Usage:
 """
 
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -85,7 +85,7 @@ class MetaLearningEngine:
 
     async def _collect_recent_failures(self) -> list[FailureCase]:
         """Collect recent failure cases."""
-        cutoff = datetime.now() - timedelta(hours=self._evolution_interval_hours)
+        datetime.now() - timedelta(hours=self._evolution_interval_hours)
 
         rankings = self._validator.get_real_time_rankings()
 

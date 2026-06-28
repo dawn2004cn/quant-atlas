@@ -2,7 +2,10 @@ from __future__ import annotations
 """Convert domain quote entities to canonical API payloads."""
 
 from dataclasses import asdict
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from app.domain.dto.market_data_dto import QuoteDTO
 
 from app.domain.entities import StockQuote
 from app.domain.shared.symbol_normalizer import SymbolNormalizer
@@ -93,7 +96,7 @@ def canonical_panorama_dict(
     return out
 
 
-def panorama_row_to_quote_dto(raw: dict[str, Any], *, market: str) -> "QuoteDTO":
+def panorama_row_to_quote_dto(raw: dict[str, Any], *, market: str) -> QuoteDTO:
     """Build domain QuoteDTO from a provider ranking row."""
     from app.domain.dto.market_data_dto import QuoteDTO
 

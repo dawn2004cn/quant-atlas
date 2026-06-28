@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-from app.infrastructure.agent.swarm.models import SwarmAgentSpec, SwarmTask
 
 class PresetRepository:
     """Repository for managing Swarm presets in the database."""

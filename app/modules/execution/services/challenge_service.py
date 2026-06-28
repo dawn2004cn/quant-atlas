@@ -1,12 +1,9 @@
 from __future__ import annotations
-from app.domain.dto.service_result import GenericResponseDTO
 """Investment Manager Challenge & Leaderboard System."""
 
 
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
 from enum import Enum
 
 
@@ -59,7 +56,7 @@ class Participant:
     trades_count: int = 0
     win_rate: float = 0.0
     max_drawdown: float = 0.0
-    
+
     # Public profile (for sharing)
     is_public: bool = False
     avatar: str = ""
@@ -69,14 +66,14 @@ class Participant:
 class Leaderboard:
     """Leaderboard for a challenge."""
     challenge_id: str
-    participants: List[Participant] = field(default_factory=list)
+    participants: list[Participant] = field(default_factory=list)
     updated_at: datetime = field(default_factory=datetime.now)
-    
-    def get_top(self, n: int = 10) -> List[Participant]:
+
+    def get_top(self, n: int = 10) -> list[Participant]:
         """Get top N participants."""
         return sorted(self.participants, key=lambda x: x.total_return, reverse=True)[:n]
-    
-    def get_user_rank(self, user_id: str) -> Optional[int]:
+
+    def get_user_rank(self, user_id: str) -> int | None:
         """Get user's rank."""
         for p in self.participants:
             if p.user_id == user_id:
@@ -90,18 +87,18 @@ class Challenge:
     challenge_id: str
     config: ChallengeConfig
     status: ChallengeStatus = ChallengeStatus.UPCOMING
-    leaderboard: Optional[Leaderboard] = None
-    
+    leaderboard: Leaderboard | None = None
+
     created_at: datetime = field(default_factory=datetime.now)
-    winner_id: Optional[str] = None
+    winner_id: str | None = None
 
 
 class ChallengeManager:
     """Manager for investment challenges."""
 
     def __init__(self):
-        self._challenges: Dict[str, Challenge] = {}
-        self._leaderboard_cache: Dict[str, Leaderboard] = {}
+        self._challenges: dict[str, Challenge] = {}
+        self._leaderboard_cache: dict[str, Leaderboard] = {}
 
     def create_challenge(
         self,
@@ -130,7 +127,7 @@ class ChallengeManager:
 
         self._challenges[challenge.challenge_id] = challenge
         logger.info(f"Created challenge: {name}")
-        
+
         return challenge
 
     def start_challenge(self, challenge_id: str) -> bool:
@@ -141,7 +138,7 @@ class ChallengeManager:
         challenge = self._challenges[challenge_id]
         challenge.status = ChallengeStatus.ACTIVE
         challenge.leaderboard = Leaderboard(challenge_id=challenge_id)
-        
+
         return True
 
     def join_challenge(
@@ -156,7 +153,7 @@ class ChallengeManager:
             return False
 
         challenge = self._challenges[challenge_id]
-        
+
         participant = Participant(
             user_id=user_id,
             nickname=nickname,
@@ -169,7 +166,7 @@ class ChallengeManager:
             challenge.leaderboard = Leaderboard(challenge_id=challenge_id)
 
         challenge.leaderboard.participants.append(participant)
-        
+
         logger.info(f"User {user_id} joined challenge {challenge_id}")
         return True
 
@@ -221,21 +218,21 @@ class ChallengeManager:
 
         challenge.leaderboard.updated_at = datetime.now()
 
-    def get_leaderboard(self, challenge_id: str) -> Optional[Leaderboard]:
+    def get_leaderboard(self, challenge_id: str) -> Leaderboard | None:
         """Get leaderboard for a challenge."""
         return self._challenges.get(challenge_id, {}).leaderboard
 
-    def get_active_challenges(self) -> List[Challenge]:
+    def get_active_challenges(self) -> list[Challenge]:
         """Get all active challenges."""
         return [
             c for c in self._challenges.values()
             if c.status == ChallengeStatus.ACTIVE
         ]
 
-    def get_user_challenges(self, user_id: str) -> List[Dict]:
+    def get_user_challenges(self, user_id: str) -> list[dict]:
         """Get challenges a user is participating in."""
         result = []
-        
+
         for c in self._challenges.values():
             if c.leaderboard:
                 for p in c.leaderboard.participants:
@@ -253,7 +250,7 @@ class ChallengeManager:
 
 
 # Share strategy without revealing real data
-def create_shareable_strategy(profile: Participant, hide_details: bool = True) -> Dict:
+def create_shareable_strategy(profile: Participant, hide_details: bool = True) -> dict:
     """Create a shareable strategy profile (without real data)."""
     if hide_details:
         return {
@@ -265,7 +262,7 @@ def create_shareable_strategy(profile: Participant, hide_details: bool = True) -
             "style": "保守" if profile.max_drawdown < 10 else ("激进" if profile.max_drawdown > 20 else "均衡"),
             "join_date": "最近"
         }
-    
+
     return {
         "nickname": profile.nickname,
         "strategy_name": profile.strategy_name,

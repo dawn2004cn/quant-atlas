@@ -2,7 +2,6 @@ from __future__ import annotations
 """CSV file history data provider."""
 
 
-import os
 from pathlib import Path
 from typing import Any
 

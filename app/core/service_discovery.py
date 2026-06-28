@@ -8,13 +8,14 @@ This module provides:
 
 from __future__ import annotations
 
+import json
 import logging
 import threading
 import time
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -36,14 +37,14 @@ class ServiceEndpoint:
     timeout: float = 10.0
     retries: int = 3
     circuit_breaker_threshold: int = 5
-    
+
     # Runtime state
     status: ServiceStatus = ServiceStatus.UNKNOWN
     last_check: float = 0.0
     latency_ms: float = 0.0
     error_count: int = 0
     success_count: int = 0
-    
+
     @property
     def success_rate(self) -> float:
         total = self.success_count + self.error_count
@@ -62,49 +63,49 @@ class ServiceCallResult:
 
 class ServiceRegistry:
     """Central registry for microservice endpoints.
-    
+
     Provides service discovery, health checking, and load balancing
     for inter-service communication.
     """
-    
+
     def __init__(self):
         self._services: dict[str, ServiceEndpoint] = {}
         self._lock = threading.Lock()
         self._health_check_interval: float = 30.0
         self._last_health_check: dict[str, float] = {}
-    
+
     def register(self, endpoint: ServiceEndpoint) -> None:
         """Register a service endpoint."""
         with self._lock:
             self._services[endpoint.name] = endpoint
             logger.info("Registered service: %s at %s", endpoint.name, endpoint.url)
-    
+
     def register_simple(self, name: str, url: str, **kwargs) -> None:
         """Register a service with minimal configuration."""
         endpoint = ServiceEndpoint(name=name, url=url, **kwargs)
         self.register(endpoint)
-    
+
     def get(self, name: str) -> ServiceEndpoint | None:
         """Get service endpoint by name."""
         with self._lock:
             return self._services.get(name)
-    
+
     def get_url(self, name: str) -> str | None:
         """Get service URL by name."""
         endpoint = self.get(name)
         return endpoint.url if endpoint else None
-    
+
     def list_services(self) -> list[str]:
         """List all registered service names."""
         with self._lock:
             return list(self._services.keys())
-    
+
     def check_health(self, name: str) -> ServiceStatus:
         """Perform health check on a service."""
         endpoint = self.get(name)
         if not endpoint:
             return ServiceStatus.UNKNOWN
-        
+
         try:
             health_url = endpoint.url.rstrip("/") + endpoint.health_path
             req = urllib.request.Request(health_url, method="GET")
@@ -127,16 +128,16 @@ class ServiceRegistry:
                 if endpoint.error_count >= endpoint.circuit_breaker_threshold:
                     endpoint.status = ServiceStatus.DOWN
                 self._last_health_check[name] = time.time()
-        
+
         return endpoint.status
-    
+
     def check_all_health(self) -> dict[str, ServiceStatus]:
         """Check health of all registered services."""
         results = {}
         for name in self.list_services():
             results[name] = self.check_health(name)
         return results
-    
+
     def should_check_health(self, name: str) -> bool:
         """Check if health check is due."""
         with self._lock:
@@ -146,34 +147,34 @@ class ServiceRegistry:
 
 class ServiceClient:
     """HTTP client for inter-service communication.
-    
+
     Provides typed methods for calling common service patterns:
     - GET/POST/PUT/DELETE with JSON serialization
     - Automatic retries with exponential backoff
     - Circuit breaker integration
     - Request/response logging
     """
-    
+
     def __init__(self, registry: ServiceRegistry, service_name: str):
         self.registry = registry
         self.service_name = service_name
         self.endpoint = registry.get(service_name)
         if not self.endpoint:
             raise ValueError(f"Service not registered: {service_name}")
-    
+
     def _get_url(self, path: str) -> str:
         """Build full URL for service call."""
         base = self.endpoint.url.rstrip("/")
         path = path.lstrip("/")
         return f"{base}/{path}"
-    
-    def call(self, method: str, path: str, 
+
+    def call(self, method: str, path: str,
              headers: dict | None = None,
              body: Any = None,
              params: dict | None = None,
              timeout: float | None = None) -> ServiceCallResult:
         """Make HTTP call to service.
-        
+
         Args:
             method: HTTP method (GET, POST, PUT, DELETE)
             path: Request path (e.g., "/api/v1/market/quotes")
@@ -181,16 +182,16 @@ class ServiceClient:
             body: Optional request body (dict auto-serialized to JSON)
             params: Optional query parameters
             timeout: Override default timeout
-            
+
         Returns:
             ServiceCallResult with response data or error
         """
         url = self._get_url(path)
         if params:
             url += "?" + urllib.parse.urlencode(params)
-        
+
         timeout = timeout or self.endpoint.timeout
-        
+
         # Prepare request body
         data = None
         if body is not None:
@@ -198,19 +199,19 @@ class ServiceClient:
                 data = json.dumps(body).encode("utf-8")
             elif isinstance(body, str):
                 data = body.encode("utf-8")
-        
+
         # Prepare headers
         req_headers = {"Content-Type": "application/json"}
         if headers:
             req_headers.update(headers)
-        
+
         req = urllib.request.Request(
             url=url,
             data=data,
             headers=req_headers,
             method=method.upper(),
         )
-        
+
         for attempt in range(self.endpoint.retries):
             try:
                 start = time.time()
@@ -218,75 +219,75 @@ class ServiceClient:
                     latency = (time.time() - start) * 1000
                     resp_body = resp.read().decode("utf-8")
                     content_type = resp.headers.get("Content-Type", "")
-                    
+
                     parsed_data = None
                     if "application/json" in content_type:
                         parsed_data = json.loads(resp_body)
                     else:
                         parsed_data = resp_body
-                    
+
                     # Update success metrics
                     with self.registry._lock:
                         self.endpoint.success_count += 1
                         self.endpoint.latency_ms = latency
                         if self.endpoint.status == ServiceStatus.UNKNOWN:
                             self.endpoint.status = ServiceStatus.HEALTHY
-                    
+
                     return ServiceCallResult(
                         success=True,
                         status_code=resp.status,
                         data=parsed_data,
                         latency_ms=latency,
                     )
-                    
+
             except urllib.error.HTTPError as exc:
                 error_body = exc.read().decode("utf-8") if exc.fp else ""
                 logger.error("HTTP error from %s: %s %s", url, exc.code, error_body)
-                
+
                 with self.registry._lock:
                     self.endpoint.error_count += 1
                     if self.endpoint.error_count >= self.endpoint.circuit_breaker_threshold:
                         self.endpoint.status = ServiceStatus.DOWN
-                
+
                 if exc.code >= 500 and attempt < self.endpoint.retries - 1:
                     continue  # Retry on server errors
-                
+
                 return ServiceCallResult(
                     success=False,
                     status_code=exc.code,
                     error=f"{exc.code} {error_body}",
                 )
-                
+
             except urllib.error.URLError as exc:
                 logger.error("Connection error to %s: %s", url, exc.reason)
-                
+
                 with self.registry._lock:
                     self.endpoint.error_count += 1
-                
+
                 if attempt < self.endpoint.retries - 1:
                     continue  # Retry on connection errors
-                
+
                 return ServiceCallResult(
                     success=False,
                     error=f"Connection error: {exc.reason}",
                 )
-        
+
         return ServiceCallResult(success=False, error="Max retries exceeded")
-    
+
     def get(self, path: str, params: dict | None = None) -> ServiceCallResult:
         """GET request."""
         return self.call("GET", path, params=params)
-    
-    def post(self, path: str, body: dict | None = None, 
+
+    def post(self, path: str, body: dict | None = None,
              headers: dict | None = None) -> ServiceCallResult:
         """POST request with JSON body."""
         return self.call("POST", path, headers=headers, body=body)
-    
+
     def put(self, path: str, body: dict | None = None,
             headers: dict | None = None) -> ServiceCallResult:
         """PUT request with JSON body."""
         return self.call("PUT", path, headers=headers, body=body)
-    
+
     def delete(self, path: str) -> ServiceCallResult:
         """DELETE request."""
         return self.call("DELETE", path)

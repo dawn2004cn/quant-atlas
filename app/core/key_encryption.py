@@ -16,8 +16,6 @@ from __future__ import annotations
 
 import base64
 import os
-import struct
-from typing import Optional
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -37,11 +35,11 @@ def _encryption_salt() -> bytes:
 class KeyEncryptionService:
     """Fernet symmetric encryption for sensitive stored credentials."""
 
-    def __init__(self, secret_key: Optional[str] = None):
+    def __init__(self, secret_key: str | None = None):
         self._fernet = self._build_fernet(secret_key)
 
     @staticmethod
-    def _build_fernet(secret_key: Optional[str]) -> Fernet:
+    def _build_fernet(secret_key: str | None) -> Fernet:
         """Derive a Fernet key from an env var or a direct secret_key."""
         raw = (
             os.environ.get("KEY_ENCRYPTION_KEY")
@@ -91,7 +89,7 @@ class KeyEncryptionService:
 
 
 # Module-level singleton for convenience.
-_key_service: Optional[KeyEncryptionService] = None
+_key_service: KeyEncryptionService | None = None
 
 
 def _get_key_service() -> KeyEncryptionService:

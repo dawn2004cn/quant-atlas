@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import logging
 
 from ...core.logger import get_logger
 from .artifact_registry import RDAgentArtifactRegistry

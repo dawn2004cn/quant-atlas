@@ -6,10 +6,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum, auto
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from uuid import uuid4
 
-from app.core.event_bus import get_event_bus
 from app.core.logger import get_logger
 from app.core.mesh.global_state_bus import get_global_state_bus
 
@@ -62,11 +62,11 @@ class AgentAppInstance:
 
 class AgentAppRegistry:
     """Central registry for all available Agent-Apps and user instances."""
-    
+
     _apps: dict[str, AgentAppManifest] = {}
     _instances: dict[str, AgentAppInstance] = {}
     _handlers: dict[str, Callable] = {}
-    
+
     @classmethod
     def register_app(cls, manifest: AgentAppManifest, handler: Callable | None = None):
         """Register a new Agent-App type."""
@@ -74,14 +74,14 @@ class AgentAppRegistry:
         if handler:
             cls._handlers[manifest.app_id] = handler
         logger.info("Agent-App registered: %s v%s (%s)", manifest.name, manifest.version, manifest.privilege.name)
-    
+
     @classmethod
     def install(cls, app_id: str, user_id: int, config: dict | None = None) -> AgentAppInstance:
         """Install an Agent-App for a user."""
         manifest = cls._apps.get(app_id)
         if not manifest:
             raise ValueError(f"Unknown Agent-App: {app_id}")
-        
+
         config = config or {}
         config_schema = manifest.config_schema or {}
         merged = {}
@@ -98,7 +98,7 @@ class AgentAppRegistry:
             memory_quota_mb=256 if manifest.privilege == PrivilegeLevel.KERNEL else 64,
         )
         cls._instances[instance.instance_id] = instance
-        
+
         # Register kernel-level apps to GlobalStateBus with high priority
         if manifest.privilege == PrivilegeLevel.KERNEL:
             bus = get_global_state_bus()
@@ -108,11 +108,11 @@ class AgentAppRegistry:
                 "priority": 100,
                 "status": instance.status.name,
             })
-        
+
         logger.info("User %d installed Agent-App %s (instance=%s, privilege=%s)",
                    user_id, manifest.name, instance.instance_id, manifest.privilege.name)
         return instance
-    
+
     @classmethod
     def uninstall(cls, instance_id: str) -> bool:
         instance = cls._instances.pop(instance_id, None)
@@ -120,15 +120,15 @@ class AgentAppRegistry:
             logger.info("Uninstalled Agent-App instance %s", instance_id)
             return True
         return False
-    
+
     @classmethod
     def get_installed(cls, user_id: int) -> list[AgentAppInstance]:
         return [i for i in cls._instances.values() if i.user_id == user_id]
-    
+
     @classmethod
     def get_available(cls) -> list[AgentAppManifest]:
         return list(cls._apps.values())
-    
+
     @classmethod
     def invoke(cls, instance_id: str, action: str, payload: dict) -> dict:
         instance = cls._instances.get(instance_id)
@@ -149,7 +149,7 @@ class AgentAppRegistry:
 
 def _register_builtin_apps():
     """Register default system Agent-Apps."""
-    
+
     # Da Ban Radar (打板雷达) — KERNEL privilege
     AgentAppRegistry.register_app(AgentAppManifest(
         app_id="da_ban_radar",
@@ -164,7 +164,7 @@ def _register_builtin_apps():
             "min_limit_up_pct": {"type": "float", "default": 9.5, "description": "最小涨停幅度%"},
         },
     ))
-    
+
     # Grid Trading Bot (网格交易)
     AgentAppRegistry.register_app(AgentAppManifest(
         app_id="grid_trading",
@@ -179,7 +179,7 @@ def _register_builtin_apps():
             "spread_pct": {"type": "float", "default": 1.5, "description": "格差%"},
         },
     ))
-    
+
     # Wave Band Radar (波段雷达)
     AgentAppRegistry.register_app(AgentAppManifest(
         app_id="wave_band_radar",
@@ -194,7 +194,7 @@ def _register_builtin_apps():
             "lookback_days": {"type": "int", "default": 60},
         },
     ))
-    
+
     # AI Sentiment Reader (AI 情绪解读)
     AgentAppRegistry.register_app(AgentAppManifest(
         app_id="ai_sentiment",
@@ -208,7 +208,7 @@ def _register_builtin_apps():
             "sources": {"type": "list", "default": ["news", "announcement"]},
         },
     ))
-    
+
     # Longhu Bang Tracker (龙虎榜追踪)
     AgentAppRegistry.register_app(AgentAppManifest(
         app_id="longhu_tracker",
@@ -219,7 +219,7 @@ def _register_builtin_apps():
         icon="target",
         tags=["longhu", "capital", "institution"],
     ))
-    
+
     logger.info("Built-in Agent-Apps registered: %d", len(AgentAppRegistry._apps))
 
 

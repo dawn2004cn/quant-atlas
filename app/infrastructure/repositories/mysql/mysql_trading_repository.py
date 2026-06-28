@@ -2,7 +2,6 @@ from __future__ import annotations
 """SQLAlchemy implementation of TradeRepository."""
 
 
-from typing import Any
 from sqlalchemy import select
 
 from app.domain.ports import TradeRepository

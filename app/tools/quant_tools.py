@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from typing import Any, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
-from langchain_core.tools import BaseTool, tool
+from langchain_core.tools import tool
 
 from app.modules.market_data.services.watchlist_service import WatchlistApplicationService
 from ..core.logger import get_logger

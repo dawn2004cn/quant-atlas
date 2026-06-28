@@ -1,7 +1,6 @@
 from __future__ import annotations
 """Async HTTP client wrapper with connection pooling."""
 
-import logging
 from typing import Any
 
 import httpx
@@ -19,7 +18,7 @@ class AsyncHttpClient:
     removed; ``httpx`` is now a core dependency.
     """
 
-    _instance: "AsyncHttpClient | None" = None
+    _instance: AsyncHttpClient | None = None
     _client: httpx.AsyncClient | None = None
 
     def __new__(cls):

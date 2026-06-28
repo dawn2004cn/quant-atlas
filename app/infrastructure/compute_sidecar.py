@@ -7,14 +7,12 @@ process or sidecar container.
 from __future__ import annotations
 
 import json
-import os
-import struct
 import sys
 import time
 import uuid
 from dataclasses import dataclass, field, asdict
-from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.core.logger import get_logger
 

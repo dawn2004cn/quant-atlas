@@ -2,9 +2,7 @@ from __future__ import annotations
 """OpenBB implementation of MarketDataProvider."""
 
 
-import logging
 import os
-from datetime import datetime
 from typing import Any
 
 from openbb import obb
@@ -46,9 +44,9 @@ class OpenBBDataProvider(MarketDataProvider):
     ) -> list[StockQuote]:
         if not symbols:
             return []
-        
+
         providers = self._get_provider_chain(market)
-        
+
         for provider in providers:
             try:
                 quotes = self._fetch_quotes_internal(symbols, market, provider)
@@ -58,9 +56,9 @@ class OpenBBDataProvider(MarketDataProvider):
                 continue
             if quotes:
                 return quotes
-        
+
         return []
-    
+
     @circuit_breaker("openbb_quotes", failure_threshold=3, timeout=60)
     def _fetch_quotes_internal(
         self,
@@ -71,7 +69,7 @@ class OpenBBDataProvider(MarketDataProvider):
         """Internal fetch with specific provider."""
         normalized = [self._normalize_symbol(s, market) for s in symbols]
         sym_str = ",".join(normalized)
-        
+
         quotes = []
         try:
             res = obb.equity.price.quote(symbol=sym_str, provider=provider)
@@ -91,9 +89,9 @@ class OpenBBDataProvider(MarketDataProvider):
                         quotes.append(self._map_to_quote(data))
                     except Exception as e:
                         logger.warning("openbb_adapter.py._fetch_quotes_internal: %s", e)
-        
+
         return quotes
-    
+
     def get_stock_profile(self, symbol: str, market: MarketCode) -> dict[str, Any]:
         try:
             return self._fetch_profile_internal(symbol, market)
@@ -121,7 +119,7 @@ class OpenBBDataProvider(MarketDataProvider):
         end: str,
     ) -> list[dict[str, Any]]:
         providers = self._get_provider_chain(market)
-        
+
         for provider in providers:
             try:
                 result = self._fetch_history_internal(symbol, market, start, end, provider)
@@ -131,7 +129,7 @@ class OpenBBDataProvider(MarketDataProvider):
                 continue
             if result:
                 return result
-        
+
         return []
 
     @circuit_breaker("openbb_history", failure_threshold=3, timeout=60)
@@ -231,7 +229,7 @@ class OpenBBDataProvider(MarketDataProvider):
     def _get_provider_chain(self, market: MarketCode) -> list[str]:
         """Get provider chain for fallback. FMP preferred if API key available, then yfinance."""
         fmp_key = os.getenv("FMP_API_KEY", "").strip()
-        
+
         chain = []
         if fmp_key:
             chain.append("fmp")

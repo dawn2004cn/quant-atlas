@@ -55,9 +55,9 @@ def validate_rd_factor_submission(body: dict[str, Any], *, base_dir: Path | None
             reason=f"RD-Agent provider_uri 不是目录: {path}"
         )
 
-    enable_qlib = get_runtime_bool("ENABLE_QLIB", False)
+    get_runtime_bool("ENABLE_QLIB", False)
     bin_ready = _qlib_bin_ready_at(path)
-    csv_count = _csv_count_qlib_export(root)
+    _csv_count_qlib_export(root)
     is_default_uri = path == default_bin
 
     if is_default_uri and not bin_ready:

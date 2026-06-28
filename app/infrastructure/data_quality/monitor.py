@@ -2,12 +2,8 @@ from __future__ import annotations
 """Data quality monitoring infrastructure."""
 
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from typing import Any
 
-import numpy as np
 
 from ...domain.ports.data_quality_ports import (
     DataQualityAlert,

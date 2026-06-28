@@ -151,7 +151,7 @@ def register_blueprints(app: Flask, settings: Any = None, api_bundle: Any = None
             enable_dto_validation=True,
             signal_flag_service=getattr(_svc, "signal_flag_service", None),
             investment_manager_service=getattr(_svc, "investment_manager_service", None),
-        
+
             integration_stack_service=getattr(_svc, "integration_stack_service", None),
             fingpt_application_service=getattr(_svc, "fingpt_application_service", None),
             portfolio_service=getattr(_svc, "portfolio_service", None),
@@ -180,7 +180,7 @@ def register_blueprints(app: Flask, settings: Any = None, api_bundle: Any = None
     try:
         from app.infrastructure.gateway.dual_write_middleware import init_dual_write
         dual_write = init_dual_write()
-        
+
         # Register microservices by URL for real HTTP reverse calls
         service_urls = {
             "market_data": "http://localhost:5101",
@@ -192,13 +192,13 @@ def register_blueprints(app: Flask, settings: Any = None, api_bundle: Any = None
             "data": "http://localhost:5701",
             "research": "http://localhost:5801",
         }
-        
+
         for name, url in service_urls.items():
             try:
                 dual_write.register_service(name, url, traffic_split=0.0)
             except Exception as exc:
                 logger.debug("Dual-write service %s not registered: %s", name, exc)
-        
+
         app.extensions["dual_write"] = dual_write
         logger.info("Dual-write proxy initialized with %d services", len(service_urls))
     except Exception as exc:

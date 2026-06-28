@@ -4,7 +4,6 @@
 核心链路：K线 → 分型 → 笔 → 中枢 → 买卖点。
 """
 
-from typing import Optional, Dict
 from datetime import datetime
 
 import pandas as pd
@@ -66,7 +65,7 @@ def _get_signals(c: CZSC) -> dict:
     return s
 
 
-def _check_zhongshu(bi_list: list) -> Optional[ZS]:
+def _check_zhongshu(bi_list: list) -> ZS | None:
     """检测最近的有效中枢。
 
     Args:
@@ -101,7 +100,7 @@ class SignalEngine:
         """
         self.freq = freq
 
-    def generate(self, data_map: Dict[str, pd.DataFrame]) -> Dict[str, pd.Series]:
+    def generate(self, data_map: dict[str, pd.DataFrame]) -> dict[str, pd.Series]:
         """根据缠论形态生成交易信号。
 
         Args:

@@ -34,7 +34,7 @@ def tdx_dayk_full_sync(
     """[别名] 全量 TDX 日 K；推荐 ``data_backfill_tasks.backfill_all_history_tdx``。
 
     从通达信目录扫描所有股票，导入 MySQL、CSV 和 Qlib。
-    
+
     - `limit`: 限制处理的股票数量（用于测试）
     - `dump_qlib_bin`: 是否同步到Qlib二进制文件
     - `dump_max_workers`: Qlib同步的最大并发数
@@ -68,10 +68,10 @@ def tdx_dayk_daily_sync(
     dump_max_workers: int = 8,
 ) -> dict[str, Any]:
     """TDX 日K线当日同步（已改用增量同步）：从MySQL最新日期开始同步通达信新增数据。
-    
+
     注意：此任务已改为使用增量同步实现，确保数据完整性，不会漏数据。
     原每日同步仅同步单日期数据，可能因文件读取问题漏数据。
-    
+
     - `trade_date`: 保留参数（向后兼容），实际使用时会忽略
     - `limit`: 限制处理的股票数量（用于测试）
     - `dump_qlib_bin`: 是否同步到Qlib二进制文件
@@ -108,7 +108,7 @@ def tdx_dayk_incremental_sync(
     """[别名] 增量 TDX 日 K；推荐 ``data_backfill_tasks.sync_incremental_tdx``。
 
     从 MySQL 最新日期（或指定起始日期）同步通达信新增数据。
-    
+
     - `start_date`: 指定起始日期（如 "2026-04-24"），None则从MySQL最新日期开始
     - `dump_qlib_bin`: 是否同步到Qlib二进制文件
     - `dump_max_workers`: Qlib同步的最大并发数

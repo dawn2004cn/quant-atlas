@@ -2,7 +2,6 @@ from __future__ import annotations
 """Decision Replay Space — 2.5D/3D scene from behavior topology + evidence timeline (8.0 P2)."""
 
 import math
-from datetime import datetime, timezone
 from typing import Any
 
 from app.core.logger import get_logger

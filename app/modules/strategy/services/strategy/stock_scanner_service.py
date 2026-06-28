@@ -4,10 +4,9 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 
 from typing import Any
-from datetime import datetime
 
 from app.core.logger import get_logger
-from app.domain.models.signal_models import SignalGenerator, SignalType
+from app.domain.models.signal_models import SignalGenerator
 from app.domain.models.risk_models import RiskCalculator
 from app.application.dto.complete_dto import ScanResultDTO, SignalDTO
 from app.application.events import EventType, publish_event

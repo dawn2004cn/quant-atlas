@@ -8,16 +8,16 @@ import logging
 import math
 import threading
 import time
-from collections import defaultdict
 from datetime import datetime, timezone
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
 
 class PerceptionVector:
     """A semantic signal in the shared embedding space.
-    
+
     Each perception vector represents a distilled insight from a node
     (e.g., "600519 showing head-and-shoulders pattern", "USD/CNY breaking resistance").
     Other nodes can subscribe to related vectors and receive resonance triggers.
@@ -84,7 +84,7 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
 
 def text_to_embedding(text: str, *, dimensions: int = 64) -> list[float]:
     """Simple deterministic text-to-embedding hash (no LLM dependency).
-    
+
     For production, replace with a real embedding model. This provides
     a stable, reproducible embedding for semantic matching.
     """
@@ -122,12 +122,12 @@ class ResonanceSubscription:
 
 class CollectivePerceptionLayer:
     """Shared embedding space for cross-node async prediction (Neural Resonance).
-    
+
     Nodes publish perception vectors (distilled insights) and subscribe to
     regions of the embedding space. When a new vector is published, all
     subscriptions with sufficient cosine similarity are triggered, enabling
     millisecond-level cross-domain intelligence propagation.
-    
+
     Example flow:
     1. Tokyo node detects "JPY breaking support" → publishes perception vector
     2. London node has subscription for "currency risk" (similarity > 0.7)
@@ -174,13 +174,13 @@ class CollectivePerceptionLayer:
         ttl_seconds: int = 300,
     ) -> PerceptionVector:
         """Publish a perception vector to the shared embedding space.
-        
+
         Args:
             text: Text description (auto-embedded if no embedding provided)
             embedding: Pre-computed embedding vector
             metadata: Additional context (symbol, signal_type, etc.)
             ttl_seconds: Time-to-live for the vector
-            
+
         Returns:
             The published PerceptionVector
         """
@@ -227,14 +227,14 @@ class CollectivePerceptionLayer:
         label: str = "",
     ) -> ResonanceSubscription:
         """Subscribe to a region of the embedding space.
-        
+
         Args:
             text: Text description of what to watch for
             embedding: Pre-computed embedding for the subscription
             threshold: Minimum cosine similarity to trigger (0.0-1.0)
             callback: Function called when resonance detected (vector, similarity)
             label: Human-readable label for the subscription
-            
+
         Returns:
             The created ResonanceSubscription
         """
@@ -275,13 +275,13 @@ class CollectivePerceptionLayer:
         min_similarity: float = 0.5,
     ) -> list[dict[str, Any]]:
         """Query the embedding space for similar perception vectors.
-        
+
         Args:
             text: Query text
             embedding: Pre-computed query embedding
             top_k: Maximum results to return
             min_similarity: Minimum cosine similarity threshold
-            
+
         Returns:
             List of matching vectors with similarity scores
         """

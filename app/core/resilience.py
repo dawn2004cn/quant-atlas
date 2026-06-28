@@ -43,7 +43,7 @@ class CircuitBreakerRegistry:
         self._delegate = _Registry()
 
     def get_breaker(self, name: str, config: CircuitBreakerConfig | None = None) -> CircuitBreaker:
-        inner = self._delegate.get(name)
+        self._delegate.get(name)
         return CircuitBreaker(name)
 
 
@@ -95,7 +95,6 @@ def _register_openbb_probe(registry) -> None:
     if cb is not None:
 
         def _probe() -> None:
-            import os
             try:
                 from openbb import obb
             except ImportError:

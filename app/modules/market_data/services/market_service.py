@@ -12,10 +12,11 @@ from app.modules.system.services.helpers.quote_cache_wiring import get_quote_cac
 from app.domain.enums import MarketCode
 from app.core.base_service import BaseApplicationService
 from app.modules.system.services.async_mixin import AsyncServiceMixin
-from app.domain.dto.market_data_dto import PanoramaDTO, QuoteDTO
+from app.domain.dto.market_data_dto import PanoramaDTO
 from app.domain.dto.quote_factory import canonical_quote_payload, panorama_row_to_quote_dto
 from app.domain.ports.stock_cache_port import StockCachePort
 from app.domain.ports.cache_port import CachePort
+from app.application.dto import MarketQuoteDTO
 logger = get_logger(__name__)
 
 # A-share full-market snapshot should contain thousands of symbols; partial cache must refresh.
@@ -199,31 +200,31 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
         if cache is None:
             self.logger.warning("list_quotes: stock_cache not configured")
             return []
-        
+
         try:
             self.logger.info(f"list_quotes: market={market}, symbols_count={len(symbols) if symbols else 0}")
-            
+
             if market == MarketCode.CN:
                 return self._list_cn_quotes(market, symbols, cache)
-            
+
             if not symbols:
                 stocks = cache.get_all_stocks(max_age_minutes=10080)
                 self.logger.info(f"Cache returned {len(stocks)} stocks")
                 deduped = self._dedup_stocks(stocks)
                 return [self._serialize_stock(s) for s in deduped]
-            
+
             all_stocks = []
             chunk_size = 500
             for i in range(0, len(symbols), chunk_size):
                 chunk = symbols[i:i + chunk_size]
                 all_stocks.extend(cache.get_stocks_by_codes(chunk))
-            
+
             self.logger.info(f"Loaded {len(all_stocks)} stocks for {len(symbols)} requested symbols")
-            
+
             if not all_stocks and symbols:
                 quotes_dict = self.get_quotes(self._normalize_cn_symbols(symbols[:100]))
                 return [self._serialize_stock(v) for v in quotes_dict.values()]
-            
+
             deduped = self._dedup_stocks(all_stocks)
             return [self._serialize_stock(s) for s in deduped]
         except Exception as e:
@@ -477,7 +478,6 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
 
     def get_quotes_dto(self, codes: list[str]) -> list[MarketQuoteDTO]:
         """Get quotes as DTOs."""
-        from app.application.dto import MarketQuoteDTO
         quotes = self.get_quotes(codes)
         return [
             MarketQuoteDTO(

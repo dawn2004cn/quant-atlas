@@ -3,7 +3,6 @@
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any
 
 from app.domain.ports import KronosRepository
 from app.domain.kronos_entities import KronosModel, KronosPrediction

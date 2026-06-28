@@ -3,8 +3,8 @@ from __future__ import annotations
 
 
 import asyncio
-import logging
-from typing import Any, Callable, TypeVar, Optional
+from typing import Any, TypeVar
+from collections.abc import Callable
 from functools import wraps
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -76,7 +76,7 @@ class CircuitBreaker:
             result = await func(*args, **kwargs) if asyncio.iscoroutinefunction(func) else func(*args, **kwargs)
             self.record_success()
             return result
-        except self.expected_exception as e:
+        except self.expected_exception:
             self.record_failure()
             raise
 

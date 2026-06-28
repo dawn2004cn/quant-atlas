@@ -2,7 +2,7 @@ from __future__ import annotations
 
 """Port registry for dependency inversion - centralizes infrastructure access."""
 
-from typing import Any, Callable, Protocol
+from typing import Any, Protocol
 
 from app.core.logger import get_logger
 

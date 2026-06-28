@@ -3,8 +3,6 @@ from app.domain.dto.service_result import GenericResponseDTO
 """TradingAgents 聊天专用：通过 CapabilityRegistry 动态发现工具。"""
 
 
-import asyncio
-import logging
 from typing import Any
 
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
@@ -14,8 +12,6 @@ from app.core.capability_bridge import get_agent_capabilities
 from core.llm_config import get_llm_for_user
 from app.core.logger import get_logger
 
-from .fingpt_application_service import FinGPTApplicationService
-from .ai_research_service import build_ai_research_response
 
 logger = get_logger(__name__)
 

@@ -2,8 +2,8 @@ from __future__ import annotations
 """Event Bus for decoupled service communication."""
 
 
-import logging
-from typing import Any, Callable, Dict, List
+from typing import Any
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -70,7 +70,7 @@ class Event:
 
 class EventBus:
     """Simple in-memory event bus for service decoupling.
-    
+
     Usage:
         # In service that publishes events
         event_bus = get_event_bus()
@@ -79,7 +79,7 @@ class EventBus:
             payload={"market": "CN", "records": 100},
             source="TdxSyncService"
         ))
-        
+
         # In service that subscribes to events
         @event_bus.subscribe(EventType.DATA_SYNCED)
         def handle_data_sync(event: Event):
@@ -92,9 +92,9 @@ class EventBus:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance._handlers: Dict[EventType, List[Callable]] = defaultdict(list)
-            cls._instance._middleware: List[Callable] = []
-            cls._instance._history: List[Event] = []
+            cls._instance._handlers: dict[EventType, list[Callable]] = defaultdict(list)
+            cls._instance._middleware: list[Callable] = []
+            cls._instance._history: list[Event] = []
             cls._instance._max_history = 100
         return cls._instance
 
@@ -152,7 +152,7 @@ class EventBus:
         """Add middleware to process events before handlers."""
         self._middleware.append(middleware)
 
-    def get_history(self, event_type: EventType | None = None, limit: int = 20) -> List[Event]:
+    def get_history(self, event_type: EventType | None = None, limit: int = 20) -> list[Event]:
         """Get event history."""
         if event_type:
             return [e for e in self._history if e.type == event_type][-limit:]

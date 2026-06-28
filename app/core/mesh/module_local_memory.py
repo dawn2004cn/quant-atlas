@@ -132,7 +132,7 @@ class ModuleLocalMemory:
         entries: list[ModuleMemoryEntry] = []
         if self._store_path.exists():
             with self._lock:
-                with open(self._store_path, "r", encoding="utf-8") as fh:
+                with open(self._store_path, encoding="utf-8") as fh:
                     for line in fh:
                         line = line.strip()
                         if line:

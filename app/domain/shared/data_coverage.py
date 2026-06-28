@@ -2,7 +2,7 @@ from __future__ import annotations
 """Assess K-line session coverage for analysis confidence."""
 
 from datetime import date, timedelta
-from typing import Callable
+from collections.abc import Callable
 
 TradingDayFn = Callable[[str], bool]
 

@@ -4,7 +4,7 @@
 满足全部条件的股票等权做多。仅限 tushare 数据源（需 extra_fields）。
 """
 
-from typing import Dict, List
+
 
 import numpy as np
 import pandas as pd
@@ -46,7 +46,7 @@ class SignalEngine:
         self.pb_max = pb_max
         self.roe_min = roe_min
 
-    def generate(self, data_map: Dict[str, pd.DataFrame]) -> Dict[str, pd.Series]:
+    def generate(self, data_map: dict[str, pd.DataFrame]) -> dict[str, pd.Series]:
         """基于基本面条件过滤，对满足条件的股票等权做多。
 
         Args:
@@ -65,10 +65,10 @@ class SignalEngine:
         date_index = pd.DatetimeIndex(all_dates)
 
         # 逐日判断每只股票是否满足条件
-        signals: Dict[str, pd.Series] = {code: pd.Series(0.0, index=date_index) for code in codes}
+        signals: dict[str, pd.Series] = {code: pd.Series(0.0, index=date_index) for code in codes}
 
         for dt in date_index:
-            qualified: List[str] = []
+            qualified: list[str] = []
             for code, df in data_map.items():
                 if dt not in df.index:
                     continue

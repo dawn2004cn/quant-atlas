@@ -7,7 +7,6 @@ to the new DTO + async + domain model patterns.
 """
 
 
-import asyncio
 from typing import Any
 
 from app.core.logger import get_logger
@@ -15,13 +14,11 @@ from app.domain.enums import MarketCode
 from app.application.dto.complete_dto import (
     QuoteBatchDTO,
     MarketOverviewDTO,
-    MarketSentimentDTO,
     StockAnalysisResultDTO,
     SignalDTO,
-    APIResponse,
 )
 from app.domain.dto import QuoteDTO
-from app.domain.models import RiskCalculator, RiskMetrics, SignalGenerator
+from app.domain.models import RiskMetrics, SignalGenerator
 from app.domain.services import RiskDomainService, SignalDomainService, MarketDomainService
 from app.modules.system.services.helpers.async_market_access import wrap_market_provider_for_async
 
@@ -189,7 +186,6 @@ class EnhancedMarketService:
     def get_quote_dict(self, code: str) -> GenericResponseDTO[str, object]:
         """Legacy sync method returning dict (for backwards compatibility)."""
         try:
-            import requests
             # Simplified - in production would use actual provider
             return {'code': code, 'price': 0, 'name': ''}
         except Exception:

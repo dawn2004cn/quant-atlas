@@ -7,13 +7,14 @@ and related helpers.
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
 # ── module registries ───────────────────────────────────────────────────
 
-_module_registry: dict[str, "ContextModule"] = {}
+_module_registry: dict[str, ContextModule] = {}
 
 
 @dataclass

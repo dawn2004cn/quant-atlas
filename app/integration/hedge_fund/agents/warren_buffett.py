@@ -9,10 +9,9 @@ Implements Buffett's value investing philosophy:
 """
 
 
-import json
 from typing import Any
 
-from .base import AgentSignal, AgentAnalysisContext, AgentConfig, BaseHedgeFundAgent, SignalType
+from .base import AgentSignal, AgentAnalysisContext, AgentConfig, BaseHedgeFundAgent
 from ..adapters import get_llm
 
 

@@ -7,7 +7,6 @@ Kept for backward compatibility; consumers should migrate to
 """
 
 
-import logging
 
 from ..celery_app import celery_app
 from app.core.logger import get_logger

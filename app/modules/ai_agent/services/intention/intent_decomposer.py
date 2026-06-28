@@ -1,16 +1,13 @@
 """IntentDecomposer — fuzzy intent → ordered ExecutionPlan."""
 from __future__ import annotations
 
-import logging
 import uuid
-from datetime import datetime
 from typing import Any
 
 from app.core.logger import get_logger
 from app.domain.intent_decomposer import (
     ExecutionPlan,
     ExecutionStep,
-    StepStatus,
     StepType,
 )
 

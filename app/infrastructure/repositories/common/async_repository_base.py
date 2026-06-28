@@ -8,7 +8,8 @@ with common CRUD operations, pagination, and transaction support.
 """
 
 
-from typing import Any, Generic, TypeVar, Optional, Sequence
+from typing import Any, Generic, TypeVar
+from collections.abc import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.sql import Select
@@ -136,7 +137,7 @@ class AsyncUnitOfWork:
         self._session_factory = session_factory
         self._session: AsyncSession | None = None
 
-    async def __aenter__(self) -> "AsyncUnitOfWork":
+    async def __aenter__(self) -> AsyncUnitOfWork:
         self._session = self._session_factory()
         return self
 

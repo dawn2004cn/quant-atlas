@@ -3,15 +3,10 @@ from __future__ import annotations
 
 
 import json
-import re
-import secrets
 import sqlite3
 from pathlib import Path
 
 from ....core.password_hash import hash_password
-from ....domain.entities import UserAccount
-from ....domain.ports import StockGroupRepository, UserRepository, WatchlistRepository
-from ....domain.role_catalog import PROTECTED_DEMO_USERNAMES
 
 import logging
 logger = logging.getLogger(__name__)

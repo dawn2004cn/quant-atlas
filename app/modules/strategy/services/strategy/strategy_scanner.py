@@ -2,8 +2,7 @@ from __future__ import annotations
 """Scanner Service: Automated strategy signal scanner."""
 
 
-import logging
-from typing import Any, Optional
+from typing import Any
 
 from app.core.logger import get_logger
 from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
@@ -12,15 +11,13 @@ logger = get_logger(__name__)
 
 class AutomatedStrategyScanner:
     """Monitors strategies and identifies potential trading signals."""
-    
-    def __init__(self, swarm_service: Optional[SwarmAgentService] = None):
+
+    def __init__(self, swarm_service: SwarmAgentService | None = None):
         self._swarm_service = swarm_service
-    
+
     @property
     def swarm_service(self) -> SwarmAgentService:
         if self._swarm_service is None:
-            from app.modules.system.services.helpers.service_resolver_access import resolve_optional_service
-            from app.domain.ports.agent_ports import SwarmOrchestratorPort, ExpertSkillPort
             from app.modules.system.services.helpers.agent_access import (
                 create_expert_skill_port,
                 create_swarm_orchestrator_port,
@@ -35,12 +32,12 @@ class AutomatedStrategyScanner:
         """Run strategy presets against a list of symbols."""
         results = []
         presets = self.swarm_service.swarm_port.list_presets()
-        
+
         # Filter for strategy-related presets
         strategy_presets = [p for p in presets if "strategy" in p.lower()]
-        
+
         logger.info(f"Scanning {len(strategy_presets)} strategies across {len(symbol_list)} symbols")
-        
+
         for preset in strategy_presets:
             for symbol in symbol_list:
                 # Run the swarm as an audit/scan
@@ -50,5 +47,5 @@ class AutomatedStrategyScanner:
                     preset=preset
                 )
                 results.append({"preset": preset, "symbol": symbol, "run_id": res.get("id")})
-        
+
         return results

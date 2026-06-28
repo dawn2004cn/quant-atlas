@@ -1,17 +1,17 @@
 from __future__ import annotations
 """Concrete ACL implementation for AkShare Market Data."""
 
-from typing import Any, List
+from typing import Any
 from app.infrastructure.external.acl.market_data_acl import IMarketDataACL
 import akshare as ak
 
 class AkShareMarketDataACL(IMarketDataACL):
     """Translates AkShare response to Quant Atlas Domain Schema."""
 
-    def fetch_standardized_data(self, symbol: str, start_date: str, end_date: str) -> List[dict[str, Any]]:
+    def fetch_standardized_data(self, symbol: str, start_date: str, end_date: str) -> list[dict[str, Any]]:
         # Fetch raw data
         df = ak.stock_zh_a_hist(symbol=symbol, period="daily", start_date=start_date, end_date=end_date)
-        
+
         # Mapping raw data to Domain DTO format
         standardized = []
         for _, row in df.iterrows():

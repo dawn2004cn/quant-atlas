@@ -7,17 +7,15 @@ exposures, and decay detection.
 
 
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy import select, update, delete, desc, func, and_
+from sqlalchemy import select, update, desc
 
 from app.domain.ports.factor_repository_port import FactorRepositoryPort
 from app.infrastructure.database.models.factor import (
     FactorMetadata,
     FactorICRecord,
-    FactorExposure,
     FactorDecayLog,
-    FactorCatalog,
 )
 
 
@@ -67,8 +65,8 @@ class FactorRepository(FactorRepositoryPort):
 
     async def list_factors(
         self,
-        category: Optional[str] = None,
-        status: Optional[str] = None,
+        category: str | None = None,
+        status: str | None = None,
         order_by: str = "ic_mean",
         limit: int = 100,
     ) -> list[dict[str, Any]]:
@@ -150,7 +148,7 @@ class FactorRepository(FactorRepositoryPort):
         factor_id: str,
         calc_date: str,
         ic_value: float,
-        rank_ic: Optional[float] = None,
+        rank_ic: float | None = None,
         forward_return: float = 0.0,
         sample_count: int = 0,
     ) -> int:

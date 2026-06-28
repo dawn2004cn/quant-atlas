@@ -14,7 +14,7 @@ This module provides:
 
 import logging
 from contextlib import contextmanager
-from typing import Any, Optional
+from typing import Any
 
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
@@ -24,40 +24,40 @@ from opentelemetry.trace import Span, Status, StatusCode
 
 logger = logging.getLogger(__name__)
 
-_tracer: Optional[trace.Tracer] = None
+_tracer: trace.Tracer | None = None
 _initialized = False
 
 
 def init_opentelemetry(
     service_name: str = "quant-atlas",
-    jaeger_endpoint: Optional[str] = None,
+    jaeger_endpoint: str | None = None,
     console_export: bool = False,
 ) -> trace.Tracer:
     """Initialize OpenTelemetry tracer.
-    
+
     Args:
         service_name: Service name for tracing
         jaeger_endpoint: Jaeger collector endpoint (e.g., "http://jaeger:14268/api/traces")
         console_export: Whether to export spans to console for debugging
-        
+
     Returns:
         Configured tracer instance
     """
     global _tracer, _initialized
-    
+
     if _initialized:
         return _tracer
-    
+
     # Create resource with service info
     resource = Resource.create({
         "service.name": service_name,
         "service.version": "1.0.0",
     })
-    
+
     # Create tracer provider
     provider = TracerProvider(resource=resource)
     trace.set_tracer_provider(provider)
-    
+
     # Configure exporters
     if jaeger_endpoint:
         try:
@@ -74,16 +74,16 @@ def init_opentelemetry(
                 "Jaeger exporter not available. Install with: "
                 "pip install opentelemetry-exporter-jaeger"
             )
-    
+
     if console_export:
         console_exporter = ConsoleSpanExporter()
         provider.add_span_processor(BatchSpanProcessor(console_exporter))
         logger.info("Configured console exporter")
-    
+
     # Get tracer
     _tracer = trace.get_tracer(service_name)
     _initialized = True
-    
+
     logger.info(f"OpenTelemetry initialized for service: {service_name}")
     return _tracer
 
@@ -100,27 +100,27 @@ def get_tracer() -> trace.Tracer:
 def create_span(
     name: str,
     kind: trace.SpanKind = trace.SpanKind.INTERNAL,
-    attributes: Optional[dict[str, Any]] = None,
-    parent_context: Optional[trace.Context] = None,
+    attributes: dict[str, Any] | None = None,
+    parent_context: trace.Context | None = None,
 ) -> Span:
     """Create a span for tracing a business operation.
-    
+
     Usage:
         with create_span("execute_order", attributes={"symbol": "600000"}) as span:
             # Business logic here
             span.set_attribute("order_id", "12345")
-    
+
     Args:
         name: Span name
         kind: Span kind (INTERNAL, SERVER, CLIENT, PRODUCER, CONSUMER)
         attributes: Initial attributes
         parent_context: Parent context for trace propagation
-        
+
     Yields:
         Active span
     """
     tracer = get_tracer()
-    
+
     with tracer.start_as_current_span(
         name,
         kind=kind,
@@ -129,7 +129,7 @@ def create_span(
         if attributes:
             for key, value in attributes.items():
                 span.set_attribute(key, value)
-        
+
         try:
             yield span
             span.set_status(Status(StatusCode.OK))
@@ -141,11 +141,11 @@ def create_span(
 
 def trace_market_data_update(symbol: str, market: str) -> Span:
     """Create span for market data update.
-    
+
     Args:
         symbol: Stock symbol
         market: Market code
-        
+
     Returns:
         Active span
     """
@@ -166,13 +166,13 @@ def trace_signal_generation(
     strength: float,
 ) -> Span:
     """Create span for signal generation.
-    
+
     Args:
         strategy: Strategy name
         symbol: Stock symbol
         signal_type: Signal type (buy/sell/hold)
         strength: Signal strength
-        
+
     Returns:
         Active span
     """
@@ -196,14 +196,14 @@ def trace_order_execution(
     quantity: int,
 ) -> Span:
     """Create span for order execution.
-    
+
     Args:
         order_id: Order ID
         symbol: Stock symbol
         side: Buy/sell
         price: Order price
         quantity: Order quantity
-        
+
     Returns:
         Active span
     """
@@ -226,12 +226,12 @@ def trace_factor_calculation(
     calculation_time_ms: float,
 ) -> Span:
     """Create span for factor calculation.
-    
+
     Args:
         factor_name: Factor name
         symbol: Stock symbol
         calculation_time_ms: Calculation time in milliseconds
-        
+
     Returns:
         Active span
     """
@@ -252,12 +252,12 @@ def trace_ai_analysis(
     analysis_type: str,
 ) -> Span:
     """Create span for AI analysis.
-    
+
     Args:
         agent_name: AI agent name
         symbol: Stock symbol
         analysis_type: Analysis type
-        
+
     Returns:
         Active span
     """
@@ -272,9 +272,9 @@ def trace_ai_analysis(
     )
 
 
-def get_current_trace_id() -> Optional[str]:
+def get_current_trace_id() -> str | None:
     """Get the current trace ID.
-    
+
     Returns:
         Current trace ID or None if no active span
     """
@@ -284,9 +284,9 @@ def get_current_trace_id() -> Optional[str]:
     return None
 
 
-def get_current_span_id() -> Optional[str]:
+def get_current_span_id() -> str | None:
     """Get the current span ID.
-    
+
     Returns:
         Current span ID or None if no active span
     """

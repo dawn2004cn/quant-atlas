@@ -13,8 +13,8 @@ Usage:
 """
 
 
-from dataclasses import dataclass, field
-from typing import Any, Callable
+from dataclasses import dataclass
+from typing import Any
 from enum import Enum
 
 from app.core.logger import get_logger

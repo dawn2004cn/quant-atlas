@@ -7,7 +7,6 @@ from datetime import datetime
 from flask import Blueprint, Response, request
 from flask_login import login_required
 
-import logging
 
 from ...application.errors import NotFoundError
 from ...core.middleware.request_context import require_authenticated_user_id
@@ -74,7 +73,7 @@ def register_investment_manager_routes(
     def leaderboard():
         period = (request.args.get("period") or "day").strip().lower()
         items = _svc().leaderboard(period=period)
-        
+
         # Calculate aggregate stats
         total_trades = 0
         managers_with_trades = 0

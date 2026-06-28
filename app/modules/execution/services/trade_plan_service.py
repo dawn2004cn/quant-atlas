@@ -9,8 +9,6 @@ from typing import Any
 
 from app.core.logger import get_logger
 from app.domain.enums import MarketCode
-from app.domain.dto import TradePlanResult as TradePlanResultDTO
-from app.domain.dto.trade_plan_dto import TradePlanDTO
 
 logger = get_logger(__name__)
 
@@ -68,7 +66,7 @@ class TradePlanService:
         quote = self._load_quote(clean_symbol, market)
         history = self._load_history(clean_symbol, market)
         last_price = entry_price or _safe_float(quote.get("price")) or self._last_close(history)
-        
+
         if last_price <= 0:
             logger.debug("price_unavailable for %s", clean_symbol)
             return {

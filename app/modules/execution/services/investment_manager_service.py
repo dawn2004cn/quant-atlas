@@ -4,16 +4,15 @@ from app.domain.dto.service_result import GenericResponseDTO
 Handles portfolio performance tracking, manager leaderboards, and daily simulation.
 """
 
-import logging
 import csv
 import io
 import random
 from typing import Any
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 from app.domain.ports.investment_manager_port import InvestmentManagerRepository, ManagerRow
 from app.domain.ports.stock_cache_port import StockCachePort
 from app.domain.ports.signal_flag_pool_port import SignalFlagPoolRepository
-from app.domain.dto.investment_dto import ManagerStatsDTO, StrategyPerformanceDTO, ManagerDTO
+from app.domain.dto.investment_dto import ManagerStatsDTO, StrategyPerformanceDTO
 from app.modules.strategy.services.strategy.strategy_snapshot_hook import capture_on_deploy
 
 
@@ -72,9 +71,9 @@ _TAGLINES = [
 
 class InvestmentManagerService:
     def __init__(
-        self, 
-        repo: InvestmentManagerRepository, 
-        *, 
+        self,
+        repo: InvestmentManagerRepository,
+        *,
         stock_cache: StockCachePort,
         signal_flag_pool: SignalFlagPoolRepository | None = None,
         **kwargs,
@@ -89,12 +88,12 @@ class InvestmentManagerService:
             nav_data = self._repo.get_nav_series(manager_id, limit=30)
             if not nav_data:
                 return ManagerStatsDTO(equity=10000000.0, return_pct=0.0, holdings_count=0)
-            
+
             latest = nav_data[-1]
             equity = float(latest.get("equity", 10000000.0))
             start_equity = float(nav_data[0].get("equity", 10000000.0))
             return_pct = ((equity - start_equity) / start_equity * 100) if start_equity != 0 else 0
-            
+
             holdings = self._repo.get_holdings_snap(manager_id, latest.get("nav_date", ""))
             return ManagerStatsDTO(
                 equity=equity,
@@ -112,12 +111,12 @@ class InvestmentManagerService:
             managers = [m for m in self._repo.list_managers() if str(m.get("strategy_id")) == strategy_id]
             if not managers:
                 return StrategyPerformanceDTO(active_managers=0, avg_return=0.0)
-            
+
             returns = []
             for m in managers:
                 stats = self.get_manager_stats(m["manager_id"])
                 returns.append(stats.return_pct)
-            
+
             return StrategyPerformanceDTO(
                 active_managers=len(managers),
                 avg_return=round(sum(returns) / len(returns), 2)
@@ -135,23 +134,23 @@ class InvestmentManagerService:
         try:
             # Auto-seed if no managers exist
             self.ensure_seed_managers()
-            
+
             managers = self._repo.list_managers()
-            
+
             # Get trade stats for all managers
             try:
                 trade_stats = self._repo.trade_stats_by_manager()
             except Exception:
                 trade_stats = {}
-            
+
             results = []
             for m in managers:
                 mid = m.get("manager_id", "")
                 stats = self.get_manager_stats(mid)
-                
+
                 # Get trade stats for this manager
                 m_stats = trade_stats.get(mid, {})
-                
+
                 results.append({
                     "manager_id": mid,
                     "name": m.get("name", "Unknown"),
@@ -180,7 +179,7 @@ class InvestmentManagerService:
             existing = self._repo.list_managers()
             if existing:
                 return {"ok": True, "count": len(existing), "seeded": False}
-            
+
             # Create 100 managers
             for i in range(100):
                 manager_id = f"PM-{i+1:03d}"
@@ -188,7 +187,7 @@ class InvestmentManagerService:
                 cohort = _COHORTS[i % len(_COHORTS)]
                 specialty = _SPECIALTIES[i % len(_SPECIALTIES)]
                 tagline = _TAGLINES[i % len(_TAGLINES)]
-                
+
                 row = ManagerRow(
                     manager_id=manager_id,
                     strategy_id=strategy_name,
@@ -201,7 +200,7 @@ class InvestmentManagerService:
                     specialty=specialty,
                 )
                 self._repo.upsert_manager(row)
-            
+
             new_count = len(self._repo.list_managers())
             return {"ok": True, "count": new_count, "seeded": True}
         except Exception as e:
@@ -213,7 +212,7 @@ class InvestmentManagerService:
         try:
             # First ensure seed managers exist
             self.ensure_seed_managers()
-            
+
             deployed_ids = self._repo.activate_next_batch(batch_size=batch_size)
             result: GenericResponseDTO = {
                 "ok": True,
@@ -266,7 +265,7 @@ class InvestmentManagerService:
         output = io.StringIO()
         writer = csv.writer(output)
         writer.writerow(["date", "symbol", "action", "quantity", "price"])
-        
+
         try:
             trades = self._repo.list_trades(manager_id, limit=1000)
             for t in trades:
@@ -279,7 +278,7 @@ class InvestmentManagerService:
                 ])
         except Exception as e:
             logger.error(f"Error exporting trades: {e}")
-        
+
         return f"manager_{manager_id}_trades.csv", output.getvalue()
 
     def backfill(self, start_date: str, end_date: str | None, universe_limit: int) -> GenericResponseDTO:
@@ -287,11 +286,11 @@ class InvestmentManagerService:
         try:
             start = date.fromisoformat(start_date)
             end = date.fromisoformat(end_date) if end_date else date.today()
-            
+
             # Ensure managers exist and are deployed
             self.ensure_seed_managers()
             self._repo.activate_next_batch(batch_size=universe_limit)
-            
+
             days_processed = 0
             current = start
             while current <= end:
@@ -299,7 +298,7 @@ class InvestmentManagerService:
                     self.simulate_day(nav_date=current.isoformat(), universe_limit=universe_limit)
                     days_processed += 1
                 current += timedelta(days=1)
-            
+
             return {
                 "ok": True,
                 "start_date": start_date,
@@ -344,7 +343,7 @@ class InvestmentManagerService:
         try:
             # First ensure seed managers exist
             self.ensure_seed_managers()
-            
+
             from datetime import date
             start = date.fromisoformat(start_date) if start_date else date(2020, 1, 1)
             asof = date.fromisoformat(asof_date) if asof_date else date.today()
@@ -409,7 +408,7 @@ class InvestmentManagerService:
             managers = self._repo.list_managers()
             active_managers = [m for m in managers if m.get("active")]
             active_managers = active_managers[:universe_limit]
-            
+
             results = []
             for m in active_managers:
                 mid = m.get("manager_id", "")
@@ -417,15 +416,15 @@ class InvestmentManagerService:
                 nav_series = self._repo.get_nav_series(mid, limit=1)
                 if not nav_series:
                     continue
-                
+
                 prev_equity = float(nav_series[0].get("equity", 10000000.0))
                 prev_cash = float(nav_series[0].get("cash", 10000000.0))
-                
+
                 # Simulate daily return (random walk with slight positive drift)
                 daily_return = random.gauss(0.0005, 0.02)  # ~0.05% daily drift, 2% vol
                 new_equity = prev_equity * (1 + daily_return)
                 new_cash = prev_cash * (1 + daily_return * 0.3)  # Cash changes less
-                
+
                 # Simulate some trades
                 num_trades = random.randint(0, 3)
                 for _ in range(num_trades):
@@ -433,7 +432,7 @@ class InvestmentManagerService:
                     action = random.choice(["buy", "sell"])
                     price = random.uniform(5.0, 100.0)
                     shares = random.randint(100, 5000)
-                    
+
                     self._repo.append_trade({
                         "manager_id": mid,
                         "trade_date": nav_date,
@@ -445,7 +444,7 @@ class InvestmentManagerService:
                         "fee": price * shares * 0.0003,
                         "tax": price * shares * 0.001 if action == "sell" else 0.0,
                     })
-                
+
                 # Write new NAV
                 self._repo.upsert_nav(
                     manager_id=mid,
@@ -455,7 +454,7 @@ class InvestmentManagerService:
                     total_fee=0.0,
                     total_tax=0.0,
                 )
-                
+
                 results.append({
                     "manager_id": mid,
                     "nav_date": nav_date,

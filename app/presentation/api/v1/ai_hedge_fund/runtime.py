@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from app.integration.ai_hedge_fund.service import AIHedgeFundIntegrationService
 from app.presentation.api.v1_context import ApiV1Context

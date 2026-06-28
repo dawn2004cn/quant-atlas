@@ -17,7 +17,8 @@ truncated, text. PDF/Excel add format-specific metadata (pages, sheets, ...).
 
 import json
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.infrastructure.agent.swarm.tools_base import BaseTool
 

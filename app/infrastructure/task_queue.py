@@ -6,7 +6,8 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable, Awaitable
+from typing import Any
+from collections.abc import Callable, Awaitable
 from enum import Enum
 
 from app.core.logger import get_logger
@@ -34,17 +35,17 @@ class AsyncTask:
 
 class AsyncTaskQueue:
     """Async task queue with priority support for heavy computations.
-    
+
     Usage:
         queue = AsyncTaskQueue(max_workers=4)
-        
+
         # Submit heavy computation
         task_id = await queue.submit(
             compute_indicators,
             args=(symbols,),
             priority=TaskPriority.NORMAL
         )
-        
+
         # Get result
         result = await queue.get_result(task_id)
     """
@@ -88,13 +89,13 @@ class AsyncTaskQueue:
         """Submit a task to the queue."""
         import uuid
         task_id = str(uuid.uuid4())[:8]
-        
+
         kwargs = kwargs or {}
         future = asyncio.loop.run_in_executor(
             self._executor,
             lambda: func(*args, **kwargs)
         )
-        
+
         self._tasks[task_id] = future
         logger.debug("Task %s submitted with priority %s", task_id, priority.name)
         return task_id
@@ -110,9 +111,9 @@ class AsyncTaskQueue:
         """Submit a task with callback when complete."""
         import uuid
         task_id = str(uuid.uuid4())[:8]
-        
+
         kwargs = kwargs or {}
-        
+
         async def _run_with_callback():
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
@@ -125,7 +126,7 @@ class AsyncTaskQueue:
                 except Exception as e:
                     logger.warning("Task callback failed: %s", e)
             return result
-        
+
         future = asyncio.create_task(_run_with_callback())
         self._tasks[task_id] = future
         return task_id
@@ -134,7 +135,7 @@ class AsyncTaskQueue:
         """Get the result of a submitted task."""
         if task_id not in self._tasks:
             raise ValueError(f"Task {task_id} not found")
-        
+
         future = self._tasks[task_id]
         try:
             return await asyncio.wait_for(future, timeout=timeout)

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 from app.core.logger import get_logger
-from app.modules.strategy.services.strategy.strategy_template_service import StrategyTemplateService, StrategyTemplate
+from app.modules.strategy.services.strategy.strategy_template_service import StrategyTemplateService
 from app.core.registry import ServiceRegistry
 
 logger = get_logger(__name__)
@@ -13,18 +13,18 @@ class StrategyWizardService:
     def __init__(self, registry: ServiceRegistry) -> None:
         self.registry = registry
         self.template_service = StrategyTemplateService()
-        
+
         # Services needed for finalization and preview
         self.strategy_service = registry.get("strategy_service")
         self.backtest_service = registry.get_or_none("strategy_optimization_service")
         self.fast_engine = registry.get("fast_backtest_engine")
         self.strategy_risk_validator = registry.get_or_none("strategy_risk_validator")
 
-    def get_wizard_start_data(self) -> Dict[str, Any]:
+    def get_wizard_start_data(self) -> dict[str, Any]:
         """Get initial data needed to start the wizard (categories and templates)."""
         # AI Recommendation based on Market Regime
         recommended_template_id = self._get_recommended_template_id()
-        
+
         return {
             "categories": [c.value for c in self.template_service.get_categories()],
             "templates": [
@@ -43,47 +43,47 @@ class StrategyWizardService:
             }
         }
 
-    def _get_recommended_template_id(self) -> Optional[str]:
+    def _get_recommended_template_id(self) -> str | None:
         """
         Interacts with MarketRegimeService to recommend the best strategy template
         for the current environment.
         """
         try:
             # Resolve MarketRegimeService from registry
-            # Note: MarketRegimeService in this project seems to be a domain service, 
+            # Note: MarketRegimeService in this project seems to be a domain service,
             # we might need to instantiate it or get it from the registry if it was wired.
             from app.domain.services.market_regime_service import MarketRegimeService
             regime_service = MarketRegimeService()
-            
+
             # In a real scenario, we would fetch current sentiment/breadth from actual services
             # For now, we simulate a 'Neutral' regime to demonstrate the mapping
             # In production, we'd inject a 'MarketDataService' to get real values.
-            regime = regime_service.evaluate_stance(sentiment_score=55.0) 
+            regime = regime_service.evaluate_stance(sentiment_score=55.0)
             stance = regime["stance"] # 'aggressive', 'defensive', 'neutral'
-            
+
             # Mapping Regime -> Strategy Category
             mapping = {
                 "aggressive": "trend",         # Bull market -> Trend following
                 "defensive": "mean_reversion", # Bear/Choppy market -> Mean reversion
                 "neutral": "quant_factor",     # Sideways market -> Quant Factors
             }
-            
+
             target_category = mapping.get(stance)
             if not target_category:
                 return None
-                
+
             # Find a template that matches the category
             templates = self.template_service.list_templates()
             for t in templates:
                 if t.category.value == target_category:
                     return t.template_id
-                    
+
         except Exception as e:
             logger.error(f"Failed to get regime-based recommendation: {e}")
-            
+
         return None
 
-    def get_template_config(self, template_id: str) -> Dict[str, Any]:
+    def get_template_config(self, template_id: str) -> dict[str, Any]:
         """Get the required parameters and defaults for a specific template."""
         template = self.template_service.get_template(template_id)
         if not template:
@@ -94,7 +94,7 @@ class StrategyWizardService:
                 template = self.template_service.create_template_from_alpha(token_id, token_svc)
             else:
                 raise ValueError(f"Template {template_id} not found")
-        
+
         return {
             "template_id": template.template_id,
             "name": template.name,
@@ -103,7 +103,7 @@ class StrategyWizardService:
             "suggested_market": template.suggested_market
         }
 
-    async def preview_strategy(self, template_id: str, user_params: Dict[str, Any]) -> Dict[str, Any]:
+    async def preview_strategy(self, template_id: str, user_params: dict[str, Any]) -> dict[str, Any]:
         """
         Runs a 'Quick-Preview' backtest using the FastBacktestEngine.
         """
@@ -113,7 +113,7 @@ class StrategyWizardService:
 
         # Merge defaults with user provided params
         final_params = {**template.default_params, **user_params}
-        
+
         # Validate required params
         for p in template.required_params:
             if p not in final_params:
@@ -151,7 +151,7 @@ class StrategyWizardService:
 
         return result
 
-    def create_from_wizard(self, template_id: str, user_params: Dict[str, Any], risk_settings: Dict[str, Any]) -> Dict[str, Any]:
+    def create_from_wizard(self, template_id: str, user_params: dict[str, Any], risk_settings: dict[str, Any]) -> dict[str, Any]:
         """
         Finalizes the wizard process and creates a real strategy instance.
         Includes a Pre-Trade Risk Preflight check.
@@ -173,7 +173,7 @@ class StrategyWizardService:
                 return {"status": "risk_blocked", "issues": issues, "message": "Strategy failed risk preflight."}
 
         final_params = {**template.default_params, **user_params}
-        
+
         # Use StrategyApplicationService to create the actual strategy record
         try:
             strategy_id = self.strategy_service.create_strategy(

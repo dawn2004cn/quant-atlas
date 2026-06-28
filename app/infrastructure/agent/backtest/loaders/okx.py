@@ -5,7 +5,6 @@ Supports 1m/5m/15m/30m/1H/4H/1D.
 Up to 300 bars per request; paginates with ``after`` for longer history.
 """
 
-from typing import Dict, List, Optional
 
 import pandas as pd
 import requests
@@ -38,12 +37,12 @@ class DataLoader:
 
     def fetch(
         self,
-        codes: List[str],
+        codes: list[str],
         start_date: str,
         end_date: str,
-        fields: Optional[List[str]] = None,
+        fields: list[str] | None = None,
         interval: str = "1D",
-    ) -> Dict[str, pd.DataFrame]:
+    ) -> dict[str, pd.DataFrame]:
         """Fetch crypto OHLCV via OKX public API.
 
         Args:
@@ -73,7 +72,7 @@ class DataLoader:
 
         max_pages = 200 if interval in ("1m", "5m") else 50 if interval in ("15m", "30m") else 20
 
-        result: Dict[str, pd.DataFrame] = {}
+        result: dict[str, pd.DataFrame] = {}
         for symbol in codes:
             try:
                 df = self._fetch_candles(symbol, start_ts, end_ts, interval, max_pages)
@@ -86,7 +85,7 @@ class DataLoader:
     def _fetch_candles(
         self, inst_id: str, start_ts: int, end_ts: int,
         bar: str = "1D", max_pages: int = 20,
-    ) -> Optional[pd.DataFrame]:
+    ) -> pd.DataFrame | None:
         """Paginated candle download.
 
         Args:

@@ -5,7 +5,8 @@ Exposes ``register_routes``, ``discover_routes``, and route registry helpers.
 """
 
 import logging
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,6 @@ from __future__ import annotations
 """雪球用户动态 Provider - https://xueqiu.com/u/{user_id}"""
 
 
-import re
 import threading
 import time
 from typing import Any
@@ -59,7 +58,7 @@ def fetch_xueqiu_user_timeline(
     """
 
     def _load() -> list[dict[str, Any]]:
-        url = f"https://xueqiu.com/statuses/user_timeline.json"
+        url = "https://xueqiu.com/statuses/user_timeline.json"
         params = {
             "user_id": user_id,
             "count": limit,
@@ -168,7 +167,7 @@ def fetch_xueqiu_user_posts(
     """
 
     def _load() -> list[dict[str, Any]]:
-        url = f"https://xueqiu.com/statuses/user_timeline.json"
+        url = "https://xueqiu.com/statuses/user_timeline.json"
         params = {
             "user_id": user_id,
             "count": limit,

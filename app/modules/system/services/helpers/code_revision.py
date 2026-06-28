@@ -14,7 +14,7 @@ def resolve_code_revision(repo_root: Path) -> dict[str, str]:
         ("svn", ["svn", "info", "--show-item", "revision", str(root)]),
     ):
         try:
-            proc = subprocess.run(
+            proc = subprocess.run(  # noqa: S603  # cmd is fully hardcoded (git/svn with repo_root path)
                 cmd,
                 capture_output=True,
                 text=True,

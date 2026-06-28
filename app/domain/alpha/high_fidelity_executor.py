@@ -292,7 +292,7 @@ def format_high_fidelity_prompt(
         cost = adjusted.get("total_cost", 0)
 
         lines.append("")
-        lines.append(f"[调整后]")
+        lines.append("[调整后]")
         lines.append(f"- 原始收益: {orig:.2%}")
         lines.append(f"- 调整后收益: {adj:.2%}")
         lines.append(f"- 总成本: {cost:.2f}")
@@ -312,4 +312,4 @@ def format_paper_trading_prompt() -> str:
 [检查项]
 - 执行延迟
 - 流动性冲击
-- 滑点 vs 预期"""
+- 滑点 vs 预期"""

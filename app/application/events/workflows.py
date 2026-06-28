@@ -6,8 +6,6 @@ workflows that react to events automatically.
 """
 
 
-from typing import Any
-from datetime import datetime, timedelta
 
 from app.application.events.event_bus import Event, EventType, get_event_bus
 from app.core.logger import get_logger
@@ -29,9 +27,9 @@ class MarketDataWorkflow:
         """Handle data sync completion."""
         market = event.payload.get('market')
         records = event.payload.get('records', 0)
-        
+
         logger.info(f"Market data synced: {market}, {records} records")
-        
+
         # Trigger related workflows
         if market == 'CN':
             await self._update_market_sentiment()
@@ -41,7 +39,7 @@ class MarketDataWorkflow:
         """Handle quote update."""
         code = event.payload.get('code')
         price = event.payload.get('price')
-        
+
         # Check price alerts
         await self._check_price_alerts(code, price)
 
@@ -51,24 +49,24 @@ class MarketDataWorkflow:
             return
         try:
             cache = self._stock_cache
-            
+
             stocks = cache.get_all_stocks(max_age_minutes=15)
             if not stocks:
                 return
-                
+
             up = sum(1 for s in stocks if float(s.get('change_pct', 0)) > 0)
             down = sum(1 for s in stocks if float(s.get('change_pct', 0)) < 0)
             flat = len(stocks) - up - down
-            
+
             cache.save_sentiment("CN", up, down, flat)
-            
+
             # Publish sentiment update event
             self._bus.publish(Event(
                 type=EventType.DATA_SYNCED,
                 payload={'market': 'CN', 'sentiment_updated': True},
                 source='MarketDataWorkflow'
             ))
-            
+
         except Exception as e:
             logger.warning(f"Failed to update sentiment: {e}")
 
@@ -83,7 +81,7 @@ class MarketDataWorkflow:
             from app.domain.ports.price_alert_port import NullPriceAlertRepository
             repo = NullPriceAlertRepository()
             alerts = repo.get_alerts_for_symbol(code)
-            
+
             for alert in alerts:
                 if alert.should_trigger(price):
                     self._bus.publish(Event(
@@ -112,9 +110,9 @@ class SignalWorkflow:
         code = event.payload.get('code')
         signal_type = event.payload.get('type')
         direction = event.payload.get('direction')
-        
+
         logger.info(f"Signal workflow: {code} {signal_type} {direction}")
-        
+
         # Auto-create watchlist entry for strong signals
         if event.payload.get('strength', 0) >= 3:
             await self._add_to_watchlist(code, signal_type)
@@ -140,9 +138,9 @@ class PositionWorkflow:
         """Handle position opened."""
         code = event.payload.get('code')
         quantity = event.payload.get('quantity')
-        
+
         logger.info(f"Position opened: {code} x{quantity}")
-        
+
         # Set up stop-loss monitoring
         await self._setup_monitoring(code)
 
@@ -150,9 +148,9 @@ class PositionWorkflow:
         """Handle position closed."""
         code = event.payload.get('code')
         pnl = event.payload.get('pnl', 0)
-        
+
         logger.info(f"Position closed: {code} PnL: {pnl}")
-        
+
         # Record performance metrics
         await self._record_performance(code, pnl)
 

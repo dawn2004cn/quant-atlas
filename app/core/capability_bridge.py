@@ -13,7 +13,6 @@ from typing import Any
 from app.core.capability_registry import (
     CapabilityRegistry,
     get_capability_registry,
-    register_capability,
 )
 
 logger = logging.getLogger(__name__)

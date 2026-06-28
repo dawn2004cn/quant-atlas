@@ -1,6 +1,6 @@
 from __future__ import annotations
 from app.domain.dto.service_result import GenericResponseDTO
-from typing import Any, Dict, List
+from typing import Any
 from app.core.base_service import BaseApplicationService
 
 class TenKingsCommitteeService(BaseApplicationService):
@@ -10,18 +10,18 @@ class TenKingsCommitteeService(BaseApplicationService):
         super().__init__()
         self._llm = llm_adapter
 
-    async def run_committee_debate(self, candidates: List[Dict[str, Any]], regime: str) -> GenericResponseDTO:
+    async def run_committee_debate(self, candidates: list[dict[str, Any]], regime: str) -> GenericResponseDTO:
         """执行 7+1 Agent 投委会深度辩论。"""
         self.logger.info(f"投委会开始评审 {len(candidates)} 个候选标的，当前环境: {regime}")
-        
+
         final_picks = []
         for stock in candidates:
             # 1. 收集各专家意见 (可以并行执行以提升性能)
             opinions = await self._collect_expert_opinions(stock, regime)
-            
+
             # 2. 总指挥进行最后裁定
             decision = await self._commander_final_verdict(stock, opinions, regime)
-            
+
             if decision.get("action") == "BUY":
                 final_picks.append({
                     **stock,
@@ -29,15 +29,15 @@ class TenKingsCommitteeService(BaseApplicationService):
                     "score": decision.get("score"),
                     "agent_details": opinions
                 })
-        
+
         return {"final_picks": final_picks}
 
-    async def _collect_expert_opinions(self, stock: Dict[str, Any], regime: str) -> GenericResponseDTO:
+    async def _collect_expert_opinions(self, stock: dict[str, Any], regime: str) -> GenericResponseDTO:
         """模拟各路专家的核心考量。"""
         # 在生产环境中，这里会并发调用 LLM
-        prompts = self._get_agent_prompts()
+        self._get_agent_prompts()
         opinions = {}
-        
+
         # 示例：陈小群专家的逻辑注入
         opinions["chen_xiaoqun"] = (
             f"对于 {stock['name']}，成交量显著放大，具备妖股潜质。"
@@ -48,7 +48,7 @@ class TenKingsCommitteeService(BaseApplicationService):
         opinions["technical"] = "缩量回调至 20 日线，支撑强劲。"
         return opinions
 
-    async def _commander_final_verdict(self, stock: Dict[str, Any], opinions: Dict[str, str], regime: str) -> GenericResponseDTO:
+    async def _commander_final_verdict(self, stock: dict[str, Any], opinions: dict[str, str], regime: str) -> GenericResponseDTO:
         """总指挥汇总意见并打分。"""
         # 汇总各方意见交给总指挥 Agent 处理
         return {

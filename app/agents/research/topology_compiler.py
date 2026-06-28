@@ -1,7 +1,8 @@
 from __future__ import annotations
 """Compile SwarmTopologyDescriptor into LangGraph wiring metadata."""
 
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from langgraph.graph import END, START, StateGraph
 

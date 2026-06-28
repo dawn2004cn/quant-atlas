@@ -28,15 +28,14 @@ Quote Aggregator - 多数据源行情聚合器
 
 import asyncio
 
-import logging
 
-import time
 
 from dataclasses import dataclass, field
 
 from enum import Enum
 
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 
 
@@ -50,7 +49,6 @@ from app.core.logger import get_logger
 
 from .market_stream import Quote, MarketStreamProcessor
 
-from .stream_processor import QuoteStreamProcessor
 
 
 
@@ -102,7 +100,7 @@ class QuoteAggregator:
 
     """行情聚合器"""
 
-    
+
 
     def __init__(self, redis_url: str = None):
 
@@ -122,7 +120,7 @@ class QuoteAggregator:
 
         self._callbacks: list[Callable[[Quote], None]] = []
 
-    
+
 
     @property
 
@@ -134,7 +132,7 @@ class QuoteAggregator:
 
         return self._redis
 
-    
+
 
     def register_stream_processor(self, processor: MarketStreamProcessor) -> None:
 
@@ -142,7 +140,7 @@ class QuoteAggregator:
 
         self._stream_processor = processor
 
-    
+
 
     def register_adapter(self, source: DataSource, adapter: Any) -> None:
 
@@ -152,7 +150,7 @@ class QuoteAggregator:
 
         logger.info(f"Registered adapter for {source}")
 
-    
+
 
     async def start(self) -> None:
 
@@ -176,7 +174,7 @@ class QuoteAggregator:
 
         logger.info("QuoteAggregator started")
 
-    
+
 
     async def stop(self) -> None:
 
@@ -196,7 +194,7 @@ class QuoteAggregator:
 
         logger.info("QuoteAggregator stopped")
 
-    
+
 
     async def _poll_loop(self) -> None:
 
@@ -222,7 +220,7 @@ class QuoteAggregator:
 
             await asyncio.sleep(1)
 
-    
+
 
     async def _process_quote(self, quote: Quote, source: DataSource) -> None:
 
@@ -232,7 +230,7 @@ class QuoteAggregator:
 
         pass
 
-    
+
 
     def get(self, symbol: str) -> dict:
 

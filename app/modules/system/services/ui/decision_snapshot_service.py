@@ -6,7 +6,10 @@ from pathlib import Path
 from typing import Any
 
 from app.application.errors import NotFoundError
+from app.core.logger import get_logger
 from app.core.runtime_config import get_runtime
+
+logger = get_logger(__name__)
 from app.core.secure_share_token import generate_share_token, verify_share_token
 from app.domain.dto.decision_snapshot_dto import DecisionResearchSnapshotDTO
 from app.infrastructure.repositories.file_decision_snapshot_repository import (

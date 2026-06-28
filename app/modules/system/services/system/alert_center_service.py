@@ -2,7 +2,8 @@ from __future__ import annotations
 
 """Aggregate operational alerts from task messages, health probes, and data freshness."""
 
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.modules.system.services.helpers.monitoring_access import check_table_freshness
 from app.modules.system.services.helpers.task_message_access import get_task_message_store
@@ -82,7 +83,7 @@ class AlertCenterService:
             if event not in _ALERT_TASK_EVENTS and event != "task_succeeded":
                 continue
             if event == "task_succeeded":
-                meta = row.get("meta") or {}
+                row.get("meta") or {}
                 if not row.get("detail", "").startswith("skipped"):
                     continue
                 level: AlertLevel = "info"

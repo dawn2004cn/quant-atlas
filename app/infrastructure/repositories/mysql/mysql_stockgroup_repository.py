@@ -2,7 +2,6 @@ from __future__ import annotations
 """MySQL StockGroup Repository."""
 
 
-import logging
 from typing import Any
 
 from sqlalchemy import select, and_, desc

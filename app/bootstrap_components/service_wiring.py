@@ -27,7 +27,7 @@ from . import wiring_optimization  # noqa: F401 — registers optimization facto
 
 
 
-from app.core.typed_registry import TypedServiceRegistry, factory, get_registry
+from app.core.typed_registry import TypedServiceRegistry, get_registry
 
 
 

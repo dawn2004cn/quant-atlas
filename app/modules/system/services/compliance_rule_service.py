@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from app.core.logger import get_logger
 from app.modules.portfolio_risk.services.fund_tier_service import ComplianceGuardrailService

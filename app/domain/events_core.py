@@ -13,9 +13,11 @@ Following Observer Pattern for loose coupling between components.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from logging import INFO
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -138,7 +140,7 @@ class EventHandler(ABC):
 class LoggingEventHandler(EventHandler):
     """Handler that logs events."""
 
-    def __init__(self, log_level: int = logging.INFO):
+    def __init__(self, log_level: int = INFO):
         self._log_level = log_level
 
     @property

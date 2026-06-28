@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any
 
 class PoolItemDTO(BaseModel):
     rank: int
@@ -15,4 +14,4 @@ class PoolResponseDTO(BaseModel):
     market: str
     generated_at: str
     count: int
-    pool: List[PoolItemDTO]
+    pool: list[PoolItemDTO]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import time
 from contextlib import contextmanager
-from typing import Iterator
+from collections.abc import Iterator
 
 from app.application.errors import ValidationError
 from app.domain.enums import MarketCode

@@ -11,7 +11,8 @@ This module implements the Parallelism & Resilience from midify_plan9.md:
 import asyncio
 import time
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from ..core.resilience import CircuitBreaker, CircuitBreakerConfig, get_circuit_breaker_registry
 
@@ -62,7 +63,7 @@ class ParallelAgentExecutor:
             List of AgentExecutionResult
         """
         timeout = timeout or self._default_timeout
-        start_time = time.time()
+        time.time()
 
         tasks = []
         for agent_name, agent_func in agents:
@@ -175,7 +176,7 @@ class AgentCircuitBreaker:
         """Execute function with circuit breaker protection."""
         try:
             return self._breaker.execute(func, fallback)
-        except Exception as e:
+        except Exception:
             if fallback:
                 return fallback()
             raise

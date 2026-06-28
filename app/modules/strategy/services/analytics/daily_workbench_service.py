@@ -13,7 +13,6 @@ from typing import Any
 from app.modules.strategy.services.analytics.headline_signal_enrichment_service import (
     HeadlineSignalEnrichmentService,
 )
-from app.modules.system.services.system.system_health_banner_service import SystemHealthBannerService
 from app.core.logger import get_logger
 from app.domain.services.market_regime_service import MarketRegimeService
 from app.domain.dto.daily_workbench_dto import DailyWorkbenchSnapshotDTO
@@ -655,7 +654,7 @@ class DailyWorkbenchService:
                 account_equity=100000.0,
                 cash_available=100000.0,
             )
-            
+
             # Handle TradePlanDTO - convert to dict if needed
             if hasattr(plan, "model_dump"):
                 plan_dict = plan.model_dump()
@@ -663,9 +662,9 @@ class DailyWorkbenchService:
                 plan_dict = plan.dict()
             else:
                 plan_dict = {"name": getattr(plan, "symbol", sym), "plan": {}}
-            
+
             core = plan_dict.get("plan") or plan_dict if isinstance(plan_dict, dict) else {}
-            
+
             return {
                 "symbol": sym,
                 "name": plan_dict.get("name") or plan_dict.get("symbol") or sym,

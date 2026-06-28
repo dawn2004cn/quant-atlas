@@ -1,6 +1,6 @@
 """Market data DTOs."""
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -12,4 +12,4 @@ class MarketDataDTO:
     price: float = 0.0
     change_pct: float = 0.0
     volume: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)

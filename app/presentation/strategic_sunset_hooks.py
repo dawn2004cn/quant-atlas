@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
+from collections.abc import Callable
 
 from flask import Flask, Blueprint, jsonify, render_template, request
 

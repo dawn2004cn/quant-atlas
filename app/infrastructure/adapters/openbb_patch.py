@@ -1,6 +1,5 @@
 """Patch for OpenBB Platform 4.x dynamic interface issues."""
 
-import logging
 import openbb_core.app.provider_interface as pi
 
 
@@ -28,11 +27,11 @@ def apply_openbb_patch():
                     return interface.return_annotations[model_name]
             except Exception as e:
                 logger.debug(f"Failed to resolve dynamic OpenBB model {name}: {e}")
-        
+
         if original_getattr:
             return original_getattr(name)
         raise AttributeError(f"module {pi.__name__} has no attribute {name}")
-    
+
     pi.__getattr__ = __getattr__
     logger.info("Applied dynamic attribute patch to openbb_core.app.provider_interface")
 

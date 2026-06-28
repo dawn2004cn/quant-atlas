@@ -14,7 +14,6 @@ Usage:
 """
 
 
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -138,7 +137,7 @@ class AlphaCorrelationAudit:
             if strat_id not in self._alphas:
                 continue
             alpha = self._alphas[strat_id]
-            meta = alpha.metadata.get("signals", [])
+            alpha.metadata.get("signals", [])
             for symbol in symbols:
                 if symbol not in symbol_strategies:
                     symbol_strategies[symbol] = []

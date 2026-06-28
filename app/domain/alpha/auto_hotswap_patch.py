@@ -10,10 +10,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable, Protocol
+from typing import Any, Protocol
 
 from app.core.event_bus import EVENT_PRIORITY_HIGH, Event, get_event_bus
 from app.core.logger import get_logger
+from app.domain.alpha.evolution_tournament import EvolutionTournament, get_tournament
 
 logger = get_logger(__name__)
 

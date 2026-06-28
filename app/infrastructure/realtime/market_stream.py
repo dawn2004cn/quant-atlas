@@ -40,7 +40,6 @@ import asyncio
 import json
 
 
-import logging
 
 
 import time
@@ -49,7 +48,7 @@ import time
 from dataclasses import dataclass, field
 
 
-from typing import Any, Callable, Generator
+from collections.abc import Callable
 
 
 
@@ -837,7 +836,7 @@ class AsyncMarketStream:
 
 
 
-    def __aiter__(self) -> "AsyncMarketStream":
+    def __aiter__(self) -> AsyncMarketStream:
 
 
         return self

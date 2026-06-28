@@ -12,12 +12,10 @@ Usage:
 """
 
 
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-import numpy as np
 
 
 from app.core.logger import get_logger

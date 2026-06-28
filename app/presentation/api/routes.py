@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import logging
 from flask import Blueprint
-from flask_login import login_required
 
 from app.core.registry import discover_routes
 
@@ -271,11 +270,11 @@ def create_api_blueprint(
     enable_rd_agent: bool = False,
 ):
     """Create the API v1 blueprint with all routes registered.
-    
+
     Routes are registered in two phases:
     1. Auto-discovered routes (from @register_routes decorator)
     2. Legacy routes (manual imports, for backward compatibility)
-    
+
     Special cases:
     - register_admin_stock_cache_routes has a different signature
     """

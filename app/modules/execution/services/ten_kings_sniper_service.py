@@ -1,7 +1,6 @@
 from __future__ import annotations
 from app.domain.dto.service_result import GenericResponseDTO
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 from app.core.base_service import BaseApplicationService
 from app.domain.sniper_entities import SniperSelection, MarketRegime
 
@@ -28,7 +27,7 @@ class TenKingsSniperService(BaseApplicationService):
     async def run_daily_scan(self) -> GenericResponseDTO:
         """执行每日狙击扫描。"""
         self.logger.info("启动天王狙击系统扫描...")
-        
+
         # 1. 判定市场状态 (Regime Analysis)
         regime_enum = self._regime.get_market_regime()
         regime_val = regime_enum.value
@@ -36,7 +35,7 @@ class TenKingsSniperService(BaseApplicationService):
 
         # 2. 确定武器库 (Weapon Array)
         strategies = self._get_strategies_by_regime(regime_enum)
-        
+
         # 3. 初始池筛选 (全 A 扫描)
         candidates = []
         for strat in strategies:
@@ -48,7 +47,7 @@ class TenKingsSniperService(BaseApplicationService):
                     candidates.append(item)
             except Exception as e:
                 self.logger.warning(f"策略 {strat} 执行失败或未实现: {e}")
-        
+
         if not candidates:
             self.logger.info("全 A 扫描未发现符合天王策略的标的。")
             return {"ok": True, "message": "未发现符合天王策略的标的", "count": 0}
@@ -56,7 +55,7 @@ class TenKingsSniperService(BaseApplicationService):
         # 4. 7+1 AI 投委会评审 (Multi-Agent Consensus)
         # 异步调用投委会评审逻辑
         committee_results = await self._ai.run_committee_debate(candidates, regime_val)
-        
+
         # 5. 模拟盘入场 (Execution)
         final_picks = committee_results.get("final_picks", [])[:5]
         # ... (后续入场记录代码保持不变)
@@ -65,10 +64,10 @@ class TenKingsSniperService(BaseApplicationService):
             # 资金管理：平分 50w，每只标的 10w
             entry_price = pick.get("price")
             if not entry_price: continue
-            
+
             shares = int((self._total_capital / 5) / (entry_price * 100)) * 100
             if shares == 0: continue
-            
+
             selection = SniperSelection(
                 symbol=pick["code"],
                 name=pick["name"],
@@ -82,16 +81,16 @@ class TenKingsSniperService(BaseApplicationService):
                 stop_loss=entry_price * 0.93, # 默认 7% 止损
                 take_profit=entry_price * 1.15 # 默认 15% 止盈
             )
-            id = self._repo.save(selection)
+            self._repo.save(selection)
             new_positions.append(pick["code"])
-            
+
         return {"ok": True, "count": len(new_positions), "picks": new_positions}
 
-    def list_active_holdings(self) -> List[SniperSelection]:
+    def list_active_holdings(self) -> list[SniperSelection]:
         """当前持仓（供 API 层使用，避免直接访问仓储）。"""
         return self._repo.list_active()
 
-    def get_selection_detail(self, selection_id: int) -> Optional[Dict[str, Any]]:
+    def get_selection_detail(self, selection_id: int) -> dict[str, Any] | None:
         """按 ID 获取选股记录摘要；不存在返回 None。"""
         getter = getattr(self._repo, "get_selection_summary", None)
         if callable(getter):
@@ -104,17 +103,17 @@ class TenKingsSniperService(BaseApplicationService):
         for pos in active:
             quote = self._market.get_quote(pos.symbol)
             if not quote: continue
-            
+
             curr_price = float(quote.get("price", pos.current_price))
             pnl_amount = (curr_price - pos.initial_price) * pos.shares
             pnl_pct = (curr_price / pos.initial_price - 1) * 100
-            
+
             status = "holding"
             if curr_price <= pos.stop_loss:
                 status = "sold_loss"
             elif curr_price >= pos.take_profit:
                 status = "sold_win"
-                
+
             self._repo.update_status(pos.id, curr_price, status, pnl_amount, pnl_pct)
 
     def _map_regime(self, data: object) -> MarketRegime:
@@ -125,7 +124,7 @@ class TenKingsSniperService(BaseApplicationService):
         if "bear" in s: return MarketRegime.BEAR
         return MarketRegime.SIDEWAYS
 
-    def _get_strategies_by_regime(self, regime: MarketRegime) -> List[str]:
+    def _get_strategies_by_regime(self, regime: MarketRegime) -> list[str]:
         if regime == MarketRegime.BULL:
             return ["MinerviniVCPStrategy", "ProGapMomentumStrategy", "IchimokuCloudStrategy"]
         if regime == MarketRegime.BEAR:

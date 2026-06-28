@@ -3,7 +3,7 @@
 Higher weight on lower-volatility names so each asset contributes similar vol.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -15,8 +15,8 @@ class EqualVolatilityOptimizer(BaseOptimizer):
     """Inverse-volatility weights without a full covariance model."""
 
     def _build_context(
-        self, window: pd.DataFrame, active: List[str]
-    ) -> "Dict[str, Any] | None":
+        self, window: pd.DataFrame, active: list[str]
+    ) -> "dict[str, Any] | None":
         """Rolling per-asset volatilities.
 
         Args:
@@ -31,7 +31,7 @@ class EqualVolatilityOptimizer(BaseOptimizer):
             return None
         return {"vols": vols}
 
-    def _calc_weights(self, ctx: Dict[str, Any]) -> np.ndarray:
+    def _calc_weights(self, ctx: dict[str, Any]) -> np.ndarray:
         """Inverse-volatility weights."""
         inv_vol = 1.0 / ctx["vols"]
         return (inv_vol / inv_vol.sum()).values

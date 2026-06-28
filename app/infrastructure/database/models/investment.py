@@ -2,9 +2,8 @@ from __future__ import annotations
 """ORM models for Investment Managers, Portfolios, and User Race."""
 
 
-from typing import Optional
-from sqlalchemy import Index, String, Integer, Double, ForeignKey, Text, SmallInteger, BIGINT, PrimaryKeyConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Index, String, Integer, Double, Text, SmallInteger, BIGINT, PrimaryKeyConstraint
+from sqlalchemy.orm import Mapped, mapped_column
 
 from ..orm import Base
 
@@ -17,7 +16,7 @@ class InvestmentManager(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     bio: Mapped[str] = mapped_column(Text, nullable=False)
     cohort: Mapped[str] = mapped_column(String(16), nullable=False)
-    deployed_at: Mapped[Optional[str]] = mapped_column(String(32))
+    deployed_at: Mapped[str | None] = mapped_column(String(32))
     active: Mapped[int] = mapped_column(SmallInteger, default=0, index=True)
     tagline: Mapped[str] = mapped_column(String(512), default="")
     specialty: Mapped[str] = mapped_column(String(512), default="")

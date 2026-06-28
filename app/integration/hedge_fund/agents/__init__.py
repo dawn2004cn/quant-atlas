@@ -2,7 +2,7 @@ from __future__ import annotations
 """AI Hedge Fund Agents - 18 Master Traders.
 
 This module integrates all 18 agents from ai-hedge-fund project:
-- 12 Legendary Investors: Warren Buffett, Charlie Munger, Ben Graham, Bill Ackman, Cathie Wood, 
+- 12 Legendary Investors: Warren Buffett, Charlie Munger, Ben Graham, Bill Ackman, Cathie Wood,
   Michael Burry, Peter Lynch, Phil Fisher, Stanley Druckenmiller, Mohnish Pabrai, Nassim Taleb, Aswath Damodaran
 - 6 Professional Analysts: Valuation, Fundamentals, Technicals, Sentiment, Risk Manager, Portfolio Manager
 

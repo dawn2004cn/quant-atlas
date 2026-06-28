@@ -1,7 +1,7 @@
 from enum import Enum
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 class EvidenceType(Enum):
     ALPHA_FACTOR = "alpha_factor"
@@ -12,6 +12,6 @@ class EvidenceType(Enum):
 class EvidenceDTO(BaseModel):
     id: str
     type: EvidenceType
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     created_at: datetime = Field(default_factory=datetime.now)
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None

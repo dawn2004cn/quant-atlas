@@ -86,12 +86,13 @@ class TradingAgentsService:
         *,
         llm_provider_service: Any = None,
         checkpointer_handle: CheckpointerHandle | None = None,
-        fingpt_application_service: "FinGPTApplicationService | None" = None,
+        fingpt_application_service: FinGPTApplicationService | None = None,
     ) -> None:
         self._cp_handle = checkpointer_handle or create_checkpointer_handle_from_env()
         self._llm = llm or _default_llm()
         # Store reference for user-aware config resolution
         self._llm_provider_service = llm_provider_service
+        self._fingpt_application_service = fingpt_application_service
         self._graph = build_custom_trading_graph(
             self._llm,
             checkpointer=self._cp_handle.saver,
@@ -133,7 +134,7 @@ class TradingAgentsService:
                 self._graph = build_custom_trading_graph(
                     user_llm,
                     checkpointer=self._cp_handle.saver,
-                    fingpt_application_service=fingpt_application_service,
+                    fingpt_application_service=self._fingpt_application_service,
                 )
 
         prev_log: list[str] = []

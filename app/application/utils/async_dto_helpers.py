@@ -6,7 +6,10 @@ to use the new architecture.
 """
 
 
-from typing import Any, Callable, TypeVar, Generic
+from typing import Any, TypeVar, Generic
+from collections.abc import Callable
+
+T = TypeVar('T')
 
 from app.domain.dto import (
     QuoteDTO,
@@ -26,12 +29,12 @@ DTOFunc = Callable[..., Any]
 
 class DTOWrapper(Generic[T]):
     """Wrapper to convert dict-returning functions to return DTOs.
-    
+
     Usage:
         @DTOWrapper(QuoteDTO)
         def get_quote(code: str) -> dict:
             return service.get_quote(code)
-            
+
         # Now returns QuoteDTO instead of dict
         quote = await get_quote('600519')
     """
@@ -113,13 +116,13 @@ def dict_to_sentiment(data: dict) -> MarketSentimentDTO | None:
 
 def add_async_methods(cls):
     """Class decorator to add async versions of sync methods.
-    
+
     Usage:
         @add_async_methods
         class MyService:
             def get_data(self, key):
                 return self._cache.get(key)
-                
+
             # Now also has:
             # async def get_data_async(self, key)
     """

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class CollaborationService:
@@ -13,7 +13,7 @@ class CollaborationService:
     ) -> None:
         self._repo = collaboration_repository or repository
 
-    def create_team(self, user_id: int, name: str, slug: Optional[str] = None) -> Dict[str, Any]:
+    def create_team(self, user_id: int, name: str, slug: str | None = None) -> dict[str, Any]:
         """Create a new team and assign the creator as owner."""
         tenant = self._repo.ensure_personal_tenant(user_id)
         team_slug = slug or name.lower().replace(" ", "-")
@@ -24,7 +24,7 @@ class CollaborationService:
             "team": {"id": team.id, "slug": team.slug, "name": team.name},
         }
 
-    def get_user_context(self, user_id: int) -> Dict[str, Any]:
+    def get_user_context(self, user_id: int) -> dict[str, Any]:
         """Return the user's tenant + team context."""
         tenant = self._repo.ensure_personal_tenant(user_id)
         teams = self._repo.list_user_teams(user_id)

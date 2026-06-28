@@ -11,7 +11,6 @@ import json
 import os
 import threading
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional
 
 from flask import request
 from flask_socketio import emit, join_room, leave_room
@@ -20,7 +19,7 @@ from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
-_rooms: Dict[str, set[str]] = {}
+_rooms: dict[str, set[str]] = {}
 _room_lock = threading.Lock()
 
 _REDIS_PUB = None

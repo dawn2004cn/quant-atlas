@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import List, Optional
 
 
 class FactorContributionDTO(BaseModel):
@@ -51,16 +50,16 @@ class AttributionReportDTO(BaseModel):
     strategy_name: str
     period: str
     scope: str = "portfolio"
-    symbol: Optional[str] = None
+    symbol: str | None = None
     total_return: float
     market_effect: MarketEffectDTO
-    factors: List[FactorContributionDTO] = Field(default_factory=list)
-    style_contributions: List[StyleContributionDTO] = Field(default_factory=list)
-    slippage: Optional[SlippageContributionDTO] = None
-    sectors: List[SectorContributionDTO] = Field(default_factory=list)
-    stocks: List[StockContributionDTO] = Field(default_factory=list)
-    top_contributors: List[StockContributionDTO] = Field(default_factory=list)
-    bottom_contributors: List[StockContributionDTO] = Field(default_factory=list)
+    factors: list[FactorContributionDTO] = Field(default_factory=list)
+    style_contributions: list[StyleContributionDTO] = Field(default_factory=list)
+    slippage: SlippageContributionDTO | None = None
+    sectors: list[SectorContributionDTO] = Field(default_factory=list)
+    stocks: list[StockContributionDTO] = Field(default_factory=list)
+    top_contributors: list[StockContributionDTO] = Field(default_factory=list)
+    bottom_contributors: list[StockContributionDTO] = Field(default_factory=list)
     summary: str = ""
     generated_at: datetime = Field(default_factory=datetime.now)
 
@@ -85,7 +84,7 @@ class AttributionCompareDTO(BaseModel):
     peer_alpha: float = 0.0
     base_beta: float = 1.0
     peer_beta: float = 1.0
-    factor_rows: List[FactorCompareRowDTO] = Field(default_factory=list)
+    factor_rows: list[FactorCompareRowDTO] = Field(default_factory=list)
     summary: str = ""
 
 
@@ -153,8 +152,8 @@ class PreTradePreflightDTO(BaseModel):
     risk_score: int = 0
     trade_amount: float = 0.0
     max_trade_amount: float = 0.0
-    issues: List[PreTradeIssueDTO] = Field(default_factory=list)
-    hints: List[str] = Field(default_factory=list)
+    issues: list[PreTradeIssueDTO] = Field(default_factory=list)
+    hints: list[str] = Field(default_factory=list)
     suggested_quantity: int = 0
     atr_value: float = 0.0
     suggested_stop_loss: float = 0.0

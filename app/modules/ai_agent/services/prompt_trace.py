@@ -5,6 +5,10 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
+from app.core.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 def prompt_hash(text: str) -> str:
     """Stable SHA-256 prefix for prompt content."""

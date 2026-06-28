@@ -12,7 +12,6 @@ into departments that can execute in parallel.
 
 
 import asyncio
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -183,7 +182,7 @@ class TeamSupervisor:
 
         bullish = sum(1 for c in conclusions if c == AgentConclusion.BULLISH)
         bearish = sum(1 for c in conclusions if c == AgentConclusion.BEARISH)
-        neutral = sum(1 for c in conclusions if c == AgentConclusion.NEUTRAL)
+        sum(1 for c in conclusions if c == AgentConclusion.NEUTRAL)
 
         total = len(conclusions)
         score = (bullish - bearish) / total

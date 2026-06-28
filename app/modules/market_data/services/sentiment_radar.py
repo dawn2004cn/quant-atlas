@@ -3,10 +3,8 @@ from app.domain.dto.service_result import GenericResponseDTO
 """Market Sentiment Radar & Pulse Alert System."""
 
 
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
 
 
 from app.core.logger import get_logger
@@ -20,8 +18,8 @@ class MarketDiary:
     date: datetime
     overall_sentiment: str  # "bullish", "neutral", "bearish"
     summary: str  # Human-readable summary
-    key_events: List[str] = field(default_factory=list)
-    sector_sentiment: Dict[str, str] = field(default_factory=dict)
+    key_events: list[str] = field(default_factory=list)
+    sector_sentiment: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -47,12 +45,12 @@ class RadarConfig:
 class SentimentRadar:
     """Market sentiment radar with real-time monitoring."""
 
-    def __init__(self, config: Optional[RadarConfig] = None):
+    def __init__(self, config: RadarConfig | None = None):
         self.config = config or RadarConfig()
-        self._last_pulses: Dict[str, datetime] = {}
-        self._sentiment_history: List[MarketDiary] = []
+        self._last_pulses: dict[str, datetime] = {}
+        self._sentiment_history: list[MarketDiary] = []
 
-    def generate_market_diary(self, market_data: Dict) -> MarketDiary:
+    def generate_market_diary(self, market_data: dict) -> MarketDiary:
         """Generate daily market diary."""
         today = datetime.now()
 
@@ -84,7 +82,7 @@ class SentimentRadar:
         self,
         sentiment: str,
         index_change: float,
-        hot_sectors: List[str]
+        hot_sectors: list[str]
     ) -> str:
         """Generate human-readable diary summary."""
         summaries = {
@@ -111,9 +109,9 @@ class SentimentRadar:
 
     def check_for_pulses(
         self,
-        stocks: List[Dict],
-        news_data: List[Dict]
-    ) -> List[SentimentPulse]:
+        stocks: list[dict],
+        news_data: list[dict]
+    ) -> list[SentimentPulse]:
         """Check for sentiment pulses."""
         pulses = []
         now = datetime.now()
@@ -155,12 +153,12 @@ class SentimentRadar:
                     pulse_type="sector",
                     sentiment_score=score,
                     velocity="rising" if score > 0 else "falling",
-                    trigger_reason=f"板块情绪突变"
+                    trigger_reason="板块情绪突变"
                 ))
 
         return sorted(pulses, key=lambda x: abs(x.sentiment_score), reverse=True)[:10]
 
-    def _calculate_sentiment_score(self, stock: Dict, news_data: List[Dict]) -> float:
+    def _calculate_sentiment_score(self, stock: dict, news_data: list[dict]) -> float:
         """Calculate sentiment score for a stock."""
         score = 0.0
 
@@ -190,7 +188,7 @@ class SentimentRadar:
 
         return max(-1, min(1, score))
 
-    def _detect_velocity(self, stock: Dict) -> str:
+    def _detect_velocity(self, stock: dict) -> str:
         """Detect sentiment velocity."""
         # In real implementation, would compare to historical data
         volume_ratio = stock.get("volume_ratio", 1)
@@ -200,7 +198,7 @@ class SentimentRadar:
             return "rising" if change_pct > 0 else "falling"
         return "stable"
 
-    def _get_trigger_reason(self, score: float, stock: Dict) -> str:
+    def _get_trigger_reason(self, score: float, stock: dict) -> str:
         """Get human-readable trigger reason."""
         if score > 0.7:
             return f"股价大涨 {stock.get('change_pct', 0):.1f}%，成交量激增"
@@ -212,9 +210,9 @@ class SentimentRadar:
             return f"股价下跌 {abs(stock.get('change_pct', 0)):.1f}%"
         return "市场情绪异常"
 
-    def _aggregate_sector_sentiment(self, stocks: List[Dict]) -> GenericResponseDTO:
+    def _aggregate_sector_sentiment(self, stocks: list[dict]) -> GenericResponseDTO:
         """Aggregate sentiment by sector."""
-        sector_scores: Dict[str, List[float]] = {}
+        sector_scores: dict[str, list[float]] = {}
 
         for stock in stocks:
             sector = stock.get("sector", "未知")
@@ -230,7 +228,7 @@ class SentimentRadar:
             if scores
         }
 
-    def get_recent_pulses(self, hours: int = 24) -> List[SentimentPulse]:
+    def get_recent_pulses(self, hours: int = 24) -> list[SentimentPulse]:
         """Get recent pulses within specified hours."""
         cutoff = datetime.now() - timedelta(hours=hours)
         return [
@@ -238,7 +236,7 @@ class SentimentRadar:
             if pulse.timestamp > cutoff
         ]
 
-    def _get_all_pulses(self) -> List[SentimentPulse]:
+    def _get_all_pulses(self) -> list[SentimentPulse]:
         """Get all tracked pulses."""
         # In production, would fetch from database/cache
         return []

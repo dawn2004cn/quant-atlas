@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any
 
 from app.core.event_bus import get_event_bus
 from app.core.logger import get_logger

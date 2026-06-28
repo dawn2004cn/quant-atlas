@@ -3,10 +3,10 @@ from app.domain.dto.service_result import GenericResponseDTO
 """Stock Services - Stock data services with typed DTOs."""
 
 
-from typing import Any, Optional
+from typing import Any
 
 from app.core.logger import get_logger
-from app.domain.dto import BarData, IndicatorResult, HistoryData
+from app.domain.dto import BarData
 from app.domain.enums import MarketCode
 from app.domain.shared.symbol_normalizer import SymbolNormalizer
 from app.core.base_service import BaseApplicationService
@@ -161,7 +161,7 @@ class StockApplicationService(BaseApplicationService):
         if not self._indicator_provider:
             return {}
         return self._indicator_provider.calculate(history)
-    
+
     def search_stocks(
         self,
         query: str,
@@ -312,7 +312,7 @@ class StockApplicationService(BaseApplicationService):
                     return filter_sort_history(cached, start, end)
             except Exception as e:
                 self.logger.warning(f"Cache lookup failed: {e}")
-        
+
         if self._market_provider and hasattr(self._market_provider, "get_stock_history"):
             try:
                 from app.domain.enums import MarketCode

@@ -7,22 +7,13 @@ Supports ``engine`` for backtest engine (daily/options, default daily).
 Usage: ``python -m backtest.runner <run_dir>``
 """
 
-import importlib.util
 import json
-import logging
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, model_validator, field_validator
-
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError as e:
-    logger.warning("runner.py.unknown: %s", e)
 
 from backtest.loaders.registry import (
     FALLBACK_CHAINS,
@@ -38,6 +29,12 @@ from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError as e:
+    logger.warning("runner.py.unknown: %s", e)
+
 _VALID_INTERVALS = {"1m", "5m", "15m", "30m", "1H", "4H", "1D"}
 _VALID_ENGINES = {"daily", "options"}
 _VALID_SOURCES = {"tushare", "okx", "yfinance", "akshare", "ccxt", "auto"}
@@ -48,7 +45,7 @@ class BacktestConfigSchema(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    codes: List[str]
+    codes: list[str]
     start_date: str
     end_date: str
     source: str = "tushare"
@@ -57,7 +54,7 @@ class BacktestConfigSchema(BaseModel):
 
     @field_validator("codes")
     @classmethod
-    def codes_not_empty(cls, v: List[str]) -> List[str]:
+    def codes_not_empty(cls, v: list[str]) -> list[str]:
         if not v:
             raise ValueError("codes must be a non-empty list")
         if any(not c.strip() for c in v):
@@ -177,7 +174,7 @@ def _detect_source(code: str) -> str:
     return _MARKET_TO_SOURCE.get(market, "tushare")
 
 
-def _group_codes_by_market(codes: List[str]) -> Dict[str, List[str]]:
+def _group_codes_by_market(codes: list[str]) -> dict[str, list[str]]:
     """Group symbols by detected market type.
 
     Args:
@@ -186,14 +183,14 @@ def _group_codes_by_market(codes: List[str]) -> Dict[str, List[str]]:
     Returns:
         Mapping market_type -> list of codes.
     """
-    groups: Dict[str, List[str]] = {}
+    groups: dict[str, list[str]] = {}
     for code in codes:
         market = _detect_market(code)
         groups.setdefault(market, []).append(code)
     return groups
 
 
-def _group_codes_by_source(codes: List[str]) -> Dict[str, List[str]]:
+def _group_codes_by_source(codes: list[str]) -> dict[str, list[str]]:
     """Group symbols by inferred source (back-compat).
 
     Args:
@@ -202,7 +199,7 @@ def _group_codes_by_source(codes: List[str]) -> Dict[str, List[str]]:
     Returns:
         Mapping source -> list of codes.
     """
-    groups: Dict[str, List[str]] = {}
+    groups: dict[str, list[str]] = {}
     for code in codes:
         src = _detect_source(code)
         groups.setdefault(src, []).append(code)
@@ -227,7 +224,7 @@ def _get_loader(source: str):
         raise
 
 
-def _normalize_codes(codes: List[str], source: str) -> List[str]:
+def _normalize_codes(codes: list[str], source: str) -> list[str]:
     """Normalize symbol strings for a source.
 
     Args:
@@ -352,7 +349,7 @@ def main(run_dir: Path) -> None:
         market_engine.run_backtest(config, loader, signal_engine, run_dir, bars_per_year=bars_per_year)
 
 
-def _create_market_engine(source: str, config: dict, codes: List[str]):
+def _create_market_engine(source: str, config: dict, codes: list[str]):
     """Create the appropriate market engine based on data source and market type.
 
     Routing priority:
@@ -442,7 +439,7 @@ def _is_china_futures(code: str) -> bool:
     return False
 
 
-def _detect_submarket(codes: List[str]) -> str:
+def _detect_submarket(codes: list[str]) -> str:
     """Detect US vs HK from symbol suffixes.
 
     Args:
@@ -457,7 +454,7 @@ def _detect_submarket(codes: List[str]) -> str:
     return "us"
 
 
-def _detect_primary_source(codes: List[str], source: str) -> str:
+def _detect_primary_source(codes: list[str], source: str) -> str:
     """Pick primary source for annualization (e.g. bars per year).
 
     Args:
@@ -476,7 +473,7 @@ def _detect_primary_source(codes: List[str], source: str) -> str:
     return max(groups, key=lambda s: len(groups[s]))
 
 
-def _fetch_auto(codes: List[str], config: dict, interval: str = "1D") -> dict:
+def _fetch_auto(codes: list[str], config: dict, interval: str = "1D") -> dict:
     """Auto mode: route each market group through fallback chain.
 
     Args:

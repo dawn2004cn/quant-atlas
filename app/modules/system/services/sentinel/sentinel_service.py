@@ -3,9 +3,7 @@ from app.domain.dto.service_result import GenericResponseDTO
 """Sentinel Service: Real-time risk and health monitoring."""
 
 
-import logging
 import time
-from typing import Any, Optional
 
 from app.core.logger import get_logger
 
@@ -35,7 +33,7 @@ class SentinelService:
         logger.critical(f"EMERGENCY STOP TRIGGERED: {reason}")
         # Call risk services to cancel all orders and liquidate
         self.risk_service.liquidate_all_positions()
-        
+
     def monitor_loop(self):
         """Main loop for Sentinel monitoring."""
         while self.is_active:

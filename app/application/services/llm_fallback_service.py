@@ -6,7 +6,6 @@ it in the ``ChatResponse.usage`` dict.
 
 from __future__ import annotations
 
-import logging
 import time
 from typing import Any
 

@@ -6,7 +6,8 @@ Provides a thin abstraction over CacheManager so that application-layer
 services can be constructed without reaching into infrastructure.
 """
 
-from typing import Any, Callable, Protocol
+from typing import Any, Protocol
+from collections.abc import Callable
 
 
 class CachePort(Protocol):

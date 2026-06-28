@@ -26,7 +26,6 @@ warnings.warn(
 """Bound backtest engine factory for application services."""
 
 from collections.abc import Callable
-from typing import Any
 from app.domain.ports.quant_ports import IBacktestEngine
 
 

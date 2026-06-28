@@ -1,8 +1,7 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any
 
 class BotStatusDTO(BaseModel):
-    running_bots: List[str]
+    running_bots: list[str]
     open_trades_count: int
 
 class BotActionResponseDTO(BaseModel):

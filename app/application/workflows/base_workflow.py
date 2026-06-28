@@ -5,13 +5,12 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
 
-from app.domain.agent_workflow import AgentWorkflow, WorkflowBuilder, WorkflowState, StepStatus
-from app.domain.enums import MarketCode
+from app.domain.agent_workflow import WorkflowBuilder, WorkflowState, StepStatus
 from app.infrastructure.capabilities.registry import CapabilityRegistry
 from app.infrastructure.messaging.task_progress_store import TaskProgressStore
 
 from .healing import RetryPolicy, CircuitBreaker, with_retry
-from .optimizer import WorkflowOptimizer, StepMetrics
+from .optimizer import WorkflowOptimizer
 
 
 class BaseWorkflow(ABC):

@@ -8,11 +8,9 @@ name via ``apply_matplotlib_cjk_font``.
 """
 
 
-import logging
 import os
 import shutil
 from pathlib import Path
-from typing import Optional
 
 
 from app.core.logger import get_logger
@@ -57,7 +55,7 @@ def _system_cjk_candidates() -> list[Path]:
     return candidates
 
 
-def cjk_font_path(*, allow_download: bool = True, timeout: float = 10.0) -> Optional[Path]:
+def cjk_font_path(*, allow_download: bool = True, timeout: float = 10.0) -> Path | None:
     """Resolve a CJK font file path.
 
     Resolution order:

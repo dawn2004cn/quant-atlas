@@ -2,7 +2,7 @@ from __future__ import annotations
 """Selection Tools - 选股和自选股相关工具."""
 
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 from langchain_core.tools import tool
@@ -51,8 +51,8 @@ def _ensure_dict(v: Any) -> dict[str, Any] | None:
 @tool
 def stock_selector(
     model_name: str,
-    criteria: Optional[dict[str, Any]] = None,
-    screening_criteria: Optional[dict[str, Any]] = None,
+    criteria: dict[str, Any] | None = None,
+    screening_criteria: dict[str, Any] | None = None,
 ) -> StockSelectorToolResult:
     """执行选股扫描."""
     from ..application.services.tool_facade_service import get_tool_facade_service

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 from app.core.key_encryption import KeyEncryptionService
 from app.core.logger import get_logger
@@ -14,7 +13,7 @@ logger = get_logger(__name__)
 class KeyManagementService:
     """Securely store, retrieve, and rotate API keys."""
 
-    def __init__(self, session=None, encryption_key: Optional[str] = None):
+    def __init__(self, session=None, encryption_key: str | None = None):
         self._session = session
         self._kms = KeyEncryptionService(secret_key=encryption_key)
 

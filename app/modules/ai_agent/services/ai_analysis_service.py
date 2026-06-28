@@ -2,7 +2,8 @@ from __future__ import annotations
 """AI analysis application service."""
 
 from datetime import datetime, timezone
-from typing import Any, Iterator, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
+from collections.abc import Iterator
 from uuid import uuid4
 
 from app.core.base_service import BaseApplicationService
@@ -30,10 +31,10 @@ class AiAnalysisService(BaseApplicationService):
 
     def __init__(
         self,
-        stock_service: "StockApplicationService",
+        stock_service: StockApplicationService,
         ai_adapter: AiAnalysisPort,
         *,
-        fingpt_application_service: "FinGPTApplicationService | None" = None,
+        fingpt_application_service: FinGPTApplicationService | None = None,
         system_health_banner_service: Any | None = None,
         parameter_store: Any | None = None,
         strategy_sop_service: Any | None = None,
@@ -67,7 +68,7 @@ class AiAnalysisService(BaseApplicationService):
         hypothesis_id: str | None = None,
     ) -> dict[str, Any]:
         detail = self._stock_service.get_stock_detail(symbol, market)
-        
+
         # Handle StockDetailResult - convert to dict if needed
         if hasattr(detail, "model_dump"):
             detail_dict = detail.model_dump()
@@ -75,9 +76,9 @@ class AiAnalysisService(BaseApplicationService):
             detail_dict = detail.to_dict()
         else:
             detail_dict = {"profile": {}, "indicators": {}}
-        
+
         profile = detail_dict.get("profile", {}) or {}
-        
+
         # Try to get news from stock service
         news = []
         industry_news = []
@@ -92,7 +93,7 @@ class AiAnalysisService(BaseApplicationService):
                     news = snap_data.get("news", []) or []
         except Exception as e:
             logger.warning("ai_analysis_service.py.analyze: %s", e)
-        
+
         context = {
             "quote": profile.get("realtime", {}),
             "indicators": detail_dict.get("indicators", {}) or {},
@@ -137,11 +138,11 @@ class AiAnalysisService(BaseApplicationService):
                 2,
             )
         self._maybe_record_fingpt_sentiment(symbol, market, ai_payload)
-        
+
         # Phase 3.2: Close the Fast Path Loop
         # Push AI-derived parameters to the Reflex Map
         self._sync_reflex_parameters(symbol, market, ai_payload)
-        
+
         decision = self._build_decision_context(
             symbol=symbol,
             market=market,
@@ -410,19 +411,19 @@ class AiAnalysisService(BaseApplicationService):
         """Push AI findings to the FastPathParameterStore for microsecond access."""
         if self._param_store is None:
             return
-        
+
         try:
             # Extract numbers from AI narrative or structured payload
             verdict = (ai_payload or {}).get("verdict", {})
-            
+
             # 1. Update stop distance (Reflex Path: Pre-Trade Validation)
             stop_dist = verdict.get("suggested_stop_distance", 0.02)
             self._param_store.set_parameter(symbol, "stop_distance", stop_dist)
-            
+
             # 2. Update risk multiplier (Reflex Path: Position Sizing)
             risk_mult = verdict.get("risk_multiplier", 1.0)
             self._param_store.set_parameter(symbol, "risk_multiplier", risk_mult)
-            
+
             # 3. Apply SOP (Strategy Operating Procedure) if available
             if self._sop_service:
                 try:
@@ -441,7 +442,7 @@ class AiAnalysisService(BaseApplicationService):
                         self._param_store.set_parameter(symbol, "risk_multiplier", sop_params.risk_multiplier)
                 except Exception as sop_err:
                     logger.warning("SOP computation failed for %s: %s", symbol, sop_err)
-            
+
             logger.debug("FastPath Sync [%s]: stop=%s, risk=%s", symbol, stop_dist, risk_mult)
         except Exception as e:
             logger.warning("FastPath Sync failed for %s: %s", symbol, e)

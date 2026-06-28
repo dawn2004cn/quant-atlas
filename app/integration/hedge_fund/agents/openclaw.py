@@ -11,7 +11,6 @@ The result is a powerful unified agent system where:
 """
 
 
-import os
 from pathlib import Path
 from typing import Any
 
@@ -58,12 +57,12 @@ def load_identity_md(workspace: str) -> str:
 def get_openclaw_personalities() -> dict[str, dict[str, str]]:
     """Load all Openclaw workspace personalities."""
     personalities = {}
-    
+
     for short_name, workspace in OPENCLAW_WORKSPACES.items():
         souls = load_soul_md(workspace)
         agents = load_agents_md(workspace)
         identity = load_identity_md(workspace)
-        
+
         if souls:
             personalities[short_name] = {
                 "workspace": workspace,
@@ -71,7 +70,7 @@ def get_openclaw_personalities() -> dict[str, dict[str, str]]:
                 "agents": agents,
                 "identity": identity,
             }
-    
+
     return personalities
 
 
@@ -83,7 +82,7 @@ def get_personality(agent_id: str) -> dict[str, str] | None:
     global OPENCLAW_PERSONALITIES
     if OPENCLAW_PERSONALITIES is None:
         OPENCLAW_PERSONALITIES = get_openclaw_personalities()
-    
+
     return OPENCLAW_PERSONALITIES.get(agent_id)
 
 
@@ -101,28 +100,28 @@ AGENT_MAPPING = {
 
 def get_enhanced_system_prompt(agent_id: str, base_prompt: str) -> str:
     """Get enhanced system prompt by combining base with Openclaw personality.
-    
+
     Args:
         agent_id: System agent ID (e.g., 'warren_buffett')
         base_prompt: Base system prompt from hedge_fund agents
-    
+
     Returns:
         Enhanced prompt combining base + Openclaw SOUL.md personality
     """
     openclaw_id = AGENT_MAPPING.get(agent_id)
     if not openclaw_id:
         return base_prompt
-    
+
     personality = get_personality(openclaw_id)
     if not personality:
         return base_prompt
-    
+
     soul = personality.get("soul", "")
     agents_md = personality.get("agents", "")
-    
+
     if not soul:
         return base_prompt
-    
+
     enhanced = f"""{base_prompt}
 
 ---
@@ -140,13 +139,13 @@ def get_enhanced_system_prompt(agent_id: str, base_prompt: str) -> str:
 ---
 
 Use your enhanced identity to communicate with unique style and personality."""
-    
+
     return enhanced
 
 
 def get_communication_style(agent_id: str) -> dict[str, Any]:
     """Get communication style for an agent.
-    
+
     Returns dict with:
     - tone: 'calm', 'enthusiastic', 'caustic', 'cold', 'academic'
     - style: 'value', 'growth', 'quantitative', 'macro', 'technical'
@@ -156,7 +155,7 @@ def get_communication_style(agent_id: str) -> dict[str, Any]:
     openclaw_id = AGENT_MAPPING.get(agent_id)
     if not openclaw_id:
         return {"style": "default", "tone": "neutral", "typical_phrases": [], "emoji": "📊"}
-    
+
     styles = {
         "buffett": {
             "tone": "calm_wisdom",
@@ -210,7 +209,7 @@ def get_communication_style(agent_id: str) -> dict[str, Any]:
             "emoji": "🌍",
         },
     }
-    
+
     return styles.get(openclaw_id, {"tone": "neutral", "style": "default", "typical_phrases": [], "emoji": "📊"})
 
 

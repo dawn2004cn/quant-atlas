@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, field_validator
 from app.application.errors import ValidationError
 from app.core.registry import register_routes
 from ...v1_context import ApiV1Context
-from ...common import ok_resource, ok_response, parse_market
+from ...common import ok_resource, parse_market
 from ...decorators import service_fallback
 from ...dto_validation import validate_request
 from ...stock_route_helpers import enrich_quote_resource
@@ -29,7 +29,6 @@ class StockQuoteRequest(BaseModel):
 
 @register_routes(name="stock_quote", context="market_data", description="Stock quotes")
 def register_stock_quote(blueprint: Blueprint, ctx: ApiV1Context) -> None:
-    legacy = ctx.enable_legacy_response_fields
     stock_service = ctx.stock_service
 
     @blueprint.get("/quotes")

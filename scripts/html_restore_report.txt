@@ -1,0 +1,14 @@
+发现 8 个有乱码的文件
+SKIP: app/presentation/web/templates/agent_center.html (历史版本也有乱码)
+FIXED: app/presentation/web/templates/integration_hub.html
+FIXED: app/presentation/web/templates/observability.html
+FIXED: app/presentation/web/templates/optimize.html
+FIXED: app/presentation/web/templates/profile.html
+FIXED: app/presentation/web/templates/retail_assistant.html
+FIXED: app/presentation/web/templates/users_manage.html
+FIXED: app/presentation/web/templates/user_spectrum_hub.html
+
+总计: 8 个文件
+FIXED: 7 个
+FAILED: 0 个
+SKIPPED: 1 个

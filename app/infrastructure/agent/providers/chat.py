@@ -6,7 +6,7 @@ Ported from Vibe-Trading.
 
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from app.infrastructure.agent.providers.llm import build_llm
 
@@ -23,14 +23,14 @@ def _dedupe_finish_reason(raw: str) -> str:
 class ToolCallRequest:
     id: str
     name: str
-    arguments: Dict[str, Any]
+    arguments: dict[str, Any]
 
 
 @dataclass
 class LLMResponse:
-    content: Optional[str] = None
-    tool_calls: List[ToolCallRequest] = field(default_factory=list)
-    reasoning_content: Optional[str] = None
+    content: str | None = None
+    tool_calls: list[ToolCallRequest] = field(default_factory=list)
+    reasoning_content: str | None = None
     finish_reason: str = "stop"
 
     @property
@@ -41,11 +41,11 @@ class LLMResponse:
 class ChatLLM:
     """LLM chat client with function calling support."""
 
-    def __init__(self, model_name: Optional[str] = None) -> None:
+    def __init__(self, model_name: str | None = None) -> None:
         self.model_name = model_name
         self._llm = build_llm(model_name=model_name)
 
-    def chat(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None, timeout: Optional[int] = None) -> LLMResponse:
+    def chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None, timeout: int | None = None) -> LLMResponse:
         llm = self._llm.bind_tools(tools) if tools else self._llm
         config = {"timeout": timeout} if timeout else {}
         ai_message = llm.invoke(messages, config=config)
@@ -53,10 +53,10 @@ class ChatLLM:
 
     def stream_chat(
         self,
-        messages: List[Dict[str, Any]],
-        tools: Optional[List[Dict[str, Any]]] = None,
-        on_text_chunk: Optional[Any] = None,
-        timeout: Optional[int] = None,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]] | None = None,
+        on_text_chunk: Any | None = None,
+        timeout: int | None = None,
     ) -> LLMResponse:
         try:
             llm = self._llm.bind_tools(tools) if tools else self._llm
@@ -72,7 +72,7 @@ class ChatLLM:
         except Exception:
             return self.chat(messages, tools=tools, timeout=timeout)
 
-    async def achat(self, messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None, timeout: Optional[int] = None) -> LLMResponse:
+    async def achat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None, timeout: int | None = None) -> LLMResponse:
         llm = self._llm.bind_tools(tools) if tools else self._llm
         config = {"timeout": timeout} if timeout else {}
         ai_message = await llm.ainvoke(messages, config=config)

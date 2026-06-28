@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 from datetime import datetime
-from typing import Any, List, Optional, Dict
+from typing import Any
 from app.domain.enums import MarketCode
 from app.domain.ports import MarketDataProvider, IndicatorProvider
 from app.domain.dto.risk_dto import RiskAlertDTO, WatchlistRiskReportDTO, RiskLevel
-from app.domain.dto.service_result import GenericResponseDTO
 
 
 class SupportResistanceCalculator:
@@ -14,9 +13,9 @@ class SupportResistanceCalculator:
 
     @staticmethod
     def calculate_levels(
-        history: List[Dict[str, Any]],
+        history: list[dict[str, Any]],
         current_price: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """计算支撑位和压力位."""
         if not history or current_price <= 0:
             return {
@@ -94,7 +93,7 @@ class StopLossTakeProfitCalculator:
 
     def analyze_watchlist(
         self,
-        symbols: List[str],
+        symbols: list[str],
         market: MarketCode = MarketCode.CN,
     ) -> WatchlistRiskReportDTO:
         """分析自选股列表的风险状况."""
@@ -111,7 +110,7 @@ class StopLossTakeProfitCalculator:
                     summary.medium_risk += 1
                 else:
                     summary.low_risk += 1
-                
+
                 if alert.signal == "opportunity":
                     summary.opportunities += 1
 
@@ -146,12 +145,12 @@ class StopLossTakeProfitCalculator:
     def _generate_alert(self, symbol: str, profile: dict, price: float, levels: dict, indicators: dict) -> RiskAlertDTO:
         """生成标准化风险预警 DTO."""
         name = profile.get("name", symbol)
-        change_pct = float(profile.get("change_pct", 0) or 0)
-        
+        float(profile.get("change_pct", 0) or 0)
+
         # 简化版预警逻辑
         risk_level = "low"
         signal = "hold"
-        
+
         return RiskAlertDTO(
             symbol=symbol,
             name=name,

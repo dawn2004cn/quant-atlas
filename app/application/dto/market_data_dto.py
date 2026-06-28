@@ -2,8 +2,7 @@ from __future__ import annotations
 """DTOs for Market Data services."""
 
 
-from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -13,7 +12,7 @@ class MarketSentimentDTO(BaseModel):
     recommended_categories: list[str] = Field(default_factory=list)
     benchmark: str
     analysis_at: str
-    message: Optional[str] = None
+    message: str | None = None
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MarketSentimentDTO:
@@ -62,7 +61,7 @@ class StockQuoteDTO(BaseModel):
     high: float
     low: float
     industry: str = ""
-    updated_at: Optional[str] = None
+    updated_at: str | None = None
 
 
 class BacktestRequestDTO(BaseModel):

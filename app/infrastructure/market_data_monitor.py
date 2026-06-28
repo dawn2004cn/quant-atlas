@@ -2,11 +2,10 @@ from __future__ import annotations
 """Real-time market data subscription and freshness monitoring."""
 
 
-import asyncio
-import time
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Callable, Optional
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
+from collections.abc import Callable
 from enum import Enum
 
 from app.core.logger import get_logger
@@ -91,7 +90,7 @@ class MarketDataMonitor:
 
         return snapshot
 
-    def get_quote(self, code: str) -> Optional[QuoteSnapshot]:
+    def get_quote(self, code: str) -> QuoteSnapshot | None:
         """Get current quote snapshot."""
         return self._quotes.get(code)
 
@@ -123,7 +122,7 @@ class MarketDataMonitor:
 
     def get_stats(self) -> dict[str, Any]:
         """Get monitor statistics."""
-        now = datetime.now()
+        datetime.now()
 
         freshness_counts = {
             "fresh": 0,
@@ -214,7 +213,7 @@ class DataCache:
         self._cache: dict[str, tuple[Any, datetime]] = {}
         self._default_ttl = default_ttl
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache."""
         if key not in self._cache:
             return None
@@ -228,7 +227,7 @@ class DataCache:
 
         return value
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None):
+    def set(self, key: str, value: Any, ttl: int | None = None):
         """Set value in cache."""
         ttl = ttl or self._default_ttl
         self._cache[key] = (value, datetime.now())

@@ -16,8 +16,6 @@ from app.domain.models.signal_models import (
 )
 from app.application.dto.complete_dto import (
     SignalDTO,
-    SignalListDTO,
-    SignalCreateDTO,
     SignalFilterDTO,
 )
 from app.application.events.event_bus import EventBus, EventType, publish_event

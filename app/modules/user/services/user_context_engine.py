@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
 
 from app.core.logger import get_logger
 from app.domain.user_context.models import DashboardLayoutDTO, JourneyHint, QuickAction
 from app.domain.user_context.ports import UserContextPort
-from app.presentation.api.journeys import get_journey_metadata, get_journey_names
 
 logger = get_logger(__name__)
 

@@ -163,7 +163,7 @@ def register_user_knowledge_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
             trace_id = f"trace-{_uid()}"
             task_message_store.push(
                 event="ai_committee_debate_completed",
-                task_id=f"sync-",
+                task_id="sync-",
                 task_name="inline.ai_committee_debate",
                 detail=f"投委会辩论完成: {market} · {symbol}",
                 meta={"trace_id": trace_id, "market": market, "symbol": symbol},

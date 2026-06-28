@@ -7,7 +7,7 @@ from flask_login import login_required
 from ...application.errors import ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
-from .common import ok_response, parse_market, require_ctx_service
+from .common import ok_response, parse_market
 from .request_parsers import parse_int_param
 from .v1_context import ApiV1Context
 from .decorators import service_fallback
@@ -26,7 +26,7 @@ def register_smart_briefing_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
     @service_fallback("smart_daily_briefing_service")
     def smart_daily_briefing():
         """One-click screening + personalized narrative briefing."""
-        payload = getattr(ctx, "smart_daily_briefing_service", None)
+        svc = getattr(ctx, "smart_daily_briefing_service", None)
         market = parse_market(request.args.get("market", "CN"))
         top_n = parse_int_param(request.args.get("top_n"), name="top_n", default=3, min_value=1)
         top_n = min(top_n, 10)

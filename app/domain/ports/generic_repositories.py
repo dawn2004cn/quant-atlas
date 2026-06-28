@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, Generic, List, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 T = TypeVar('T')
 
@@ -15,14 +14,14 @@ class PageRequest:
     """Pagination request."""
     page: int = 1
     page_size: int = 20
-    sort_by: Optional[str] = None
+    sort_by: str | None = None
     sort_order: str = "asc"
 
 
 @dataclass
 class PageResult(Generic[T]):
     """Pagination result."""
-    items: List[T]
+    items: list[T]
     total: int
     page: int
     page_size: int
@@ -44,12 +43,12 @@ class IRepository(ABC, Generic[T]):
     """
 
     @abstractmethod
-    def get_by_id(self, id: str) -> Optional[T]:
+    def get_by_id(self, id: str) -> T | None:
         """Get entity by ID."""
         raise NotImplementedError
 
     @abstractmethod
-    def get_all(self) -> List[T]:
+    def get_all(self) -> list[T]:
         """Get all entities."""
         raise NotImplementedError
 
@@ -68,11 +67,11 @@ class IRepository(ABC, Generic[T]):
         """Delete entity."""
         raise NotImplementedError
 
-    def find_by(self, **filters) -> List[T]:
+    def find_by(self, **filters) -> list[T]:
         """Find by keyword arguments."""
         raise NotImplementedError
 
-    def find_one_by(self, **filters) -> Optional[T]:
+    def find_one_by(self, **filters) -> T | None:
         """Find one by keyword arguments."""
         raise NotImplementedError
 
@@ -85,15 +84,15 @@ class IStockRepository(ABC):
     """Stock data repository interface."""
 
     @abstractmethod
-    def get_by_code(self, code: str) -> Optional[dict]:
+    def get_by_code(self, code: str) -> dict | None:
         raise NotImplementedError
 
     @abstractmethod
-    def search(self, query: str, limit: int = 20) -> List[dict]:
+    def search(self, query: str, limit: int = 20) -> list[dict]:
         raise NotImplementedError
 
     @abstractmethod
-    def get_by_industry(self, industry: str) -> List[dict]:
+    def get_by_industry(self, industry: str) -> list[dict]:
         raise NotImplementedError
 
 
@@ -101,11 +100,11 @@ class ITradeRepository(ABC):
     """Trade repository interface."""
 
     @abstractmethod
-    def get_positions(self, user_id: str) -> List[dict]:
+    def get_positions(self, user_id: str) -> list[dict]:
         raise NotImplementedError
 
     @abstractmethod
-    def get_orders(self, user_id: str, status: Optional[str] = None) -> List[dict]:
+    def get_orders(self, user_id: str, status: str | None = None) -> list[dict]:
         raise NotImplementedError
 
     @abstractmethod
@@ -135,7 +134,7 @@ class IUoW(ABC):
 class BaseRepository(ABC):
     """Base class for repositories with common functionality."""
 
-    def _apply_filters(self, items: List[dict], filters: dict) -> List[dict]:
+    def _apply_filters(self, items: list[dict], filters: dict) -> list[dict]:
         """Apply filters to list of items."""
         result = items
         for key, value in filters.items():
@@ -144,7 +143,7 @@ class BaseRepository(ABC):
             result = [item for item in result if item.get(key) == value]
         return result
 
-    def _paginate(self, items: List[T], page: int, page_size: int) -> PageResult[T]:
+    def _paginate(self, items: list[T], page: int, page_size: int) -> PageResult[T]:
         """Apply pagination."""
         total = len(items)
         start = (page - 1) * page_size

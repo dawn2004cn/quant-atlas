@@ -3,7 +3,6 @@
 import json
 import sqlite3
 from pathlib import Path
-from typing import Any
 
 from app.domain.ports import QuantMLFactorRepository
 from app.domain.quantml_entities import QuantMLFactor

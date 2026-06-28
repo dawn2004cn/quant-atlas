@@ -4,7 +4,7 @@
 Higher DR means more diversification per unit of risk.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -15,7 +15,7 @@ from backtest.optimizers.base import BaseOptimizer
 class MaxDiversificationOptimizer(BaseOptimizer):
     """Maximize diversification ratio (Choueifaty & Coignard)."""
 
-    def _calc_weights(self, ctx: Dict[str, Any]) -> np.ndarray:
+    def _calc_weights(self, ctx: dict[str, Any]) -> np.ndarray:
         """SLSQP max-DR weights."""
         from scipy.optimize import minimize
 

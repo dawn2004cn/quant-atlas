@@ -37,16 +37,16 @@ if _celery is not None:
         """分布式编排：获取全量代码并分发给多个 Worker。"""
         svc = _scanner_service()
         symbols = svc.get_rotation_symbols()
-        
+
         if not symbols:
             svc.refresh_market_sentiment()
             return {"ok": True, "count": 0, "message": "empty_rotation"}
-        
+
         # 分片并创建任务组
         chunks = [symbols[i : i + batch_size] for i in range(0, len(symbols), batch_size)]
         job = group(process_quote_batch_task.s(chunk) for chunk in chunks)
         job.apply_async()
-        
+
         return {
             "ok": True,
             "total_symbols": len(symbols),

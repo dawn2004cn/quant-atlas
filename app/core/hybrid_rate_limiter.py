@@ -10,7 +10,6 @@ import math
 
 import time
 
-from typing import Optional
 
 
 
@@ -220,7 +219,7 @@ class HybridRateLimiter:
 
 
 
-    def _blocked_redis(self, key: str) -> Optional[bool]:
+    def _blocked_redis(self, key: str) -> bool | None:
 
         url = self._redis_url()
 
@@ -248,7 +247,7 @@ class HybridRateLimiter:
 
 
 
-    def _record_redis(self, key: str) -> Optional[bool]:
+    def _record_redis(self, key: str) -> bool | None:
 
         url = self._redis_url()
 
@@ -278,7 +277,7 @@ class HybridRateLimiter:
 
 
 
-    def _retry_after_redis(self, key: str) -> Optional[int]:
+    def _retry_after_redis(self, key: str) -> int | None:
 
         url = self._redis_url()
 
@@ -314,7 +313,7 @@ class HybridRateLimiter:
 
 
 
-    def _reset_redis(self, key: str) -> Optional[bool]:
+    def _reset_redis(self, key: str) -> bool | None:
 
         url = self._redis_url()
 
@@ -338,7 +337,7 @@ class HybridRateLimiter:
 
 
 
-    def _allow_redis(self, key: str) -> Optional[bool]:
+    def _allow_redis(self, key: str) -> bool | None:
 
         """Backward-compatible alias used in tests."""
 

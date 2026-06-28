@@ -193,7 +193,7 @@ def register_panorama_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
     @login_required
     def panorama_decision_3d() -> Any:
         """Reasoning Studio 2.0: 3D decision flow with node coordinates for frontend visualization."""
-        user_id = _uid()
+        _uid()
         symbol = (request.args.get("symbol") or "").strip()
 
         nodes: list[dict[str, Any]] = []
@@ -209,7 +209,7 @@ def register_panorama_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
                 team_nodes = {}
                 for i, sig in enumerate(signal_list[:10]):
                     team_fp = sig.get("team_fingerprint", f"team-{i}")
-                    angle = (i / max(len(signal_list), 1)) * 360
+                    (i / max(len(signal_list), 1)) * 360
                     nodes.append({
                         "id": f"team-{team_fp}",
                         "type": "team_signal",

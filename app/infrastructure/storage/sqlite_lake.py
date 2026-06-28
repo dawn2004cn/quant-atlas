@@ -4,7 +4,7 @@ from app.core.mesh.unified_data_lake import UnifiedDataStore, DataQuery, DataSco
 import pandas as pd
 import sqlite3
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 from app.config import BASE_DIR
 
 
@@ -15,7 +15,7 @@ class SQLiteDataLakeStore(UnifiedDataStore):
     with a single, structured lake database.
     """
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         self.db_path = db_path or os.path.join(str(BASE_DIR), "instance", "quant_atlas_lake.db")
         self._init_db()
 
@@ -77,7 +77,7 @@ class SQLiteDataLakeStore(UnifiedDataStore):
                     records,
                 )
 
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         return {
             "type": "sqlite_bridge",
             "path": self.db_path,

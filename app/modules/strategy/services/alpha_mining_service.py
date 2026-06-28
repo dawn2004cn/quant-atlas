@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import itertools
 import json
 import math
 import random
@@ -10,7 +9,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 from app.core.logger import get_logger
 

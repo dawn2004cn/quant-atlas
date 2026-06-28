@@ -2,7 +2,7 @@ from __future__ import annotations
 """Immune System Orchestrator: Automates stress testing."""
 
 
-import logging
+from typing import Any
 from app.modules.system.services.alpha.factor_performance_engine import FactorPerformanceEngine
 from app.modules.ai_agent.services.swarm_agent_service import SwarmAgentService
 
@@ -23,7 +23,7 @@ class ImmuneSystemOrchestrator:
         # 1. Get weights
         weights = self.factor_engine.config_loader.get_config("factor_weights")
         high_perf_factors = [f for f, w in weights.items() if w > 1.2]
-        
+
         results = []
         for factor in high_perf_factors:
             logger.info(f"Running automated stress test for factor: {factor}")
@@ -34,5 +34,5 @@ class ImmuneSystemOrchestrator:
                 preset="red_teaming_swarm"
             )
             results.append({"factor": factor, "run_id": run.get("id")})
-        
+
         return results

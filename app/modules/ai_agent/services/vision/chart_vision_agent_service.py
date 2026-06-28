@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class ChartVisionAgentService:
     """Service that combines chart rendering, vision LLM, and pattern detection.
-    
+
     This service provides the "eyes" for the research graph, allowing agents
     to visually analyze market charts alongside numerical analysis.
     """
@@ -50,20 +50,20 @@ class ChartVisionAgentService:
         include_image: bool = False,
     ) -> dict[str, Any]:
         """Full visual analysis pipeline for a symbol.
-        
+
         1. Fetch historical bar data
         2. Render K-line chart image
         3. Analyze chart with vision LLM
         4. Detect patterns numerically
         5. Merge and return comprehensive result
-        
+
         Args:
             symbol: Stock symbol
             market: Market code (CN/US/HK)
             days: Number of trading days to analyze
             indicators: Technical indicators to overlay (ma5, ma10, ma20, ma60)
             include_image: Whether to include base64 image in response
-            
+
         Returns:
             Comprehensive visual analysis result
         """
@@ -149,11 +149,11 @@ class ChartVisionAgentService:
         symbol: str = "",
     ) -> dict[str, Any]:
         """Analyze from pre-fetched bar data (for research graph integration).
-        
+
         Args:
             bars: OHLCV bar data
             symbol: Stock symbol for context
-            
+
         Returns:
             Pattern detection result
         """

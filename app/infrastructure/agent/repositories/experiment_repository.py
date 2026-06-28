@@ -5,7 +5,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from app.core.logger import get_logger
 from app.domain.entities import Experiment
+
+logger = get_logger(__name__)
 
 class ExperimentRepository:
     """JSON-file based repository for Experiment entities."""
@@ -16,7 +19,7 @@ class ExperimentRepository:
 
     def save(self, experiment: Experiment) -> None:
         path = self.storage_dir / f"{experiment.id}.json"
-        
+
         # Optimistic Locking check
         if path.exists():
             with path.open("r", encoding="utf-8") as f:

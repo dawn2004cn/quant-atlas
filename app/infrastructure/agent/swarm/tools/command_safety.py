@@ -66,11 +66,10 @@ def validate_command(command: str) -> list[str]:
 
 
 def execute_command(command: str, *, cwd: Path | None, timeout: int) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
+    return subprocess.run(  # noqa: S603  # command validated by validate_command() against whitelist + shell-metachar block
         validate_command(command),
         cwd=str(cwd) if cwd else None,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         timeout=timeout,
         encoding="utf-8",

@@ -23,7 +23,7 @@ from app.domain.data_truth.guardian_schema import (
     GuardianQuorumRequest,
     GuardianScanRequest,
 )
-from app.domain.verification import clear_pending, get_pending_reason, list_pending
+from app.domain.verification import list_pending
 from app.infrastructure.realtime.truth_sentry import TruthSentry
 
 logger = get_logger(__name__)
@@ -71,7 +71,7 @@ class DataTruthGuardianService:
         market = (event.market or "CN").strip().upper()
         if not symbol:
             return
-        
+
         # Publish anomaly to blackboard
         self.publish_anomaly_to_blackboard(
             symbol=symbol,
@@ -88,7 +88,7 @@ class DataTruthGuardianService:
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
-        
+
         action = self._plan_heal(symbol, market, event)
         result = self._execute_heal(action)
         status = "dispatched" if result.dispatched else "skipped"
@@ -183,7 +183,7 @@ class DataTruthGuardianService:
                         "timestamp": datetime.now(timezone.utc).isoformat()
                     }
                 )
-            
+
             results.append(row)
             if not (not result.byzantine_fault):
                 faults += 1
@@ -315,7 +315,7 @@ class DataTruthGuardianService:
         """Plan a heal action based on the deviation event."""
         symbol = symbol.strip().upper()
         market = market.strip().upper()
-        
+
         # Publish heal plan to blackboard
         self.publish_anomaly_to_blackboard(
             symbol=symbol,
@@ -330,7 +330,7 @@ class DataTruthGuardianService:
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
-        
+
         if event.action == "resync_qlib":
             return DataHealAction(
                 action="resync_qlib",

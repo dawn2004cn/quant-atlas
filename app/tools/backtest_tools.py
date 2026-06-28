@@ -5,11 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Optional
 from langchain_core.tools import tool
 
 from ..core.logger import get_logger
-from ..domain.enums import MarketCode
 
 logger = get_logger(__name__)
 
@@ -53,8 +51,8 @@ class QlibBacktestToolResult(BaseModel):
 def run_backtest(
     strategy: str,
     ticker: str,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
     initial_capital: float = 100000.0,
     commission_rate: float = 0.0003,
 ) -> BacktestToolResult:
@@ -155,8 +153,8 @@ def batch_backtest_selection(
 @tool
 def run_qlib_unified_backtest(
     strategy: str,
-    start_date: Optional[str] = None,
-    end_date: Optional[str] = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
     task_id: str = "",
     model_name: str = "lgb",
     label_name: str = "Ref(-1) - Ref(-2)",

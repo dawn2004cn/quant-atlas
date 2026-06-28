@@ -91,7 +91,8 @@ class SQLiteSignalFlagPoolRepository:
     def replace_pool(self, pool_date: str, rows: list[dict[str, Any]]) -> int:
         d = (pool_date or "")[:10]
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        _json = lambda v, fallback: json.dumps(v or fallback, ensure_ascii=False)
+        def _json(v, fallback):
+            return json.dumps(v or fallback, ensure_ascii=False)
         batch = []
         for r in rows:
             batch.append((

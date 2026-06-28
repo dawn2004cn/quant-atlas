@@ -4,7 +4,7 @@ from flask_login import login_required
 from app.core.logger import get_logger
 from app.core.registry import register_routes
 from ...v1_context import ApiV1Context
-from ...common import ok_resource, ok_response, parse_market
+from ...common import ok_resource, parse_market
 from ...decorators import service_fallback
 from ...stock_route_helpers import build_sector_context
 

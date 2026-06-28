@@ -9,8 +9,7 @@ This module provides middleware that automatically:
 """
 
 
-import logging
-from typing import Any, Optional
+from typing import Any
 
 
 from app.core.logger import get_logger
@@ -28,7 +27,7 @@ class CorrelationMiddleware:
     - Adds correlation ID to response headers
     """
 
-    def __init__(self, app: Optional[Any] = None):
+    def __init__(self, app: Any | None = None):
         self._app = app
         if app is not None:
             self.init_app(app)

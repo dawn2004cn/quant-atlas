@@ -18,11 +18,11 @@ from app.domain.repositories.signal import (
 __all__ = [
     # Stock
     "Stock",
-    "IStockRepository", 
+    "IStockRepository",
     "MarketData",
     "IMarketDataRepository",
     # Signal
     "SignalType",
-    "Signal", 
+    "Signal",
     "ISignalRepository",
 ]

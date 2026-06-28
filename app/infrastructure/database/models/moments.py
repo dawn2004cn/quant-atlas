@@ -2,7 +2,6 @@ from __future__ import annotations
 """ORM models for Moments / Friend-circle posts and interactions."""
 
 
-from typing import Optional
 from sqlalchemy import String, BIGINT, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,17 +16,17 @@ class MomentPost(Base):
     actor_id: Mapped[str] = mapped_column(String(64), nullable=False)
     author_name: Mapped[str] = mapped_column(String(255), nullable=False)
     content_text: Mapped[str] = mapped_column(Text, nullable=False)
-    content_json: Mapped[Optional[str]] = mapped_column(Text)
-    market_date: Mapped[Optional[str]] = mapped_column(String(16))
+    content_json: Mapped[str | None] = mapped_column(Text)
+    market_date: Mapped[str | None] = mapped_column(String(16))
     created_at: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
 
-    attachments: Mapped[list["MomentAttachment"]] = relationship(
+    attachments: Mapped[list[MomentAttachment]] = relationship(
         "MomentAttachment", back_populates="post", cascade="all, delete-orphan", lazy="selectin"
     )
-    likes: Mapped[list["MomentLike"]] = relationship(
+    likes: Mapped[list[MomentLike]] = relationship(
         "MomentLike", back_populates="post", cascade="all, delete-orphan", lazy="selectin"
     )
-    comments: Mapped[list["MomentComment"]] = relationship(
+    comments: Mapped[list[MomentComment]] = relationship(
         "MomentComment", back_populates="post", cascade="all, delete-orphan", lazy="selectin"
     )
 
@@ -41,12 +40,12 @@ class MomentAttachment(Base):
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     file_path: Mapped[str] = mapped_column(String(1024), nullable=False)
     file_url: Mapped[str] = mapped_column(String(2048), nullable=False)
-    mime_type: Mapped[Optional[str]] = mapped_column(String(128))
+    mime_type: Mapped[str | None] = mapped_column(String(128))
     size_bytes: Mapped[int] = mapped_column(BIGINT, default=0)
-    meta_json: Mapped[Optional[str]] = mapped_column(Text)
+    meta_json: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[str] = mapped_column(String(32), nullable=False)
 
-    post: Mapped["MomentPost"] = relationship("MomentPost", back_populates="attachments")
+    post: Mapped[MomentPost] = relationship("MomentPost", back_populates="attachments")
 
 
 class MomentLike(Base):
@@ -57,7 +56,7 @@ class MomentLike(Base):
     user_id: Mapped[str] = mapped_column(String(64), nullable=False)
     created_at: Mapped[str] = mapped_column(String(32), nullable=False)
 
-    post: Mapped["MomentPost"] = relationship("MomentPost", back_populates="likes")
+    post: Mapped[MomentPost] = relationship("MomentPost", back_populates="likes")
 
 
 class MomentComment(Base):
@@ -70,4 +69,4 @@ class MomentComment(Base):
     content_text: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[str] = mapped_column(String(32), nullable=False)
 
-    post: Mapped["MomentPost"] = relationship("MomentPost", back_populates="comments")
+    post: Mapped[MomentPost] = relationship("MomentPost", back_populates="comments")

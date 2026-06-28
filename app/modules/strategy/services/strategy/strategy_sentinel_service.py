@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 import asyncio
-import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 from app.core.registry import ServiceRegistry
-from app.core.event_bus import EventBus, publish_event
+from app.core.event_bus import publish_event
 from app.domain.services.market_regime_service import MarketRegimeService
-from app.modules.strategy.services.strategy.strategy_wizard_service import StrategyWizardService
 from app.modules.strategy.services.strategy.strategy_service import StrategyApplicationService
 from app.core.logger import get_logger
 
@@ -22,7 +20,7 @@ class StrategyRegimeMismatchEvent:
 
 class StrategySentinelService:
     """
-    The 'Sentinel' monitors active strategies and alerts users when 
+    The 'Sentinel' monitors active strategies and alerts users when
     the market regime shifts away from the strategy's design intent.
     """
 
@@ -32,7 +30,7 @@ class StrategySentinelService:
         self.strategy_service: StrategyApplicationService = registry.get("strategy_service")
         self.wizard_service = registry.get("strategy_wizard_service")
 
-    async def check_all_strategies(self) -> Dict[str, Any]:
+    async def check_all_strategies(self) -> dict[str, Any]:
         """
         Iterates through active strategies and checks for regime alignment.
         """
@@ -40,7 +38,7 @@ class StrategySentinelService:
         # In a real scenario, we would fetch real sentiment/breadth.
         regime = self.regime_service.evaluate_stance(sentiment_score=45.0)
         current_stance = regime["stance"] # 'aggressive', 'defensive', 'neutral'
-        
+
         # Mapping: Regime -> Recommended Category
         mapping = {
             "aggressive": "trend",
@@ -48,7 +46,7 @@ class StrategySentinelService:
             "neutral": "quant_factor",
         }
         recommended_cat = mapping.get(current_stance)
-        
+
         # 2. Get active strategies
         # Assuming strategy_service has a method to list active strategies
         try:
@@ -70,7 +68,7 @@ class StrategySentinelService:
                     "current_regime": current_stance,
                     "recommended_category": recommended_cat
                 })
-                
+
                 # Publish event for WebSocket/Notification
                 publish_event(
                     "strategy.regime.mismatch",
@@ -81,7 +79,7 @@ class StrategySentinelService:
                         recommended_category=recommended_cat
                     )
                 )
-        
+
         return {
             "status": "checked",
             "regime": current_stance,

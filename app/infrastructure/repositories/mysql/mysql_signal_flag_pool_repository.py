@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 from typing import Any
-from sqlalchemy import select, delete, insert, update, desc, func, and_
+from sqlalchemy import select, delete, desc
 
 from ...database.mysql_client import mysql_get_connection
 from ...database.models.advanced import SignalFlagPool as DBPool

@@ -7,7 +7,7 @@ from flask_login import login_required
 
 from ...application.errors import ValidationError
 from ...core.registry import register_routes
-from .common import ok_resource, require_ctx_service
+from .common import ok_resource
 from .v1_context import ApiV1Context
 from .request_parsers import parse_int_param
 from .decorators import service_fallback

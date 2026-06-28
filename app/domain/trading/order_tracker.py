@@ -7,10 +7,8 @@ from __future__ import annotations
 """
 
 
-import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from typing import Any
 
@@ -175,7 +173,7 @@ class OrderStateMachine:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "OrderStateMachine":
+    def from_dict(cls, data: dict) -> OrderStateMachine:
         """从字典恢复状态机"""
         machine = cls(data["order_id"])
         machine._state = OrderState(data.get("state", OrderState.PENDING))

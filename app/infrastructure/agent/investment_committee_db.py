@@ -2,14 +2,11 @@ from __future__ import annotations
 """AI 投资委员会 - MySQL 交易记录"""
 
 
-import os
 from datetime import datetime
 from typing import Any
 
-import pymysql
 from pymysql.cursors import DictCursor
 
-from app.core.runtime_config import get_runtime
 from app.core.utils.sql_utils import quote_identifier, validate_identifier
 from app.infrastructure.database.mysql_settings import MysqlSettings
 from app.infrastructure.database.mysql_client import mysql_connect

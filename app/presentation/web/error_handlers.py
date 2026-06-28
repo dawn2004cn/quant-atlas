@@ -2,7 +2,7 @@
 
 from flask import Flask, render_template
 
-from werkzeug.exceptions import HTTPException, NotFound, InternalServerError
+from werkzeug.exceptions import HTTPException
 
 from ..http_static import is_static_asset_request
 

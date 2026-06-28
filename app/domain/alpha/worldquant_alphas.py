@@ -313,7 +313,7 @@ def get_complementary_objective_prompt(current_portfolio_formulas: list[str]) ->
     ]
 
     if current_portfolio_formulas:
-        lines.append(f"\nCurrent portfolio formulas:")
+        lines.append("\nCurrent portfolio formulas:")
         for i, f in enumerate(current_portfolio_formulas[:5], 1):
             lines.append(f"  {i}. {f}")
 

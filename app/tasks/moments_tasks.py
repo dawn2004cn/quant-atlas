@@ -2,11 +2,9 @@ from __future__ import annotations
 """朋友圈：收盘自动发帖（基金经+ 6 Agent）"""
 
 
-import json
 from pathlib import Path
 from typing import Any
 
-import logging
 import matplotlib
 
 matplotlib.use("Agg")
@@ -15,7 +13,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 from ..application.services.trading.investment_manager_service import InvestmentManagerService
 from ..application.services.research.moments_service import MomentsService
 from ..celery_app import celery as _celery
-from ..config import BASE_DIR, INSTANCE_DIR, get_settings
+from ..config import INSTANCE_DIR, get_settings
 from ..core.shanghai_time import today_sh_str
 from ..infrastructure.repositories.deps import (
     create_investment_manager_repository,
@@ -79,7 +77,7 @@ def _plot_equity(nav: list[dict[str, Any]], *, out_path: Path) -> None:
     ser = _equity_series(nav)
     if len(ser) < 2:
         raise ValueError("nav_too_short")
-    xs = [x for x, _ in ser]
+    [x for x, _ in ser]
     ys = [y for _, y in ser]
     plt.figure(figsize=(10, 3.2), dpi=160)
     plt.plot(range(len(ys)), ys, linewidth=2.2)

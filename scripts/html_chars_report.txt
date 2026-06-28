@@ -1,0 +1,403 @@
+文件: architecture_roadmap.html
+  ZERO WIDTH NO-BREAK SPACE (BOM): 1个
+  UNKNOWN (U+E1BD): 5个
+  UNKNOWN (U+E044): 2个
+  UNKNOWN (U+E15F): 9个
+  UNKNOWN (U+E74D): 8个
+  UNKNOWN (U+E160): 9个
+  UNKNOWN (U+E185): 2个
+  UNKNOWN (U+E219): 3个
+  UNKNOWN (U+E15E): 9个
+  UNKNOWN (U+E76E): 3个
+  UNKNOWN (U+E045): 4个
+  UNKNOWN (U+E5C5): 4个
+  UNKNOWN (U+E511): 6个
+  UNKNOWN (U+E21A): 4个
+  UNKNOWN (U+E15B): 1个
+  UNKNOWN (U+E21C): 2个
+  UNKNOWN (U+E1EE): 1个
+  UNKNOWN (U+E505): 1个
+  UNKNOWN (U+E74B): 1个
+  UNKNOWN (U+E6E6): 3个
+  UNKNOWN (U+E178): 5个
+  UNKNOWN (U+E0A3): 1个
+  UNKNOWN (U+E046): 2个
+  UNKNOWN (U+E583): 8个
+  UNKNOWN (U+E759): 5个
+  UNKNOWN (U+E0A6): 1个
+  UNKNOWN (U+E5D3): 3个
+  UNKNOWN (U+E63B): 2个
+  UNKNOWN (U+E1DA): 2个
+  UNKNOWN (U+E21D): 6个
+  UNKNOWN (U+E1BA): 2个
+  UNKNOWN (U+E218): 2个
+  UNKNOWN (U+E747): 3个
+  UNKNOWN (U+E1BB): 2个
+  UNKNOWN (U+E0FE): 2个
+  UNKNOWN (U+E103): 1个
+  UNKNOWN (U+E1DB): 1个
+  UNKNOWN (U+E191): 1个
+  UNKNOWN (U+E746): 1个
+  UNKNOWN (U+E048): 2个
+  UNKNOWN (U+E21B): 3个
+  UNKNOWN (U+E1BC): 4个
+  UNKNOWN (U+E7D2): 1个
+  UNKNOWN (U+E180): 2个
+  UNKNOWN (U+E043): 1个
+  UNKNOWN (U+E1E4): 2个
+  UNKNOWN (U+E1BF): 3个
+  UNKNOWN (U+E17B): 1个
+  UNKNOWN (U+E18C): 4个
+  UNKNOWN (U+E047): 2个
+  UNKNOWN (U+E179): 3个
+  UNKNOWN (U+E76C): 2个
+  UNKNOWN (U+E187): 2个
+  UNKNOWN (U+E003): 1个
+  UNKNOWN (U+E56B): 1个
+  UNKNOWN (U+E569): 1个
+  UNKNOWN (U+E11E): 1个
+  UNKNOWN (U+E50B): 1个
+  UNKNOWN (U+E104): 3个
+  UNKNOWN (U+E162): 1个
+  UNKNOWN (U+E1D7): 1个
+  UNKNOWN (U+E100): 1个
+  UNKNOWN (U+E11C): 1个
+  UNKNOWN (U+E102): 1个
+  UNKNOWN (U+E15C): 1个
+  UNKNOWN (U+E632): 1个
+  UNKNOWN (U+E1C0): 1个
+  示例: 行1: "﻿{% extends "ba"
+  示例: 行23: "plan.md 鐨勯噸鏋勫缓璁媶鎴愮敤鎴峰彲鎰熺煡鐨勯〉闈"
+  示例: 行23: "屽叆鐨勭幇鏈夊叆鍙ｏ紝浠ュ強鍙簲鐣欏湪鍚庡彴鐨勫伐绋嬭兘鍔"
+  示例: 行27: "ation-hub">闆嗘垚涓灑</a>
+        "
+  示例: 行28: "bilities">鑳藉姏鎬昏</a>
+         "
+
+文件: integration_hub.html
+  ZERO WIDTH NO-BREAK SPACE (BOM): 1个
+  UNKNOWN (U+E15F): 4个
+  UNKNOWN (U+E787): 2个
+  UNKNOWN (U+E1BE): 2个
+  UNKNOWN (U+E1C0): 1个
+  UNKNOWN (U+E57D): 1个
+  UNKNOWN (U+E1BF): 3个
+  UNKNOWN (U+E17B): 2个
+  UNKNOWN (U+E15E): 2个
+  UNKNOWN (U+E747): 1个
+  UNKNOWN (U+E21B): 1个
+  UNKNOWN (U+E048): 14个
+  UNKNOWN (U+E1BC): 4个
+  UNKNOWN (U+E21A): 3个
+  UNKNOWN (U+E0A2): 1个
+  UNKNOWN (U+E5C5): 4个
+  UNKNOWN (U+E569): 2个
+  UNKNOWN (U+E11E): 13个
+  UNKNOWN (U+E219): 1个
+  UNKNOWN (U+E21D): 1个
+  UNKNOWN (U+E746): 1个
+  UNKNOWN (U+E160): 2个
+  UNKNOWN (U+E651): 4个
+  UNKNOWN (U+E0BC): 3个
+  UNKNOWN (U+E511): 5个
+  UNKNOWN (U+E162): 1个
+  UNKNOWN (U+E045): 2个
+  UNKNOWN (U+E505): 2个
+  UNKNOWN (U+E11B): 1个
+  UNKNOWN (U+E1DB): 1个
+  UNKNOWN (U+E759): 1个
+  UNKNOWN (U+E1BB): 1个
+  UNKNOWN (U+E568): 1个
+  UNKNOWN (U+E178): 3个
+  UNKNOWN (U+E15B): 4个
+  UNKNOWN (U+E0A3): 1个
+  UNKNOWN (U+E18C): 1个
+  UNKNOWN (U+E6E6): 1个
+  UNKNOWN (U+E044): 5个
+  UNKNOWN (U+E21C): 3个
+  UNKNOWN (U+E11F): 1个
+  示例: 行1: "﻿{% extends "ba"
+  示例: 行3: "ck title %}闆嗘垚涓灑 - Quant Atla"
+  示例: 行28: "ria-label="闆嗘垚涓灑浣跨敤鎻愮ず">
+    "
+  示例: 行32: "L銆丆elery銆侀€氳揪淇＄绾挎暟鎹瓑闂锛屼紭鍏堝"
+  示例: 行32: "ery銆侀€氳揪淇＄绾挎暟鎹瓑闂锛屼紭鍏堝湪杩欓噷纭"
+
+文件: retail_assistant.html
+  ZERO WIDTH NO-BREAK SPACE (BOM): 1个
+  UNKNOWN (U+E15E): 5个
+  UNKNOWN (U+E185): 4个
+  UNKNOWN (U+E1EE): 2个
+  UNKNOWN (U+E06C): 1个
+  UNKNOWN (U+E15F): 3个
+  UNKNOWN (U+E0A3): 1个
+  UNKNOWN (U+E178): 2个
+  UNKNOWN (U+E747): 3个
+  UNKNOWN (U+E632): 3个
+  UNKNOWN (U+E5D3): 4个
+  UNKNOWN (U+E045): 2个
+  UNKNOWN (U+E6E6): 4个
+  UNKNOWN (U+E043): 1个
+  UNKNOWN (U+E048): 6个
+  UNKNOWN (U+E505): 1个
+  UNKNOWN (U+E1EC): 4个
+  UNKNOWN (U+E1BB): 3个
+  UNKNOWN (U+E1BF): 1个
+  UNKNOWN (U+E0A2): 4个
+  UNKNOWN (U+E5C5): 4个
+  UNKNOWN (U+E162): 1个
+  UNKNOWN (U+E1DA): 1个
+  UNKNOWN (U+E21A): 2个
+  UNKNOWN (U+E047): 2个
+  UNKNOWN (U+E160): 1个
+  UNKNOWN (U+E044): 1个
+  UNKNOWN (U+E1C0): 2个
+  UNKNOWN (U+E57D): 1个
+  UNKNOWN (U+E749): 1个
+  UNKNOWN (U+E63F): 1个
+  UNKNOWN (U+E62C): 1个
+  UNKNOWN (U+E11E): 2个
+  UNKNOWN (U+E1BC): 1个
+  UNKNOWN (U+E1F1): 1个
+  UNKNOWN (U+E195): 1个
+  UNKNOWN (U+E046): 1个
+  UNKNOWN (U+E1E4): 1个
+  UNKNOWN (U+E11F): 3个
+  UNKNOWN (U+E0BC): 1个
+  UNKNOWN (U+E511): 1个
+  UNKNOWN (U+E15B): 4个
+  UNKNOWN (U+E21C): 2个
+  UNKNOWN (U+E1BE): 1个
+  UNKNOWN (U+E21D): 2个
+  UNKNOWN (U+E15D): 1个
+  UNKNOWN (U+E746): 3个
+  示例: 行1: "﻿{% extends "ba"
+  示例: 行33: "p-desc">淇″彿鏃楀懡涓悗寤鸿鍏堝叆妯℃嫙瑙傚療鍗"
+  示例: 行33: "sc">淇″彿鏃楀懡涓悗寤鸿鍏堝叆妯℃嫙瑙傚療鍗曪紝鍐嶅"
+  示例: 行33: "鍏堝叆妯℃嫙瑙傚療鍗曪紝鍐嶅鐓ц瘖鑲′笌涔板崠璁″垝銆?"
+  示例: 行40: "潡渚濊禆鐧诲綍鎬佷笌閮ㄥ垎鍚庣寮€鍏筹紱寮傚父鏃跺厛鍒伴泦"
+
+文件: observability.html
+  ZERO WIDTH NO-BREAK SPACE (BOM): 1个
+  UNKNOWN (U+E15E): 4个
+  UNKNOWN (U+E11E): 7个
+  UNKNOWN (U+E0A0): 1个
+  UNKNOWN (U+E1BD): 6个
+  UNKNOWN (U+E15F): 4个
+  UNKNOWN (U+E74B): 1个
+  UNKNOWN (U+E043): 1个
+  UNKNOWN (U+E21A): 5个
+  UNKNOWN (U+E511): 4个
+  UNKNOWN (U+E63B): 3个
+  UNKNOWN (U+E1D7): 7个
+  UNKNOWN (U+E219): 1个
+  UNKNOWN (U+E046): 1个
+  UNKNOWN (U+E0BC): 2个
+  UNKNOWN (U+E160): 1个
+  UNKNOWN (U+E21B): 1个
+  UNKNOWN (U+E15C): 1个
+  UNKNOWN (U+E1BC): 1个
+  UNKNOWN (U+E7D2): 1个
+  UNKNOWN (U+E1EC): 1个
+  UNKNOWN (U+E15B): 2个
+  UNKNOWN (U+E651): 1个
+  UNKNOWN (U+E187): 2个
+  UNKNOWN (U+E044): 1个
+  UNKNOWN (U+E0A4): 1个
+  UNKNOWN (U+E21C): 2个
+  UNKNOWN (U+E1BF): 1个
+  UNKNOWN (U+E1F0): 2个
+  UNKNOWN (U+E5C5): 1个
+  UNKNOWN (U+E11D): 1个
+  示例: 行1: "﻿{% extends "ba"
+  示例: 行31: "-title">鍏堜粠娑堟伅涓績鎷?ID</div>
+  "
+  示例: 行32: "x-step-desc">寮傛浠诲姟涓庣郴缁熶簨浠堕€氬父"
+  示例: 行32: "Trace ID锛涗粠娑堟伅涓績澶嶅埗鍚庡湪姝ゅ弽鏌ユ洿蹇"
+  示例: 行32: "績澶嶅埗鍚庡湪姝ゅ弽鏌ユ洿蹇€?/p>
+        "
+
+文件: capabilities.html
+  ZERO WIDTH NO-BREAK SPACE (BOM): 1个
+  UNKNOWN (U+E74D): 2个
+  UNKNOWN (U+E185): 1个
+  UNKNOWN (U+E11E): 3个
+  UNKNOWN (U+E747): 1个
+  UNKNOWN (U+E048): 3个
+  UNKNOWN (U+E787): 1个
+  UNKNOWN (U+E583): 1个
+  UNKNOWN (U+E15F): 3个
+  UNKNOWN (U+E160): 2个
+  UNKNOWN (U+E511): 2个
+  UNKNOWN (U+E218): 1个
+  UNKNOWN (U+E0A6): 1个
+  UNKNOWN (U+E047): 1个
+  UNKNOWN (U+E759): 2个
+  UNKNOWN (U+E21B): 2个
+  UNKNOWN (U+E74B): 2个
+  UNKNOWN (U+E63B): 1个
+  UNKNOWN (U+E63F): 1个
+  UNKNOWN (U+E191): 1个
+  UNKNOWN (U+E1BC): 1个
+  UNKNOWN (U+E1EE): 1个
+  UNKNOWN (U+E1BB): 1个
+  UNKNOWN (U+E178): 1个
+  UNKNOWN (U+E1C6): 1个
+  UNKNOWN (U+E569): 1个
+  UNKNOWN (U+E15E): 2个
+  UNKNOWN (U+E0A3): 1个
+  UNKNOWN (U+E0A2): 1个
+  UNKNOWN (U+E505): 1个
+  UNKNOWN (U+E045): 2个
+  UNKNOWN (U+E5C5): 2个
+  UNKNOWN (U+E21A): 1个
+  UNKNOWN (U+E21C): 1个
+  示例: 行1: "﻿{% extends "ba"
+  示例: 行3: "k title %}鑳藉姏鎬昏 - Quant Atlas"
+  示例: 行28: "ia-label="鑳藉姏鎬昏浣跨敤鎻愮ず">
+    <"
+  示例: 行32: "x-step-desc">寤鸿浠庢搷鐩樺彴寮€濮嬶紝閫愭"
+  示例: 行32: "鸿浠庢搷鐩樺彴寮€濮嬶紝閫愭鎶婅嚜閫夈€佽瀵熷崟銆佽瘖"
+
+文件: profile.html
+  ZERO WIDTH NO-BREAK SPACE (BOM): 1个
+  UNKNOWN (U+E043): 2个
+  UNKNOWN (U+E15E): 4个
+  UNKNOWN (U+E1EE): 1个
+  UNKNOWN (U+E185): 1个
+  UNKNOWN (U+E632): 3个
+  UNKNOWN (U+E15F): 2个
+  UNKNOWN (U+E1BF): 1个
+  UNKNOWN (U+E17B): 1个
+  UNKNOWN (U+E511): 1个
+  UNKNOWN (U+E1BD): 2个
+  UNKNOWN (U+E505): 2个
+  UNKNOWN (U+E178): 3个
+  UNKNOWN (U+3000): 1个
+  UNKNOWN (U+E160): 2个
+  UNKNOWN (U+E18C): 1个
+  UNKNOWN (U+E11E): 2个
+  UNKNOWN (U+E18D): 1个
+  UNKNOWN (U+E759): 1个
+  UNKNOWN (U+E048): 1个
+  UNKNOWN (U+E5D3): 1个
+  UNKNOWN (U+E11F): 1个
+  UNKNOWN (U+E0A2): 1个
+  UNKNOWN (U+E21A): 1个
+  UNKNOWN (U+E219): 1个
+  UNKNOWN (U+E1BB): 1个
+  UNKNOWN (U+E15D): 1个
+  UNKNOWN (U+E1EC): 2个
+  示例: 行1: "﻿{% extends "ba"
+  示例: 行3: "block title %}涓汉涓績 - Quant A"
+  示例: 行3: "ck title %}涓汉涓績 - Quant Atla"
+  示例: 行28: "" aria-label="涓汉涓績鎻愮ず">
+    "
+  示例: 行28: "ria-label="涓汉涓績鎻愮ず">
+    <di"
+
+文件: professional_workbench.html
+  ZERO WIDTH NO-BREAK SPACE (BOM): 1个
+  UNKNOWN (U+E100): 1个
+  UNKNOWN (U+E749): 5个
+  UNKNOWN (U+E511): 6个
+  UNKNOWN (U+E5C5): 7个
+  UNKNOWN (U+E582): 1个
+  UNKNOWN (U+E178): 2个
+  UNKNOWN (U+E21C): 1个
+  UNKNOWN (U+E179): 1个
+  UNKNOWN (U+E1EC): 1个
+  UNKNOWN (U+E044): 2个
+  UNKNOWN (U+E18F): 1个
+  UNKNOWN (U+E0A2): 2个
+  UNKNOWN (U+E15B): 1个
+  UNKNOWN (U+E048): 1个
+  示例: 行1: "﻿{% extends "ba"
+  示例: 行21: "-hero-sub">鎶曡祫鍏徃 / 鍩洪噾 / 鏈烘瀯 "
+  示例: 行21: "悎浼樺寲 路 褰掑洜 路 鍚堣 路 鎵ц绠楁硶 路 RB"
+  示例: 行21: " 褰掑洜 路 鍚堣 路 鎵ц绠楁硶 路 RBAC</p>"
+  示例: 行35: "pliance">馃洝锔?鍚堣棰勬</button>
+ "
+
+文件: optimize.html
+  ZERO WIDTH NO-BREAK SPACE (BOM): 1个
+  UNKNOWN (U+E21D): 1个
+  UNKNOWN (U+E103): 1个
+  UNKNOWN (U+E17B): 1个
+  UNKNOWN (U+E1EE): 3个
+  UNKNOWN (U+E044): 2个
+  UNKNOWN (U+E11F): 1个
+  UNKNOWN (U+E162): 1个
+  UNKNOWN (U+E11B): 1个
+  UNKNOWN (U+E6E7): 1个
+  UNKNOWN (U+E6E6): 1个
+  UNKNOWN (U+E048): 1个
+  UNKNOWN (U+E219): 2个
+  UNKNOWN (U+E21B): 1个
+  UNKNOWN (U+E1BC): 1个
+  UNKNOWN (U+E569): 1个
+  UNKNOWN (U+E11D): 2个
+  UNKNOWN (U+E160): 3个
+  UNKNOWN (U+E1BE): 1个
+  UNKNOWN (U+E178): 1个
+  UNKNOWN (U+E21A): 1个
+  UNKNOWN (U+E11E): 1个
+  UNKNOWN (U+E1EC): 1个
+  UNKNOWN (U+E104): 1个
+  示例: 行1: "﻿{% extends "ba"
+  示例: 行24: "?
+            鍙烦杞嚦銆岀瓥鐣ュ洖娴嬨€嶉"
+  示例: 行24: "           鍙烦杞嚦銆岀瓥鐣ュ洖娴嬨€嶉€愮瓥"
+  示例: 行24: "獙璇侊紝鎴栧湪銆岄噺鍖栧疄楠屽銆嶅姣斿洜瀛愪笌妯″瀷琛ㄧ"
+  示例: 行24: "紝鎴栧湪銆岄噺鍖栧疄楠屽銆嶅姣斿洜瀛愪笌妯″瀷琛ㄧ幇锛涘"
+
+文件: stocks_manage.html
+  ZERO WIDTH NO-BREAK SPACE (BOM): 1个
+  UNKNOWN (U+E100): 1个
+  UNKNOWN (U+E160): 1个
+  UNKNOWN (U+E1BF): 1个
+  UNKNOWN (U+E102): 1个
+  UNKNOWN (U+E218): 1个
+  UNKNOWN (U+E047): 1个
+  UNKNOWN (U+E1F0): 1个
+  UNKNOWN (U+E178): 2个
+  UNKNOWN (U+E511): 3个
+  UNKNOWN (U+E1BC): 1个
+  UNKNOWN (U+E582): 1个
+  UNKNOWN (U+E21A): 1个
+  UNKNOWN (U+E1BD): 1个
+  UNKNOWN (U+E1EE): 1个
+  UNKNOWN (U+E15B): 2个
+  UNKNOWN (U+E15F): 1个
+  UNKNOWN (U+E1EC): 1个
+  UNKNOWN (U+E11E): 1个
+  示例: 行1: "﻿{% extends "ba"
+  示例: 行22: "-subtitle">鏌ョ湅鏈湴琛屾儏缂撳瓨涓殑鏍囩殑瑙"
+  示例: 行22: "">鏌ョ湅鏈湴琛屾儏缂撳瓨涓殑鏍囩殑瑙勬ā銆佸悓姝ユ椂闂"
+  示例: 行22: "姝ユ椂闂翠笌鏄庣粏锛屽苟涓€閿烦杞爺绌堕摼璺€?/p>"
+  示例: 行22: "闂翠笌鏄庣粏锛屽苟涓€閿烦杞爺绌堕摼璺€?/p>
+  "
+
+文件: users_manage.html
+  ZERO WIDTH NO-BREAK SPACE (BOM): 1个
+  UNKNOWN (U+E178): 1个
+  UNKNOWN (U+E179): 1个
+  UNKNOWN (U+E1BD): 3个
+  UNKNOWN (U+E046): 4个
+  UNKNOWN (U+E1E4): 4个
+  UNKNOWN (U+E196): 1个
+  UNKNOWN (U+E1BE): 1个
+  UNKNOWN (U+E7D2): 1个
+  UNKNOWN (U+E1BC): 1个
+  UNKNOWN (U+E511): 1个
+  UNKNOWN (U+E1BF): 1个
+  UNKNOWN (U+E17B): 1个
+  UNKNOWN (U+E0BC): 1个
+  示例: 行1: "﻿{% extends "ba"
+  示例: 行22: "subtitle">鍒涘缓鍜岀鐞嗙郴缁熺敤鎴?/p>
+  "
+  示例: 行44: "lue="viewer">璁垮</option>
+    "
+  示例: 行109: "er.username}">淇敼瀵嗙爜</button>
+"
+  示例: 行117: "s.message || '鏈煡閿欒'), 'error"

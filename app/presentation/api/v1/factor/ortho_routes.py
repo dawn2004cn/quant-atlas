@@ -19,6 +19,7 @@ def register_factor_ortho_routes(blueprint: Blueprint, ctx: ApiV1Context) -> Non
     @service_fallback("factor_orthogonalization_service")
     def factor_orthogonalize():
         """Orthogonalize a factor against other factors."""
+        service = getattr(ctx, "factor_orthogonalization_service", None)
         body = request.get_json(silent=True) or {}
 
         try:

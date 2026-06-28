@@ -10,10 +10,9 @@ Following Strategy Pattern for flexible provider switching.
 """
 
 
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from ...domain.enums import MarketCode

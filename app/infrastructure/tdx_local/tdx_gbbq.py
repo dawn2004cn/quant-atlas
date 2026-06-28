@@ -47,7 +47,7 @@ def gbbq_rows_for_code(gbbq_path: Path, code6: str, *, tail: int = 15) -> tuple[
             if hasattr(v, "item"):
                 try:
                     v = v.item()
-                except Exception:  # noqa: BLE001 as e:
+                except Exception as e:  # noqa: BLE001
                     logger.warning("tdx_gbbq.py.gbbq_rows_for_code: %s", e)
             rec[str(col)] = float(v) if isinstance(v, (int, float)) else str(v)
         out.append(rec)

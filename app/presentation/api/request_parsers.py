@@ -2,7 +2,7 @@ from __future__ import annotations
 """Request parameter parsing helpers for API routes."""
 
 
-from typing import Any, Type
+from typing import Any
 from pydantic import BaseModel, ValidationError as PydanticValidationError
 
 from ...application.errors import ValidationError
@@ -84,7 +84,7 @@ def parse_float_param(
 
 def parse_dto(
     raw_data: dict[str, Any] | None,
-    dto_class: Type[BaseModel],
+    dto_class: type[BaseModel],
     *,
     partial: bool = False,
 ) -> BaseModel:

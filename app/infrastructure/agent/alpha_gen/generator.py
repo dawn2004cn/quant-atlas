@@ -1,7 +1,6 @@
 from __future__ import annotations
 """Alpha Generator Agent: Autonomous discovery of new factors."""
 
-import logging
 from typing import Any
 from app.infrastructure.agent.analysis.causal_engine import CausalAttributionEngine
 from app.infrastructure.agent.swarm.tools.skill_writer_tool import SkillWriterTool
@@ -13,7 +12,7 @@ logger = get_logger(__name__)
 
 class AlphaGeneratorAgent:
     """Agent that creates new alpha factors based on market analysis."""
-    
+
     def __init__(self, causal_engine: CausalAttributionEngine):
         self.causal_engine = causal_engine
         self.skill_writer = SkillWriterTool()
@@ -23,7 +22,7 @@ class AlphaGeneratorAgent:
         # 1. Analyze performance gaps
         # 2. Propose logic based on market behavior
         logger.info("Discovering new alpha factor...")
-        
+
         factor_code = """
 def calculate_factor(data):
     # Mean Reversion + Momentum logic
@@ -35,5 +34,5 @@ def calculate_factor(data):
             skill_name=skill_name,
             content=f"---\nname: {skill_name}\ncategory: strategy\n---\n\n{factor_code}"
         )
-        
+
         return {"factor_name": skill_name, "status": "registered"}

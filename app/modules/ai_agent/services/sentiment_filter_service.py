@@ -6,7 +6,6 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 
 from datetime import datetime
-from typing import Any
 
 
 class NewsQualityFilter:

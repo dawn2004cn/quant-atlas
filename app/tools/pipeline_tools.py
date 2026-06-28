@@ -118,7 +118,6 @@ def run_intelligent_pipeline(
 @tool
 def search_web_intelligence(query: str) -> WebSearchToolResult:
     """搜索Web智能信息."""
-    from ..domain.ports import WebSearchProvider
 
     try:
         from ..infrastructure.providers.web_search import get_web_search_provider

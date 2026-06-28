@@ -4,12 +4,10 @@ from __future__ import annotations
 import logging
 import threading
 import time
-import uuid
 from datetime import datetime, timezone
 from typing import Any
 
 from app.core.mesh.node_registry import MeshNodeRegistry
-from app.core.mesh.protocol import REDIS_NODE_TTL_SECONDS
 from app.domain.mesh_schema import MeshNodeDescriptor, MeshNodeRole, MeshRegion
 
 logger = logging.getLogger(__name__)

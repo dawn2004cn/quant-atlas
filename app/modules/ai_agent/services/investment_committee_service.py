@@ -11,7 +11,6 @@ This module implements the multi-agent consensus mechanism from midify_plan7.md:
 """
 
 
-import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -386,7 +385,7 @@ class InvestmentCommitteeService:
             if "BEARISH" in o.conclusion
         )
 
-        avg_confidence = sum(o.confidence for o in other_opinions) / len(other_opinions)
+        sum(o.confidence for o in other_opinions) / len(other_opinions)
 
         if abs(bullish_count - bearish_count) >= 2:
             confidence = 0.8

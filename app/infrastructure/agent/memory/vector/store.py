@@ -5,8 +5,8 @@ Uses a local vector store to persist and retrieve agent research findings.
 """
 
 
-import logging
-from typing import Any, List
+from pathlib import Path
+from typing import Any
 
 # Using a lightweight local vector store implementation (simulated via file-based index for now)
 # In production, this would interface with chromadb or faiss

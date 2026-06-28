@@ -16,7 +16,7 @@ from app.core.typed_registry import TypedServiceRegistry
 
 logger = logging.getLogger(__name__)
 
-_registry_instance: "TypedServiceRegistry | None" = None
+_registry_instance: TypedServiceRegistry | None = None
 
 
 def configure_service_registry(config: dict[str, Any] | None = None) -> TypedServiceRegistry:
@@ -28,7 +28,7 @@ def configure_service_registry(config: dict[str, Any] | None = None) -> TypedSer
     return _registry_instance
 
 
-def _get_bootstrap_registry() -> "TypedServiceRegistry | None":
+def _get_bootstrap_registry() -> TypedServiceRegistry | None:
     """Return the current bootstrap TypedServiceRegistry singleton."""
     return _registry_instance
 

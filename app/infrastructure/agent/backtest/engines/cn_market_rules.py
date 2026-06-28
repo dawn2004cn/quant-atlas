@@ -23,7 +23,7 @@ def cn_stamp_tax_rate_for_date(trade_date: date | None, fallback: float) -> floa
     return fallback if fallback > 0 else 0.00025
 
 
-def a_share_t1_blocks_sell(engine: "BaseEngine", symbol: str) -> bool:
+def a_share_t1_blocks_sell(engine: BaseEngine, symbol: str) -> bool:
     """Return True when retail T+1 forbids selling (same trading bar as entry).
 
     Uses ``entry_bar_idx`` from the bar loop instead of calendar dates so

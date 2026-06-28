@@ -2,8 +2,7 @@ from __future__ import annotations
 """High-performance serialization using msgspec."""
 
 
-import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 from app.core.logger import get_logger
@@ -58,16 +57,16 @@ if MSGSPEC_AVAILABLE:
     class MarketDataUpdateProto(msgspec.Struct):
         """High-performance market data update."""
         market: str
-        symbols: List[str]
-        quotes: Dict[str, StockQuoteProto]
+        symbols: list[str]
+        quotes: dict[str, StockQuoteProto]
         timestamp: str
 
 
 class MessageSerializer:
     """High-performance message serializer using msgspec."""
 
-    _encoders: Dict[type, Any] = {}
-    _decoders: Dict[type, Any] = {}
+    _encoders: dict[type, Any] = {}
+    _decoders: dict[type, Any] = {}
 
     @classmethod
     def get_encoder(cls, schema_type: type):
@@ -86,7 +85,7 @@ class MessageSerializer:
         return cls._decoders.get(schema_type)
 
     @staticmethod
-    def encode(obj: Any, schema_type: Optional[type] = None) -> bytes:
+    def encode(obj: Any, schema_type: type | None = None) -> bytes:
         """Encode object to JSON bytes.
 
         Usage:
@@ -117,25 +116,25 @@ class MessageSerializer:
         return decoder.decode(data)
 
     @staticmethod
-    def encode_list(items: List[Any], schema_type: type) -> bytes:
+    def encode_list(items: list[Any], schema_type: type) -> bytes:
         """Encode list of objects."""
         if not MSGSPEC_AVAILABLE:
             import json
             return json.dumps(items, default=str).encode()
 
-        return msgspec.json.encode(items, type=List[schema_type])
+        return msgspec.json.encode(items, type=list[schema_type])
 
     @staticmethod
-    def decode_list(data: bytes, schema_type: type) -> List[Any]:
+    def decode_list(data: bytes, schema_type: type) -> list[Any]:
         """Decode JSON bytes to list."""
         if not MSGSPEC_AVAILABLE:
             import json
             return json.loads(data)
 
-        return msgspec.json.decode(data, type=List[schema_type])
+        return msgspec.json.decode(data, type=list[schema_type])
 
     @classmethod
-    def benchmark(cls, data: List[Dict], schema_type: type, iterations: int = 1000) -> Dict[str, float]:
+    def benchmark(cls, data: list[dict], schema_type: type, iterations: int = 1000) -> dict[str, float]:
         """Benchmark serialization performance.
 
         Returns:
@@ -190,7 +189,7 @@ def get_serializer() -> MessageSerializer | FallbackSerializer:
 
 __all__ = [
     "StockQuoteProto",
-    "StockDetailProto", 
+    "StockDetailProto",
     "TradeSignalProto",
     "MarketDataUpdateProto",
     "MessageSerializer",

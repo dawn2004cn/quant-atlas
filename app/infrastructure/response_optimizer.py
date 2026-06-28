@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import gzip
 import io
-from typing import Callable
 
 from flask import Flask, Response, request
 

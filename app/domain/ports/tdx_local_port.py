@@ -9,7 +9,6 @@ import warnings
 
 from .tdx_ports import (
     PytdxMarketPort,
-    TdxBaseDataWritePort,
     TdxBlockReadPort,
     TdxDaykSyncSessionPort,
     TdxDaykWritePort,

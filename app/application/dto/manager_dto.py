@@ -2,24 +2,23 @@ from __future__ import annotations
 """DTOs for Investment Manager services."""
 
 
-from typing import Optional, Any
 from pydantic import BaseModel, Field
 
 
 class LeaderboardQueryDTO(BaseModel):
     """DTO for leaderboard query."""
-    cohort: Optional[str] = Field(default=None, description="Filter by cohort")
+    cohort: str | None = Field(default=None, description="Filter by cohort")
     active_only: bool = Field(default=True, description="Show active only")
     limit: int = Field(default=50, ge=1, le=200, description="Result limit")
 
 
 class ManagerProfileUpdateDTO(BaseModel):
     """DTO for updating manager profile."""
-    name: Optional[str] = Field(default=None, max_length=64)
-    bio: Optional[str] = Field(default=None, max_length=500)
-    tagline: Optional[str] = Field(default=None, max_length=128)
-    specialty: Optional[str] = Field(default=None, max_length=64)
-    avatar_url: Optional[str] = None
+    name: str | None = Field(default=None, max_length=64)
+    bio: str | None = Field(default=None, max_length=500)
+    tagline: str | None = Field(default=None, max_length=128)
+    specialty: str | None = Field(default=None, max_length=64)
+    avatar_url: str | None = None
 
 
 class ManagerDeployDTO(BaseModel):

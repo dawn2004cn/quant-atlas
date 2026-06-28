@@ -62,7 +62,7 @@ NEGATIVE_KEYWORDS = [
 
 def _sentiment_score_from_text(text: str) -> float:
     """基于关键词计算文本情感得分."""
-    text_lower = text.lower()
+    text.lower()
     positive_count = sum(1 for kw in POSITIVE_KEYWORDS if kw in text)
     negative_count = sum(1 for kw in NEGATIVE_KEYWORDS if kw in text)
     total = positive_count + negative_count
@@ -93,7 +93,7 @@ def get_stock_news(ticker: str, max_news: int = 30, days_back: int = 7) -> Stock
     """获取股票相关新闻."""
     from ..application.services.tool_facade_service import get_tool_facade_service
     from datetime import datetime, timedelta
-    from ..core.utils.news_utils import industry_boost_tokens, rank_news_items
+    from ..core.utils.news_utils import rank_news_items
 
     try:
         service = get_tool_facade_service()
@@ -131,7 +131,7 @@ def get_news_sentiment(ticker: str, max_news: int = 30, days_back: int = 7) -> S
 
     try:
         service = get_tool_facade_service()
-        sentiment_service = get_sentiment_service()
+        get_sentiment_service()
 
         end_time = datetime.now()
         start_time = end_time - timedelta(days=days_back)
@@ -196,11 +196,10 @@ def get_market_mood(market: str = "CN", days_back: int = 3) -> MarketMoodToolRes
         service = get_market_narrative_service()
         mood = service.get_market_mood(market=market, days_back=days_back)
 
-        risk_level = "低"
         if mood.get("fear_greed_index", 50) < 30:
-            risk_level = "高"
+            pass
         elif mood.get("fear_greed_index", 50) > 70:
-            risk_level = "中"
+            pass
 
         return MarketMoodToolResult(
             market=market,

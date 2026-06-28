@@ -5,7 +5,6 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-import logging
 
 from ..application.services.factor.factor_catalog_service import FactorCatalogService
 from ..config import BASE_DIR

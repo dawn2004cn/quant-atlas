@@ -10,7 +10,6 @@ Orchestrates the flow:
 """
 
 
-import logging
 from datetime import datetime
 from typing import Any
 
@@ -73,7 +72,7 @@ class AIHedgeFundIntegrationService:
 
         all_signals = []
         for symbol_result in agent_results:
-            symbol = symbol_result["symbol"]
+            symbol_result["symbol"]
             for agent in symbol_result["agents"]:
                 all_signals.append(AgentSignal(
                     agent_name=agent["agent_name"],
@@ -111,7 +110,7 @@ class AIHedgeFundIntegrationService:
 
         bullish_count = sum(1 for s in signals if s.signal == "bullish")
         bearish_count = sum(1 for s in signals if s.signal == "bearish")
-        neutral_count = sum(1 for s in signals if s.signal == "neutral")
+        sum(1 for s in signals if s.signal == "neutral")
 
         total = len(signals)
         consensus_score = (bullish_count - bearish_count) / total

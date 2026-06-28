@@ -1,4 +1,8 @@
-import asyncio, json, logging, threading, time
+import asyncio
+import json
+import logging
+import threading
+import time
 from dataclasses import dataclass, field
 from typing import Any
 logger = logging.getLogger(__name__)
@@ -9,7 +13,7 @@ class GatewayClient:
     websocket: Any
     symbols: set[str] = field(default_factory=set)
 class GatewayBridge:
-    def __init__(self, host='0.0.0.0', port=GATEWAY_PORT):
+    def __init__(self, host='0.0.0.0', port=GATEWAY_PORT):  # noqa: S104  # internal WebSocket gateway, intentional all-interfaces bind
         self.host = host; self.port = port
         self._clients = set(); self._lock = asyncio.Lock()
         self._server = None; self._running = False
@@ -41,10 +45,10 @@ class GatewayBridge:
         if loop and loop.is_running():
             f = asyncio.run_coroutine_threadsafe(self.broadcast_quote(symbol,quote), loop)
             try: return f.result(timeout=5)
-            except: return 0
+            except Exception: return 0
         else:
             try: return asyncio.run(self.broadcast_quote(symbol, quote))
-            except: return 0
+            except Exception: return 0
     async def get_client_count(self):
         async with self._lock: return len(self._clients)
     async def _handle_connection(self, ws):
@@ -57,7 +61,7 @@ class GatewayBridge:
             async with self._lock: self._clients.discard(c)
     async def _handle_message(self, c, raw):
         try: msg = json.loads(raw)
-        except: return
+        except Exception: return
         t = msg.get('type',''); p = msg.get('payload',{})
         if t == 'subscribe':
             syms = p.get('symbols',[]) if isinstance(p,dict) else []
@@ -70,13 +74,13 @@ class GatewayBridge:
             await self._safe_send(c.websocket, json.dumps({'type':'pong'}))
     async def _safe_send(self, ws, data):
         try: await ws.send(data)
-        except: pass
+        except Exception: pass
     async def _close_client(self, c):
         try: await c.websocket.close()
-        except: pass
+        except Exception: pass
 _gateway_instance = None
 _gateway_thread = None
-def launch_gateway(host='0.0.0.0', port=GATEWAY_PORT):
+def launch_gateway(host='0.0.0.0', port=GATEWAY_PORT):  # noqa: S104  # internal WebSocket gateway, intentional all-interfaces bind
     global _gateway_instance, _gateway_thread
     if _gateway_instance and _gateway_thread:
         logger.info('[gateway_bridge] already running')
@@ -98,5 +102,5 @@ def stop_gateway():
             loop = asyncio.new_event_loop()
             loop.run_until_complete(_gateway_instance.stop())
             loop.close()
-        except: pass
+        except Exception: pass
     _gateway_instance = None; _gateway_thread = None

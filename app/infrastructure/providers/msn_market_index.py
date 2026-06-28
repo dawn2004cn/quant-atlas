@@ -6,8 +6,6 @@ import requests
 from datetime import datetime
 from typing import Any
 
-from ...domain.ports import MarketDataProvider
-from ...domain.enums import MarketCode
 from ...core.logger import get_logger
 
 logger = get_logger(__name__)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any
 import pandas as pd
 
 class IStrategyLogic(ABC):
@@ -11,13 +11,13 @@ class IStrategyLogic(ABC):
     """
 
     @abstractmethod
-    def compute_signals(self, data: pd.DataFrame, params: Dict[str, Any]) -> pd.Series:
+    def compute_signals(self, data: pd.DataFrame, params: dict[str, Any]) -> pd.Series:
         """
         Compute a signal series (e.g., 1 for Long, -1 for Short, 0 for Flat).
         """
         pass
 
     @abstractmethod
-    def get_description(self, params: Dict[str, Any]) -> str:
+    def get_description(self, params: dict[str, Any]) -> str:
         """Return a human-readable description of the current configuration."""
         pass

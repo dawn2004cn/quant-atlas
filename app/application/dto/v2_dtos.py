@@ -1,6 +1,6 @@
 """DTOs for API v2 - v1-compatible request/response shapes."""
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -13,15 +13,15 @@ class StockSearchDTO(BaseModel):
     """DTO for stock search."""
     keyword: str = Field(default="", description="Search keyword (name, code)")
     market: str = Field(default="CN", description="Market code")
-    sector: Optional[str] = Field(default=None, description="Sector filter")
+    sector: str | None = Field(default=None, description="Sector filter")
     limit: int = Field(default=20, ge=1, le=200, description="Max results")
 
 
 class StockHistoryDTO(BaseModel):
     """DTO for stock history query."""
     market: str = Field(default="CN", description="Market code")
-    start_date: Optional[str] = Field(default=None, description="YYYY-MM-DD")
-    end_date: Optional[str] = Field(default=None, description="YYYY-MM-DD")
+    start_date: str | None = Field(default=None, description="YYYY-MM-DD")
+    end_date: str | None = Field(default=None, description="YYYY-MM-DD")
     count: int = Field(default=100, ge=1, le=10000, description="Number of bars")
 
 

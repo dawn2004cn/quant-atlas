@@ -7,7 +7,6 @@ from app.domain.dto.service_result import GenericResponseDTO
 
 
 
-import json
 
 import re
 
@@ -440,7 +439,7 @@ class JarvisCommandService:
 
         query = parsed.get("query", "")
 
-        
+
 
         if "backtest" in query:
 
@@ -518,7 +517,7 @@ class JarvisCommandService:
 
             return "Analyzing today's opportunities, please wait..."
 
-        
+
 
         if "my" in q and "self-selected" in q:
 
@@ -571,7 +570,7 @@ class JarvisGlobalOrchestrator:
 
         parsed = self._parser.parse(user_input)
 
-        
+
 
         # If there are clear filter criteria, use custom_criteria
 
@@ -581,7 +580,7 @@ class JarvisGlobalOrchestrator:
 
             market = parsed.get("market", "CN")
 
-            
+
 
             result = self._strategy.custom_criteria_select_stocks(
 
@@ -593,7 +592,7 @@ class JarvisGlobalOrchestrator:
 
             )
 
-            
+
 
             return {
 
@@ -607,7 +606,7 @@ class JarvisGlobalOrchestrator:
 
             }
 
-        
+
 
         # Otherwise use standard command service
 

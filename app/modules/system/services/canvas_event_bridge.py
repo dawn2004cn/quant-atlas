@@ -43,7 +43,7 @@ class CanvasEventBridge:
         self._event_bus.subscribe(TruthDeviationEvent, self._on_truth_deviation)
         self._event_bus.subscribe(TradeExecutedEvent, self._on_trade_executed)
         self._event_bus.subscribe(WorkflowCompletedEvent, self._on_workflow_completed)
-        
+
         # 10.0 Neural Resonance events
         self._setup_resonance_handlers()
 
@@ -58,12 +58,12 @@ class CanvasEventBridge:
                 ExecutionFailoverEvent,
                 ExecutionRecoveryEvent,
             )
-            
+
             self._event_bus.subscribe(ResonanceActionEvent, self._on_resonance_action)
             self._event_bus.subscribe(ResonanceTriggeredResearchEvent, self._on_resonance_triggered_research)
             self._event_bus.subscribe(ExecutionFailoverEvent, self._on_execution_failover)
             self._event_bus.subscribe(ExecutionRecoveryEvent, self._on_execution_recovery)
-            
+
             logger.debug("subscribed to 10.0 resonance events")
         except Exception as exc:
             logger.debug("10.0 resonance event subscription skipped: %s", exc)

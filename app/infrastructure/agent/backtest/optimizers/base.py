@@ -5,7 +5,7 @@ subclasses implement ``_calc_weights``.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -82,8 +82,8 @@ class BaseOptimizer(ABC):
     # ------------------------------------------------------------------
 
     def _build_context(
-        self, window: pd.DataFrame, active: List[str]
-    ) -> "Dict[str, Any] | None":
+        self, window: pd.DataFrame, active: list[str]
+    ) -> "dict[str, Any] | None":
         """Build context dict for ``_calc_weights``.
 
         Default: covariance only. Override to add means, vols, etc.
@@ -106,7 +106,7 @@ class BaseOptimizer(ABC):
     # ------------------------------------------------------------------
 
     @abstractmethod
-    def _calc_weights(self, ctx: Dict[str, Any]) -> np.ndarray:
+    def _calc_weights(self, ctx: dict[str, Any]) -> np.ndarray:
         """Compute target weights from context.
 
         Args:

@@ -11,7 +11,6 @@ from app.infrastructure.memory_cache import (
     cached,
     cached_method,
     get_cache,
-    clear_cache,
 )
 
 CacheService = MemoryCache
@@ -23,5 +22,4 @@ __all__ = [
     "cached",
     "cached_method",
     "get_cache",
-    "clear_all_cache",
 ]

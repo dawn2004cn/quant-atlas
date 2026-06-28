@@ -9,7 +9,6 @@ This implements the result persistence and reuse strategy from midify_plan7.md:
 
 import hashlib
 import json
-import logging
 import time
 from datetime import datetime, timedelta
 from typing import Any

@@ -80,7 +80,7 @@ class ExecutionResult:
 
 class ExecutionVenue(ABC):
     """Abstract base class for trade execution venues.
-    
+
     Each venue represents a different execution path:
     - QMT venue: Direct market access via QMT terminal
     - Redis shadow venue: Paper trading / shadow execution
@@ -125,10 +125,10 @@ class ExecutionVenue(ABC):
     @abstractmethod
     async def execute(self, request: ExecutionRequest) -> ExecutionResult:
         """Execute a trade order.
-        
+
         Args:
             request: The execution request
-            
+
         Returns:
             ExecutionResult with fill details or error
         """
@@ -137,7 +137,7 @@ class ExecutionVenue(ABC):
     @abstractmethod
     async def health_check(self) -> VenueStatus:
         """Check venue health.
-        
+
         Returns:
             Current VenueStatus
         """
@@ -145,10 +145,10 @@ class ExecutionVenue(ABC):
 
     async def cancel_order(self, order_id: str) -> bool:
         """Cancel an existing order.
-        
+
         Args:
             order_id: The order to cancel
-            
+
         Returns:
             True if cancellation succeeded
         """
@@ -156,10 +156,10 @@ class ExecutionVenue(ABC):
 
     async def get_order_status(self, order_id: str) -> dict[str, Any]:
         """Get order status.
-        
+
         Args:
             order_id: The order to query
-            
+
         Returns:
             Order status dict
         """
@@ -180,10 +180,10 @@ class ExecutionVenue(ABC):
         self._total_failures += 1
         self._consecutive_failures += 1
         self._last_health_check = datetime.now()
-        
+
         if self._consecutive_failures >= self._max_retries:
             self._status = VenueStatus.UNHEALTHY
-            logger.warning("venue %s marked UNHEALTHY after %d failures", 
+            logger.warning("venue %s marked UNHEALTHY after %d failures",
                           self._venue_id, self._consecutive_failures)
         elif self._consecutive_failures >= 2:
             self._status = VenueStatus.DEGRADED
