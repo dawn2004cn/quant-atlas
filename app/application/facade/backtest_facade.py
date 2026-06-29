@@ -6,10 +6,14 @@ from pydantic import ValidationError as PydanticValidationError
 
 from app.application.dto.market_data_dto import BacktestCompareRequestDTO, BacktestRequestDTO, SelectionRequestDTO
 from app.application.errors import ValidationError
+from app.application.facade._helpers import observe_facade, parse_market, validation_error_from_pydantic
+from app.application.facade.dto.backtest_facade_dto import BacktestResultDTO
 from app.domain.enums import MarketCode
-from app.facade._helpers import observe_facade, parse_market, validation_error_from_pydantic
-from app.facade.dto.backtest_facade_dto import BacktestResultDTO
-from app.modules.analytics.mlflow_service import attach_mlflow_run_id
+
+
+def _get_attach_mlflow_run_id():
+    from app.infrastructure.mlflow.backtest_log_hook import attach_mlflow_run_id
+    return attach_mlflow_run_id
 
 
 class BacktestFacade:
@@ -53,7 +57,7 @@ class BacktestFacade:
                 initial_capital=dto.initial_capital,
             )
             normalized = self._normalize_backtest_result(result)
-            return attach_mlflow_run_id(
+            return _get_attach_mlflow_run_id()(
                 normalized,
                 symbol=dto.symbol,
                 strategy_name=dto.strategy_name,
