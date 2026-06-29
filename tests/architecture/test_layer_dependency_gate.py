@@ -50,11 +50,7 @@ FORBIDDEN_APPLICATION = ["app.infrastructure"]
 # Legacy shim files that intentionally re-export infrastructure classes are
 # exempt on the understanding they will be removed once all callers migrate.
 # Modules that use lazy (function-local) imports are already compliant.
-LEGACY_SHIMS = frozenset({
-    "app/application/hot_path_cache.py",
-    "app/application/services/batch_service.py",
-    "app/domain/services/cache_service.py",
-})
+LEGACY_SHIMS = frozenset()
 
 
 class TestLayerDependencyGate:

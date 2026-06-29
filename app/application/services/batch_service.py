@@ -1,24 +1,32 @@
 from __future__ import annotations
+
 """Batch processing service for handling multiple stocks."""
 
 
 import asyncio
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from app.core.logger import get_logger
-from app.infrastructure.memory_cache import get_cache
+
+
+def _get_cache():
+    from app.infrastructure.memory_cache import get_cache as _gc
+    return _gc
+
 
 logger = get_logger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @dataclass
 class BatchResult:
     """Result of batch processing."""
+
     total: int
     success: int
     failed: int
@@ -33,7 +41,7 @@ class BatchProcessor:
     def __init__(self, max_workers: int = 10):
         self._max_workers = max_workers
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
-        self._cache = get_cache()
+        self._cache = _get_cache()
         logger.info(f"BatchProcessor initialized with {max_workers} workers")
 
     async def process_stocks_async(
@@ -95,7 +103,7 @@ class BatchProcessor:
         results = []
 
         for i in range(0, len(items), chunk_size):
-            chunk = items[i:i + chunk_size]
+            chunk = items[i : i + chunk_size]
             chunk_results = await self.process_stocks_async(
                 chunk,
                 process_fn,
