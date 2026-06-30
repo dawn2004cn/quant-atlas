@@ -9,7 +9,7 @@ These are abstract interfaces that infrastructure repositories must implement.
 from abc import ABC, abstractmethod
 from typing import Any
 
-from app.domain.entities import UserAccount
+from app.domain.shared.value_objects import UserAccount
 
 
 class IBasicMarketDataRepository(ABC):
