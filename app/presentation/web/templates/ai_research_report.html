@@ -13,6 +13,14 @@
 {% endblock %}
 
 {% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.ai_analysis'), 'label': 'AI 诊股', 'primary': true},
+    {'href': url_for('pages.ai_investment_committee'), 'label': '投委会'},
+    {'href': url_for('pages.backtest'), 'label': '回测'},
+    {'href': url_for('pages.quant_lab'), 'label': '量化实验室'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 <div class="section-shell aireport-hero">
     <div class="hero-caption">TradingAgents</div>
     <h1 class="page-title">AI 研究报告</h1>
@@ -27,17 +35,29 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/vendor/echarts.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/components/AiResearchReport.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/lazy_echarts.js') }}"
+        data-echarts-src="{{ url_for('static', filename='js/vendor/echarts.min.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/components/AiResearchReport.js') }}"></script>
 <script nonce="{{ csp_nonce() }}">
     $(function () {
         if (window.QAUserCenter) {
             QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('aireportFreshnessStrip'));
         }
         var el = document.getElementById("ai-research-mount");
-        if (el && window.AiResearchReport) {
-            new AiResearchReport(el);
+        var boot = function () {
+            if (el && window.AiResearchReport) {
+                new AiResearchReport(el);
+            }
+        };
+        if (typeof loadEcharts === 'function') {
+            loadEcharts().then(boot).catch(function () {
+                if (el) {
+                    el.innerHTML = '<div class="empty-state">图表库加载失败，请刷新重试。</div>';
+                }
+            });
+            return;
         }
+        boot();
     });
 </script>
 {% endblock %}

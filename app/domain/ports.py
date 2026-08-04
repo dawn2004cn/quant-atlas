@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-"""Domain ports to support dependency inversion.
+"""Domain port contracts — backward-compatible re-export shim.
 
-DEPRECATED: This module is kept for backward compatibility.
-Please use domain.ports package instead:
+Canonical import path::
 
-    from domain.ports import MarketDataProvider
-    # or
-    from domain.ports.market_ports import MarketDataProvider
+    from app.domain.ports import MarketDataProvider
+    from app.domain.ports.market_ports import MarketDataProvider
 
-This file will be removed in a future version.
+The flat module ``app.domain.ports`` (this file) re-exports the ``ports/`` package.
 """
-
 
 from .ports import (
     AgentLLMPort,

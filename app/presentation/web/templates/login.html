@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script nonce="{{ csp_nonce() }}">(function(){var t=localStorage.getItem('theme');var light=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches;if(t){document.documentElement.setAttribute('data-theme',t)}else if(light){document.documentElement.setAttribute('data-theme','light');t='light'}else{t='dark'}var bg=t==='light'?'#f6f8fb':'#07111f';var fg=t==='light'?'#0f172a':'#eef6ff';document.documentElement.style.backgroundColor=bg;document.documentElement.style.color=fg;document.documentElement.style.colorScheme=t})();</script>
     <title>{{ t('login.title') }} · Quant Atlas</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">

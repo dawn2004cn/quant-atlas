@@ -71,6 +71,15 @@
         max-height: 260px;
         overflow: auto;
     }
+    .assistant-flow:has(.sd-industry-mermaid),
+    .assistant-flow:has(.sd-industry-mermaid svg) {
+        max-height: none;
+        overflow: visible;
+    }
+    .assistant-flow .sd-industry-mermaid svg {
+        max-width: 100%;
+        height: auto;
+    }
     /* Finance Analysis */
     .finance-analysis-grid {
         display: grid;

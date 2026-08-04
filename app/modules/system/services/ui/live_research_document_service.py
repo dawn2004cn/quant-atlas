@@ -108,18 +108,22 @@ class LiveResearchDocumentService:
         try:
             from datetime import date, timedelta
 
-            from app.infrastructure.providers.rust_indicators import RustIndicatorProvider
-            from app.modules.strategy.services.analytics.visual_data_reducer_service import (
-                TechnicalResonanceMeter,
-            )
+            import importlib
 
+            from app.infrastructure.providers.rust_indicators import RustIndicatorProvider
+
+            reducer_mod = importlib.import_module(
+                "app.modules.strategy.services.analytics.visual_data_reducer_service"
+            )
             end_d = date.today()
             start_d = end_d - timedelta(days=120)
             history = stock_service.get_history(
                 symbol, market, start_d.isoformat(), end_d.isoformat()
             )
             items = history if isinstance(history, list) else (history or {}).get("history", [])
-            payload = TechnicalResonanceMeter(RustIndicatorProvider()).calculate_resonance(items)
+            payload = reducer_mod.TechnicalResonanceMeter(
+                RustIndicatorProvider()
+            ).calculate_resonance(items)
             payload["ok"] = True
             return payload
         except Exception as exc:

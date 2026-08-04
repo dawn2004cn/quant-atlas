@@ -150,6 +150,7 @@ class DailyWorkbenchService:
             "headlines": self._headlines(market, n=6),
             "trade_plan_strip": self._trade_plan_strip(user_id, market),
             "fingpt_available": self._fingpt_application_service is not None,
+            "decision_review_summary": self._decision_review_summary(),
         }
         return payload
 
@@ -501,6 +502,33 @@ class DailyWorkbenchService:
             weekly = None
         return {"daily": daily, "weekly": weekly}
 
+    def _decision_review_summary(self) -> dict[str, Any]:
+        """Embed review-queue summary so workbench avoids a second HTTP round-trip."""
+        try:
+            from app.modules.system.services.ui.decision_review_queue import get_review_queue
+
+            queue = get_review_queue()
+            summary = queue.product_summary()
+            pending = queue.list_pending(limit=5)
+            return {
+                **summary,
+                "items": [
+                    {
+                        "decision_id": dec.decision_id,
+                        "subject": dec.subject,
+                        "confidence": dec.confidence,
+                        "reason": dec.reason,
+                        "priority": dec.priority,
+                        "review_by": dec.review_by,
+                        "created_at": dec.created_at,
+                    }
+                    for dec in pending
+                ],
+            }
+        except Exception as exc:
+            logger.warning("daily_workbench decision_review_summary: %s", exc)
+            return {"pending_count": 0, "overdue_count": 0, "items": [], "cta": ""}
+
     def _headlines(self, market: MarketCode, *, n: int) -> list[dict[str, Any]]:
         prov = self._news_provider
         if not prov:
@@ -548,19 +576,43 @@ class DailyWorkbenchService:
         integration: dict[str, Any],
         task_digest: dict[str, Any],
     ) -> dict[str, Any]:
+        quotes_dump: dict[str, Any] = {}
+        try:
+            from app.modules.market_data.services.quotes_dump_metrics import get_quotes_dump_stats
+
+            quotes_dump = get_quotes_dump_stats() or {}
+        except Exception as exc:
+            logger.debug("workbench quotes_dump_stats: %s", exc)
+
         if self._health_banner_service is None:
-            return {
+            banner: dict[str, Any] = {
                 "level": "ok",
                 "message": "系统运行正常，数据与任务链路未发现阻断项",
                 "allow_live_trading": True,
                 "critical_count": 0,
                 "warning_count": 0,
                 "stale_data": False,
+                "quotes_full_dump_count": int(quotes_dump.get("full_dump_count") or 0),
+                "quotes_full_dump_warn": False,
+                "quotes_full_dump_threshold": 1,
             }
-        return self._health_banner_service.build_banner(
-            integration=integration,
-            task_digest=task_digest,
-        )
+        else:
+            banner = self._health_banner_service.build_banner(
+                integration=integration,
+                task_digest=task_digest,
+                quotes_dump=quotes_dump,
+            )
+
+        # SPA HealthBanner prefers headline/summary; classic uses message.
+        msg = str(banner.get("message") or "").strip()
+        if msg and not banner.get("headline"):
+            banner["headline"] = msg[:80]
+        if banner.get("quotes_full_dump_warn") and not banner.get("summary"):
+            banner["summary"] = (
+                f"全量 /quotes dump={banner.get('quotes_full_dump_count')} "
+                f"（阈值≥{banner.get('quotes_full_dump_threshold')}）→ quotes/page"
+            )
+        return banner
 
     def _build_morning_call(
         self,

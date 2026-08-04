@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -105,6 +106,7 @@ export function SelectionResultPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.selectionResult} />
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>

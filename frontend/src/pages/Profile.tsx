@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type PagePrefs = { font_size?: string };
@@ -95,6 +96,7 @@ export default function Profile() {
 
   return (
     <div className="space-y-6">
+      <PageQuickNav items={QUICK_NAV_PRESETS.profile} />
       <h1 className="page-title">个人中心</h1>
 
       {/* Tabs */}

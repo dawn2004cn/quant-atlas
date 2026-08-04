@@ -10,7 +10,7 @@ Following Phase 7: DTO Standardization plan.
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 # ==================== Market DTOs ====================
 
@@ -273,8 +273,6 @@ class PositionDTO(BaseModel):
 
     total_cost: float = 0.0
     total_value: float = 0.0
-    pnl: float = 0.0
-    pnl_pct: float = 0.0
 
     weight: float = 0.0
     holding_days: int = 0
@@ -285,6 +283,18 @@ class PositionDTO(BaseModel):
 
     tags: list[str] = Field(default_factory=list)
     notes: str = ""
+
+    @computed_field
+    @property
+    def pnl(self) -> float:
+        return (self.current_price - self.avg_cost) * self.quantity
+
+    @computed_field
+    @property
+    def pnl_pct(self) -> float:
+        if self.avg_cost == 0:
+            return 0.0
+        return round((self.current_price - self.avg_cost) / self.avg_cost * 100, 2)
 
 
 class PortfolioSummaryDTO(BaseModel):

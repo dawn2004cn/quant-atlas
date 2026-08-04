@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import useSWR from "swr";
-import { PageSkeleton } from "../components/PageSkeleton";
-import { apiFetchV1 } from "../lib/api";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { AsyncProgressBar, PageSkeleton } from "../components/PageSkeleton";
+import { apiFetchV1, fetchCeleryTaskStatus } from "../lib/api";
 
 type TaskItem = {
   id: string;
@@ -38,9 +39,16 @@ const STATUS_CLASS: Record<string, string> = {
   cancelled: "badge-ghost",
 };
 
+function normalizeId(id: string): string {
+  return id.trim().toLowerCase();
+}
+
 export function TaskCenterPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const focusTaskId = (searchParams.get("task_id") || "").trim();
   const [filter, setFilter] = useState<string>("all");
+  const focusRef = useRef<HTMLButtonElement | null>(null);
 
   const { data, error, isLoading, mutate } = useSWR(
     "task-list",
@@ -48,16 +56,35 @@ export function TaskCenterPage() {
     { refreshInterval: 15_000 },
   );
 
-  if (isLoading && !data) return <PageSkeleton rows={4} />;
+  const { data: celeryFocus } = useSWR(
+    focusTaskId ? ["celery-task-focus", focusTaskId] : null,
+    () => fetchCeleryTaskStatus(focusTaskId),
+    { refreshInterval: 2000, revalidateOnFocus: false },
+  );
+
+  const tasks = useMemo(() => {
+    const rows = data?.tasks ?? [];
+    return rows.filter((t) => filter === "all" || t.status === filter);
+  }, [data?.tasks, filter]);
+
+  const focusedInList = useMemo(
+    () => tasks.find((t) => normalizeId(t.id) === normalizeId(focusTaskId)),
+    [tasks, focusTaskId],
+  );
+
+  useEffect(() => {
+    if (focusRef.current) {
+      focusRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [focusedInList?.id, focusTaskId]);
+
+  if (isLoading && !data) return <PageSkeleton rows={4} showProgress />;
   if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
   if (!data) return <div className="alert alert-warning">暂无任务数据</div>;
 
-  const tasks = (data.tasks ?? []).filter(
-    (t) => filter === "all" || t.status === filter,
-  );
-
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.taskCenter} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">任务中心</h1>
@@ -67,6 +94,41 @@ export function TaskCenterPage() {
           刷新
         </button>
       </div>
+
+      {focusTaskId ? (
+        <div className="glass-card border border-sky-500/30 bg-sky-500/5 p-4 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div className="text-xs font-mono uppercase tracking-wide text-sky-500">定位任务</div>
+              <div className="font-mono text-sm break-all">{focusTaskId}</div>
+            </div>
+            {focusedInList ? (
+              <button
+                type="button"
+                className="btn btn-sm btn-primary"
+                onClick={() => navigate(`/task/${focusedInList.id}`)}
+              >
+                打开详情
+              </button>
+            ) : null}
+          </div>
+          {celeryFocus ? (
+            <div className="text-sm text-slate-600 dark:text-slate-300">
+              Celery 状态：
+              <span className="font-semibold ml-1">{celeryFocus.state || (celeryFocus.ready ? "READY" : "PENDING")}</span>
+              {celeryFocus.successful === true ? " · 成功" : null}
+              {celeryFocus.failed === true ? " · 失败" : null}
+              {typeof celeryFocus.error === "string" && celeryFocus.error ? (
+                <span className="block text-rose-500 mt-1">{celeryFocus.error}</span>
+              ) : null}
+            </div>
+          ) : focusedInList ? (
+            <p className="text-sm text-slate-500">已在下方列表高亮该任务。</p>
+          ) : (
+            <p className="text-sm text-slate-500">列表中暂无匹配项，正在查询 Celery 任务状态…</p>
+          )}
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-2">
         {(["all", "pending", "running", "completed", "failed", "cancelled"] as const).map((s) => (
@@ -89,46 +151,54 @@ export function TaskCenterPage() {
               ? "提交回测、数据同步等操作后，任务将显示在这里"
               : "当前筛选条件下没有任务"}
           </p>
+          {focusTaskId ? (
+            <p className="text-xs text-slate-400 mt-3">
+              也可从回测页携带{" "}
+              <Link className="link" to={`/task-center?task_id=${encodeURIComponent(focusTaskId)}`}>
+                task_id
+              </Link>{" "}
+              定位 Celery 异步任务
+            </p>
+          ) : null}
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {tasks.map((task) => (
-            <button
-              key={task.id}
-              type="button"
-              className="glass-card text-left p-4 transition hover:shadow-md"
-              onClick={() => navigate(`/task/${task.id}`)}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold truncate">{task.name}</h4>
-                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">{task.description}</p>
-                </div>
-                <span className={`badge badge-sm ${STATUS_CLASS[task.status] ?? "badge-ghost"}`}>
-                  {STATUS_LABEL[task.status] ?? task.status}
-                </span>
-              </div>
-
-              {task.status === "running" || task.status === "pending" ? (
-                <div className="mt-3">
-                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                    <span>进度</span>
-                    <span>{task.progress}%</span>
+          {tasks.map((task) => {
+            const isFocus = focusTaskId && normalizeId(task.id) === normalizeId(focusTaskId);
+            return (
+              <button
+                key={task.id}
+                ref={isFocus ? focusRef : undefined}
+                type="button"
+                className={`glass-card text-left p-4 transition hover:shadow-md ${
+                  isFocus ? "ring-2 ring-sky-500/60 bg-sky-500/5" : ""
+                }`}
+                onClick={() => navigate(`/task/${task.id}`)}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold truncate">{task.name}</h4>
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">{task.description}</p>
                   </div>
-                  <progress
-                    className="progress progress-primary w-full"
-                    value={task.progress}
-                    max={100}
-                  />
+                  <span className={`badge badge-sm ${STATUS_CLASS[task.status] ?? "badge-ghost"}`}>
+                    {STATUS_LABEL[task.status] ?? task.status}
+                  </span>
                 </div>
-              ) : null}
 
-              <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
-                <span className="badge badge-ghost badge-xs">{task.type}</span>
-                <span>更新于 {task.updated_at}</span>
-              </div>
-            </button>
-          ))}
+                {task.status === "running" || task.status === "pending" ? (
+                  <div className="mt-3">
+                    <AsyncProgressBar label="进度" value={task.progress} />
+                  </div>
+                ) : null}
+
+                <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
+                  <span className="badge badge-ghost badge-xs">{task.type}</span>
+                  <span>更新于 {task.updated_at}</span>
+                  {isFocus ? <span className="badge badge-info badge-xs">定位</span> : null}
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

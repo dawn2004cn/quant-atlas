@@ -1,5 +1,6 @@
 import { useState } from "react";
 import useSWR from "swr";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -61,6 +62,8 @@ export function AIInvestmentCommitteePage() {
 
   return (
     <div className="space-y-5">
+      <CoreWorkflowStrip />
+      <PageQuickNav items={QUICK_NAV_PRESETS.aiInvestmentCommittee} />
       <div>
         <h1 className="text-2xl font-bold">AI 投资委员会</h1>
         <p className="text-sm text-slate-500">

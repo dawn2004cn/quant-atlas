@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import type { AlphaFactorItem } from "../types/alpha";
 import {
   fetchAlphaFactoryStatus,
@@ -40,6 +41,7 @@ export function AlphaFactoryPage() {
 
   return (
     <div className="space-y-6">
+      <PageQuickNav items={QUICK_NAV_PRESETS.alphaFactory} />
       <section className="glass-card p-6">
         <div className="hero-caption">Alpha Factory</div>
         <h1 className="text-2xl font-bold">智能因子工厂</h1>
@@ -104,7 +106,7 @@ function ExperimentTab({ factors, onSubmitted }: { factors?: AlphaFactorItem[]; 
   const [error, setError] = useState("");
 
   const handleSubmit = useCallback(async () => {
-    if (!formula.trim()) return;
+    if (!formula.trim() || submitting) return;
     setSubmitting(true);
     setError("");
     setResult(null);

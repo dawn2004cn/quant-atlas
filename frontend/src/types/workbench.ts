@@ -5,6 +5,10 @@ export type WorkbenchSnapshot = {
     level?: string;
     headline?: string;
     summary?: string;
+    message?: string;
+    quotes_full_dump_warn?: boolean;
+    quotes_full_dump_count?: number;
+    quotes_full_dump_threshold?: number;
     items?: Array<{ label?: string; status?: string }>;
   };
   morning_call?: {

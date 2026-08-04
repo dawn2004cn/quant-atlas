@@ -14,6 +14,14 @@
 {% endblock %}
 
 {% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.daily_workbench'), 'label': '操盘台', 'primary': true},
+    {'href': url_for('pages.task_center'), 'label': '任务中心'},
+    {'href': url_for('pages.message_center'), 'label': '消息中心'},
+    {'href': url_for('pages.self_stocks'), 'label': '自选股'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 <div class="container-fluid py-3">
     <div class="alert-hero">
         <h1 class="h2 mb-2">🚨 智能异常预警中心</h1>
@@ -36,6 +44,10 @@
         <div class="alert-stat info">
             <div class="alert-stat-label">Info</div>
             <div class="alert-stat-value" id="statInfo">--</div>
+        </div>
+        <div class="alert-stat warning">
+            <div class="alert-stat-label">quotes dump</div>
+            <div class="alert-stat-value" id="statDump">--</div>
         </div>
     </div>
 
@@ -67,6 +79,17 @@
             <input class="form-check-input" type="checkbox" id="autoRefresh">
             <label class="form-check-label" for="autoRefresh">自动刷新 (60s)</label>
         </div>
+        <span class="text-muted small ms-1" id="channelStatusHint">渠道：—</span>
+        <div class="form-check form-check-inline mb-0 ms-2" id="channelChecks">
+            <label class="form-check-label me-2"><input class="form-check-input channel-check" type="checkbox" value="webhook" data-label="Webhook"> Webhook</label>
+            <label class="form-check-label me-2"><input class="form-check-input channel-check" type="checkbox" value="dingtalk" data-label="钉钉"> 钉钉</label>
+            <label class="form-check-label me-2"><input class="form-check-input channel-check" type="checkbox" value="email" data-label="邮件"> 邮件</label>
+            <label class="form-check-label me-2"><input class="form-check-input channel-check" type="checkbox" value="wechat" data-label="微信"> 微信</label>
+        </div>
+        <div class="form-check form-check-inline mb-0">
+            <input class="form-check-input" type="checkbox" id="respectDedup" checked>
+            <label class="form-check-label" for="respectDedup">冷却去重</label>
+        </div>
         <button class="btn btn-sm btn-primary" id="refreshBtn" type="button">刷新</button>
         <button class="btn btn-sm btn-outline-danger" id="dispatchBtn" type="button">推送通知</button>
         <small class="text-muted" id="generatedAt"></small>
@@ -89,6 +112,59 @@ const CATEGORY_LABELS = {
 };
 
 let refreshTimer = null;
+
+async function loadChannelStatus() {
+    const hint = document.getElementById('channelStatusHint');
+    try {
+        const response = await fetch('/api/v1/system/alerts/channels', { credentials: 'same-origin' });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        const payload = await response.json();
+        const data = (payload.status === 'success' || payload.ok) ? (payload.data ?? payload) : null;
+        const channels = (data && data.channels) || [];
+        const configured = {};
+        channels.forEach(function (row) {
+            configured[row.channel] = !!row.configured;
+        });
+        const configuredN = data && data.configured_count != null
+            ? data.configured_count
+            : channels.filter(function (c) { return c.configured; }).length;
+        hint.textContent = '已配置渠道 ' + configuredN + '/' + (channels.length || 4);
+
+        document.querySelectorAll('.channel-check').forEach(function (el) {
+            const name = el.value;
+            const ok = !!configured[name];
+            const label = el.closest('label');
+            if (label) {
+                const base = el.getAttribute('data-label') || name;
+                label.lastChild.textContent = ' ' + base + (ok ? '·已配置' : '·未配置');
+            }
+            el.checked = ok;
+            if (!ok && !Object.keys(configured).length) {
+                el.checked = name === 'webhook' || name === 'dingtalk' || name === 'email';
+            }
+        });
+        // If none configured, keep webhook/dingtalk/email checked as defaults
+        const anyChecked = Array.from(document.querySelectorAll('.channel-check')).some(function (el) {
+            return el.checked;
+        });
+        if (!anyChecked) {
+            document.querySelectorAll('.channel-check').forEach(function (el) {
+                el.checked = el.value === 'webhook' || el.value === 'dingtalk' || el.value === 'email';
+            });
+        }
+    } catch (e) {
+        hint.textContent = '渠道状态不可用';
+        document.querySelectorAll('.channel-check').forEach(function (el) {
+            el.checked = el.value === 'webhook' || el.value === 'dingtalk' || el.value === 'email';
+        });
+    }
+}
+
+function selectedChannels() {
+    return Array.from(document.querySelectorAll('.channel-check:checked')).map(function (el) {
+        return el.value;
+    });
+}
 
 function buildAlertsQuery() {
     const params = new URLSearchParams({
@@ -123,11 +199,18 @@ function renderAlertItem(item) {
     if (item.meta && item.meta.event) metaBits.push('事件: ' + item.meta.event);
     if (item.meta && item.meta.verdict) metaBits.push('共识: ' + item.meta.verdict);
     if (item.meta && item.meta.team_count) metaBits.push('团队数: ' + item.meta.team_count);
+    if (item.meta && item.meta.preferred_endpoint) metaBits.push('首选: ' + item.meta.preferred_endpoint);
+    if (item.id === 'data:quotes:full_dump') metaBits.push('全量 /quotes dump');
+
+    const actionUrl = item.meta && item.meta.action_url ? String(item.meta.action_url) : '';
+    const actionHtml = actionUrl
+        ? (' <a class="alert-item-action" href="' + actionUrl + '">详情 →</a>')
+        : '';
 
     const extraClass = item._live ? ' level-consensus-live' : '';
     return '<article class="alert-item level-' + level + extraClass + '">' +
         '<div class="alert-item-header">' +
-            '<div class="alert-item-title">' + (item.title || '告警') + '</div>' +
+            '<div class="alert-item-title">' + (item.title || '告警') + actionHtml + '</div>' +
             '<div>' +
                 '<span class="alert-badge level-' + level + '">' + level + '</span> ' +
                 '<span class="alert-badge cat-' + category + '">' + catLabel + '</span>' +
@@ -144,6 +227,15 @@ function updateSummary(feed) {
     document.getElementById('statCritical').textContent = byLevel.critical || 0;
     document.getElementById('statWarning').textContent = byLevel.warning || 0;
     document.getElementById('statInfo').textContent = byLevel.info || 0;
+    const items = feed.items || [];
+    const dumpN = items.filter(function (it) { return it.id === 'data:quotes:full_dump'; }).length;
+    const dumpEl = document.getElementById('statDump');
+    if (dumpEl) {
+        dumpEl.textContent = String(dumpN);
+        dumpEl.title = dumpN
+            ? '存在 quotes dump 告警，请改用 quotes/page 或查看观测台'
+            : '当前无 quotes dump 告警';
+    }
     document.getElementById('generatedAt').textContent = feed.generated_at
         ? ('更新于 ' + formatTime(feed.generated_at))
         : '';
@@ -188,7 +280,14 @@ function setupAutoRefresh() {
 }
 
 async function dispatchAlerts() {
-    if (!window.confirm('将当前 Warning+ 告警推送到已配置的 Webhook / 钉钉 / 邮件渠道？')) return;
+    const channels = selectedChannels();
+    if (!channels.length) {
+        alert('请至少选择一个推送渠道');
+        return;
+    }
+    const labels = channels.join(' / ');
+    const respectDedup = document.getElementById('respectDedup').checked;
+    if (!window.confirm('将 Warning+ 告警推送到：' + labels + '？（含 quotes dump；dedup=' + (respectDedup ? '开' : '关') + '）')) return;
     try {
         const response = await fetch('/api/v1/system/alerts/dispatch', {
             method: 'POST',
@@ -198,13 +297,20 @@ async function dispatchAlerts() {
                 min_level: document.getElementById('minLevel').value === 'info' ? 'warning' : document.getElementById('minLevel').value,
                 limit: Number(document.getElementById('limit').value || 20),
                 include_probes: document.getElementById('includeProbes').checked,
-                respect_dedup: false,
+                respect_dedup: respectDedup,
+                channels: channels,
             }),
         });
         if (!response.ok) throw new Error('HTTP ' + response.status);
         const payload = await response.json();
         const result = payload.data || payload;
-        alert('推送完成：成功 ' + (result.sent || 0) + ' 渠道，失败 ' + (result.failed || 0));
+        if (result.deduplicated) {
+            alert('冷却期内已推送过相同指纹，已跳过');
+        } else if (result.skipped) {
+            alert('已跳过：' + (result.message || 'no_dispatch'));
+        } else {
+            alert('推送完成：成功 ' + (result.sent || 0) + ' 渠道，失败 ' + (result.failed || 0));
+        }
     } catch (e) {
         alert('推送失败: ' + e.message);
     }
@@ -256,6 +362,7 @@ document.addEventListener('quant:cross-team-alert', function (e) {
 });
 
 loadAlerts();
+loadChannelStatus();
 setupAutoRefresh();
 </script>
 {% endblock %}

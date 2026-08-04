@@ -26,16 +26,16 @@ class TestMarketModels(unittest.TestCase):
     def test_market_regime_detection(self):
         """Test market regime detection."""
         rising_prices = [100 + i * 2 for i in range(30)]
-        regime = MarketAnalyzer.detect_regime(rising_prices)
+        regime = MarketAnalyzer.detect_regime(rising_prices, window=10)
         self.assertEqual(regime, MarketRegime.BULL)
 
         falling_prices = [100 - i * 2 for i in range(30)]
-        regime = MarketAnalyzer.detect_regime(falling_prices)
+        regime = MarketAnalyzer.detect_regime(falling_prices, window=10)
         self.assertEqual(regime, MarketRegime.BEAR)
 
         sideways_prices = [100 + (i % 3 - 1) for i in range(30)]
-        regime = MarketAnalyzer.detect_regime(sideways_prices)
-        self.assertIn(regime, [MarketRegime.SIDEWAYS, MarketRegime.RECOVERY])
+        regime = MarketAnalyzer.detect_regime(sideways_prices, window=10)
+        self.assertEqual(regime, MarketRegime.SIDEWAYS)
 
     def test_calendar_service(self):
         """Test trading calendar."""

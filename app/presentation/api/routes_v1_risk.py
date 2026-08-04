@@ -16,6 +16,7 @@ from app.domain.dto.risk_request_dto import (
 from ...application.errors import ValidationError
 from ...core.registry import register_routes
 from .common import ok_resource
+from .decorators import deps_service_fallback
 from .dto_validation import validate_request
 from .route_deps import RiskRouteDeps, build_risk_route_deps
 from .v1_context import ApiV1Context
@@ -35,6 +36,10 @@ def register_risk_routes(
     @blueprint.post("/risk/check-order")
     @login_required
     @validate_request(RiskCheckOrderRequest)
+    @deps_service_fallback(
+        lambda: risk_service,
+        legacy=lambda: legacy,
+    )
     def risk_check_order(req: RiskCheckOrderRequest):
         """Pre-flight risk check for a single order."""
         result = risk_service.check_order(
@@ -55,6 +60,10 @@ def register_risk_routes(
     @blueprint.post("/risk/check-orders-batch")
     @login_required
     @validate_request(RiskCheckBatchRequest)
+    @deps_service_fallback(
+        lambda: risk_service,
+        legacy=lambda: legacy,
+    )
     def risk_check_orders_batch(req: RiskCheckBatchRequest):
         """Batch pre-flight risk checks."""
         if not req.orders:
@@ -71,6 +80,10 @@ def register_risk_routes(
     @blueprint.post("/risk/position/volatility-target")
     @login_required
     @validate_request(RiskVolatilityTargetRequest)
+    @deps_service_fallback(
+        lambda: risk_service,
+        legacy=lambda: legacy,
+    )
     def risk_volatility_target(req: RiskVolatilityTargetRequest):
         """Compute volatility-target position size."""
         position_size = risk_service.compute_volatility_target_position(
@@ -89,6 +102,10 @@ def register_risk_routes(
     @blueprint.post("/risk/position/kelly")
     @login_required
     @validate_request(RiskKellyRequest)
+    @deps_service_fallback(
+        lambda: risk_service,
+        legacy=lambda: legacy,
+    )
     def risk_kelly_position(req: RiskKellyRequest):
         """Compute Kelly criterion position size."""
         kelly = risk_service.compute_kelly_position(

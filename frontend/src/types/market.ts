@@ -21,6 +21,22 @@ export type PanoramaSector = {
   down_count?: number;
 };
 
+export type MarketQuotesPage = {
+  items: PanoramaStockRow[];
+  total: number;
+  page: number;
+  page_size: number;
+  scope?: string;
+  stats?: {
+    total?: number;
+    up?: number;
+    down?: number;
+    flat?: number;
+    limit_up?: number;
+    limit_down?: number;
+  };
+};
+
 export type MarketPanorama = {
   rankings: PanoramaRankings;
   summary?: {

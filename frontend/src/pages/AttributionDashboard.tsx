@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type Sector = { name: string; weight: number; return: number };
@@ -53,6 +54,8 @@ export default function AttributionDashboardPage() {
 
   return (
     <div className="space-y-5">
+      <CoreWorkflowStrip />
+      <PageQuickNav items={QUICK_NAV_PRESETS.attributionDashboard} />
       <div>
         <h1 className="page-title">归因分析</h1>
         <p className="text-sm text-slate-500 mt-1">Brinson 绩效归因分解</p>

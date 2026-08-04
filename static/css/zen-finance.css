@@ -105,6 +105,32 @@
   padding: 32px 40px;
   max-width: 1400px;
 }
+
+/* Quick nav inside Zen shell — contrast on dark glass UI */
+.zen-main .qc-page-quick-nav.zen-quick-nav {
+  margin-bottom: 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+.zen-main .qc-page-quick-nav.zen-quick-nav .qc-page-quick-nav__link {
+  color: var(--zen-text-secondary, rgba(226, 232, 240, 0.75));
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+.zen-main .qc-page-quick-nav.zen-quick-nav .qc-page-quick-nav__link:hover {
+  color: var(--zen-text-primary, #f8fafc);
+  background: rgba(255, 255, 255, 0.08);
+}
+.zen-main .qc-page-quick-nav.zen-quick-nav .qc-page-quick-nav__link--primary {
+  color: #07111f;
+  background: var(--zen-accent, #00ff88);
+  border-color: transparent;
+}
+.zen-main .qc-page-quick-nav.zen-quick-nav .qc-page-quick-nav__link--primary:hover {
+  opacity: 0.92;
+}
+
 .zen-header {
   display: flex;
   justify-content: space-between;

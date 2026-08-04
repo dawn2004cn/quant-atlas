@@ -45,8 +45,8 @@ def mysql_engine_kwargs() -> dict[str, Any]:
     """Centralized MySQL engine + pool configuration."""
     # Defaults are intentionally conservative to avoid exhausting MySQL `max_connections`
     # in multi-process deployments (gunicorn workers / celery concurrency).
-    pool_size = max(1, get_runtime_int("DB_POOL_SIZE", 5))
-    max_overflow = max(0, get_runtime_int("DB_MAX_OVERFLOW", 10))
+    pool_size = max(1, get_runtime_int("DB_POOL_SIZE", 10))
+    max_overflow = max(0, get_runtime_int("DB_MAX_OVERFLOW", 20))
     pool_recycle = max(60, get_runtime_int("DB_POOL_RECYCLE", 300))
     pool_timeout = max(5, get_runtime_int("DB_POOL_TIMEOUT", 30))
     connect_timeout = max(1, get_runtime_int("DB_CONNECT_TIMEOUT", 10))

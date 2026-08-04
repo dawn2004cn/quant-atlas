@@ -30,6 +30,21 @@ def run_dispatch_alert_notifications(
     )
     payload = result.model_dump(mode="json")
     payload["ok"] = bool(result.sent) or result.deduplicated or result.skipped
+    try:
+        from app.modules.market_data.services.quotes_dump_metrics import get_quotes_dump_stats
+
+        stats = get_quotes_dump_stats() or {}
+        dump_n = int(stats.get("full_dump_count") or 0)
+        threshold = max(1, int(get_runtime_int("QUOTES_FULL_DUMP_WARN_THRESHOLD", 1)))
+        payload["quotes_dump"] = {
+            "full_dump_count": dump_n,
+            "threshold": threshold,
+            "warn": dump_n >= threshold,
+            "preferred_endpoint": "quotes/page",
+        }
+    except Exception as exc:
+        logger.debug("dispatch quotes_dump annotate failed: %s", exc)
+        payload["quotes_dump"] = {"warn": False, "error": str(exc)}
     return payload
 
 

@@ -143,9 +143,13 @@ get_registry().register_factory("market_service", _make_market_service)
 
 
 def _make_market_facade(reg):
-    from app.application.facade import MarketFacade
-    from app.infrastructure.providers.rust_indicators import RustIndicatorProvider
-    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
+    try:
+        from app.application.facade import MarketFacade
+        from app.infrastructure.providers.rust_indicators import RustIndicatorProvider
+        from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
+    except ImportError:
+        logger.warning("MarketFacade import failed (circular import), skipping registration")
+        return None
 
     indicator_provider = None
     try:
@@ -155,8 +159,8 @@ def _make_market_facade(reg):
         indicator_provider = None
 
     return MarketFacade(
-        stock_service=reg.get("stock_service"),
-        market_service=reg.get("market_service"),
+        stock_service=reg.get_or_none("stock_service"),
+        market_service=reg.get_or_none("market_service"),
         watchlist_service=reg.get_or_none("watchlist_service"),
         market_data_provider=get_market_data_provider(),
         indicator_provider=indicator_provider,
@@ -167,18 +171,23 @@ get_registry().register_factory("market_facade", _make_market_facade)
 
 
 def _make_backtest_facade(reg):
-    from app.application.facade import BacktestFacade
-
+    try:
+        from app.application.facade import BacktestFacade
+    except ImportError:
+        logger.warning("BacktestFacade import failed (circular import), skipping registration")
+        return None
     return BacktestFacade(strategy_service=reg.get_or_none("strategy_service"))
 
 
 def _make_ai_facade(reg):
-    from app.application.facade import AIFacade
-
+    try:
+        from app.application.facade import AIFacade
+    except ImportError:
+        logger.warning("AIFacade import failed (circular import), skipping registration")
+        return None
     return AIFacade(ai_analysis_service=reg.get_or_none("ai_analysis_service"))
 
 
-get_registry().register_factory("backtest_facade", _make_backtest_facade)
 get_registry().register_factory("ai_facade", _make_ai_facade)
 
 
@@ -442,6 +451,23 @@ def _wire_from_registry(services: Any) -> None:
 
 
 # Load factory registrations from domain wiring modules (side-effect imports).
+def _preload_wiring_modules() -> None:
+    """Import wiring modules so ``register_factory`` side effects run."""
+    for module_name in (
+        "app.bootstrap_components.wiring_market",
+        "app.bootstrap_components.wiring_ai",
+        "app.bootstrap_components.wiring_system",
+        "app.bootstrap_components.wiring_trading",
+        "app.bootstrap_components.wiring_data",
+        "app.bootstrap_components.wiring_execution",
+    ):
+        try:
+            __import__(module_name)
+        except Exception:
+            logger.warning("Wiring module preload failed: %s", module_name, exc_info=True)
+
+
+_preload_wiring_modules()
 
 
 def wire_recommendation_service(services: Any) -> None:

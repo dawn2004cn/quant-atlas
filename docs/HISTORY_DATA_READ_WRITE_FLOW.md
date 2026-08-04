@@ -1,46 +1,47 @@
 # 历史 K 线：写入与读取全流程图
 
-本文描述 **A 股日 K** 的落盘（写）与 **`GET /api/v1/stocks/CN/{code}/history`**（读）链路；以当前代码为准（2026-05-24 入库重构 A–D 后）。
+本文描述 **A 股日 K** 的落盘（写）与 **GET /api/v1/stocks/CN/{code}/history**（读）链路。
 
-**生产推荐主链路**：通达信 `vipdoc/*/lday` → **MySQL 分表** → `qlib_export` CSV → **qlib_bin**（Beat：`TDX_DAYK_CELERY_BEAT`）。
+**生产推荐主链路（2026-08-04）**：通达信 ipdoc/*/lday → **TimescaleDB** + qlib_export CSV → **qlib_bin**（Beat：TDX_DAYK_CELERY_BEAT / scheduled_cn_history_daily）。
+
+MySQL 历史分表、QuestDB、ClickHouse **入库已下线**（Celery 不再写入；读适配器可保留）。
 
 ---
 
 ## 1. 总览：写与读两条主线
 
-```mermaid
+`mermaid
 flowchart TB
   subgraph write_cn [A 股写入主线（推荐）]
-    WT1[Celery/API：sync_incremental_tdx<br/>或 scheduled_cn_history_daily]
+    WT1[Celery：scheduled_cn_history_daily]
     WT2[TdxDaykSyncService]
-    WT3[(MySQL stock_history_sh/sz/bj)]
+    WT3[(Timescale market_bars)]
     WT4[(instance/qlib_export/*.csv)]
-    WT5[mysql_to_qlib_incremental_sync]
+    WT5[dump_to_qlib_bin]
     WT6[(instance/qlib_bin)]
     WT1 --> WT2 --> WT3
-    WT2 --> WT4
-    WT3 --> WT5 --> WT6
+    WT2 --> WT4 --> WT5 --> WT6
   end
 
   subgraph write_qlib [Qlib 多源 ingest（研究/夜间）]
-    WQ1[qlib_incremental_pipeline / POST qlib/ingest]
-    WQ2[ingest_symbols 东财+TDX 合并]
-    WQ3[qlib_export + 可选 SQLite cache]
+    WQ1[qlib_incremental_pipeline]
+    WQ2[ingest_symbols]
+    WQ3[qlib_export + qlib_bin]
     WQ1 --> WQ2 --> WQ3
   end
 
   subgraph read [读取主线：API K 线]
     R1[GET /api/v1/stocks/CN/code/history]
     R2[StockApplicationService.get_history]
-    R3[MultiSourceMarketProvider / market_data]
-    R4[MySQL → qlib_bin → TDX lday → …]
+    R3[MultiSourceMarketProvider]
+    R4[Timescale → qlib_bin → TDX lday → …]
     R1 --> R2 --> R3 --> R4
   end
 
   WT3 -.->|优先读| R4
   WT6 -.-> R4
   WT4 -.-> R4
-```
+`
 
 ---
 

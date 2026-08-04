@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type LakeHealth = {
@@ -52,6 +53,12 @@ type RealtimeStatus = {
   tick?: { status?: string };
 };
 
+type DashboardSnapshot = {
+  lake?: LakeHealth;
+  timeseries?: TimeseriesHealth;
+  realtime?: RealtimeStatus;
+};
+
 function StatusDot({ ok }: { ok?: boolean }) {
   return (
     <span className={`inline-block w-2 h-2 rounded-full ${ok ? "bg-[var(--quant-accent)]" : "bg-[var(--quant-danger)]"}`} />
@@ -90,22 +97,29 @@ export default function DataLakeHealth() {
 
   const load = useCallback(async () => {
     try {
-      const [l, t, r] = await Promise.all([
-        apiFetchV1<LakeHealth>("/data-lake/health"),
-        apiFetchV1<TimeseriesHealth>("/data/timeseries-health"),
-        apiFetchV1<RealtimeStatus>("/realtime/status"),
-      ]);
-      setLake(l);
-      setTs(t);
-      setRt(r);
+      const dash = await apiFetchV1<DashboardSnapshot>("/data-lake/dashboard");
+      if (dash.lake) setLake(dash.lake);
+      if (dash.timeseries) setTs(dash.timeseries);
+      if (dash.realtime) setRt(dash.realtime);
     } catch {
-      // keep previous state
+      try {
+        const [l, t, r] = await Promise.all([
+          apiFetchV1<LakeHealth>("/data-lake/health"),
+          apiFetchV1<TimeseriesHealth>("/data/timeseries-health"),
+          apiFetchV1<RealtimeStatus>("/realtime/status"),
+        ]);
+        setLake(l);
+        setTs(t);
+        setRt(r);
+      } catch {
+        // keep previous state
+      }
     }
   }, []);
 
   useEffect(() => {
     load();
-    const iv = setInterval(load, 5000);
+    const iv = setInterval(load, 20000);
     return () => clearInterval(iv);
   }, [load]);
 
@@ -138,6 +152,7 @@ export default function DataLakeHealth() {
 
   return (
     <div className="space-y-6">
+      <PageQuickNav items={QUICK_NAV_PRESETS.dataLakeHealth} />
       <div>
         <h1 className="page-title">数据湖健康</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">统一数据湖、QuestDB、WebSocket、迁移状态监控</p>

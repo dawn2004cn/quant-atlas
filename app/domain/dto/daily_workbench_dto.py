@@ -28,10 +28,15 @@ class WorkbenchFocusContextDTO(TypedDict, total=False):
 class WorkbenchHealthBannerDTO(TypedDict, total=False):
     level: str
     message: str
+    headline: str
+    summary: str
     allow_live_trading: bool
     critical_count: int
     warning_count: int
     stale_data: bool
+    quotes_full_dump_count: int
+    quotes_full_dump_warn: bool
+    quotes_full_dump_threshold: int
 
 
 class WorkbenchMorningCallSlideDTO(TypedDict):

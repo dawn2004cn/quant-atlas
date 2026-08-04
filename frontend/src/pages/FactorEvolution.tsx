@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { fetchFactorLineage, evolveFactor, submitFactorToVault } from "../lib/api";
 
 type Node = {
@@ -239,6 +240,7 @@ export default function FactorEvolution() {
 
   return (
     <div className="space-y-4">
+      <PageQuickNav items={QUICK_NAV_PRESETS.factorEvolution} />
       <div>
         <h1 className="page-title">因子演化拓扑</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">可视化因子的演化关系和继承链</p>

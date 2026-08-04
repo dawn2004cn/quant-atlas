@@ -18,7 +18,6 @@ from ...presentation.api.v1_context import ApiV1Context
 
 @register_routes(name="llm_config", context="ai_agent", description="User LLM config management endpoints")
 def register_llm_config_routes(blueprint, ctx: ApiV1Context | None = None, *, deps: AiRouteDeps | None = None) -> None:
-    blueprint.name = "llm_config"
 
     def _uid() -> int:
         return require_authenticated_user_id()

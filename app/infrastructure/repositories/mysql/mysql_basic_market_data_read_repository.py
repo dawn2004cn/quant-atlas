@@ -106,8 +106,16 @@ class MySQLBasicMarketDataReadRepository:
     # Longhu — read methods
     # ------------------------------------------------------------------
 
-    def list_longhu_by_date(self, trade_date: str, *, limit: int = 500) -> list[dict[str, Any]]:
+    def list_longhu_by_date(
+        self,
+        trade_date: str,
+        *,
+        limit: int = 500,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
         td = trade_date.strip()[:10]
+        off = max(0, int(offset))
+        lim = max(1, int(limit))
         if self._session_factory:
             session = self._session_factory()
             try:
@@ -115,7 +123,8 @@ class MySQLBasicMarketDataReadRepository:
                     select(DBLonghu)
                     .where(DBLonghu.trade_date == td)
                     .order_by(DBLonghu.code)
-                    .limit(limit)
+                    .offset(off)
+                    .limit(lim)
                 )
                 rows = session.scalars(stmt).all()
                 return [self._row_longhu_to_dict(r) for r in rows]
@@ -129,8 +138,8 @@ class MySQLBasicMarketDataReadRepository:
             cur = conn.cursor(DictCursor)
             cur.execute(
                 "SELECT trade_date, code, name, reason, raw_json, updated_at "
-                "FROM longhu_daily WHERE trade_date=%s ORDER BY code LIMIT %s",
-                (td, int(limit)),
+                "FROM longhu_daily WHERE trade_date=%s ORDER BY code LIMIT %s OFFSET %s",
+                (td, lim, off),
             )
             return [self._build_longhu_dict_from_raw(r) for r in cur.fetchall()]
         except Exception:
@@ -143,8 +152,8 @@ class MySQLBasicMarketDataReadRepository:
             cur = conn.cursor(DictCursor)
             cur.execute(
                 "SELECT trade_date, code, name, reason, raw_json, updated_at "
-                "FROM longhu_daily WHERE trade_date=%s ORDER BY code LIMIT %s",
-                (td, int(limit)),
+                "FROM longhu_daily WHERE trade_date=%s ORDER BY code LIMIT %s OFFSET %s",
+                (td, lim, off),
             )
             return [self._build_longhu_dict_from_raw(r) for r in cur.fetchall()]
         finally:
@@ -153,6 +162,39 @@ class MySQLBasicMarketDataReadRepository:
                     cur.close()
                 except Exception as e:
                     logger.debug("list_longhu_by_date: %s", e)
+
+    def count_longhu_by_date(self, trade_date: str) -> int:
+        td = trade_date.strip()[:10]
+        if self._session_factory:
+            session = self._session_factory()
+            try:
+                from sqlalchemy import func
+
+                stmt = select(func.count()).select_from(DBLonghu).where(DBLonghu.trade_date == td)
+                return int(session.scalar(stmt) or 0)
+            finally:
+                session.close()
+                self._session_factory.remove()
+
+        conn = mysql_get_connection(self._mysql)
+        cur = None
+        try:
+            cur = conn.cursor(DictCursor)
+            cur.execute(
+                "SELECT COUNT(1) AS n FROM longhu_daily WHERE trade_date=%s",
+                (td,),
+            )
+            row = cur.fetchone()
+            return int((row or {}).get("n") or 0)
+        except Exception as exc:
+            logger.debug("count_longhu_by_date: %s", exc)
+            return 0
+        finally:
+            if cur:
+                try:
+                    cur.close()
+                except Exception as e:
+                    logger.debug("count_longhu_by_date close: %s", e)
             try:
                 conn.close()
             except Exception as e:

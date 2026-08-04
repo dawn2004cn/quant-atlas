@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type Stock = {
@@ -59,6 +60,7 @@ export default function StocksManagePage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.stocksManage} />
       <div>
         <h1 className="page-title">股票管理</h1>
         <p className="text-sm text-slate-500 mt-1">管理员 - 股票池维护</p>

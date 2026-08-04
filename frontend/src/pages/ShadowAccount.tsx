@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type AnalysisResult = {
@@ -24,7 +25,7 @@ export default function ShadowAccountPage() {
   }, []);
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (!file || uploading) return;
     setUploading(true);
     setError(null);
     try {
@@ -52,6 +53,7 @@ export default function ShadowAccountPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.shadowAccount} />
       <div>
         <h1 className="page-title">影子账户</h1>
         <p className="text-sm text-slate-500 mt-1">导入 CSV/Excel 成交记录，模拟账户分析</p>

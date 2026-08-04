@@ -1,41 +1,64 @@
 {% extends "base.html" %}
 
-{% block title %}褰卞瓙鎿嶇洏 - Quant Atlas{% endblock %}
+{% block title %}影子操盘 - Quant Atlas{% endblock %}
+{% block spa_switcher %}
+<a href="/app/shadow_account" class="spa-switcher-link"
+   data-spa-switcher="shadow_account">
+
+  试试新版 →
+
+</a>
+
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/portfolio.css') }}">
 {% endblock %}
-{% block spa_switcher %}
-<a href="/app/shadow_account" class="spa-switcher-link"
-   data-spa-switcher="shadow_account">
-  璇曡瘯鏂扮増 鈫?
-</a>
-{% endblock %%}
-
-
 
 {% block content %}
+<section class="qc-ux-onboarding" aria-label="影子操盘使用提示" data-ux-onboarding="shadow-account" style="margin-bottom:14px;">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">导入交易记录</div>
+        <p class="qc-ux-step-desc">上传 CSV/Excel 或使用示例数据，提取您的交易风格与行为特征。</p>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">对照策略验证</div>
+        <p class="qc-ux-step-desc">画像生成后，用回测与观察单验证是否符合您的真实交易习惯。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.backtest') }}">策略回测</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">观察单</a>
+    </div>
+</section>
+
 <div class="shadow-hero">
-    <div class="hero-caption">Strategy Extraction</div>
-    <h1 class="page-title">馃懁 褰卞瓙鎿嶇洏</h1>
-    <p class="page-subtitle">浠庢偍鐨勪氦鏄撹褰曚腑鎻愬彇绛栫暐鐗瑰緛锛屽姣斿ぇ甯堥鏍硷紝浜嗚В鑷繁鐨勬姇璧勪釜鎬?/p>
+    <div class="hero-caption">Trade Style Profiler</div>
+    <h1 class="page-title">影子操盘</h1>
+    <p class="page-subtitle">从交易记录提取策略特征，对比大师风格，了解自己的投资个性</p>
 </div>
+
+{% set quick_nav_items = [
+    {'href': url_for('pages.backtest'), 'label': '回测验证', 'primary': true},
+    {'href': url_for('pages.signal_observations'), 'label': '观察单'},
+    {'href': url_for('pages.ai_analysis'), 'label': 'AI 诊股'},
+] %}
+{% include "partials/page_quick_nav.html" %}
 
 <div class="section-shell">
     <div class="panel-head">
-        <h2 class="panel-title">馃搨 涓婁紶浜ゆ槗璁板綍</h2>
+        <h2 class="panel-title">📂 上传交易记录</h2>
     </div>
     
     <div class="upload-zone" id="uploadZone">
-        <div class="upload-icon">馃搫</div>
-        <div class="sh-upload-title">鎷栨嫿鏂囦欢鍒版澶?鎴?鐐瑰嚮涓婁紶</div>
-        <div class="text-sm text-muted mt-2">鏀寔 CSV, Excel 鏍煎紡锛岄渶鍖呭惈浜ゆ槗鏃ユ湡銆佽偂绁ㄤ唬鐮併€佷拱鍏ヤ环銆佸崠鍑轰环銆佹暟閲?/div>
+        <div class="upload-icon">📄</div>
+        <div class="sh-upload-title">拖拽文件到此处 或 点击上传</div>
+        <div class="text-sm text-muted mt-2">支持 CSV, Excel 格式，需包含交易日期、股票代码、买入价、卖出价、数量</div>
         <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" class="qa-is-hidden">
     </div>
     
     <div class="sh-upload-actions">
-        <button class="btn-soft" type="button" data-sa-action="use-sample">浣跨敤绀轰緥鏁版嵁</button>
-        <button class="btn-soft" type="button" data-sa-action="connect-broker">杩炴帴鍒稿晢璐︽埛</button>
+        <button class="btn-soft" type="button" data-sa-action="use-sample">使用示例数据</button>
+        <button class="btn-soft" type="button" data-sa-action="connect-broker">连接券商账户</button>
     </div>
 </div>
 
@@ -43,112 +66,112 @@
     <div class="section-shell mt-6">
         <div class="panel-head">
             <div>
-                <h2 class="panel-title">馃幆 鎮ㄧ殑绛栫暐鐢诲儚</h2>
-                <div class="panel-subtitle">鍩轰簬 156 绗斾氦鏄撹褰曞垎鏋?/div>
+                <h2 class="panel-title">🎯 您的策略画像</h2>
+                <div class="panel-subtitle">基于 156 笔交易记录分析</div>
             </div>
-            <button class="btn-brand btn-sm" type="button" data-sa-action="save-profile">淇濆瓨鐢诲儚</button>
+            <button class="btn-brand btn-sm" type="button" data-sa-action="save-profile">保存画像</button>
         </div>
         
         <div class="strategy-profile">
             <div class="profile-card warren">
-                <div class="profile-icon">馃彟</div>
-                <div class="profile-name">宸磋彶鐗归鏍?/div>
+                <div class="profile-icon">🏦</div>
+                <div class="profile-name">巴菲特风格</div>
                 <div class="profile-match">72%</div>
-                <div class="profile-desc">浠峰€兼姇璧勶紝闀挎湡鎸佹湁锛岄噸瑙嗗熀鏈潰</div>
+                <div class="profile-desc">价值投资，长期持有，重视基本面</div>
             </div>
             <div class="profile-card lynch">
-                <div class="profile-icon">馃攳</div>
-                <div class="profile-name">褰煎緱路鏋楀椋庢牸</div>
+                <div class="profile-icon">🔍</div>
+                <div class="profile-name">彼得·林奇风格</div>
                 <div class="profile-match">58%</div>
-                <div class="profile-desc">鎴愰暱鐚庢墜锛屽叧娉ㄥ皬甯傚€奸珮澧為暱</div>
+                <div class="profile-desc">成长猎手，关注小市值高增长</div>
             </div>
             <div class="profile-card dalio">
-                <div class="profile-icon">鈿栵笍</div>
-                <div class="profile-name">杈鹃噷濂ラ鏍?/div>
+                <div class="profile-icon">⚖️</div>
+                <div class="profile-name">达里奥风格</div>
                 <div class="profile-match">45%</div>
-                <div class="profile-desc">鍏ㄥぉ鍊欓厤缃紝椋庨櫓骞充环鎬濈淮</div>
+                <div class="profile-desc">全天候配置，风险平价思维</div>
             </div>
         </div>
         
-        <h3 class="mt-6 mb-4">馃搳 琛屼负鍒嗘瀽</h3>
+        <h3 class="mt-6 mb-4">📊 行为分析</h3>
         <div class="behavior-analysis">
             <div class="behavior-card">
-                <div class="behavior-title">馃搱 鎸佷粨鍛ㄦ湡</div>
-                <div class="text-sm">骞冲潎鎸佷粨 23 澶?/div>
+                <div class="behavior-title">📈 持仓周期</div>
+                <div class="text-sm">平均持仓 23 天</div>
                 <div class="behavior-bar"><div class="behavior-bar-fill w65"></div></div>
-                <div class="text-xs text-muted mt-2">鍋忎腑闀跨嚎</div>
+                <div class="text-xs text-muted mt-2">偏中长线</div>
             </div>
             <div class="behavior-card">
-                <div class="behavior-title">馃幆 姝㈢泩姝㈡崯</div>
-                <div class="text-sm">姝㈢泩 15% / 姝㈡崯 -8%</div>
+                <div class="behavior-title">🎯 止盈止损</div>
+                <div class="text-sm">止盈 15% / 止损 -8%</div>
                 <div class="behavior-bar"><div class="behavior-bar-fill w70"></div></div>
-                <div class="text-xs text-muted mt-2">绾緥鎬ц緝濂?/div>
+                <div class="text-xs text-muted mt-2">纪律性较好</div>
             </div>
             <div class="behavior-card">
-                <div class="behavior-title">馃挵 浠撲綅绠＄悊</div>
-                <div class="text-sm">鍗曠エ 10-20%</div>
+                <div class="behavior-title">💰 仓位管理</div>
+                <div class="text-sm">单票 10-20%</div>
                 <div class="behavior-bar"><div class="behavior-bar-fill w55"></div></div>
-                <div class="text-xs text-muted mt-2">鍒嗘暎搴﹂€備腑</div>
+                <div class="text-xs text-muted mt-2">分散度适中</div>
             </div>
             <div class="behavior-card">
-                <div class="behavior-title">馃攧 浜ゆ槗棰戠巼</div>
-                <div class="text-sm">鏈堝潎 12 绗?/div>
+                <div class="behavior-title">🔄 交易频率</div>
+                <div class="text-sm">月均 12 笔</div>
                 <div class="behavior-bar"><div class="behavior-bar-fill w40"></div></div>
-                <div class="text-xs text-muted mt-2">浜ゆ槗鍋忛绻?/div>
+                <div class="text-xs text-muted mt-2">交易偏频繁</div>
             </div>
         </div>
     </div>
     
     <div class="section-shell mt-6">
         <div class="panel-head">
-            <h2 class="panel-title">馃搵 鎻愬彇鐨勭瓥鐣ヨ鍒?/h2>
+            <h2 class="panel-title">📋 提取的策略规则</h2>
         </div>
         <div class="extracted-rules">
             <div class="rule-item">
-                <span class="rule-condition">IF</span> 甯傚€?&lt; 500浜?<span class="rule-condition">AND</span> ROE &gt; 15% 
-                <span class="rule-action">鈫?涔板叆</span> (鏉冮噸: 0.85)
+                <span class="rule-condition">IF</span> 市值 &lt; 500亿 <span class="rule-condition">AND</span> ROE &gt; 15% 
+                <span class="rule-action">→ 买入</span> (权重: 0.85)
             </div>
             <div class="rule-item">
-                <span class="rule-condition">IF</span> PE &gt; 50 <span class="rule-condition">AND</span> 鍒╂鼎澧為€?&lt; 10% 
-                <span class="rule-action">鈫?鍗栧嚭</span> (鏉冮噸: 0.72)
+                <span class="rule-condition">IF</span> PE &gt; 50 <span class="rule-condition">AND</span> 利润增速 &lt; 10% 
+                <span class="rule-action">→ 卖出</span> (权重: 0.72)
             </div>
             <div class="rule-item">
-                <span class="rule-condition">IF</span> 鎸佷粨鐩堝埄 &gt; 20% <span class="rule-condition">AND</span> 鎸佹湁 &gt; 30澶?
-                <span class="rule-action">鈫?閮ㄥ垎姝㈢泩</span> (鏉冮噸: 0.65)
+                <span class="rule-condition">IF</span> 持仓盈利 &gt; 20% <span class="rule-condition">AND</span> 持有 &gt; 30天 
+                <span class="rule-action">→ 部分止盈</span> (权重: 0.65)
             </div>
             <div class="rule-item">
-                <span class="rule-condition">IF</span> 鍗曠エ浜忔崯 &gt; -10% 
-                <span class="rule-action">鈫?寮哄埗姝㈡崯</span> (鏉冮噸: 0.90)
+                <span class="rule-condition">IF</span> 单票亏损 &gt; -10% 
+                <span class="rule-action">→ 强制止损</span> (权重: 0.90)
             </div>
             <div class="rule-item">
-                <span class="rule-condition">IF</span> 澶х洏璺岀牬 20鏃ュ潎绾?
-                <span class="rule-action">鈫?鍑忎粨鑷?50%</span> (鏉冮噸: 0.60)
+                <span class="rule-condition">IF</span> 大盘跌破 20日均线 
+                <span class="rule-action">→ 减仓至 50%</span> (权重: 0.60)
             </div>
         </div>
     </div>
     
     <div class="section-shell mt-6">
         <div class="panel-head">
-            <h2 class="panel-title">馃摐 鍘嗗彶璁板綍</h2>
+            <h2 class="panel-title">📜 历史记录</h2>
         </div>
         <div class="history-list">
             <div class="history-item">
                 <div>
-                    <div class="sh-step-title">绛栫暐鐢诲儚鎻愬彇</div>
+                    <div class="sh-step-title">策略画像提取</div>
                     <div class="history-date">2024-01-15 14:30</div>
                 </div>
-                <div class="history-pnl positive">鈫?72% 鍖归厤</div>
+                <div class="history-pnl positive">↑ 72% 匹配</div>
             </div>
             <div class="history-item">
                 <div>
-                    <div class="sh-step-title">涓庡反鑿茬壒瀵规瘮鍒嗘瀽</div>
+                    <div class="sh-step-title">与巴菲特对比分析</div>
                     <div class="history-date">2024-01-10 09:15</div>
                 </div>
-                <div class="history-pnl positive">鈫?68% 鐩镐技</div>
+                <div class="history-pnl positive">↑ 68% 相似</div>
             </div>
             <div class="history-item">
                 <div>
-                    <div class="sh-step-title">鍥炴祴妯℃嫙 - 2023骞?/div>
+                    <div class="sh-step-title">回测模拟 - 2023年</div>
                     <div class="history-date">2024-01-05 16:20</div>
                 </div>
                 <div class="history-pnl positive">+18.5%</div>
@@ -183,29 +206,29 @@ $('#fileInput').change(function(e) {
 });
 
 function processFile(file) {
-    showToast('姝ｅ湪鍒嗘瀽浜ゆ槗璁板綍...', 'info');
+    showToast('正在分析交易记录...', 'info');
     
-    // 妯℃嫙鍒嗘瀽杩囩▼
+    // 模拟分析过程
     setTimeout(function() {
         $('#analysisResult').slideDown();
-        showToast('鉁?鍒嗘瀽瀹屾垚锛佸彂鐜?156 绗斾氦鏄撹褰?, 'success');
+        showToast('✅ 分析完成！发现 156 笔交易记录', 'success');
     }, 1500);
 }
 
 function useSampleData() {
-    showToast('姝ｅ湪浣跨敤绀轰緥鏁版嵁杩涜鍒嗘瀽...', 'info');
+    showToast('正在使用示例数据进行分析...', 'info');
     setTimeout(function() {
         $('#analysisResult').slideDown();
-        showToast('鉁?绀轰緥鏁版嵁鍒嗘瀽瀹屾垚锛?, 'success');
+        showToast('✅ 示例数据分析完成！', 'success');
     }, 1500);
 }
 
 function connectBroker() {
-    showToast('鍒稿晢瀵规帴鍔熻兘寮€鍙戜腑...', 'info');
+    showToast('券商对接功能开发中...', 'info');
 }
 
 function saveProfile() {
-    showToast('绛栫暐鐢诲儚宸蹭繚瀛?, 'success');
+    showToast('策略画像已保存', 'success');
 }
 document.addEventListener('click', function (e) {
     const el = e.target.closest('[data-sa-action]');

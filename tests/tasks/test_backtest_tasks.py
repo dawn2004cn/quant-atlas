@@ -41,3 +41,49 @@ def test_submit_strategy_backtest_sync_mode(monkeypatch):
 
     assert result["status"] == "completed"
     assert result["mode"] == "sync"
+
+
+def test_submit_strategy_backtest_idempotent_enqueue(monkeypatch):
+    apply_calls: list[dict] = []
+
+    class _FakeTask:
+        def apply_async(self, *, args=None, kwargs=None, task_id=None):
+            apply_calls.append({"args": args, "kwargs": kwargs, "task_id": task_id})
+
+            class _AR:
+                id = task_id
+
+            return _AR()
+
+    monkeypatch.setattr("app.tasks.backtest_tasks.run_strategy_backtest_task", _FakeTask())
+    monkeypatch.setattr(
+        "app.infrastructure.messaging.celery_reliability.get_runtime_int",
+        lambda key, default=0: 600 if "TTL" in key else 60,
+    )
+    # Force memory claim path (no Redis).
+    monkeypatch.setattr(
+        "app.infrastructure.messaging.celery_reliability._default_redis_url",
+        lambda: "",
+    )
+
+    first = submit_strategy_backtest(
+        symbol="600519",
+        strategy_name="MA",
+        start="2024-01-01",
+        end="2024-06-01",
+        client_idempotency_key="bt:600519:MA",
+    )
+    second = submit_strategy_backtest(
+        symbol="600519",
+        strategy_name="MA",
+        start="2024-01-01",
+        end="2024-06-01",
+        client_idempotency_key="bt:600519:MA",
+    )
+
+    assert first["status"] == "queued"
+    assert first["mode"] == "async"
+    assert first["deduplicated"] is False
+    assert second["task_id"] == first["task_id"]
+    assert second["deduplicated"] is True
+    assert len(apply_calls) == 1

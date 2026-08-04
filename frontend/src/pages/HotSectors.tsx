@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
-import { apiFetchV1 } from "../lib/api";
+import { apiFetchV1, fetchMarketQuotesPage } from "../lib/api";
 import type { HotSector, HotSectorMember, HotSectorSnapshot } from "../types/hotSector";
 
 /* ── API ── */
@@ -21,9 +22,13 @@ function fetchSnapshots() {
   return apiFetchV1<{ items: HotSectorSnapshot[] }>("/hot-sectors/snapshots?limit=40");
 }
 
-function fetchQuotes(symbols: string[]) {
-  const params = symbols.map((s) => `symbol=${encodeURIComponent(s)}`).join("&");
-  return apiFetchV1<{ data?: Array<{ code?: string; price?: number; change_pct?: number; amount?: number; name?: string }> }>(`/markets/CN/quotes?${params}`);
+async function fetchQuotes(symbols: string[]) {
+  const page = await fetchMarketQuotesPage({
+    page: 1,
+    page_size: Math.min(80, Math.max(symbols.length, 1)),
+    symbols,
+  });
+  return page.items ?? [];
 }
 
 /* ── Helpers ── */
@@ -97,8 +102,7 @@ export function HotSectorsPage() {
       const items = resp?.data?.items ?? [];
       if (!items.length) { setMembersData([]); setMembersLoading(false); return; }
       const symbols = items.slice(0, 60).map((x) => x.symbol || "").filter(Boolean);
-      const qResp = await fetchQuotes(symbols);
-      const stocks = qResp?.data ?? [];
+      const stocks = await fetchQuotes(symbols);
       const quoteMap: Record<string, { price?: number; change_pct?: number; amount?: number; name?: string }> = {};
       for (const q of stocks) if (q.code) quoteMap[q.code] = q;
       setMembersData(items.map((item) => {
@@ -111,6 +115,7 @@ export function HotSectorsPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.hotSectors} />
       {/* Header */}
       <div>
         <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">Hot Sectors Monitor</div>

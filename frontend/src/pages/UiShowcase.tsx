@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 
 export default function UiShowcase() {
   const [inputVal, setInputVal] = useState("");
@@ -16,6 +17,7 @@ export default function UiShowcase() {
 
   return (
     <div className="space-y-8">
+      <PageQuickNav items={QUICK_NAV_PRESETS.uiShowcase} />
       <div>
         <h1 className="page-title">UI 组件展示</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">

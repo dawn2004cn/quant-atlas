@@ -3,7 +3,7 @@ from __future__ import annotations
 """User lifecycle, push, sync and compliance API routes."""
 
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 from flask_login import current_user, login_required
 
 from app.core.registry import register_routes
@@ -55,10 +55,7 @@ def register_user_lifecycle_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
     @require_role("can_manage_users")
     @service_fallback("user_lifecycle_service")
     def export_user_data():
-        # IDOR prevention: verify current user is the data owner
         svc = getattr(ctx, "user_lifecycle_service", None)
-        if not svc:
-            return jsonify({"success": False, "data": None, "error": "Service unavailable", "meta": None}), 503
         return ok_response(
             data=svc.export_user_data(user=current_user),
             legacy_alias_key=None,
@@ -70,10 +67,7 @@ def register_user_lifecycle_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
     @require_role("can_manage_users")
     @service_fallback("user_lifecycle_service")
     def request_account_deletion():
-        # IDOR prevention: verify current user is the account owner
         svc = getattr(ctx, "user_lifecycle_service", None)
-        if not svc:
-            return jsonify({"success": False, "data": None, "error": "Service unavailable", "meta": None}), 503
         payload = request.get_json(silent=True) or {}
         return ok_response(
             data=svc.request_account_deletion(

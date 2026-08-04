@@ -4,6 +4,7 @@ import asyncio
 from datetime import datetime, timedelta
 
 from flask import jsonify
+from flask_login import login_required
 
 from app.bootstrap_components.service_wiring import _get_registry
 from app.core.logger import get_logger
@@ -31,6 +32,50 @@ def register_data_lake_routes(blueprint, ctx):
             return success_response(data=health)
         except Exception as e:
             logger.exception("Failed to fetch data lake health")
+            payload = error_payload(ErrorCode.INTERNAL_ERROR, str(e))
+            return jsonify(payload), ErrorCode.INTERNAL_ERROR.http_status
+
+    @blueprint.route("/data-lake/dashboard", methods=["GET"])
+    @login_required
+    def get_dashboard():
+        """Single round-trip health snapshot for data-lake monitoring UI."""
+        lake_manager: DataLakeManager = registry.get("data_lake_manager")
+        try:
+            from app.core.runtime_config import get_runtime, get_runtime_bool
+            from app.infrastructure.realtime.websocket_adapter import get_room_clients
+            from app.infrastructure.timeseries.timeseries_factory import timeseries_health_probe
+            from app.modules.market_data.services.tick_stream_service import stream_status
+
+            lake = lake_manager.get_system_health()
+            timeseries = timeseries_health_probe()
+            socketio_on = get_runtime_bool("ENABLE_SOCKETIO", False)
+            tick_on = get_runtime_bool("ENABLE_TICK_WS", False)
+            quote_on = get_runtime_bool("ENABLE_QUOTE_WS_BROADCAST", True)
+            tick_info = stream_status()
+            origins_ok = bool((get_runtime("SOCKETIO_ALLOWED_ORIGINS", "") or "").strip())
+            realtime = {
+                "socketio_enabled": socketio_on,
+                "origins_configured": origins_ok,
+                "quote_broadcast": quote_on,
+                "tick_stream": tick_on,
+                "base_subscriptions": ["market", "alerts"],
+                "rooms": {
+                    "market": get_room_clients("market"),
+                    "alerts": get_room_clients("alerts"),
+                    "ticks": get_room_clients("ticks"),
+                    "trades": get_room_clients("trades"),
+                },
+                "tick": tick_info,
+            }
+            return success_response(
+                data={
+                    "lake": lake,
+                    "timeseries": timeseries,
+                    "realtime": realtime,
+                }
+            )
+        except Exception as e:
+            logger.exception("Failed to fetch data lake dashboard")
             payload = error_payload(ErrorCode.INTERNAL_ERROR, str(e))
             return jsonify(payload), ErrorCode.INTERNAL_ERROR.http_status
 

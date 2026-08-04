@@ -32,7 +32,7 @@ class OrderPersistence:
 
             self._sqlite_backend = SqliteOrderPersistenceBackend(self._path / "orders.db")
         elif backend == "redis":
-            from .order_persistence_redis import RedisOrderPersistenceBackend
+            from app.infrastructure.trading.order_persistence_redis import RedisOrderPersistenceBackend
 
             self._redis_backend = RedisOrderPersistenceBackend()
 

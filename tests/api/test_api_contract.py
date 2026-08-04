@@ -15,8 +15,14 @@ class TestHealthEndpoints:
         assert data["status"] == "ok"
 
     def test_system_health_returns_200(self, client):
-        # No /api/v1/health endpoint; the health endpoint is at /api/v1/system/health
-        pass
+        resp = client.get("/api/v1/system/health")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data is not None
+        assert data.get("status") == "ok"
+        assert data.get("deployment_status") in ("ok", "degraded", "critical")
+        assert "services" in data
+        assert isinstance(data["services"].get("optional_missing"), list)
 
 
 class TestLoginRequired:

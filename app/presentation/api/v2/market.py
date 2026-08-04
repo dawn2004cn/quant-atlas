@@ -63,30 +63,48 @@ def create_market_blueprint(ctx):
     @bp.get("/stocks/<symbol>/history")
     @api_auth_required
     def stock_history(symbol: str):
+        from datetime import date, timedelta
+
         from ....application.dto import StockHistoryDTO
+        from ....domain.shared.market_history_utils import clamp_history_date_range
         from .request_parsers import parse_dto
         dto = parse_dto(request.args.to_dict(), StockHistoryDTO, partial=True)
         try:
             mc = MarketCode(str(dto.market).upper())
         except (ValueError, AttributeError):
             mc = MarketCode.CN
+        count = getattr(dto, "count", 100) or 100
+        end_date = getattr(dto, "end_date", None) or date.today().isoformat()
+        start_date = getattr(dto, "start_date", None)
+        if not start_date:
+            start_date = (date.today() - timedelta(days=int(count * 2.2) + 40)).isoformat()
+        start_date, end_date = clamp_history_date_range(
+            start_date,
+            end_date,
+            count=count,
+        )
         if ctx.market_facade is not None:
             bars = ctx.market_facade.get_history_bars(
                 symbol=symbol,
                 market=mc,
-                start_date=getattr(dto, "start_date", None),
-                end_date=getattr(dto, "end_date", None),
-                count=getattr(dto, "count", 100),
+                start_date=start_date,
+                end_date=end_date,
+                count=count,
             )
         else:
             bars = ctx.market_service.get_history_bars(
                 symbol=symbol,
                 market=mc,
-                start_date=getattr(dto, 'start_date', None),
-                end_date=getattr(dto, 'end_date', None),
-                count=getattr(dto, 'count', 100),
+                start_date=start_date,
+                end_date=end_date,
+                count=count,
             )
-        return success_response(data=bars, meta={"symbol": symbol})
+        meta: dict[str, object] = {"symbol": symbol, "start_date": start_date, "end_date": end_date}
+        mp = getattr(ctx.stock_service, "_market_provider", None)
+        src = getattr(mp, "_last_history_source", None)
+        if src:
+            meta["data_source"] = src
+        return success_response(data=bars, meta=meta)
 
     @bp.get("/markets/history/<market>/<symbol>")
     @api_auth_required

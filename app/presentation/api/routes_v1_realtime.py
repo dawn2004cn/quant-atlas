@@ -13,7 +13,7 @@ from .common import ok_response
 from .v1_context import ApiV1Context
 
 
-@register_routes
+@register_routes(name="realtime", context="misc", description="Realtime WebSocket status")
 def register_realtime_routes(blueprint: Blueprint, ctx: ApiV1Context | None = None) -> None:
     del ctx
 

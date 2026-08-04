@@ -234,15 +234,18 @@ def _safe_next_url(url: str) -> str:
 
 
 def _fallback_unauthorized_response():
-    """Redirect to auth.login when available, otherwise return 401 JSON."""
+    """Redirect to auth.login when available, otherwise /login, else 401 JSON."""
     try:
         return redirect(url_for("auth.login", next=_safe_next_url(request.url)))
     except Exception:
-        return jsonify(enrich_error_payload(_error_payload(
-            "unauthorized",
-            "Authentication required",
-            {},
-        ))), 401
+        pass
+    if not request.path.startswith("/api/"):
+        return redirect(f"/login?next={_safe_next_url(request.url)}")
+    return jsonify(enrich_error_payload(_error_payload(
+        "unauthorized",
+        "Authentication required",
+        {},
+    ))), 401
 
 
 def setup_flask_login_errors(app: Flask, login_manager: LoginManager) -> None:

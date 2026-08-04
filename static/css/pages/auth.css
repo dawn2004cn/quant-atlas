@@ -1,16 +1,17 @@
 /**
- * pages/auth.css — 登录 / 注册（独立页，不继承 base.html）
+ * pages/auth.css — 登录 / 注册（独立页，与全站 design tokens 对齐）
  * Depends on: design-tokens.css, fonts.css
  */
 
-/* ─── Login ─── */
 *, *::before, *::after { box-sizing: border-box; }
 
-.auth-page {
-    --text: #13202d;
-    --muted: #66788a;
-    --brand: #103f91;
-    --brand-2: #17a2a4;
+html {
+    min-height: 100%;
+    background-color: var(--bg);
+}
+
+.auth-page,
+.auth-register-page {
     margin: 0;
     min-height: 100vh;
     display: grid;
@@ -18,26 +19,40 @@
     padding: 24px;
     font-family: var(--font-sans);
     color: var(--text);
+    background: var(--bg);
+}
+
+[data-theme="dark"] .auth-page,
+[data-theme="dark"] .auth-register-page {
     background:
-        radial-gradient(circle at top left, rgba(23, 162, 164, 0.24), transparent 30%),
-        radial-gradient(circle at right bottom, rgba(217, 106, 43, 0.24), transparent 26%),
-        linear-gradient(180deg, #f5f0e6 0%, #ece7dd 100%);
+        radial-gradient(circle at 8% 0, rgba(85, 228, 139, 0.16), transparent 28rem),
+        radial-gradient(circle at 90% 4%, rgba(90, 167, 255, 0.13), transparent 28rem),
+        var(--bg);
+}
+
+[data-theme="light"] .auth-page,
+[data-theme="light"] .auth-register-page {
+    background:
+        radial-gradient(circle at 8% 0, rgba(14, 122, 67, 0.1), transparent 30rem),
+        radial-gradient(circle at 90% 4%, rgba(37, 99, 235, 0.1), transparent 30rem),
+        var(--bg);
 }
 
 .login-shell {
     width: min(1100px, 100%);
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
-    border-radius: 34px;
+    border-radius: var(--radius-xl, 34px);
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.78);
-    box-shadow: 0 24px 80px rgba(16, 33, 52, 0.16);
+    background: var(--panel-bg);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow);
 }
 
 .login-hero {
     padding: 56px;
     color: #fff;
-    background: linear-gradient(160deg, rgba(16, 63, 145, 0.92), rgba(23, 162, 164, 0.86));
+    background: linear-gradient(160deg, var(--brand), var(--brand-2));
 }
 
 .login-hero-badge {
@@ -69,16 +84,16 @@
 
 .login-hero-item {
     padding: 16px 18px;
-    border-radius: 18px;
+    border-radius: var(--radius-lg, 18px);
     background: rgba(255, 255, 255, 0.12);
 }
 
 .login-panel {
     padding: 56px 46px;
-    background: rgba(255, 253, 248, 0.88);
+    background: var(--surface-strong);
 }
 
-.login-panel h1 { margin: 0 0 8px; font-size: 2rem; }
+.login-panel h1 { margin: 0 0 8px; font-size: 2rem; color: var(--text); }
 .login-panel > p { margin: 0 0 28px; color: var(--muted); }
 
 .auth-field { margin-bottom: 18px; }
@@ -86,15 +101,23 @@
     display: block;
     margin-bottom: 8px;
     font-weight: 700;
+    color: var(--text);
 }
 
 .auth-input {
     width: 100%;
-    border: 1px solid rgba(19, 32, 45, 0.12);
-    border-radius: 18px;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg, 18px);
     padding: 15px 16px;
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--surface-strong);
+    color: var(--text);
     font-size: 1rem;
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: var(--focus-ring);
 }
 
 .auth-submit {
@@ -102,24 +125,31 @@
     border: none;
     border-radius: 999px;
     padding: 15px 18px;
-    color: #fff;
+    color: #07111f;
     font-size: 1rem;
     font-weight: 800;
     cursor: pointer;
     background: linear-gradient(135deg, var(--brand), var(--brand-2));
 }
 
+[data-theme="light"] .auth-submit,
+[data-theme="light"] .register-submit {
+    color: #fff;
+}
+
 .auth-flash {
     margin-bottom: 18px;
     padding: 14px 16px;
-    border-radius: 14px;
-    background: rgba(217, 106, 43, 0.12);
-    color: #8f3d12;
+    border-radius: var(--radius-md, 14px);
+    background: rgba(255, 209, 102, 0.12);
+    border: 1px solid rgba(255, 209, 102, 0.35);
+    color: var(--warning);
 }
 
 .auth-flash--lockout {
-    background: rgba(16, 63, 145, 0.1);
-    color: #103f91;
+    background: var(--surface-soft);
+    border: 1px solid var(--line-strong);
+    color: var(--brand);
 }
 
 .auth-submit:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -128,8 +158,9 @@
 .auth-helper {
     margin-top: 22px;
     padding: 18px;
-    border-radius: 18px;
-    background: rgba(16, 63, 145, 0.06);
+    border-radius: var(--radius-lg, 18px);
+    background: var(--surface-soft);
+    border: 1px solid var(--surface-border);
     color: var(--muted);
     line-height: 1.8;
     font-size: 0.92rem;
@@ -161,7 +192,9 @@
 }
 
 .auth-oauth-link--wechat { background: #07c160; }
-.auth-oauth-link--keycloak { background: var(--brand); }
+.auth-oauth-link--keycloak { background: var(--brand); color: #07111f; }
+
+[data-theme="light"] .auth-oauth-link--keycloak { color: #fff; }
 
 .auth-register-prompt {
     margin: 16px 0 0;
@@ -172,39 +205,16 @@
 
 .auth-register-prompt a { color: var(--brand); font-weight: 700; }
 
-@media (max-width: 900px) {
-    .login-shell { grid-template-columns: 1fr; }
-    .login-hero, .login-panel { padding: 34px 24px; }
-    .login-hero-title { font-size: 2.45rem; }
-}
-
-/* ─── Register ─── */
-.auth-register-page {
-    --text: #13202d;
-    --muted: #66788a;
-    --brand: #103f91;
-    --brand-2: #17a2a4;
-    margin: 0;
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
-    padding: 24px;
-    font-family: var(--font-sans);
-    color: var(--text);
-    background:
-        radial-gradient(circle at top left, rgba(23, 162, 164, 0.2), transparent 30%),
-        linear-gradient(180deg, #f5f0e6 0%, #ece7dd 100%);
-}
-
 .register-card {
     width: min(440px, 100%);
     padding: 40px 36px;
-    border-radius: 28px;
-    background: rgba(255, 253, 248, 0.92);
-    box-shadow: 0 20px 60px rgba(16, 33, 52, 0.12);
+    border-radius: var(--radius-xl, 28px);
+    background: var(--panel-bg);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow);
 }
 
-.register-card h1 { margin: 0 0 8px; font-size: 1.75rem; }
+.register-card h1 { margin: 0 0 8px; font-size: 1.75rem; color: var(--text); }
 .register-card .sub { margin: 0 0 24px; color: var(--muted); line-height: 1.6; }
 
 .register-field { margin-bottom: 16px; }
@@ -213,15 +223,23 @@
     margin-bottom: 6px;
     font-weight: 700;
     font-size: 0.92rem;
+    color: var(--text);
 }
 
 .register-input {
     width: 100%;
-    border: 1px solid rgba(19, 32, 45, 0.12);
-    border-radius: 16px;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md, 16px);
     padding: 14px 16px;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--surface-strong);
+    color: var(--text);
     font-size: 1rem;
+}
+
+.register-input:focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: var(--focus-ring);
 }
 
 .register-submit {
@@ -230,7 +248,7 @@
     border-radius: 999px;
     padding: 14px 18px;
     margin-top: 8px;
-    color: #fff;
+    color: #07111f;
     font-size: 1rem;
     font-weight: 800;
     cursor: pointer;
@@ -240,12 +258,21 @@
 .register-flash {
     margin-bottom: 16px;
     padding: 12px 14px;
-    border-radius: 14px;
+    border-radius: var(--radius-md, 14px);
     font-size: 0.92rem;
 }
 
-.register-flash.error { background: rgba(217, 106, 43, 0.12); color: #8f3d12; }
-.register-flash.success { background: rgba(23, 162, 164, 0.15); color: #0d5c5e; }
+.register-flash.error {
+    background: rgba(255, 107, 107, 0.12);
+    border: 1px solid rgba(255, 107, 107, 0.35);
+    color: var(--danger);
+}
+
+.register-flash.success {
+    background: rgba(85, 228, 139, 0.12);
+    border: 1px solid var(--line-strong);
+    color: var(--brand);
+}
 
 .register-foot {
     margin-top: 22px;
@@ -255,3 +282,9 @@
 }
 
 .register-foot a { color: var(--brand); font-weight: 700; text-decoration: none; }
+
+@media (max-width: 900px) {
+    .login-shell { grid-template-columns: 1fr; }
+    .login-hero, .login-panel { padding: 34px 24px; }
+    .login-hero-title { font-size: 2.45rem; }
+}

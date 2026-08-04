@@ -160,6 +160,7 @@ class BacktestFacade:
         start: str,
         end: str,
         initial_capital: float = 100000.0,
+        client_idempotency_key: str | None = None,
     ) -> dict[str, Any]:
         """Queue a backtest via Celery when available; otherwise run synchronously."""
         with observe_facade(self._FACADE_NAME, "run_backtest_async"):
@@ -182,6 +183,7 @@ class BacktestFacade:
                 start=dto.start,
                 end=dto.end,
                 initial_capital=dto.initial_capital,
+                client_idempotency_key=client_idempotency_key,
             )
 
     def select_stocks(

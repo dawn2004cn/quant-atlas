@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}鑳藉姏鎬昏 - Quant Atlas{% endblock %}
+{% block title %}能力总览 - Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
@@ -8,13 +8,21 @@
 {% block spa_switcher %}
 <a href="/app/capabilities" class="spa-switcher-link"
    data-spa-switcher="capabilities">
-  璇曡瘯鏂扮増 鈫?
+   试试新版 →
 </a>
-{% endblock %%}
+{% endblock %}
 
 
 
 {% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.daily_workbench'), 'label': '操盘台', 'primary': true},
+    {'href': url_for('pages.integration_hub'), 'label': '集成中枢'},
+    {'href': url_for('pages.observability'), 'label': '观测台'},
+    {'href': url_for('pages.backtest'), 'label': '回测'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 {% for h in ux_env_hints|default([]) %}
 <div class="qc-ux-banner qc-ux-banner--info">
     <div class="qc-ux-banner__title">{{ h.title }}</div>
@@ -25,19 +33,19 @@
 </div>
 {% endfor %}
 
-<section class="qc-ux-onboarding" aria-label="鑳藉姏鎬昏浣跨敤鎻愮ず">
+<section class="qc-ux-onboarding" aria-label="能力总览使用提示">
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">鍏堟墦閫氬叆鍙?/div>
-        <p class="qc-ux-step-desc">寤鸿浠庢搷鐩樺彴寮€濮嬶紝閫愭鎶婅嚜閫夈€佽瀵熷崟銆佽瘖鑲′笌鍥炴祴涓叉垚姣忓ぉ鐨勫浐瀹氬姩浣溿€?/p>
-        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">浠婃棩鎿嶇洏鍙?/a>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">鑷€夎偂</a>
+        <div class="qc-ux-step-title">先打通入口</div>
+        <p class="qc-ux-step-desc">建议从操盘台开始，逐步把自选、观察单、诊股与回测串成每天的固定动作。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">自选股</a>
     </div>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">2</span>
-        <div class="qc-ux-step-title">鑳藉姏缂哄け鍏堢湅闆嗘垚</div>
-        <p class="qc-ux-step-desc">Qlib銆侀€氳揪淇＄绾垮寮恒€佸ぇ妯″瀷绛夊紑鍏充笌閰嶇疆锛岀粺涓€鍦ㄩ泦鎴愪腑鏋㈡帓鏌ャ€?/p>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">闆嗘垚涓灑</a>
+        <div class="qc-ux-step-title">能力缺失先看集成</div>
+        <p class="qc-ux-step-desc">Qlib、通达信离线增强、大模型等开关与配置，统一在集成中枢排查。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
     </div>
 </section>
 
@@ -45,8 +53,8 @@
     <div class="cap-hero-grid">
         <div>
             <div class="hero-caption">Atlas Ability Map 2.0</div>
-            <h1 class="page-title cap-hero-title">鐮旂┒闂幆鍏ㄦ櫙</h1>
-            <p class="page-subtitle">浠庤鎯呭彂鐜般€丄I 瑙ｉ噴銆侀噺鍖栭獙璇佸埌鏈€缁堝綊妗ｏ紝Atlas 涓轰綘鎵撻€氫簡鎶曠爺鐢熶骇鍔涚殑姣忎竴鐜€?/p>
+            <h1 class="page-title cap-hero-title">研究闭环全景</h1>
+            <p class="page-subtitle">从行情发现、AI 解释、量化验证到最终归档，Atlas 为你打通了投研生产力的每一环。</p>
             <div class="cap-badges mt-3">
                 <span class="cap-badge on"><span class="dot"></span>Qlib Engine Enabled</span>
                 <span class="cap-badge on"><span class="dot"></span>Multi-Agent Debate Active</span>
@@ -54,14 +62,14 @@
             </div>
         </div>
         <div class="search-orb">
-            <div class="search-orb-title">鈿?蹇€熺洿杈剧粓绔?/div>
-            <input type="text" id="capSearchInput" class="search-orb-input" placeholder="杈撳叆浠ｇ爜, 濡?NVDA / 600519">
+            <div class="search-orb-title">⚡ 快速直达终端</div>
+            <input type="text" id="capSearchInput" class="search-orb-input" placeholder="输入代码, 如 NVDA / 600519">
             <div class="cap-search-grid">
-                <button class="btn-brand" type="button" data-cap-action="go-stock">涓偂璇︽儏</button>
-                <button class="btn-soft" type="button" data-cap-action="go-ai">AI 鎶曞浼?/button>
+                <button class="btn-brand" type="button" data-cap-action="go-stock">个股详情</button>
+                <button class="btn-soft" type="button" data-cap-action="go-ai">AI 投委会</button>
             </div>
             <div class="cap-search-hint">
-                鏀寔 A鑲′唬鐮?6浣?銆佺編鑲°€佹腐鑲?.HK)銆佸姞瀵嗚揣甯?-USD)
+                支持 A股代码(6位)、美股、港股(.HK)、加密货币(-USD)
             </div>
             <div id="capFreshnessStrip" class="qa-is-hidden qc-freshness-strip cap-freshness-mt" aria-live="polite"></div>
             <div id="capActiveJobs" class="cap-jobs-mt"></div>
@@ -71,92 +79,92 @@
 
 <div class="ability-grid">
     <div class="ability-card">
-        <div class="ability-icon ability-icon--emerald">馃實</div>
-        <div class="ability-title">鍏ㄧ悆琛屾儏涓庣洃鎺?/div>
-        <p class="ability-desc">鏁村悎 OpenBB 閫傞厤灞傦紝涓€绔欏紡閫忚 A/娓?缇?甯?瀹炴椂鑴夊姩銆?/p>
+        <div class="ability-icon ability-icon--emerald">🌍</div>
+        <div class="ability-title">全球行情与监控</div>
+        <p class="ability-desc">整合 OpenBB 适配层，一站式透视 A/港/美/币 实时脉动。</p>
         <div class="ability-tags">
             <span class="ability-tag">Batch Quote</span>
             <span class="ability-tag">Sparklines</span>
         </div>
         <div class="ability-links">
-            <a href="/global-radar" class="ability-link primary">馃審 閫忚濉?/a>
-            <a href="/market-panorama" class="ability-link">鍏ㄦ櫙鍥?/a>
-            <a href="/self-stocks" class="ability-link">鑷€夎偂</a>
+            <a href="/global-radar" class="ability-link primary">🌏 透视塔</a>
+            <a href="/market-panorama" class="ability-link">全景图</a>
+            <a href="/self-stocks" class="ability-link">自选股</a>
         </div>
     </div>
 
     <div class="ability-card">
-        <div class="ability-icon ability-icon--violet">馃</div>
-        <div class="ability-title">AI 鐮旂┒锛堝鏅鸿兘浣擄級</div>
-        <p class="ability-desc">宸磋彶鐗广€佹灄濂囩瓑 20+ Agent 妯℃嫙杈╄锛岃緭鍑哄叿澶囧彲瑙ｉ噴鎬х殑鎶曡祫鍏辫瘑銆?/p>
+        <div class="ability-icon ability-icon--violet">🤖</div>
+        <div class="ability-title">AI 研究（多智能体）</div>
+        <p class="ability-desc">巴菲特、林奇等 20+ Agent 模拟辩论，输出具备可解释性的投资共识。</p>
         <div class="ability-tags">
             <span class="ability-tag">Reasoning Flow</span>
             <span class="ability-tag">Ollama</span>
         </div>
         <div class="ability-links">
-            <a href="/ai-committee" class="ability-link primary">馃彌锔?鎶曞浼?/a>
-            <a href="/ai-hedge-fund" class="ability-link">鍒嗘瀽甯堝ぉ鍥?/a>
-            <a href="/ai-research-report" class="ability-link">鐮旂┒鎶ュ憡</a>
+            <a href="/ai-committee" class="ability-link primary">🏛️ 投委会</a>
+            <a href="/ai-hedge-fund" class="ability-link">分析师天团</a>
+            <a href="/ai-research-report" class="ability-link">研究报告</a>
         </div>
     </div>
 
     <div class="ability-card">
-        <div class="ability-icon ability-icon--blue">馃К</div>
-        <div class="ability-title">鍥犲瓙瀹為獙涓庢紨鍖?/div>
-        <p class="ability-desc">Alpha Factory 琛ㄨ揪寮忕敓鎴愶紝鏀寔鍩轰簬琛€缂樺浘璋辩殑鍥犲瓙瀹氬悜杩涘寲銆?/p>
+        <div class="ability-icon ability-icon--blue">🧬</div>
+        <div class="ability-title">因子实验与演化</div>
+        <p class="ability-desc">Alpha Factory 表达式生成，支持基于血缘图谱的因子定向进化。</p>
         <div class="ability-tags">
             <span class="ability-tag">RD-Agent</span>
             <span class="ability-tag">Lineage Graph</span>
         </div>
         <div class="ability-links">
-            <a href="/alpha-factory" class="ability-link primary">馃К 鍥犲瓙宸ュ巶</a>
-            <a href="/factor-evolution" class="ability-link">婕斿寲鍥?/a>
-            <a href="/factor-repository" class="ability-link">鍥犲瓙搴?/a>
+            <a href="/alpha-factory" class="ability-link primary">🧬 因子工厂</a>
+            <a href="/factor-evolution" class="ability-link">演化图</a>
+            <a href="/factor-repository" class="ability-link">因子库</a>
         </div>
     </div>
 
     <div class="ability-card">
-        <div class="ability-icon ability-icon--amber">馃搳</div>
-        <div class="ability-title">閲忓寲楠岃瘉涓庡洖娴?/div>
-        <p class="ability-desc">40+ 绛栫暐妯″瀷涓€閿鏍囷紝鍩轰簬 Qlib 鐨勯珮鎬ц兘淇″彿鍥炴函涓庡弬鏁拌皟浼樸€?/p>
+        <div class="ability-icon ability-icon--amber">📊</div>
+        <div class="ability-title">量化验证与回测</div>
+        <p class="ability-desc">40+ 策略模型一键对标，基于 Qlib 的高性能信号回溯与参数调优。</p>
         <div class="ability-tags">
             <span class="ability-tag">Qlib Pipeline</span>
             <span class="ability-tag">Backtest</span>
         </div>
         <div class="ability-links">
-            <a href="/backtest" class="ability-link primary">绛栫暐鍥炴祴</a>
-            <a href="/stock-selector" class="ability-link">閫夎偂鍣?/a>
-            <a href="/signal-flag" class="ability-link">淇″彿鏃?/a>
+            <a href="/backtest" class="ability-link primary">策略回测</a>
+            <a href="/stock-selector" class="ability-link">选股器</a>
+            <a href="/signal-flag" class="ability-link">信号旗</a>
         </div>
     </div>
 
     <div class="ability-card">
-        <div class="ability-icon ability-icon--slate">馃搨</div>
-        <div class="ability-title">鏁版嵁涓庤瘉鎹腑蹇?/div>
-        <p class="ability-desc">瀹¤ AI 鎺ㄧ悊鐨勬瘡涓€鏉¤瘉鎹紝娑电洊榫欒檸姒溿€佺爺鎶ャ€丗inGPT 鎯呮劅涓庨娴嬨€?/p>
+        <div class="ability-icon ability-icon--slate">📂</div>
+        <div class="ability-title">数据与证据中心</div>
+        <p class="ability-desc">审计 AI 推理的每一条证据，涵盖龙虎榜、研报、FinGPT 情感与预测。</p>
         <div class="ability-tags">
             <span class="ability-tag">Audit Trail</span>
             <span class="ability-tag">MySQL</span>
         </div>
         <div class="ability-links">
-            <a href="/longhu-bang" class="ability-link primary">榫欒檸姒?/a>
-            <a href="/yanbao-hub" class="ability-link">鐮旀姤涓績</a>
-            <a href="/integration-hub" class="ability-link">杩愮淮涓灑</a>
+            <a href="/longhu-bang" class="ability-link primary">龙虎榜</a>
+            <a href="/yanbao-hub" class="ability-link">研报中心</a>
+            <a href="/integration-hub" class="ability-link">运维中枢</a>
         </div>
     </div>
 
     <div class="ability-card">
-        <div class="ability-icon ability-icon--sky">馃Л</div>
-        <div class="ability-title">鏋舵瀯婕旇繘涓庨〉闈㈣惤鐐?/div>
-        <p class="ability-desc">灏?Phase 4+ 鐨?EventBus銆佺儹閰嶇疆銆丄gentContext 涓庡彲瑙傛祴鎬ф媶鎴愬彲瀹炴柦鐨勯〉闈㈠叆鍙ｅ拰鍚庡彴鑳藉姏銆?/p>
+        <div class="ability-icon ability-icon--sky">🧭</div>
+        <div class="ability-title">架构演进与页面落点</div>
+        <p class="ability-desc">将 Phase 4+ 的 EventBus、热配置、AgentContext 与可观测性拆成可实施的页面入口和后台能力。</p>
         <div class="ability-tags">
             <span class="ability-tag">Phase 4+</span>
             <span class="ability-tag">UI Mapping</span>
         </div>
         <div class="ability-links">
-            <a href="/architecture-roadmap" class="ability-link primary">鏌ョ湅婕旇繘鍥?/a>
-            <a href="/observability" class="ability-link">瑙傛祴鍙?/a>
-            <a href="/integration-hub" class="ability-link">闆嗘垚涓灑</a>
+            <a href="/architecture-roadmap" class="ability-link primary">查看演进图</a>
+            <a href="/observability" class="ability-link">观测台</a>
+            <a href="/integration-hub" class="ability-link">集成中枢</a>
         </div>
     </div>
 </div>
@@ -164,25 +172,25 @@
 <section class="section-shell section-shell-mt">
     <div class="panel-head">
         <div>
-            <h2 class="panel-title">鏁ｆ埛鍔╂墜蹇嵎鍏ュ彛</h2>
-            <p class="panel-subtitle">姣忔棩闂幆锛歍op3 鈫?蹇冪悊鍗＋ 鈫?褰卞瓙鎿嶇洏 鈫?娑堟伅涓績</p>
+            <h2 class="panel-title">散户助手快捷入口</h2>
+            <p class="panel-subtitle">每日闭环：Top3 → 心理卫士 → 影子操盘 → 消息中心</p>
         </div>
     </div>
     <div class="ability-links cap-retail-actions" id="capRetailQuickActions">
-        <a class="ability-link primary" href="/daily-workbench">鎿嶇洏鍙?/a>
-        <a class="ability-link" href="/retail-assistant">鏁ｆ埛鍔╂墜</a>
-        <a class="ability-link" href="/message-center?filter=psychology">蹇冪悊鎻愰啋</a>
-        <a class="ability-link" href="/self-stocks">鑷€夎偂</a>
+        <a class="ability-link primary" href="/daily-workbench">操盘台</a>
+        <a class="ability-link" href="/retail-assistant">散户助手</a>
+        <a class="ability-link" href="/message-center?filter=psychology">心理提醒</a>
+        <a class="ability-link" href="/self-stocks">自选股</a>
     </div>
 </section>
 
 <section class="section-shell section-shell-mt">
     <div class="panel-head">
         <div>
-            <h2 class="panel-title">refacter 鍥涚淮钀藉湴瀵圭収</h2>
-            <p class="panel-subtitle">瀵圭収 <code>docs/refacter.md</code> 路 <code>GET /api/v1/retail-assistant/refactor-status</code></p>
+            <h2 class="panel-title">refacter 四维落地对照</h2>
+            <p class="panel-subtitle">对照 <code>docs/refacter.md</code> · <code>GET /api/v1/retail-assistant/refactor-status</code></p>
         </div>
-        <a class="btn-soft btn-sm" href="/retail-assistant">鏁ｆ埛鍔╂墜</a>
+        <a class="btn-soft btn-sm" href="/retail-assistant">散户助手</a>
     </div>
     <div id="capRefactorStatus" class="mt-2"></div>
 </section>
@@ -190,10 +198,10 @@
 <section class="section-shell section-shell-mt">
     <div class="panel-head">
         <div>
-            <h2 class="panel-title">鍩虹璁炬柦 路 Beat 鍚屾</h2>
-            <p class="panel-subtitle">QuestDB 瀹氭椂鍚屾涓庤繎娆℃墽琛?路 <code>timeseries-health</code> / <code>timeseries-sync-history</code></p>
+            <h2 class="panel-title">基础设施 · Beat 同步</h2>
+            <p class="panel-subtitle">QuestDB 定时同步与近次执行 · <code>timeseries-health</code> / <code>timeseries-sync-history</code></p>
         </div>
-        <a class="btn-soft btn-sm" href="/observability">瑙傛祴鍙?/a>
+        <a class="btn-soft btn-sm" href="/observability">观测台</a>
     </div>
     <div id="capBeatSyncMini" class="mt-2"></div>
 </section>
@@ -201,10 +209,10 @@
 <section class="section-shell section-shell-mt">
     <div class="panel-head">
         <div>
-            <h2 class="panel-title">鍐崇瓥閾捐矾鑷</h2>
-            <p class="panel-subtitle">瀵圭収 <code>GET /api/v1/ux/decision-flow</code> 濂戠害锛屾壒閲忔帰娴嬪叧閿?API 鏄惁鍙敤锛堥渶鐧诲綍锛夈€?/p>
+            <h2 class="panel-title">决策链路自检</h2>
+            <p class="panel-subtitle">对照 <code>GET /api/v1/ux/decision-flow</code> 契约，批量探测关键 API 是否可用（需登录）。</p>
         </div>
-        <button type="button" class="btn-brand btn-sm" id="capRunSelfCheck">杩愯鑷</button>
+        <button type="button" class="btn-brand btn-sm" id="capRunSelfCheck">运行自检</button>
     </div>
     <div id="capFlowCheckResults" class="mt-2 cap-flow-results"></div>
 </section>
@@ -226,7 +234,7 @@ function parseCap(raw) {
 }
 function goCap(mode) {
     const val = document.getElementById('capSearchInput').value;
-    if (!val) return showToast('璇疯緭鍏ヨ偂绁ㄤ唬鐮?, 'warning');
+    if (!val) return showToast('请输入股票代码', 'warning');
     const { market, symbol } = parseCap(val);
     if (mode === 'stock') {
         location.href = `/stock/${encodeURIComponent(symbol)}?m=${market}#decision-brief-strip`;

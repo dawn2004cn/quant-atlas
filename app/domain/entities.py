@@ -20,6 +20,7 @@ from datetime import datetime
 from typing import Any
 
 from .enums import MarketCode
+from .shared.value_objects import StockQuote, UserAccount
 
 
 @dataclass(frozen=True)

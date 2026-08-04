@@ -270,8 +270,18 @@ class StockApplicationService(BaseApplicationService):
 
     def get_history(self, symbol: str, market: object, start: str, end: str) -> list:
         """Get history data as list of dicts (for backward compatibility)."""
-        self.logger.info(f"get_history called: {symbol}, {market}, {start}-{end}")
-        market_str = market.value if hasattr(market, 'value') else str(market)
+        market_str = market.value if hasattr(market, "value") else str(market)
+        from app.infrastructure.cache.history_coalesce import get_history_coalesced
+
+        key = f"svc:{symbol}:{market_str}:{start[:10]}:{end[:10]}"
+        return get_history_coalesced(
+            key,
+            lambda: self._get_history_uncached(symbol, market, start, end),
+        )
+
+    def _get_history_uncached(self, symbol: str, market: object, start: str, end: str) -> list:
+        self.logger.info("get_history called: %s, %s, %s-%s", symbol, market, start, end)
+        market_str = market.value if hasattr(market, "value") else str(market)
 
         from app.domain.enums import MarketCode
         from app.domain.shared.market_history_utils import filter_sort_history
@@ -299,10 +309,11 @@ class StockApplicationService(BaseApplicationService):
 
         if self._stock_cache:
             try:
-                from app.domain.enums import MarketCode
                 from app.domain.shared.symbol_normalizer import SymbolNormalizer
 
-                m_enum = market if isinstance(market, MarketCode) else MarketCode(market_str.upper() if market_str else "CN")
+                m_enum = market if isinstance(market, MarketCode) else MarketCode(
+                    market_str.upper() if market_str else "CN"
+                )
                 cache_key = (
                     SymbolNormalizer.to_db_code(symbol)
                     if m_enum == MarketCode.CN
@@ -310,22 +321,23 @@ class StockApplicationService(BaseApplicationService):
                 )
                 cached = self._stock_cache.get_stock_history_for_code(cache_key, limit=5000)
                 if cached:
-                    self.logger.info(f"Got {len(cached)} bars from stock_cache")
+                    self.logger.info("Got %d bars from stock_cache", len(cached))
                     return filter_sort_history(cached, start, end)
             except Exception as e:
-                self.logger.warning(f"Cache lookup failed: {e}")
+                self.logger.warning("Cache lookup failed: %s", e)
 
         if self._market_provider and hasattr(self._market_provider, "get_stock_history"):
             try:
-                from app.domain.enums import MarketCode
-                m = market if isinstance(market, MarketCode) else MarketCode(market_str.upper() if market_str else "CN")
+                m = market if isinstance(market, MarketCode) else MarketCode(
+                    market_str.upper() if market_str else "CN"
+                )
                 result = self._market_provider.get_stock_history(symbol, m, start, end)
-                self.logger.info(f"market_provider returned {len(result) if result else 0} bars")
+                self.logger.info("market_provider returned %d bars", len(result) if result else 0)
                 return result
             except Exception as e:
-                self.logger.error(f"market_provider get_stock_history failed: {e}", exc_info=True)
+                self.logger.error("market_provider get_stock_history failed: %s", e, exc_info=True)
 
-        self.logger.warning(f"get_history: no data for {symbol}")
+        self.logger.warning("get_history: no data for %s", symbol)
         return []
 
     def get_bars_between(self, code: str, market: object, start: str, end: str) -> list[BarData]:

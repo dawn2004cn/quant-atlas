@@ -92,3 +92,18 @@ def register_alert_center_routes(blueprint: Blueprint, ctx: ApiV1Context | None 
             },
             count=feed.total,
         )
+
+    @blueprint.get("/system/alerts/channels")
+    @login_required
+    def system_alert_channels():
+        """Outbound channel configuration probe (no secrets exposed)."""
+        channels = dispatch_service.list_channel_status()
+        configured_n = sum(1 for c in channels if c.get("configured"))
+        return ok_response(
+            data={
+                "channels": channels,
+                "configured_count": configured_n,
+                "total": len(channels),
+            },
+            count=len(channels),
+        )

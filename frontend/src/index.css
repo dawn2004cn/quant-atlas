@@ -1,5 +1,5 @@
-﻿/* src/themes/dark.css */ :root {   --quant-bg: #07111f;   --quant-fg: #eef6ff;   --quant-muted: #91a3b8;   --quant-surface: rgba(255, 255, 255, 0.075);   --quant-panel: rgba(5, 10, 18, 0.82);   --quant-bar: rgba(14, 20, 31, 0.86);   --quant-accent: #55e48b;   --quant-accent-2: #5aa7ff;   --quant-danger: #ff6b6b;   --quant-warn: #ffd166;    /* Flask-compatible surface levels */   --quant-surface-2: rgba(255, 255, 255, 0.035);   --quant-surface-3: rgba(8, 12, 20, 0.48);   --quant-surface-strong: #131b2a;   --quant-surface-elevated: #1a2438;   --quant-surface-border: rgba(255, 255, 255, 0.13);   --quant-surface-border-soft: rgba(255, 255, 255, 0.06);    /* Shadows */   --quant-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);   --quant-shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.3);   --quant-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.25);    /* Lines & focus */   --quant-line-soft: rgba(255, 255, 255, 0.09);   --quant-line-strong: rgba(85, 228, 139, 0.35);   --quant-focus: rgba(85, 228, 139, 0.55);   --quant-focus-ring: 0 0 0 3px rgba(85, 228, 139, 0.25);    /* Nav */   --quant-nav-bg: #050a12;   --quant-nav-border: rgba(255, 255, 255, 0.06);    /* Chart */   --quant-chart-grid: rgba(255, 255, 255, 0.08);   --quant-chart-up: #55e48b;   --quant-chart-down: #ff6b6b;    /* Radii */   --quant-radius-xs: 8px;   --quant-radius-sm: 12px;   --quant-radius-md: 16px;   --quant-radius-lg: 24px;   --quant-radius-xl: 32px;   --quant-radius-pill: 999px;    /* Font */   --font-quant: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;   --font-quant-display: "Space Grotesk", "Noto Sans SC", "PingFang SC", sans-serif;   --font-quant-mono: ui-monospace, Menlo, Consolas, monospace; }
-/* src/themes/light.css */ [data-theme="light"] {   --quant-bg: #f6f8fb;   --quant-fg: #0f172a;   --quant-muted: #64748b;   --quant-surface: #ffffff;   --quant-panel: rgba(255, 255, 255, 0.92);   --quant-bar: rgba(255, 255, 255, 0.88);   --quant-accent: #0e7a43;   --quant-accent-2: #2563eb;   --quant-danger: #dc2626;   --quant-warn: #d97706;    /* Flask-compatible surface levels */   --quant-surface-2: #f8fbfd;   --quant-surface-3: #eef4f8;   --quant-surface-strong: #ffffff;   --quant-surface-elevated: #ffffff;   --quant-surface-border: #d8e1ea;   --quant-surface-border-soft: #e2e8f0;    /* Shadows */   --quant-shadow: 0 20px 64px rgba(15, 23, 42, 0.11);   --quant-shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.04);   --quant-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);    /* Lines & focus */   --quant-line-soft: rgba(19, 32, 45, 0.08);   --quant-line-strong: rgba(14, 122, 67, 0.32);   --quant-focus: rgba(14, 122, 67, 0.28);   --quant-focus-ring: 0 0 0 3px rgba(14, 122, 67, 0.16);    /* Nav */   --quant-nav-bg: #f0f2f5;   --quant-nav-border: #d8e1ea;    /* Chart */   --quant-chart-grid: rgba(0, 0, 0, 0.08);   --quant-chart-up: #16a34a;   --quant-chart-down: #dc2626; }
+@import "./themes/dark.css";
+@import "./themes/light.css";
 
 @tailwind base;
 @tailwind components;
@@ -173,6 +173,31 @@ h1, h2, h3, .page-title, .hero-caption {
 }
 .text-warn {
   color: var(--quant-warn, #ffd166);
+}
+
+/* Shared tone banners (align with classic common.css) */
+.qa-tone-banner {
+  border-radius: var(--quant-radius-md, 16px);
+  border: 1px solid var(--quant-surface-border);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+.qa-tone-banner--ok {
+  background: var(--tone-ok-soft);
+  border-color: var(--tone-ok-border);
+  color: var(--tone-ok);
+}
+.qa-tone-banner--warn {
+  background: var(--tone-warn-soft);
+  border-color: var(--tone-warn-border);
+}
+.qa-tone-banner--danger {
+  background: var(--tone-danger-soft);
+  border-color: var(--tone-danger-border);
+}
+.qa-tone-banner--info {
+  background: var(--tone-info-soft);
+  border-color: color-mix(in srgb, var(--tone-info) 35%, transparent);
 }
 
 /* ── Mono numerals ──────────────────────────────────────────────────── */

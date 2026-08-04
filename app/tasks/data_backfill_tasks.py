@@ -101,17 +101,27 @@ if _celery is not None:
 
     @_celery.task(name="app.tasks.data_backfill_tasks.backfill_all_history_tdx")
     def backfill_all_history_tdx(limit: int | None = None) -> dict[str, Any]:
-        """[TDX专用] 历史全量：TDX 日K目录 MySQL + qlib_export(CSV) + qlib_bin"""
-        logger.info("Starting backfill_all_history_tdx (TDX dayk -> mysql/csv/qlib)...")
-        return create_tdx_dayk_sync_service().full_sync_from_tdx_dayk(limit=limit)
+        """[历史入库] TDX 日K → Timescale + CSV + qlib_bin（默认不写 MySQL）。"""
+        logger.info("Starting backfill_all_history_tdx (TDX → timescale/csv/qlib)...")
+        return create_tdx_dayk_sync_service().full_sync_from_tdx_dayk(
+            limit=limit,
+            enable_mysql=False,
+            enable_timescale=True,
+            enable_csv=True,
+            dump_qlib_bin=True,
+        )
 
     @_celery.task(name="app.tasks.data_backfill_tasks.sync_today_history_tdx")
     def sync_today_history_tdx(trade_date: str | None = None, limit: int | None = None) -> dict[str, Any]:
-        """[TDX专用] 日更：与增量同步一致，从 MySQL 最新日期补全至 TDX（trade_date 仅兼容保留）。"""
-        logger.info("Starting sync_today_history_tdx (TDX dayk incremental, trade_date=%s)...", trade_date)
+        """[历史入库] 日更：TDX 增量 → Timescale/CSV（不写 MySQL）。"""
+        logger.info("Starting sync_today_history_tdx (trade_date=%s)...", trade_date)
         return create_tdx_dayk_sync_service().incremental_sync_from_tdx_dayk(
             trade_date=trade_date,
             limit=limit,
+            enable_mysql=False,
+            enable_timescale=True,
+            enable_csv=True,
+            dump_qlib_bin=False,
         )
 
     @_celery.task(name="app.tasks.data_backfill_tasks.sync_incremental_tdx")
@@ -120,7 +130,7 @@ if _celery is not None:
         dump_qlib_bin: bool = True,
         dump_max_workers: int = 8,
     ) -> dict[str, Any]:
-        """[TDX 推荐] 增量同步：MySQL 最新日期 → TDX lday → MySQL + CSV（可选同步 qlib_bin）。"""
+        """[历史入库] 增量：TDX → Timescale + CSV（可选 dump qlib_bin）；不写 MySQL。"""
         logger.info(
             "Starting sync_incremental_tdx (dump_qlib_bin=%s, limit=%s)...",
             dump_qlib_bin,
@@ -130,6 +140,9 @@ if _celery is not None:
             limit=limit,
             dump_qlib_bin=dump_qlib_bin,
             dump_max_workers=dump_max_workers,
+            enable_mysql=False,
+            enable_timescale=True,
+            enable_csv=True,
         )
 
     @_celery.task(name="app.tasks.data_backfill_tasks.scheduled_cn_history_daily")
@@ -137,31 +150,23 @@ if _celery is not None:
         limit: int | None = None,
         dump_max_workers: int = 8,
     ) -> dict[str, Any]:
-        """收盘后日更链路：TDX 增量（不写 bin）→ MySQL → qlib_bin。"""
-        logger.info("scheduled_cn_history_daily: TDX incremental (no inline bin dump)...")
-        tdx_result = create_tdx_dayk_sync_service().incremental_sync_from_tdx_dayk(
+        """收盘后日更：TDX → Timescale + CSV → qlib_bin（无 MySQL / QuestDB / ClickHouse）。"""
+        logger.info("scheduled_cn_history_daily: TDX → timescale/csv/qlib...")
+        result = create_tdx_dayk_sync_service().incremental_sync_from_tdx_dayk(
             limit=limit,
-            dump_qlib_bin=False,
+            dump_qlib_bin=True,
             dump_max_workers=dump_max_workers,
+            enable_mysql=False,
+            enable_timescale=True,
+            enable_csv=True,
         )
-        if not tdx_result.get("ok", False):
-            return {
-                "ok": False,
-                "stage": "tdx_incremental",
-                "tdx": tdx_result,
-                "qlib_bin": None,
-            }
-
-        from .qlib_data_update import mysql_to_qlib_incremental_sync
-
-        logger.info("scheduled_cn_history_daily: mysql_to_qlib_incremental_sync...")
-        bin_result = mysql_to_qlib_incremental_sync()
-        overall_ok = bool(bin_result.get("ok"))
+        ok = bool(result.get("ok"))
         return {
-            "ok": overall_ok,
-            "stage": "done" if overall_ok else "qlib_bin",
-            "tdx": tdx_result,
-            "qlib_bin": bin_result,
+            "ok": ok,
+            "stage": "done" if ok else "tdx_incremental",
+            "tdx": result,
+            "targets": ["timescale", "csv", "qlib"],
+            "qlib_bin": {"ok": ok, "via": "csv_dump"} if ok else None,
         }
 
     @_celery.task(name="app.tasks.data_backfill_tasks.backfill_financial_stash_if_empty")

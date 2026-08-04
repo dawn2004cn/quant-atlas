@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 import {
   ResponsiveContainer,
@@ -79,6 +80,7 @@ export default function QuantLab() {
 
   return (
     <div className="space-y-6">
+      <PageQuickNav items={QUICK_NAV_PRESETS.quantLab} />
       <div>
         <div className="text-xs text-[var(--quant-accent)] font-medium mb-1">Alpha Sandbox</div>
         <h1 className="page-title">量化实验室</h1>

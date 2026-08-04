@@ -1,461 +1,1392 @@
-{% extends "base.html" %}
-{% block spa_switcher %}
-<a href="/app/market-panorama" class="spa-switcher-link"
-   data-spa-switcher="market-panorama">
-  试试新版 &#8594;
-</a>
-{% endblock %}
-
-
-{% block title %}市场全景 - Quant Atlas{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
-{% endblock %}
-
-{% block content %}
-{% for h in ux_env_hints|default([]) %}
-<div class="qc-ux-banner qc-ux-banner--info">
-    <div class="qc-ux-banner__title">{{ h.title }}</div>
-    <div class="qc-ux-banner__body">{{ h.body }}</div>
-    {% if h.href and h.label %}
-    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
-    {% endif %}
-</div>
-{% endfor %}
-
-<section class="qc-ux-onboarding" aria-label="与市场全景联动">
-    <div class="qc-ux-step">
-        <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">对照操盘台</div>
-
-        <p class="qc-ux-step-desc">今日操盘台会汇总涨跌结构、涨停与龙虎榜摘要；先看环境再翻列表，减少「单票噪音」。</p>
-        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
-    </div>
-    <div class="qc-ux-step">
-        <span class="qc-ux-step-num">2</span>
-        <div class="qc-ux-step-title">沉淀到自选</div>
-        <p class="qc-ux-step-desc">全景里扫到的标的，建议先加入自选或模拟观察单，再写买卖计划与复盘。</p>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">自选股</a>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">模拟观察单</a>
-    </div>
-</section>
-
-<div class="panorama-hero">
-    <div class="hero-caption">Real-time Market Panorama</div>
-    <h1 class="page-title">全市场纵览</h1>
-    <p class="page-subtitle">监控全量标的实时异动，内置高性能排序与多维过滤器。</p>
-    <div id="panoramaFreshnessStrip" class="qc-freshness-strip unknown panorama-freshness qa-is-hidden" role="status"></div>
-</div>
-
-<!-- 黑科技：叙事脉动流 -->
-<div id="narrativePulse" class="section-shell pano-narrative-pulse">
-    <div class="pulse-row">
-        <div class="pulse-label">
-            <span class="loading-pulse pulse-dot"></span> 实时脉动
-        </div>
-        <div id="pulseTrack" class="pulse-track">
-            <div class="loading-state pulse-loading-inline">正在合成全市场叙事逻辑...</div>
-        </div>
-    </div>
-</div>
-
-<!-- 市场情绪雷达 & 脉冲预警 -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-gradient-info text-white">
-                <h6 class="mb-0">🌡️ 市场日记</h6>
-            </div>
-            <div class="card-body" id="marketDiary">
-                <p class="text-muted">正在生成今日市场体感...</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-gradient-warning text-white">
-                <h6 class="mb-0">⚡ 脉冲预警 <span class="badge bg-light text-dark" id="pulseCount">0</span></h6>
-            </div>
-            <div class="card-body pano-pulse-scroll">
-                <div id="pulseList">
-                    <p class="text-muted small">暂无脉冲信号</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="heat-dashboard">
-    <div class="heat-card">
-        <div class="heat-val heat-val--text" id="totalStocks">--</div>
-        <div class="heat-label">总数</div>
-    </div>
-    <div class="heat-card">
-        <div class="heat-val heat-val--up" id="limitUp">--</div>
-        <div class="heat-label">涨停</div>
-    </div>
-    <div class="heat-card">
-        <div class="heat-val heat-val--up" id="upStocks">--</div>
-        <div class="heat-label">上涨</div>
-    </div>
-    <div class="heat-card">
-        <div class="heat-val heat-val--muted" id="flatStocks">--</div>
-        <div class="heat-label">平盘</div>
-    </div>
-    <div class="heat-card">
-        <div class="heat-val heat-val--down" id="downStocks">--</div>
-        <div class="heat-label">下跌</div>
-    </div>
-    <div class="heat-card">
-        <div class="heat-val heat-val--down" id="limitDown">--</div>
-        <div class="heat-label">跌停</div>
-    </div>
-</div>
-
-<div class="control-bar">
-    <div class="pano-control-tabs">
-        <button class="tab-btn active" data-filter="all">全部</button>
-        <button class="tab-btn" data-filter="limit_up">涨停</button>
-        <button class="tab-btn" data-filter="limit_down">跌停</button>
-        <button class="tab-btn" data-filter="up">上涨</button>
-        <button class="tab-btn" data-filter="down">下跌</button>
-        <span class="pano-control-sep"></span>
-        <button class="tab-btn" data-filter="sh">上证A股</button>        <button class="tab-btn" data-filter="sz">深证A股</button>        <button class="tab-btn" data-filter="cyb">创业板</button>        <button class="tab-btn" data-filter="kc">科创板</button>        <button class="tab-btn" data-filter="bj">京证A股</button>
-    </div>
-    <div class="pano-control-actions">
-        <select id="groupFilter" class="form-control pano-select-narrow">
-            <option value="all">全市场 (CN)</option>            <option value="self">我的自选</option>
-        </select>
-        <div class="time-badge" id="lastUpdate">等待加载...</div>
-        <button type="button" class="btn-brand" id="panoramaRefreshBtn">🔄 刷新</button>
-    </div>
-</div>
-
-<div class="pano-table-wrap">
-    <table class="pano-table">
-        <thead>
-            <tr>
-                <th data-sort="code">代码</th>
-                <th data-sort="name">名称</th>
-                <th>趋势</th>
-                <th data-sort="price">现价</th>
-                <th data-sort="change_pct">涨幅</th>                <th data-sort="amount">成交额</th>                <th data-sort="turnover">换手</th>
-                <th data-sort="pe">PE</th>                <th data-sort="total_market_cap">市值</th>                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody id="panoBody">            <tr><td colspan="10" class="loading-tile">正在同步全市场快照...</td></tr>        </tbody>
-    </table>
-</div>
-
-<div class="pagination pano-pagination" id="pagination"></div>
-{% endblock %}
-
-{% block extra_js %}
-<script nonce="{{ csp_nonce() }}">
-let allData = [];
-let filtered = [];
-let currentPage = 1;
-const pageSize = 40;
-let sortKey = 'change_pct';
-let sortOrder = 'desc';
-let currentFilter = 'all';
-
-function formatAmount(v) {
-    if (v >= 1e8) return (v/1e8).toFixed(2) + '亿';    if (v >= 1e4) return (v/1e4).toFixed(2) + '万';
-    return v.toFixed(0);
-}
-
-function generateMiniSpark(isPos, changePct) {
-    const chg = parseFloat(changePct || 0);
-    const drift = chg >= 0 ? -0.5 : 0.5;
-    let y = 12 + drift * 3;
-    const pts = [];
-    for (let i = 0; i < 5; i++) {
-        y += drift + chg * 0.04;
-        y = Math.max(3, Math.min(17, y));
-        pts.push(`${i * 12},${y.toFixed(1)}`);
-    }
-    return `<svg class="spark-mini" viewBox="0 0 50 20"><polyline fill="none" stroke="${isPos?'var(--positive)':'var(--negative)'}" stroke-width="2" points="${pts.join(' ')}"/></svg>`;
-}
-
-async function loadPulse() {
-    const track = document.getElementById('pulseTrack');
-    const container = document.getElementById('narrativePulse');
-    try {
-        const res = await fetch('/api/v1/markets/pulse?market=CN');
-        const json = await res.json();
-        const events = json.data || [];
-        if (!events.length) return;
-        
-        let idx = 0;
-        const rotate = () => {
-            const ev = events[idx];
-            track.style.opacity = 0;
-            setTimeout(() => {
-                track.innerHTML = `<span class="time-badge pulse-time-badge">${ev.time}</span> ${ev.content}`;
-                track.style.opacity = 1;
-                // 根据情绪切换背景光晕
-                const colors = { bullish: 'rgba(16,185,129,0.08)', bearish: 'rgba(239,68,68,0.08)', neutral: 'rgba(255,255,255,0.7)' };
-                container.style.background = colors[ev.sentiment] || colors.neutral;
-            }, 400);
-            idx = (idx + 1) % events.length;
-        };
-        rotate();        setInterval(rotate, 6000); // 6秒切换一条叙事
-    } catch(e) { window.qcLogError('Pulse load failed', e); }
-}
-
-async function loadSentimentRadar() {
-    try {
-        // Load market diary
-        const diaryRes = await fetch('/api/v1/market/sentiment/diary');
-        const diaryData = await diaryRes.json();
-        const diary = (diaryData.status === 'success' || diaryData.ok) ? (diaryData.data ?? diaryData) : null;
-        if (diary) {
-            document.getElementById('marketDiary').innerHTML = `
-                <div class="mb-2"><span class="badge ${diary.overall_sentiment === 'bullish' ? 'bg-success' : (diary.overall_sentiment === 'bearish' ? 'bg-danger' : 'bg-secondary')}">${diary.overall_sentiment === 'bullish' ? '偏暖' : (diary.overall_sentiment === 'bearish' ? '偏冷' : '中性')}</span></div>
-                <p class="mb-1">${diary.summary}</p>
-                ${diary.key_events && diary.key_events.length ? `<small class="text-muted">${diary.key_events.join(', ')}</small>` : ''}
-            `;
-        }
-        
-        // Load pulses
-        const pulseRes = await fetch('/api/v1/market/sentiment/pulses');
-        const pulseData = await pulseRes.json();
-        const pulseList = (pulseData.status === 'success' || pulseData.ok) ? (pulseData.data ?? []) : [];
-        if (pulseList.length) {
-            const pulses = pulseList.slice(0, 5);
-            document.getElementById('pulseCount').textContent = pulseList.length;
-            document.getElementById('pulseList').innerHTML = pulses.map(p => `
-                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <div>
-                        <strong>${p.name}</strong>                        <span class="badge ${p.sentiment_score > 0 ? 'bg-success' : 'bg-danger'} ms-1">${p.sentiment_score > 0 ? '🔥热' : '❄️冷'}</span>                    </div>
-                    <small class="text-muted">${p.trigger_reason}</small>
-                </div>
-            `).join('');
-        }
-    } catch(e) { window.qcLogError('Sentiment radar load failed', e); }
-}
-
-async function loadData() {
-    const gid = $('#groupFilter').val();
-    let url = '/api/v1/markets/CN/quotes?limit=12000';
-    if (gid === 'self') {
-        url = '/api/v1/watchlist/experience?include_news=false';
-    }
-
-    try {
-        const res = await fetch(url);
-        const json = await res.json();
-        const raw = json.data;
-        let stocks = [];
-        if (raw && raw.stocks) {
-            stocks = raw.stocks;
-        } else if (raw && raw.items) {
-            stocks = raw.items;
-        } else if (Array.isArray(raw)) {
-            stocks = raw;
-        }
-        
-        // silent: loaded stocks count
-        allData = stocks;
-        
-        if (stocks.length > 0) {
-            updateStats();
-            applyFilterAndSort();            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString() + ' 已同步 ' + stocks.length + '条';        } else {
-            document.getElementById('panoBody').innerHTML = '<tr><td colspan="10" class="loading-tile">暂无数据</td></tr>';
-        }
-    } catch (e) { 
-        window.qcLogError('Market panorama data load failed', e);
-        document.getElementById('panoBody').innerHTML = '<tr><td colspan="10" class="loading-tile">加载失败: ' + e.message + '</td></tr>';
-    }
-}
-
-function updateStats() {
-    document.getElementById('totalStocks').textContent = allData.length;
-    document.getElementById('limitUp').textContent = allData.filter(s => s.change_pct >= 9.9).length;
-    document.getElementById('upStocks').textContent = allData.filter(s => s.change_pct > 0).length;
-    document.getElementById('flatStocks').textContent = allData.filter(s => s.change_pct === 0).length;
-    document.getElementById('downStocks').textContent = allData.filter(s => s.change_pct < 0).length;
-    document.getElementById('limitDown').textContent = allData.filter(s => s.change_pct <= -9.9).length;
-}
-
-function _boardFilter(s, filter) {
-    var c = String(s.code || '');
-    if (c.startsWith('688') || c.startsWith('689')) return 'kc';
-    if (c.startsWith('300') || c.startsWith('301')) return 'cyb';
-    if (c.startsWith('4') || c.startsWith('8')|| c.startsWith('92')) return 'bj';
-    if (c.startsWith('600') || c.startsWith('601') || c.startsWith('603') || c.startsWith('605')) return 'sh';
-    if (c.startsWith('000') || c.startsWith('001') || c.startsWith('002') || c.startsWith('003')) return 'sz';
-    return '';
-}
-
-function applyFilterAndSort() {
-    filtered = [...allData];
-    if (currentFilter === 'limit_up') filtered = filtered.filter(s => s.change_pct >= 9.9);
-    else if (currentFilter === 'limit_down') filtered = filtered.filter(s => s.change_pct <= -9.9);
-    else if (currentFilter === 'up') filtered = filtered.filter(s => s.change_pct > 0);
-    else if (currentFilter === 'down') filtered = filtered.filter(s => s.change_pct < 0);
-    else if (currentFilter === 'sh' || currentFilter === 'sz' || currentFilter === 'bj' || currentFilter === 'cyb' || currentFilter === 'kc')
-        filtered = filtered.filter(s => _boardFilter(s, currentFilter) === currentFilter);
-    
-    filtered.sort((a, b) => {
-        const va = a[sortKey] || 0, vb = b[sortKey] || 0;
-        return sortOrder === 'desc' ? vb - va : va - vb;
-    });
-    
-    renderTable();
-}
-
-function panoNormalizeCode(sym) {
-    return String(sym || '').replace(/^(sh|sz)/i, '').replace(/\.(SH|SZ|HK)$/i, '').slice(0, 6);
-}
-
-function bindPanoramaRealtimeQuotes() {
-    if (window._panoQuoteBound) return;
-    window._panoQuoteBound = true;
-    document.addEventListener('quant:quote', function (e) {
-        const d = e.detail || {};
-        const code = panoNormalizeCode(d.symbol);
-        if (!code) return;
-        const item = allData.find(function (s) { return panoNormalizeCode(s.code) === code; });
-        if (item) {
-            if (d.price != null) item.price = d.price;
-            if (d.change_pct != null) item.change_pct = d.change_pct;
-        }
-        const row = document.querySelector('tr[data-pano-code="' + code + '"]');
-        if (!row) return;
-        if (d.price != null) {
-            const priceEl = row.querySelector('.cell-price');
-            if (priceEl) priceEl.textContent = '¥' + parseFloat(d.price).toFixed(2);
-        }
-        if (d.change_pct != null) {
-            const chg = parseFloat(d.change_pct);
-            const chgEl = row.querySelector('.cell-chg');
-            if (chgEl) {
-                const isPos = chg >= 0;
-                chgEl.className = 'cell-chg ' + (isPos ? 'positive' : 'negative');
-                chgEl.style.background = isPos ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
-                chgEl.textContent = (isPos ? '+' : '') + chg.toFixed(2) + '%';
-            }
-        }
-    });
-}
-
-function renderTable() {
-    const start = (currentPage - 1) * pageSize;
-    const items = filtered.slice(start, start + pageSize);
-    const body = document.getElementById('panoBody');
-    
-    body.innerHTML = items.map(s => {
-        const isPos = s.change_pct >= 0;
-        return `
-            <tr data-pano-code="${s.code}">
-                <td><a href="/stock/${s.code}?m=CN" class="cell-code">${s.code}</a></td>
-                <td class="cell-name">${s.name}</td>
-                <td>${generateMiniSpark(isPos, s.change_pct)}</td>
-                <td class="cell-price">¥${parseFloat(s.price || 0).toFixed(2)}</td>
-                <td><span class="cell-chg ${isPos?'positive':'negative'}">
-                    ${isPos?'+':''}${parseFloat(s.change_pct || 0).toFixed(2)}%
-                </span></td>
-                <td>${formatAmount(s.amount || 0)}</td>
-                <td>${parseFloat(s.turnover || 0).toFixed(2)}%</td>
-                <td class="muted">${parseFloat(s.pe || 0).toFixed(1)}</td>
-                <td class="muted">${formatAmount(s.total_market_cap || 0)}</td>
-                <td>${typeof window.qcWatchlistButton === 'function' ? window.qcWatchlistButton(s.code, s.name, '加自选', 'btn-soft btn-sm') : ''}</td>
-            </tr>
-        `;
-    }).join('') || '<tr><td colspan="10" class="loading-tile">无匹配数据</td></tr>';
-    
-    renderPagination();
-}
-
-function renderPagination() {
-    const total = Math.ceil(filtered.length / pageSize);
-    const box = document.getElementById('pagination');
-    if (total <= 1) { box.innerHTML = ''; return; }
-
-    let html = '';
-    if (currentPage > 1) {
-        html += `<button type="button" class="page-btn" data-page="${currentPage - 1}" aria-label="上一页">‹</button>`;
-    }
-    let start = Math.max(1, currentPage - 2);
-    let end = Math.min(total, start + 4);
-    if (end - start < 4) start = Math.max(1, end - 4);
-    if (start > 1) {
-        html += `<button type="button" class="page-btn" data-page="1">1</button>`;
-        if (start > 2) html += `<span class="page-btn page-btn--static">...</span>`;
-    }
-    for (let i = start; i <= end; i++) {
-        html += `<button type="button" class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
-    }
-    if (end < total) {
-        if (end < total - 1) html += `<span class="page-btn page-btn--static">...</span>`;
-        html += `<button type="button" class="page-btn" data-page="${total}">${total}</button>`;
-    }
-    if (currentPage < total) {
-        html += `<button type="button" class="page-btn" data-page="${currentPage + 1}" aria-label="下一页">›</button>`;
-    }
-    box.innerHTML = html;
-}
-
-function goPage(p) {
-    currentPage = p;
-    renderTable();
-    window.scrollTo({top:0, behavior:'smooth'});
-}
-
-async function loadFullTrace() {
-    const el = document.getElementById('panoramaFullTrace');
-    if (!el) return;
-    try {
-        const res = await fetch('/api/v1/panorama/full-trace');
-        const data = (await res.json()).data || {};
-        el.innerHTML = `
-           <div class="text-xs text-muted mb-2">全链路追踪 ·  ${data.generated_at ? new Date(data.generated_at).toLocaleString() : ''}</div>
-            <div class="d-flex flex-wrap gap-2">
-                ${data.evolution_status ? `<span class="badge bg-success">Evolution ${data.evolution_status.current_regime || ''}</span>` : ''}
-                ${data.data_truth_alerts ? `<span class="badge bg-warning">TruthGuardian ${(data.data_truth_alerts.drifts||[]).length} drifts</span>` : ''}
-                ${data.team_consensus ? `<span class="badge bg-info">Team ${(data.team_consensus.notes||[]).length} notes</span>` : ''}
-            </div>
-        `;
-    } catch(e) { window.qcLogError('loadFullTrace failed', e); }
-}
-
-function setSort(k) { if(sortKey === k) sortOrder = sortOrder==='desc'?'asc':'desc'; else { sortKey=k; sortOrder='desc'; } applyFilterAndSort(); }
-
-$('.tab-btn').on('click', function() {
-    $('.tab-btn').removeClass('active'); $(this).addClass('active');
-    currentFilter = $(this).data('filter'); currentPage = 1; applyFilterAndSort();
-});
-
-$(document).ready(() => {
-    document.getElementById('pagination').addEventListener('click', (event) => {
-        const btn = event.target.closest('button.page-btn[data-page]');
-        if (!btn) return;
-        const page = Number.parseInt(btn.dataset.page || '', 10);
-        if (!Number.isNaN(page)) goPage(page);
-    });
-
-    document.querySelector('.pano-table thead').addEventListener('click', (event) => {
-        const th = event.target.closest('th[data-sort]');
-        if (th) setSort(th.dataset.sort);
-    });
-
-    document.getElementById('groupFilter').addEventListener('change', () => {
-        currentPage = 1;
-        loadData();
-    });
-    document.getElementById('panoramaRefreshBtn').addEventListener('click', () => loadData());
-
-    if (window.QAUserCenter) {
-        QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('panoramaFreshnessStrip'));
-    }
-    bindPanoramaRealtimeQuotes();
-    loadPulse();
-    loadSentimentRadar();
-    loadData();
-    loadFullTrace();
-});
-</script>
-{% endblock %}
+{# STALE: skills snapshot — not production; see skills/quant_atlas/web/README.md (2026-08-03) #}
+{% extends "base.html" %}
+
+{% block spa_switcher %}
+
+<a href="/app/market-panorama" class="spa-switcher-link"
+
+   data-spa-switcher="market-panorama">
+
+  试试新版 &#8594;
+
+</a>
+
+{% endblock %}
+
+
+
+
+
+
+
+{% block title %}市场全景 - Quant Atlas{% endblock %}
+
+
+
+
+
+{% block extra_css %}
+
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
+
+
+{% endblock %}
+
+
+
+
+
+{% block content %}
+
+
+{% for h in ux_env_hints|default([]) %}
+
+
+<div class="qc-ux-banner qc-ux-banner--info">
+
+
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+
+
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+
+
+    {% if h.href and h.label %}
+
+
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+
+
+    {% endif %}
+
+
+</div>
+
+
+{% endfor %}
+
+
+
+
+
+<section class="qc-ux-onboarding" aria-label="与市场全景联动">
+
+
+    <div class="qc-ux-step">
+
+
+        <span class="qc-ux-step-num">1</span>
+
+
+        <div class="qc-ux-step-title">对照操盘台</div>
+
+
+
+
+        <p class="qc-ux-step-desc">今日操盘台会汇总涨跌结构、涨停与龙虎榜摘要；先看环境再翻列表，减少「单票噪音」。</p>
+
+
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
+
+
+    </div>
+
+
+    <div class="qc-ux-step">
+
+
+        <span class="qc-ux-step-num">2</span>
+
+
+        <div class="qc-ux-step-title">沉淀到自选</div>
+
+
+        <p class="qc-ux-step-desc">全景里扫到的标的，建议先加入自选或模拟观察单，再写买卖计划与复盘。</p>
+
+
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">自选股</a>
+
+
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">模拟观察单</a>
+
+
+    </div>
+
+
+</section>
+
+
+
+
+
+<div class="panorama-hero">
+
+
+    <div class="hero-caption">Real-time Market Panorama</div>
+
+
+    <h1 class="page-title">全市场纵览</h1>
+
+
+    <p class="page-subtitle">监控全量标的实时异动，内置高性能排序与多维过滤器。</p>
+
+
+    <div id="panoramaFreshnessStrip" class="qc-freshness-strip unknown panorama-freshness qa-is-hidden" role="status"></div>
+
+
+</div>
+
+
+
+
+
+<!-- 黑科技：叙事脉动流 -->
+
+
+<div id="narrativePulse" class="section-shell pano-narrative-pulse">
+
+
+    <div class="pulse-row">
+
+
+        <div class="pulse-label">
+
+
+            <span class="loading-pulse pulse-dot"></span> 实时脉动
+
+
+        </div>
+
+
+        <div id="pulseTrack" class="pulse-track">
+
+
+            <div class="loading-state pulse-loading-inline">正在合成全市场叙事逻辑...</div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+
+
+
+<!-- 市场情绪雷达 & 脉冲预警 -->
+
+
+<div class="row mb-4">
+
+
+    <div class="col-md-6">
+
+
+        <div class="card border-0 shadow-sm">
+
+
+            <div class="card-header bg-gradient-info text-white">
+
+
+                <h6 class="mb-0">🌡️ 市场日记</h6>
+
+
+            </div>
+
+
+            <div class="card-body" id="marketDiary">
+
+
+                <p class="text-muted">正在生成今日市场体感...</p>
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+    <div class="col-md-6">
+
+
+        <div class="card border-0 shadow-sm">
+
+
+            <div class="card-header bg-gradient-warning text-white">
+
+
+                <h6 class="mb-0">⚡ 脉冲预警 <span class="badge bg-light text-dark" id="pulseCount">0</span></h6>
+
+
+            </div>
+
+
+            <div class="card-body pano-pulse-scroll">
+
+
+                <div id="pulseList">
+
+
+                    <p class="text-muted small">暂无脉冲信号</p>
+
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+
+
+
+<div class="heat-dashboard">
+
+
+    <div class="heat-card">
+
+
+        <div class="heat-val heat-val--text" id="totalStocks">--</div>
+
+
+        <div class="heat-label">总数</div>
+
+
+    </div>
+
+
+    <div class="heat-card">
+
+
+        <div class="heat-val heat-val--up" id="limitUp">--</div>
+
+
+        <div class="heat-label">涨停</div>
+
+
+    </div>
+
+
+    <div class="heat-card">
+
+
+        <div class="heat-val heat-val--up" id="upStocks">--</div>
+
+
+        <div class="heat-label">上涨</div>
+
+
+    </div>
+
+
+    <div class="heat-card">
+
+
+        <div class="heat-val heat-val--muted" id="flatStocks">--</div>
+
+
+        <div class="heat-label">平盘</div>
+
+
+    </div>
+
+
+    <div class="heat-card">
+
+
+        <div class="heat-val heat-val--down" id="downStocks">--</div>
+
+
+        <div class="heat-label">下跌</div>
+
+
+    </div>
+
+
+    <div class="heat-card">
+
+
+        <div class="heat-val heat-val--down" id="limitDown">--</div>
+
+
+        <div class="heat-label">跌停</div>
+
+
+    </div>
+
+
+</div>
+
+
+
+
+
+<div class="control-bar">
+
+
+    <div class="pano-control-tabs">
+
+
+        <button class="tab-btn active" data-filter="all">全部</button>
+
+
+        <button class="tab-btn" data-filter="limit_up">涨停</button>
+
+
+        <button class="tab-btn" data-filter="limit_down">跌停</button>
+
+
+        <button class="tab-btn" data-filter="up">上涨</button>
+
+
+        <button class="tab-btn" data-filter="down">下跌</button>
+
+
+        <span class="pano-control-sep"></span>
+
+
+        <button class="tab-btn" data-filter="sh">上证A股</button>
+        <button class="tab-btn" data-filter="sz">深证A股</button>
+        <button class="tab-btn" data-filter="cyb">创业板</button>
+        <button class="tab-btn" data-filter="kc">科创板</button>
+        <button class="tab-btn" data-filter="bj">京证A股</button>
+
+
+    </div>
+
+
+    <div class="pano-control-actions">
+
+
+        <select id="groupFilter" class="form-control pano-select-narrow">
+
+
+            <option value="all">全市场 (CN)</option>
+            <option value="self">我的自选</option>
+
+
+        </select>
+
+
+        <div class="time-badge" id="lastUpdate">等待加载...</div>
+
+
+        <button type="button" class="btn-brand" id="panoramaRefreshBtn">🔄 刷新</button>
+
+
+    </div>
+
+
+</div>
+
+
+
+
+
+<div class="pano-table-wrap">
+
+
+    <table class="pano-table">
+
+
+        <thead>
+
+
+            <tr>
+
+
+                <th data-sort="code">代码</th>
+
+
+                <th data-sort="name">名称</th>
+
+
+                <th>趋势</th>
+
+
+                <th data-sort="price">现价</th>
+
+
+                <th data-sort="change_pct">涨幅</th>
+                <th data-sort="amount">成交额</th>
+                <th data-sort="turnover">换手</th>
+
+
+                <th data-sort="pe">PE</th>
+                <th data-sort="total_market_cap">市值</th>
+                <th>操作</th>
+
+
+            </tr>
+
+
+        </thead>
+
+
+        <tbody id="panoBody">
+            <tr><td colspan="10" class="loading-tile">正在同步全市场快照...</td></tr>
+        </tbody>
+
+
+    </table>
+
+
+</div>
+
+
+
+
+
+<div class="pagination pano-pagination" id="pagination"></div>
+
+
+{% endblock %}
+
+
+
+
+
+{% block extra_js %}
+
+
+<script nonce="{{ csp_nonce() }}">
+
+
+let allData = [];
+
+
+let filtered = [];
+
+
+let currentPage = 1;
+
+
+const pageSize = 40;
+
+
+let sortKey = 'change_pct';
+
+
+let sortOrder = 'desc';
+
+
+let currentFilter = 'all';
+
+
+
+
+
+function formatAmount(v) {
+
+
+    if (v >= 1e8) return (v/1e8).toFixed(2) + '亿';
+    if (v >= 1e4) return (v/1e4).toFixed(2) + '万';
+
+
+    return v.toFixed(0);
+
+
+}
+
+
+
+
+
+function generateMiniSpark(isPos, changePct) {
+
+
+    const chg = parseFloat(changePct || 0);
+
+
+    const drift = chg >= 0 ? -0.5 : 0.5;
+
+
+    let y = 12 + drift * 3;
+
+
+    const pts = [];
+
+
+    for (let i = 0; i < 5; i++) {
+
+
+        y += drift + chg * 0.04;
+
+
+        y = Math.max(3, Math.min(17, y));
+
+
+        pts.push(`${i * 12},${y.toFixed(1)}`);
+
+
+    }
+
+
+    return `<svg class="spark-mini" viewBox="0 0 50 20"><polyline fill="none" stroke="${isPos?'var(--positive)':'var(--negative)'}" stroke-width="2" points="${pts.join(' ')}"/></svg>`;
+
+
+}
+
+
+
+
+
+async function loadPulse() {
+
+
+    const track = document.getElementById('pulseTrack');
+
+
+    const container = document.getElementById('narrativePulse');
+
+
+    try {
+
+
+        const res = await fetch('/api/v1/markets/pulse?market=CN');
+
+
+        const json = await res.json();
+
+
+        const events = json.data || [];
+
+
+        if (!events.length) return;
+
+
+        
+
+
+        let idx = 0;
+
+
+        const rotate = () => {
+
+
+            const ev = events[idx];
+
+
+            track.style.opacity = 0;
+
+
+            setTimeout(() => {
+
+
+                track.innerHTML = `<span class="time-badge pulse-time-badge">${ev.time}</span> ${ev.content}`;
+
+
+                track.style.opacity = 1;
+
+
+                // 根据情绪切换背景光晕
+
+
+                const colors = { bullish: 'rgba(16,185,129,0.08)', bearish: 'rgba(239,68,68,0.08)', neutral: 'rgba(255,255,255,0.7)' };
+
+
+                container.style.background = colors[ev.sentiment] || colors.neutral;
+
+
+            }, 400);
+
+
+            idx = (idx + 1) % events.length;
+
+
+        };
+
+
+        rotate();
+        setInterval(rotate, 6000); // 6秒切换一条叙事
+
+    } catch(e) { window.qcLogError('Pulse load failed', e); }
+
+
+}
+
+
+
+
+
+async function loadSentimentRadar() {
+
+
+    try {
+
+
+        // Load market diary
+
+
+        const diaryRes = await fetch('/api/v1/market/sentiment/diary');
+
+
+        const diaryData = await diaryRes.json();
+
+
+        const diary = (diaryData.status === 'success' || diaryData.ok) ? (diaryData.data ?? diaryData) : null;
+
+
+        if (diary) {
+
+
+            document.getElementById('marketDiary').innerHTML = `
+
+
+                <div class="mb-2"><span class="badge ${diary.overall_sentiment === 'bullish' ? 'bg-success' : (diary.overall_sentiment === 'bearish' ? 'bg-danger' : 'bg-secondary')}">${diary.overall_sentiment === 'bullish' ? '偏暖' : (diary.overall_sentiment === 'bearish' ? '偏冷' : '中性')}</span></div>
+
+
+                <p class="mb-1">${diary.summary}</p>
+
+
+                ${diary.key_events && diary.key_events.length ? `<small class="text-muted">${diary.key_events.join(', ')}</small>` : ''}
+
+
+            `;
+
+
+        }
+
+
+        
+
+
+        // Load pulses
+
+
+        const pulseRes = await fetch('/api/v1/market/sentiment/pulses');
+
+
+        const pulseData = await pulseRes.json();
+
+
+        const pulseList = (pulseData.status === 'success' || pulseData.ok) ? (pulseData.data ?? []) : [];
+
+
+        if (pulseList.length) {
+
+
+            const pulses = pulseList.slice(0, 5);
+
+
+            document.getElementById('pulseCount').textContent = pulseList.length;
+
+
+            document.getElementById('pulseList').innerHTML = pulses.map(p => `
+
+
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+
+
+                    <div>
+
+
+                        <strong>${p.name}</strong>
+                        <span class="badge ${p.sentiment_score > 0 ? 'bg-success' : 'bg-danger'} ms-1">${p.sentiment_score > 0 ? '🔥热' : '❄️冷'}</span>
+                    </div>
+
+
+                    <small class="text-muted">${p.trigger_reason}</small>
+
+
+                </div>
+
+
+            `).join('');
+
+
+        }
+
+
+    } catch(e) { window.qcLogError('Sentiment radar load failed', e); }
+
+
+}
+
+
+
+
+
+async function loadData() {
+
+
+    const gid = $('#groupFilter').val();
+
+
+    let url = '/api/v1/markets/CN/quotes?limit=12000';
+
+
+    if (gid === 'self') {
+
+
+        url = '/api/v1/watchlist/experience?include_news=false';
+
+
+    }
+
+
+
+
+
+    try {
+
+
+        const res = await fetch(url);
+
+
+        const json = await res.json();
+
+
+        const raw = json.data;
+
+
+        let stocks = [];
+
+
+        if (raw && raw.stocks) {
+
+
+            stocks = raw.stocks;
+
+
+        } else if (raw && raw.items) {
+
+
+            stocks = raw.items;
+
+
+        } else if (Array.isArray(raw)) {
+
+
+            stocks = raw;
+
+
+        }
+
+
+        
+
+
+        // silent: loaded stocks count
+
+
+        allData = stocks;
+
+
+        
+
+
+        if (stocks.length > 0) {
+
+
+            updateStats();
+
+
+            applyFilterAndSort();
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString() + ' 已同步 ' + stocks.length + '条';
+        } else {
+
+
+            document.getElementById('panoBody').innerHTML = '<tr><td colspan="10" class="loading-tile">暂无数据</td></tr>';
+
+
+        }
+
+
+    } catch (e) { 
+
+
+        window.qcLogError('Market panorama data load failed', e);
+
+
+        document.getElementById('panoBody').innerHTML = '<tr><td colspan="10" class="loading-tile">加载失败: ' + e.message + '</td></tr>';
+
+
+    }
+
+
+}
+
+
+
+
+
+function updateStats() {
+
+
+    document.getElementById('totalStocks').textContent = allData.length;
+
+
+    document.getElementById('limitUp').textContent = allData.filter(s => s.change_pct >= 9.9).length;
+
+
+    document.getElementById('upStocks').textContent = allData.filter(s => s.change_pct > 0).length;
+
+
+    document.getElementById('flatStocks').textContent = allData.filter(s => s.change_pct === 0).length;
+
+
+    document.getElementById('downStocks').textContent = allData.filter(s => s.change_pct < 0).length;
+
+
+    document.getElementById('limitDown').textContent = allData.filter(s => s.change_pct <= -9.9).length;
+
+
+}
+
+
+
+
+
+function _boardFilter(s, filter) {
+
+
+    var c = String(s.code || '');
+
+
+    if (c.startsWith('688') || c.startsWith('689')) return 'kc';
+
+
+    if (c.startsWith('300') || c.startsWith('301')) return 'cyb';
+
+
+    if (c.startsWith('4') || c.startsWith('8')|| c.startsWith('92')) return 'bj';
+
+
+    if (c.startsWith('600') || c.startsWith('601') || c.startsWith('603') || c.startsWith('605')) return 'sh';
+
+
+    if (c.startsWith('000') || c.startsWith('001') || c.startsWith('002') || c.startsWith('003')) return 'sz';
+
+
+    return '';
+
+
+}
+
+
+
+
+
+function applyFilterAndSort() {
+
+
+    filtered = [...allData];
+
+
+    if (currentFilter === 'limit_up') filtered = filtered.filter(s => s.change_pct >= 9.9);
+
+
+    else if (currentFilter === 'limit_down') filtered = filtered.filter(s => s.change_pct <= -9.9);
+
+
+    else if (currentFilter === 'up') filtered = filtered.filter(s => s.change_pct > 0);
+
+
+    else if (currentFilter === 'down') filtered = filtered.filter(s => s.change_pct < 0);
+
+
+    else if (currentFilter === 'sh' || currentFilter === 'sz' || currentFilter === 'bj' || currentFilter === 'cyb' || currentFilter === 'kc')
+
+
+        filtered = filtered.filter(s => _boardFilter(s, currentFilter) === currentFilter);
+
+
+    
+
+
+    filtered.sort((a, b) => {
+
+
+        const va = a[sortKey] || 0, vb = b[sortKey] || 0;
+
+
+        return sortOrder === 'desc' ? vb - va : va - vb;
+
+
+    });
+
+
+    
+
+
+    renderTable();
+
+
+}
+
+
+
+
+
+function panoNormalizeCode(sym) {
+
+
+    return String(sym || '').replace(/^(sh|sz)/i, '').replace(/\.(SH|SZ|HK)$/i, '').slice(0, 6);
+
+
+}
+
+
+
+
+
+function bindPanoramaRealtimeQuotes() {
+
+
+    if (window._panoQuoteBound) return;
+
+
+    window._panoQuoteBound = true;
+
+
+    document.addEventListener('quant:quote', function (e) {
+
+
+        const d = e.detail || {};
+
+
+        const code = panoNormalizeCode(d.symbol);
+
+
+        if (!code) return;
+
+
+        const item = allData.find(function (s) { return panoNormalizeCode(s.code) === code; });
+
+
+        if (item) {
+
+
+            if (d.price != null) item.price = d.price;
+
+
+            if (d.change_pct != null) item.change_pct = d.change_pct;
+
+
+        }
+
+
+        const row = document.querySelector('tr[data-pano-code="' + code + '"]');
+
+
+        if (!row) return;
+
+
+        if (d.price != null) {
+
+
+            const priceEl = row.querySelector('.cell-price');
+
+
+            if (priceEl) priceEl.textContent = '¥' + parseFloat(d.price).toFixed(2);
+
+
+        }
+
+
+        if (d.change_pct != null) {
+
+
+            const chg = parseFloat(d.change_pct);
+
+
+            const chgEl = row.querySelector('.cell-chg');
+
+
+            if (chgEl) {
+
+
+                const isPos = chg >= 0;
+
+
+                chgEl.className = 'cell-chg ' + (isPos ? 'positive' : 'negative');
+
+
+                chgEl.style.background = isPos ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+
+
+                chgEl.textContent = (isPos ? '+' : '') + chg.toFixed(2) + '%';
+
+
+            }
+
+
+        }
+
+
+    });
+
+
+}
+
+
+
+
+
+function renderTable() {
+
+
+    const start = (currentPage - 1) * pageSize;
+
+
+    const items = filtered.slice(start, start + pageSize);
+
+
+    const body = document.getElementById('panoBody');
+
+
+    
+
+
+    body.innerHTML = items.map(s => {
+
+
+        const isPos = s.change_pct >= 0;
+
+
+        return `
+
+
+            <tr data-pano-code="${s.code}">
+
+
+                <td><a href="/stock/${s.code}?m=CN" class="cell-code">${s.code}</a></td>
+
+
+                <td class="cell-name">${s.name}</td>
+
+
+                <td>${generateMiniSpark(isPos, s.change_pct)}</td>
+
+
+                <td class="cell-price">¥${parseFloat(s.price || 0).toFixed(2)}</td>
+
+
+                <td><span class="cell-chg ${isPos?'positive':'negative'}">
+
+
+                    ${isPos?'+':''}${parseFloat(s.change_pct || 0).toFixed(2)}%
+
+
+                </span></td>
+
+
+                <td>${formatAmount(s.amount || 0)}</td>
+
+
+                <td>${parseFloat(s.turnover || 0).toFixed(2)}%</td>
+
+
+                <td class="muted">${parseFloat(s.pe || 0).toFixed(1)}</td>
+
+
+                <td class="muted">${formatAmount(s.total_market_cap || 0)}</td>
+
+
+                <td>${typeof window.qcWatchlistButton === 'function' ? window.qcWatchlistButton(s.code, s.name, '加自选', 'btn-soft btn-sm') : ''}</td>
+
+
+            </tr>
+
+
+        `;
+
+
+    }).join('') || '<tr><td colspan="10" class="loading-tile">无匹配数据</td></tr>';
+
+
+    
+
+
+    renderPagination();
+
+
+}
+
+
+
+
+
+function renderPagination() {
+
+
+    const total = Math.ceil(filtered.length / pageSize);
+
+
+    const box = document.getElementById('pagination');
+
+
+    if (total <= 1) { box.innerHTML = ''; return; }
+
+
+
+
+
+    let html = '';
+
+
+    if (currentPage > 1) {
+
+
+        html += `<button type="button" class="page-btn" data-page="${currentPage - 1}" aria-label="上一页">‹</button>`;
+
+
+    }
+
+
+    let start = Math.max(1, currentPage - 2);
+
+
+    let end = Math.min(total, start + 4);
+
+
+    if (end - start < 4) start = Math.max(1, end - 4);
+
+
+    if (start > 1) {
+
+
+        html += `<button type="button" class="page-btn" data-page="1">1</button>`;
+
+
+        if (start > 2) html += `<span class="page-btn page-btn--static">...</span>`;
+
+
+    }
+
+
+    for (let i = start; i <= end; i++) {
+
+
+        html += `<button type="button" class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+
+
+    }
+
+
+    if (end < total) {
+
+
+        if (end < total - 1) html += `<span class="page-btn page-btn--static">...</span>`;
+
+
+        html += `<button type="button" class="page-btn" data-page="${total}">${total}</button>`;
+
+
+    }
+
+
+    if (currentPage < total) {
+
+
+        html += `<button type="button" class="page-btn" data-page="${currentPage + 1}" aria-label="下一页">›</button>`;
+
+
+    }
+
+
+    box.innerHTML = html;
+
+
+}
+
+
+
+
+
+function goPage(p) {
+
+
+    currentPage = p;
+
+
+    renderTable();
+
+
+    window.scrollTo({top:0, behavior:'smooth'});
+
+
+}
+
+
+
+
+
+async function loadFullTrace() {
+
+
+    const el = document.getElementById('panoramaFullTrace');
+
+
+    if (!el) return;
+
+
+    try {
+
+
+        const res = await fetch('/api/v1/panorama/full-trace');
+
+
+        const data = (await res.json()).data || {};
+
+
+        el.innerHTML = `
+
+
+           <div class="text-xs text-muted mb-2">全链路追踪 ·  ${data.generated_at ? new Date(data.generated_at).toLocaleString() : ''}</div>
+
+
+            <div class="d-flex flex-wrap gap-2">
+
+
+                ${data.evolution_status ? `<span class="badge bg-success">Evolution ${data.evolution_status.current_regime || ''}</span>` : ''}
+
+
+                ${data.data_truth_alerts ? `<span class="badge bg-warning">TruthGuardian ${(data.data_truth_alerts.drifts||[]).length} drifts</span>` : ''}
+
+
+                ${data.team_consensus ? `<span class="badge bg-info">Team ${(data.team_consensus.notes||[]).length} notes</span>` : ''}
+
+
+            </div>
+
+
+        `;
+
+
+    } catch(e) { window.qcLogError('loadFullTrace failed', e); }
+
+
+}
+
+
+
+
+
+function setSort(k) { if(sortKey === k) sortOrder = sortOrder==='desc'?'asc':'desc'; else { sortKey=k; sortOrder='desc'; } applyFilterAndSort(); }
+
+
+
+
+
+$('.tab-btn').on('click', function() {
+
+
+    $('.tab-btn').removeClass('active'); $(this).addClass('active');
+
+
+    currentFilter = $(this).data('filter'); currentPage = 1; applyFilterAndSort();
+
+
+});
+
+
+
+
+
+$(document).ready(() => {
+
+
+    document.getElementById('pagination').addEventListener('click', (event) => {
+
+
+        const btn = event.target.closest('button.page-btn[data-page]');
+
+
+        if (!btn) return;
+
+
+        const page = Number.parseInt(btn.dataset.page || '', 10);
+
+
+        if (!Number.isNaN(page)) goPage(page);
+
+
+    });
+
+
+
+
+
+    document.querySelector('.pano-table thead').addEventListener('click', (event) => {
+
+
+        const th = event.target.closest('th[data-sort]');
+
+
+        if (th) setSort(th.dataset.sort);
+
+
+    });
+
+
+
+
+
+    document.getElementById('groupFilter').addEventListener('change', () => {
+
+
+        currentPage = 1;
+
+
+        loadData();
+
+
+    });
+
+
+    document.getElementById('panoramaRefreshBtn').addEventListener('click', () => loadData());
+
+
+
+
+
+    if (window.QAUserCenter) {
+
+
+        QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('panoramaFreshnessStrip'));
+
+
+    }
+
+
+    bindPanoramaRealtimeQuotes();
+
+
+    loadPulse();
+
+
+    loadSentimentRadar();
+
+
+    loadData();
+
+
+    loadFullTrace();
+
+
+});
+
+
+</script>
+
+
+{% endblock %}
+
+

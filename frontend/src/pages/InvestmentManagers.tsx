@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -52,6 +53,7 @@ export function InvestmentManagersPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.investmentManagers} />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">投资经理</h1>

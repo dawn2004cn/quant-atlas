@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -47,6 +48,7 @@ export function AIHedgeFundPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.aiHedgeFund} />
       <div>
         <h1 className="text-2xl font-bold">AI 对冲基金</h1>
         <p className="text-sm text-zinc-500">AI 驱动的自动化对冲基金管理面板</p>

@@ -112,6 +112,30 @@ class AlertNotificationService:
             message="dispatch_completed" if sent else "dispatch_failed",
         )
 
+    def list_channel_status(self) -> list[dict[str, Any]]:
+        """Return configured status for each outbound channel (no secrets)."""
+        rows: list[dict[str, Any]] = []
+        for channel in self._channels:
+            name = str(getattr(channel, "channel_name", "") or "")
+            configured = False
+            try:
+                configured = bool(channel.is_configured())
+            except Exception:
+                configured = False
+            rows.append(
+                {
+                    "channel": name,
+                    "configured": configured,
+                    "label": {
+                        "webhook": "Webhook",
+                        "dingtalk": "钉钉",
+                        "email": "邮件",
+                        "wechat": "微信",
+                    }.get(name, name or "unknown"),
+                }
+            )
+        return rows
+
     @staticmethod
     def _fingerprint(items: list[AlertEventDTO]) -> str:
         return "|".join(sorted(item.id for item in items))
@@ -127,6 +151,15 @@ class AlertNotificationService:
             ts = item.occurred_at or "-"
             lines.append(f"[{item.level.upper()}][{item.category}] {item.title} ({ts})")
             lines.append(f"  {item.message[:300]}")
+            preferred = (item.meta or {}).get("preferred_endpoint")
+            action_url = (item.meta or {}).get("action_url")
+            if preferred or action_url:
+                hint_parts = []
+                if preferred:
+                    hint_parts.append(f"preferred={preferred}")
+                if action_url:
+                    hint_parts.append(f"action={action_url}")
+                lines.append(f"  → {' · '.join(hint_parts)}")
         if len(items) > 20:
             lines.append(f"... 另有 {len(items) - 20} 条未展示")
         return "\n".join(lines)

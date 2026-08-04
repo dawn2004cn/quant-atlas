@@ -1,25 +1,34 @@
-"""Check key API endpoints after refactoring."""
-from app import create_app
+"""Manual smoke helper — prefer ``pytest tests/smoke/test_critical_api_endpoints.py``."""
 
-app = create_app()
-with app.app_context():
-    print("Checking key endpoints that were 404 before:\n")
-    key_routes = [
-        '/api/v1/global/quote',
-        '/api/v1/global/history',
-        '/api/v1/markets/CN/quotes',
-        '/api/v1/system/task-messages',
-        '/api/v1/quotes',
-    ]
-    found = {}
-    for rule in app.url_map.iter_rules():
-        path = rule.rule
-        methods = sorted(m for m in (rule.methods - {'HEAD', 'OPTIONS'}) if m)
-        for k in key_routes:
-            if k in path:
-                found[k] = f"{methods} {path}"
-                break
-    for k, v in found.items():
-        print(f"{v}")
-        print(f"  -> {k} : FOUND")
-    print(f"\nTotal key routes found: {len(found)}/{len(key_routes)}")
+from __future__ import annotations
+
+import sys
+
+from app.presentation.api.route_contract import path_registered_in_rules
+
+KEY_API_PATHS = (
+    "/api/v1/global/quote",
+    "/api/v1/global/history",
+    "/api/v1/markets/CN/quotes",
+    "/api/v1/system/task-messages",
+    "/api/v1/quotes",
+    "/api/v1/compliance/manifest",
+    "/api/v1/jarvis/proactive",
+)
+
+
+def main() -> int:
+    from app.bootstrap import create_app
+
+    app = create_app()
+    rules = [r.rule for r in app.url_map.iter_rules()]
+    missing = [p for p in KEY_API_PATHS if not path_registered_in_rules(rules, p)]
+    for path in KEY_API_PATHS:
+        ok = path not in missing
+        print(f"{'OK' if ok else 'MISSING':7} {path}")
+    print(f"\nTotal: {len(KEY_API_PATHS) - len(missing)}/{len(KEY_API_PATHS)}")
+    return 1 if missing else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

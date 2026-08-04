@@ -1,6 +1,8 @@
 import { FormEvent, lazy, Suspense, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import useSWR from "swr";
+import { CoreNextSteps, CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { AsyncProgressBar } from "../components/PageSkeleton";
 import { usePlatformFeatures } from "../hooks/usePlatformFeatures";
 import {
   extractEquityCurve,
@@ -87,6 +89,7 @@ export function BacktestPage() {
 
   const [loading, setLoading] = useState(false);
   const [loadingHint, setLoadingHint] = useState<string | null>(null);
+  const [asyncTaskId, setAsyncTaskId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [lastRun, setLastRun] = useState<{ strategy: string; symbol: string } | null>(null);
@@ -105,12 +108,26 @@ export function BacktestPage() {
 
   async function onFullSubmit(event: FormEvent) {
     event.preventDefault();
+    if (loading) return;
     setLoading(true);
+    setAsyncTaskId(null);
     setLoadingHint(asyncMode ? "已提交异步任务，轮询结果中…" : null);
     setError(null);
     setResult(null);
     try {
-      const data = await runBacktest({ symbol, strategy_name: strategy, start, end, initial_capital: capital }, asyncMode);
+      const data = await runBacktest(
+        { symbol, strategy_name: strategy, start, end, initial_capital: capital },
+        asyncMode,
+        (progress) => {
+          setAsyncTaskId(progress.taskId);
+          const pct = progress.maxAttempts
+            ? Math.min(99, Math.round((progress.attempt / progress.maxAttempts) * 100))
+            : 0;
+          setLoadingHint(
+            `异步回测 ${progress.state || "PENDING"} · ${progress.attempt}/${progress.maxAttempts}（约 ${pct}%）`,
+          );
+        },
+      );
       setResult(data);
       setLastRun({ strategy, symbol });
     } catch (err) {
@@ -123,6 +140,7 @@ export function BacktestPage() {
 
   async function onPreviewSubmit(event: FormEvent) {
     event.preventDefault();
+    if (loading) return;
     if (!templateId) { setError("请选择策略模板"); return; }
     setLoading(true);
     setLoadingHint(null);
@@ -160,11 +178,13 @@ export function BacktestPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.backtest} />
+      <CoreWorkflowStrip />
       {/* Header */}
       <div>
-        <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">Strategy Backtester</div>
-        <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100">策略回测</h1>
-        <p className="mt-1 text-sm text-zinc-500">v2 API + Recharts 权益曲线</p>
+        <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">Backtest Hub</div>
+        <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100">策略回测中心</h1>
+        <p className="mt-1 text-sm text-zinc-500">历史回测、绩效指标与净值曲线</p>
       </div>
 
       {/* Tab switch */}
@@ -237,7 +257,37 @@ export function BacktestPage() {
       </Panel>
 
       {error && <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">{error}</div>}
-      {loadingHint && <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3 text-sm text-sky-400">{loadingHint}</div>}
+      {loadingHint && (
+        <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3 text-sm text-sky-400">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span>{loadingHint}</span>
+            {asyncTaskId ? (
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  className="rounded-lg bg-sky-500/10 px-3 py-1 text-xs font-semibold text-sky-300 ring-1 ring-sky-500/30 hover:bg-sky-500/20"
+                  to={`/task/${encodeURIComponent(asyncTaskId)}`}
+                >
+                  任务详情
+                </Link>
+                <Link
+                  className="rounded-lg bg-sky-500/10 px-3 py-1 text-xs font-semibold text-sky-300 ring-1 ring-sky-500/30 hover:bg-sky-500/20"
+                  to={`/task-center?task_id=${encodeURIComponent(asyncTaskId)}`}
+                >
+                  打开任务中心
+                </Link>
+              </div>
+            ) : null}
+          </div>
+          {loading ? (
+            <div className="mt-3">
+              <AsyncProgressBar label="异步回测" indeterminate />
+            </div>
+          ) : null}
+          {asyncTaskId ? (
+            <p className="mt-2 font-mono text-[10px] text-sky-500/80">task_id: {asyncTaskId}</p>
+          ) : null}
+        </div>
+      )}
 
       {/* Results */}
       {result && (
@@ -264,6 +314,7 @@ export function BacktestPage() {
               ))}
             </div>
           )}
+          <CoreNextSteps symbol={lastRun?.symbol} />
           <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-zinc-800/40" />}>
             <EquityCurveChart data={equityCurve} trades={trades} />
           </Suspense>

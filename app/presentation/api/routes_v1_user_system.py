@@ -10,7 +10,7 @@ from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
 from ...domain.enums import MarketCode
 from .common import ok_response
-from .decorators import require_role
+from .decorators import require_role, service_fallback
 from .v1_context import ApiV1Context
 
 
@@ -26,15 +26,10 @@ def register_user_knowledge_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
 
     @blueprint.get("/user/knowledge")
     @login_required
+    @service_fallback("user_knowledge_service")
     def user_knowledge_get():
         """Persistent preference/decision knowledge used to enrich AgentContext."""
         svc = getattr(ctx, "user_knowledge_service", None)
-        if svc is None:
-            return ok_response(
-                data={"message": "user_knowledge_service not available"},
-                legacy_alias_key=None,
-                enable_legacy_alias=legacy,
-            )
         symbol = (request.args.get("symbol") or "").strip()
         sector = (request.args.get("sector") or "").strip()
         user_id = _uid()
@@ -54,15 +49,10 @@ def register_user_knowledge_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
 
     @blueprint.get("/user/knowledge/topology")
     @login_required
+    @service_fallback("user_knowledge_service")
     def user_knowledge_topology():
         """Behavior topology: fatigue, cognitive bias alerts."""
         svc = getattr(ctx, "user_knowledge_service", None)
-        if svc is None:
-            return ok_response(
-                data={"message": "user_knowledge_service not available"},
-                legacy_alias_key=None,
-                enable_legacy_alias=legacy,
-            )
         user_id = _uid()
         return ok_response(
             data=svc.analyze_topology(user_id),
@@ -73,15 +63,10 @@ def register_user_knowledge_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
     @blueprint.post("/user/knowledge")
     @login_required
     @require_role("can_manage_users")
+    @service_fallback("user_knowledge_service")
     def user_knowledge_record():
         """Record user attention and decision outcomes for personalization."""
         svc = getattr(ctx, "user_knowledge_service", None)
-        if svc is None:
-            return ok_response(
-                data={"message": "user_knowledge_service not available"},
-                legacy_alias_key=None,
-                enable_legacy_alias=legacy,
-            )
         body = request.get_json(silent=True) or {}
         profile = svc.record_interaction(
             _uid(),
@@ -145,6 +130,7 @@ def register_user_knowledge_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
     @blueprint.get("/ai-committee/analyze")
     @login_required
     @require_role("can_manage_users")
+    @service_fallback("ai_committee_service")
     def ai_committee_analyze():
         """AI Committee analysis endpoint."""
         symbol = request.args.get("symbol", "").strip()
@@ -152,12 +138,6 @@ def register_user_knowledge_routes(blueprint: Blueprint, ctx: ApiV1Context) -> N
         if not symbol:
             raise ValidationError("symbol_required")
         svc = getattr(ctx, "ai_committee_service", None)
-        if svc is None:
-            return ok_response(
-                data={"message": "ai_committee_service not available"},
-                legacy_alias_key=None,
-                enable_legacy_alias=legacy,
-            )
         data = svc.run_debate(symbol, market)
         if task_message_store is not None:
             trace_id = f"trace-{_uid()}"

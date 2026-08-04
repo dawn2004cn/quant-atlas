@@ -8,10 +8,19 @@
    data-spa-switcher="zen_terminal">
   试试新版 →
 </a>
-{% endblock %%}
+
+{% endblock %}
 
 
 {% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.portfolio_resonance'), 'label': '3D 共鸣场', 'primary': true},
+    {'href': url_for('pages.zen_dashboard'), 'label': 'Zen 仪表盘'},
+    {'href': url_for('pages.observability'), 'label': '观测台'},
+    {'href': url_for('pages.daily_workbench'), 'label': '操盘台'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 <div class="zen-container">
   <div class="zen-header">
     <div class="zen-logo">⧩ ZEN</div>
@@ -59,7 +68,9 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script nonce="{{ csp_nonce() }}">
 let searchTimeout = null;
 

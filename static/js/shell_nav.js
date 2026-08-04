@@ -12,7 +12,7 @@
     var loading = false;
 
     var PERSISTENT_SCRIPT_RE =
-        /jquery|bootstrap|base_app\.js|api_client|state_bus|focus_context|persona_mask|scanner_events|compliance_footer|truth_badge|watchlist_quick|qa_user_center|api_error_banner|qa-focus-bar|qa-health-banner|qa-truth-badge|predictive_preload|shell_nav\.js|socket\.io/;
+        /jquery|bootstrap|base_app\.js|api_client|state_bus|focus_context|persona_mask|scanner_events|compliance_footer|truth_badge|watchlist_quick|qa_user_center|api_error_banner|qa-focus-bar|qa-health-banner|qa-truth-badge|predictive_preload|shell_nav\.js|shell_deferred|lazy_echarts|lazy_markdown|lazy_mermaid|lazy_three_module|lazy_three_legacy|lazy_socketio|qa_markdown_safe|socket\.io/;
 
     function themeColors(theme) {
         if (theme === 'light') {

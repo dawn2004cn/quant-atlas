@@ -150,6 +150,14 @@ def _register_all_tasks() -> None:
     )
 
     register_task(
+        "app.tasks.qlib_data_update.csv_to_qlib_incremental_sync",
+        qlib_data_update.csv_to_qlib_incremental_sync,
+        "CSV→qlib_bin（历史入库推荐，替代 mysql_to_qlib）",
+        category="数据同步",
+        default_params={"max_workers": 8, "dump_incremental": True},
+    )
+
+    register_task(
         "app.tasks.tdx_dayk_tasks.tdx_dayk_full_sync",
         tdx_dayk_tasks.tdx_dayk_full_sync,
         "[别名] TDX 日 K 全量 → 请优先 backfill_all_history_tdx",

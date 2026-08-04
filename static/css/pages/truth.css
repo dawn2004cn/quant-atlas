@@ -1,233 +1,184 @@
 /**
- * pages/truth.css — 数据真相水滴（独立页）
- * Depends on: zen-finance.css
+ * pages/truth.css — 数据真相水滴（base shell 子页）
+ * Depends on: design-tokens.css, common.css
  */
 
-:root {
-            --bg: #0a0e17;
-            --card-bg: #111827;
-            --cyan: #06b6d4;
-            --blue: #3b82f6;
-            --green: #22c55e;
-            --yellow: #eab308;
-            --red: #ef4444;
-            --text: #e2e8f0;
-            --text-muted: #94a3b8;
-        }
+.truth-droplet-page {
+    --td-cyan: #06b6d4;
+    --td-blue: var(--brand-2);
+    --td-green: var(--positive);
+    --td-yellow: var(--warning);
+    --td-red: var(--negative);
+}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+.truth-dashboard {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+}
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+.truth-droplet-page .droplet-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
 
-        .dashboard {
-            width: 100%;
-            max-width: 900px;
-            padding: 2rem;
-        }
+.truth-droplet-page .droplet-wrapper {
+    position: relative;
+    width: 280px;
+    height: 340px;
+}
 
-        h1 {
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--cyan);
-        }
+.truth-droplet-page .droplet-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 30px rgba(6, 182, 212, 0.3));
+}
 
-        .subtitle {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-        }
+.truth-droplet-page .droplet-fill {
+    transition: fill 0.8s ease;
+}
 
-        /* ── The Droplet ──────────────────────────────── */
-        .droplet-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 2rem;
-        }
+.truth-droplet-page .droplet-glow {
+    animation: td-glow-pulse 3s ease-in-out infinite;
+    transform-origin: center;
+}
 
-        .droplet-wrapper {
-            position: relative;
-            width: 280px;
-            height: 340px;
-        }
+@keyframes td-glow-pulse {
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.4; }
+}
 
-        .droplet-svg {
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 0 30px rgba(6, 182, 212, 0.3));
-        }
+@keyframes td-ripple {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.8); opacity: 0; }
+}
 
-        .droplet-fill {
-            transition: fill 0.8s ease, d 0.8s ease;
-        }
+.truth-droplet-page .ripple-ring {
+    animation: td-ripple 2s ease-out infinite;
+    transform-origin: 140px 160px;
+}
 
-        .droplet-glow {
-            animation: glow-pulse 3s ease-in-out infinite;
-            transform-origin: center;
-        }
+.truth-droplet-page .ripple-ring:nth-child(2) { animation-delay: 0.7s; }
+.truth-droplet-page .ripple-ring:nth-child(3) { animation-delay: 1.4s; }
 
-        @keyframes glow-pulse {
-            0%, 100% { opacity: 0.15; }
-            50% { opacity: 0.4; }
-        }
+.truth-droplet-page .score-label {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    z-index: 2;
+    text-align: center;
+}
 
-        @keyframes ripple {
-            0% { transform: scale(1); opacity: 0.6; }
-            100% { transform: scale(1.8); opacity: 0; }
-        }
+.truth-droplet-page .score-label small {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 400;
+    opacity: 0.8;
+}
 
-        .ripple-ring {
-            animation: ripple 2s ease-out infinite;
-            transform-origin: 140px 160px;
-        }
+.truth-droplet-page .source-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
 
-        .ripple-ring:nth-child(2) { animation-delay: 0.7s; }
-        .ripple-ring:nth-child(3) { animation-delay: 1.4s; }
+@media (max-width: 640px) {
+    .truth-droplet-page .source-grid {
+        grid-template-columns: 1fr;
+    }
+}
 
-        .score-label {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 3rem;
-            font-weight: 700;
-            color: white;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            z-index: 2;
-        }
+.truth-droplet-page .source-card {
+    background: var(--surface-strong);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg, 12px);
+    padding: 1.2rem;
+    text-align: center;
+    transition: border-color 0.3s;
+}
 
-        .score-label small {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 400;
-            opacity: 0.8;
-        }
+.truth-droplet-page .source-card.ok { border-color: var(--td-green); }
+.truth-droplet-page .source-card.warn { border-color: var(--td-yellow); }
+.truth-droplet-page .source-card.err { border-color: var(--td-red); }
 
-        /* ── Source Cards ─────────────────────────────── */
-        .source-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
+.truth-droplet-page .source-name {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+}
 
-        .source-card {
-            background: var(--card-bg);
-            border: 1px solid #1f2937;
-            border-radius: 12px;
-            padding: 1.2rem;
-            text-align: center;
-            transition: border-color 0.3s;
-        }
+.truth-droplet-page .source-score {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
 
-        .source-card.ok { border-color: var(--green); }
-        .source-card.warn { border-color: var(--yellow); }
-        .source-card.err { border-color: var(--red); }
+.truth-droplet-page .source-card.ok .source-score { color: var(--td-green); }
+.truth-droplet-page .source-card.warn .source-score { color: var(--td-yellow); }
+.truth-droplet-page .source-card.err .source-score { color: var(--td-red); }
 
-        .source-name {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 0.3rem;
-        }
+.truth-droplet-page .source-status {
+    font-size: 0.75rem;
+    margin-top: 0.3rem;
+    color: var(--muted);
+}
 
-        .source-score {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
+.truth-droplet-page .heal-panel h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.8rem;
+    color: var(--muted);
+}
 
-        .source-card.ok .source-score { color: var(--green); }
-        .source-card.warn .source-score { color: var(--yellow); }
-        .source-card.err .source-score { color: var(--red); }
+.truth-droplet-page .heal-log {
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
 
-        .source-status {
-            font-size: 0.75rem;
-            margin-top: 0.3rem;
-            color: var(--text-muted);
-        }
+.truth-droplet-page .heal-entry {
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--surface-border-soft);
+}
 
-        /* ── Heal Log ─────────────────────────────────── */
-        .heal-panel {
-            background: var(--card-bg);
-            border: 1px solid #1f2937;
-            border-radius: 12px;
-            padding: 1.2rem;
-        }
+.truth-droplet-page .heal-entry .time { color: var(--muted); }
+.truth-droplet-page .heal-entry .action-ok { color: var(--td-green); }
+.truth-droplet-page .heal-entry .action-err { color: var(--td-red); }
 
-        .heal-panel h3 {
-            font-size: 0.95rem;
-            margin-bottom: 0.8rem;
-            color: var(--text-muted);
-        }
+.truth-droplet-page .controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
 
-        .heal-log {
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: "JetBrains Mono", monospace;
-            font-size: 0.8rem;
-            line-height: 1.6;
-        }
+.truth-droplet-page .btn-scan {
+    background: var(--td-cyan);
+    color: #07111f;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: var(--radius-md, 8px);
+    font-weight: 500;
+    cursor: pointer;
+}
 
-        .heal-entry {
-            padding: 0.3rem 0;
-            border-bottom: 1px solid #1f2937;
-        }
+.truth-droplet-page .btn-scan:hover { opacity: 0.9; }
 
-        .heal-entry .time { color: var(--text-muted); }
-        .heal-entry .action-ok { color: var(--green); }
-        .heal-entry .action-err { color: var(--red); }
-
-        /* ── Controls ─────────────────────────────────── */
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .btn {
-            padding: 0.6rem 1.5rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
-            transition: opacity 0.2s;
-        }
-
-        .btn:hover { opacity: 0.85; }
-
-        .btn-primary {
-            background: var(--blue);
-            color: white;
-        }
-
-        .btn-sm {
-            padding: 0.4rem 1rem;
-            font-size: 0.8rem;
-        }
-
-        .btn-scan {
-            background: var(--cyan);
-            color: #000;
-        }
-
-        /* ── Auto-refresh indicator ───────────────────── */
-        .refresh-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            height: 3px;
-            background: var(--cyan);
-            transition: width 1s linear;
-        }
+.truth-droplet-page .refresh-bar,
+.refresh-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--td-cyan);
+    transition: width 1s linear;
+    z-index: 100;
+}

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type StockRow = {
@@ -40,23 +41,37 @@ export function StockSelectorPage() {
   const [horizon, setHorizon] = useState(20);
   const [dataSource, setDataSource] = useState("legacy");
   const [ran, setRan] = useState(false);
+  const [running, setRunning] = useState(false);
+  const inFlightRef = useRef(false);
 
   const { data, error, isLoading, mutate } = useSWR(
     ran ? ["selector-run", type, topN, dataSource, horizon] : null,
-    () => apiFetchV1<SelectorResult>("/selector/run", {
-      method: "POST",
-      body: JSON.stringify({ type, top_n: topN, data_source: dataSource, horizon_days: horizon, market: "CN" }),
-    }),
+    async () => {
+      if (inFlightRef.current) return undefined as unknown as SelectorResult;
+      inFlightRef.current = true;
+      setRunning(true);
+      try {
+        return await apiFetchV1<SelectorResult>("/selector/run", {
+          method: "POST",
+          body: JSON.stringify({ type, top_n: topN, data_source: dataSource, horizon_days: horizon, market: "CN" }),
+        });
+      } finally {
+        inFlightRef.current = false;
+        setRunning(false);
+      }
+    },
   );
 
   const items = data?.results ?? data?.candidates ?? [];
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.stockSelector} />
+      <CoreWorkflowStrip />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">选股器</h1>
-          <p className="text-sm text-slate-500">多维度策略选股 · 短中长期全覆盖</p>
+          <h1 className="text-2xl font-bold">智能选股中心</h1>
+          <p className="text-sm text-slate-500">短 / 中 / 长线多维度筛选</p>
         </div>
       </div>
 
@@ -93,7 +108,7 @@ export function StockSelectorPage() {
         </div>
         <div>
           <label className="text-xs font-semibold text-slate-500">&nbsp;</label>
-          <button type="button" className="btn btn-primary btn-sm w-full" onClick={() => { setRan(true); mutate(); }}>开始选股</button>
+          <button type="button" className="btn btn-primary btn-sm w-full" disabled={running || isLoading || inFlightRef.current} onClick={() => { if (running || inFlightRef.current) return; setRan(true); void mutate(); }}>{running || isLoading ? "选股中…" : "开始选股"}</button>
         </div>
       </div>
 

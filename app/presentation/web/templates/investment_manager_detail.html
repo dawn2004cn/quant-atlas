@@ -47,7 +47,11 @@
         <span class="pill" id="curveRet">累计锛?-</span>
         <span class="pill" id="curveMdd">最大回撤：--</span>
       </div>
-      <div class="text-muted pmd-chart-note">说明：曲线基于净值快照（equity），没有净值数据时将不显示銆?/div>
+
+
+      <div class="text-muted pmd-chart-note">说明：曲线基于净值快照（equity），没有净值数据时将不显示。/div>
+
+
     </div>
   </section>
 
@@ -55,7 +59,11 @@
     <h2 class="panel-title">当日持仓</h2>
     <div class="table-responsive">
       <table class="table">
-        <thead><tr><th>股票</th><th>股数</th><th>均价</th><th>现价</th><th>市鍊?/th><th>仓位</th></tr></thead>
+
+
+        <thead><tr><th>股票</th><th>股数</th><th>均价</th><th>现价</th><th>市值/th><th>仓位</th></tr></thead>
+
+
         <tbody id="holdRows"></tbody>
       </table>
     </div>
@@ -65,7 +73,11 @@
     <h2 class="panel-title">交易流水（最近）</h2>
     <div class="table-responsive">
       <table class="table">
-        <thead><tr><th>时间</th><th>股票</th><th>方向</th><th>价格</th><th>股数</th><th>璐?/th><th>绋?/th><th>原因</th></tr></thead>
+
+
+        <thead><tr><th>时间</th><th>股票</th><th>方向</th><th>价格</th><th>股数</th><th>璐</th><th>绋</th><th>原因</th></tr></thead>
+
+
         <tbody id="tradeRows"></tbody>
       </table>
     </div>
@@ -155,7 +167,11 @@ function loadDetail(){
       $('#pmAvatar').attr('src', (m.avatar_url || ('/avatars/pm/'+encodeURIComponent(m.manager_id||managerId))));
       $('#pmTagline').text(m.tagline || '');
       $('#pmSpecialty').text(m.specialty || '');
-      $('#pmEntry').text('入市时间锛? + (m.entry_time_display || '鈥?));
+
+
+      $('#pmEntry').text('入市时间锛? + (m.entry_time_display || '—'));
+
+
       $('#pmBio').text(m.bio || '--');
       $('#pmCohort').text('老中青：' + (m.cohort || '--'));
       $('#pmStrategy').text('策略锛? + (m.strategy_id || '--'));
@@ -174,7 +190,9 @@ function loadDetail(){
           <td>¥${fmt(h.market_price)}</td>
           <td>¥${fmt(h.market_value,0)}</td>
           <td>${fmt((Number(h.weight||0)*100),2)}%</td>
-        </tr>`).join('') || '<tr><td colspan="6" class="text-center text-muted">当日无持仓快鐓?/td></tr>');
+
+
+        </tr>`).join('') || '<tr><td colspan="6" class="text-center text-muted">当日无持仓快照/td></tr>');
 
       const trades = data.trades || [];
       $('#tradeRows').html(trades.map(t => `

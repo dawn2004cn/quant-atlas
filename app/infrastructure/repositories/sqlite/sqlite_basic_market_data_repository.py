@@ -98,8 +98,16 @@ class SQLiteBasicMarketDataRepository:
                 conn.commit()
         return len(rows)
 
-    def list_longhu_by_date(self, trade_date: str, *, limit: int = 500) -> list[dict[str, Any]]:
+    def list_longhu_by_date(
+        self,
+        trade_date: str,
+        *,
+        limit: int = 500,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
         td = trade_date.strip()[:10]
+        off = max(0, int(offset))
+        lim = max(1, int(limit))
         with self._connect_sqlite() as conn:
             rows = conn.execute(
                 """
@@ -107,9 +115,9 @@ class SQLiteBasicMarketDataRepository:
                 FROM longhu_daily
                 WHERE trade_date=?
                 ORDER BY code
-                LIMIT ?
+                LIMIT ? OFFSET ?
                 """,
-                (td, int(limit)),
+                (td, lim, off),
             ).fetchall()
             out: list[dict[str, Any]] = []
             for r in rows:
@@ -128,6 +136,15 @@ class SQLiteBasicMarketDataRepository:
                     }
                 )
             return out
+
+    def count_longhu_by_date(self, trade_date: str) -> int:
+        td = trade_date.strip()[:10]
+        with self._connect_sqlite() as conn:
+            row = conn.execute(
+                "SELECT COUNT(1) AS n FROM longhu_daily WHERE trade_date=?",
+                (td,),
+            ).fetchone()
+            return int(row["n"] if row else 0)
 
     def set_meta(self, key: str, value: str) -> None:
         with self._connect_sqlite() as conn:

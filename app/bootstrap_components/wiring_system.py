@@ -352,6 +352,26 @@ def _make_evolution_arbiter_service(reg: Any) -> Any:
 register_factory("evolution_arbiter_service", _make_evolution_arbiter_service)
 
 
+def _make_manifest_service_10(reg: Any) -> Any:
+    from app.modules.system.services.mesh.manifest_service_10 import ManifestService10
+
+    return ManifestService10(registry=reg)
+
+
+register_factory("manifest_service_10", _make_manifest_service_10)
+
+
+def _make_perception_resonance_service(_reg: Any) -> Any:
+    from app.modules.system.services.mesh.perception_resonance_service import (
+        PerceptionResonanceService,
+    )
+
+    return PerceptionResonanceService()
+
+
+register_factory("perception_resonance_service", _make_perception_resonance_service)
+
+
 def _get_app_write_broker() -> Any:
     """Lazy access to write_broker from Flask app context."""
     try:

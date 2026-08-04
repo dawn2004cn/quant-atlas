@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
-import { fetchMarketPanorama, fetchMarketSentiment } from "../lib/api";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { fetchMarketPanorama, fetchMarketQuotesPage, fetchMarketSentiment } from "../lib/api";
 import { PageSkeleton } from "../components/PageSkeleton";
 
 /* ── Helpers ── */
@@ -63,8 +64,19 @@ function RankingTable({ rows, label }: { rows: import("../types/market").Panoram
 
 const TABS = ["涨幅榜", "跌幅榜", "成交额", "换手率"];
 
+const SCAN_FILTERS: { key: string; label: string }[] = [
+  { key: "all", label: "全部" },
+  { key: "up", label: "上涨" },
+  { key: "down", label: "下跌" },
+  { key: "limit_up", label: "涨停" },
+  { key: "limit_down", label: "跌停" },
+];
+
 export function MarketPanoramaPage() {
   const [tab, setTab] = useState("涨幅榜");
+  const [listPage, setListPage] = useState(1);
+  const [listFilter, setListFilter] = useState("all");
+  const [listScope, setListScope] = useState<"market" | "watchlist">("market");
 
   const { data: panorama, error, isLoading } = useSWR(
     "market-panorama",
@@ -76,14 +88,33 @@ export function MarketPanoramaPage() {
     () => fetchMarketSentiment(),
     { revalidateOnFocus: false, refreshInterval: 120_000 },
   );
+  const { data: quotesPage, isLoading: quotesLoading } = useSWR(
+    ["market-quotes-page", listPage, listFilter, listScope],
+    () =>
+      fetchMarketQuotesPage({
+        page: listPage,
+        page_size: 40,
+        sort: "change_pct",
+        order: "desc",
+        filter: listFilter,
+        scope: listScope,
+      }),
+    { revalidateOnFocus: false, refreshInterval: 45_000 },
+  );
 
   const rankings = panorama?.data?.rankings;
   const sectors = panorama?.data?.sectors ?? [];
+  const marketStats = quotesPage?.stats;
+  const listItems = quotesPage?.items ?? [];
+  const listTotal = quotesPage?.total ?? 0;
+  const listPageSize = quotesPage?.page_size ?? 40;
+  const listPageCount = Math.max(1, Math.ceil(listTotal / listPageSize));
 
   if (isLoading && !panorama) return <PageSkeleton rows={4} />;
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.marketPanorama} />
       {/* Header */}
       <div>
         <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
@@ -118,15 +149,21 @@ export function MarketPanoramaPage() {
             </div>
             <div className="flex gap-3">
               <div className="min-w-[72px] rounded-lg bg-emerald-500/8 px-4 py-2.5 text-center ring-1 ring-emerald-500/10">
-                <div className="text-lg font-bold font-mono tabular-nums text-emerald-400">{panorama?.data?.summary?.gainers ?? "--"}</div>
+                <div className="text-lg font-bold font-mono tabular-nums text-emerald-400">
+                  {marketStats?.up ?? panorama?.data?.summary?.gainers ?? "--"}
+                </div>
                 <div className="text-[10px] uppercase tracking-[0.1em] text-emerald-400/60">上涨</div>
               </div>
               <div className="min-w-[72px] rounded-lg bg-zinc-800/50 px-4 py-2.5 text-center">
-                <div className="text-lg font-bold font-mono tabular-nums text-zinc-300">{panorama?.data?.summary?.flat ?? "--"}</div>
+                <div className="text-lg font-bold font-mono tabular-nums text-zinc-300">
+                  {marketStats?.flat ?? panorama?.data?.summary?.flat ?? "--"}
+                </div>
                 <div className="text-[10px] uppercase tracking-[0.1em] text-zinc-500">平盘</div>
               </div>
               <div className="min-w-[72px] rounded-lg bg-rose-500/8 px-4 py-2.5 text-center ring-1 ring-rose-500/10">
-                <div className="text-lg font-bold font-mono tabular-nums text-rose-400">{panorama?.data?.summary?.losers ?? "--"}</div>
+                <div className="text-lg font-bold font-mono tabular-nums text-rose-400">
+                  {marketStats?.down ?? panorama?.data?.summary?.losers ?? "--"}
+                </div>
                 <div className="text-[10px] uppercase tracking-[0.1em] text-rose-400/60">下跌</div>
               </div>
             </div>
@@ -150,6 +187,79 @@ export function MarketPanoramaPage() {
           </div>
         </Panel>
       ) : null}
+
+      {/* Paginated market scanner (server-side snapshot) */}
+      <Panel className="p-5">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">全市场扫描</p>
+          <div className="flex gap-px rounded-lg bg-zinc-800/60 p-0.5">
+            <button
+              type="button"
+              onClick={() => { setListScope("market"); setListPage(1); }}
+              className={`rounded-md px-3 py-1 text-xs font-medium ${
+                listScope === "market" ? "bg-zinc-800 text-zinc-200" : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              全市场
+            </button>
+            <button
+              type="button"
+              onClick={() => { setListScope("watchlist"); setListPage(1); }}
+              className={`rounded-md px-3 py-1 text-xs font-medium ${
+                listScope === "watchlist" ? "bg-zinc-800 text-zinc-200" : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              自选股
+            </button>
+          </div>
+        </div>
+        <div className="mb-4 flex flex-wrap gap-1.5">
+          {SCAN_FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => { setListFilter(f.key); setListPage(1); }}
+              className={`rounded-md px-3 py-1 text-xs font-medium ring-1 transition-colors ${
+                listFilter === f.key
+                  ? "bg-zinc-800 text-zinc-200 ring-zinc-700"
+                  : "text-zinc-500 ring-zinc-800/60 hover:text-zinc-300"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        {quotesLoading && !quotesPage ? (
+          <p className="py-8 text-center text-sm text-zinc-600">加载行情…</p>
+        ) : (
+          <>
+            <RankingTable rows={listItems} label="代码" />
+            <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
+              <span>
+                第 {listPage} / {listPageCount} 页 · 共 {listTotal} 条
+              </span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  disabled={listPage <= 1}
+                  onClick={() => setListPage((p) => Math.max(1, p - 1))}
+                  className="rounded-md px-3 py-1 ring-1 ring-zinc-800 disabled:opacity-40"
+                >
+                  上一页
+                </button>
+                <button
+                  type="button"
+                  disabled={listPage >= listPageCount}
+                  onClick={() => setListPage((p) => p + 1)}
+                  className="rounded-md px-3 py-1 ring-1 ring-zinc-800 disabled:opacity-40"
+                >
+                  下一页
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </Panel>
 
       {/* Rankings */}
       {rankings ? (

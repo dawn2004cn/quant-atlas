@@ -58,8 +58,6 @@ class BeatTask:
             "schedule": self.crontab,
             "options": {"queue": self.queue},
             "kwargs": self.kwargs,
-            "enabled": self.enabled,
-            "description": self.description,
         }
 
     @property
@@ -87,10 +85,29 @@ class BeatRegistry:
     Usage:
         BeatRegistry.register("scanner", "app.tasks.scanner.run", crontab(minute="*/2"),
                               description="Market scanner", enabled=os.getenv("SCANNER_BEAT") == "1")
+        # Task args must be flat keyword args (NOT kwargs={...}):
+        BeatRegistry.register("sync", "app.tasks.sync.run", crontab(hour=16), dump_qlib_bin=False)
     """
 
     _tasks: dict[str, BeatTask] = {}
     _lock = Lock()
+
+    @classmethod
+    def _normalize_task_kwargs(cls, name: str, kwargs: dict[str, Any]) -> dict[str, Any]:
+        """Flatten accidental ``register(..., kwargs={...})`` nesting.
+
+        Passing ``kwargs={...}`` would otherwise store Celery beat kwargs as
+        ``{"kwargs": {...}}``, so the task never receives the intended args.
+        """
+        nested = kwargs.get("kwargs")
+        if not isinstance(nested, dict):
+            return kwargs
+        rest = {k: v for k, v in kwargs.items() if k != "kwargs"}
+        logger.warning(
+            "BeatRegistry: unwrapped nested kwargs for %s; pass task args as flat keyword args",
+            name,
+        )
+        return {**nested, **rest}
 
     @classmethod
     def register(
@@ -104,11 +121,12 @@ class BeatRegistry:
         queue: str = "default",
         **kwargs: Any,
     ) -> None:
+        task_kwargs = cls._normalize_task_kwargs(name, kwargs)
         with cls._lock:
             cls._tasks[name] = BeatTask(
                 name=name, task_path=task_path, crontab=crontab,
                 description=description, enabled=enabled, queue=queue,
-                kwargs=kwargs,
+                kwargs=task_kwargs,
             )
             logger.debug("BeatRegistry: registered %s (enabled=%s)", name, enabled)
 

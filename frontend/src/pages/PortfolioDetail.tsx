@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 import type { PortfolioPosition, OptimizationResult, RebalanceAlert } from "../types/portfolio";
@@ -72,6 +73,7 @@ export function PortfolioDetailPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.portfolioDetail} />
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>

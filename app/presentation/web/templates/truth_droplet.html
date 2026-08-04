@@ -1,28 +1,34 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>数据真相水滴 — QuantAtlas</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/zen-finance.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/truth.css') }}">
-</head>
-<body>
-    <div class="dashboard">
-        <h1>💧 数据真相水滴</h1>
-        <p class="subtitle">多源对账实时仪表盘 · 自动自愈 · 数据主权可视</p>
+{% extends "base.html" %}
 
-        <!-- The Droplet -->
+{% block title %}数据真相水滴 - Quant Atlas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/truth.css') }}">
+{% endblock %}
+
+{% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.observability'), 'label': '观测台', 'primary': true},
+    {'href': url_for('pages.data_lake_health'), 'label': '数据湖健康'},
+    {'href': url_for('pages.daily_workbench'), 'label': '操盘台'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
+<div class="truth-droplet-page container-fluid py-3">
+    <div class="qc-hub-hero mb-4">
+        <div class="hero-caption">Data Truth</div>
+        <h1 class="page-title">💧 数据真相水滴</h1>
+        <p class="page-subtitle">多源对账实时仪表盘 · 自动自愈 · 数据主权可视</p>
+    </div>
+
+    <div class="truth-dashboard">
         <div class="droplet-container">
             <div class="droplet-wrapper">
-                <svg class="droplet-svg" viewBox="0 0 280 340">
-                    <!-- Glow layer -->
+                <svg class="droplet-svg" viewBox="0 0 280 340" aria-hidden="true">
                     <circle class="droplet-glow" cx="140" cy="160" r="100" fill="rgba(6,182,212,0.2)"/>
-                    <!-- Ripple rings (visible when anomaly) -->
                     <circle class="ripple-ring" cx="140" cy="160" r="60" fill="none" stroke="rgba(239,68,68,0.3)" stroke-width="2"/>
                     <circle class="ripple-ring" cx="140" cy="160" r="60" fill="none" stroke="rgba(239,68,68,0.3)" stroke-width="2"/>
                     <circle class="ripple-ring" cx="140" cy="160" r="60" fill="none" stroke="rgba(239,68,68,0.3)" stroke-width="2"/>
-                    <!-- Main droplet shape -->
                     <defs>
                         <linearGradient id="dropGrad" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" class="grad-stop-1" stop-color="#06b6d4"/>
@@ -43,7 +49,6 @@
             </div>
         </div>
 
-        <!-- Source Health Cards -->
         <div class="source-grid" id="source-grid">
             <div class="source-card" id="card-TDX">
                 <div class="source-name">TDX</div>
@@ -62,201 +67,176 @@
             </div>
         </div>
 
-        <!-- Controls -->
         <div class="controls">
             {% if feature_federated_mesh %}
             <button class="btn btn-scan" type="button" data-td-action="trigger-scan">🔍 手动对账</button>
             {% endif %}
-            <button class="btn btn-primary btn-sm" type="button" data-td-action="toggle-refresh">
+            <button class="btn btn-brand btn-sm" type="button" data-td-action="toggle-refresh">
                 <span id="refresh-label">自动刷新：开启</span>
             </button>
         </div>
 
-        <!-- Heal Log -->
-        <div class="heal-panel">
+        <div class="heal-panel section-shell">
             <h3>🛡️ 自愈日志</h3>
             <div class="heal-log" id="heal-log">
                 <div class="heal-entry">等待首次扫描...</div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="refresh-bar" id="refresh-bar" style="width: 0%"></div>
+<div class="refresh-bar" id="refresh-bar" style="width: 0%"></div>
+{% endblock %}
 
-    <script nonce="{{ csp_nonce() }}">
-        let autoRefresh = true;
-        let refreshTimer = null;
-        const REFRESH_INTERVAL = 5000; // 5 seconds
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+(function () {
+    let autoRefresh = true;
+    let refreshTimer = null;
+    const REFRESH_INTERVAL = 5000;
+    const meshEnabled = {{ feature_federated_mesh|tojson }};
 
-        // ── Color helpers ──────────────────────────────
-        function scoreColor(v) {
-            if (v >= 0.85) return '#22c55e';
-            if (v >= 0.6) return '#eab308';
-            return '#ef4444';
+    function scoreClass(v) {
+        if (v >= 0.85) return 'ok';
+        if (v >= 0.6) return 'warn';
+        return 'err';
+    }
+
+    function updateDroplet(score) {
+        const el = document.getElementById('global-score');
+        if (!el) return;
+        el.innerHTML = `${(score * 100).toFixed(0)}%<small>全局置信度</small>`;
+
+        const stop1 = document.querySelector('.grad-stop-1');
+        const stop2 = document.querySelector('.grad-stop-2');
+        if (score >= 0.85) {
+            stop1.setAttribute('stop-color', '#22c55e');
+            stop2.setAttribute('stop-color', '#16a34a');
+        } else if (score >= 0.6) {
+            stop1.setAttribute('stop-color', '#eab308');
+            stop2.setAttribute('stop-color', '#ca8a04');
+        } else {
+            stop1.setAttribute('stop-color', '#ef4444');
+            stop2.setAttribute('stop-color', '#b91c1c');
         }
 
-        function scoreClass(v) {
-            if (v >= 0.85) return 'ok';
-            if (v >= 0.6) return 'warn';
-            return 'err';
-        }
+        document.querySelectorAll('.ripple-ring').forEach(function (r) {
+            r.style.display = score < 0.85 ? 'block' : 'none';
+        });
+    }
 
-        // ── Update droplet ────────────────────────────
-        function updateDroplet(score) {
-            const el = document.getElementById('global-score');
-            el.innerHTML = `${(score * 100).toFixed(0)}%<small>全局置信度</small>`;
-
-            // Color the droplet
-            const stop1 = document.querySelector('.grad-stop-1');
-            const stop2 = document.querySelector('.grad-stop-2');
-            if (score >= 0.85) {
-                stop1.setAttribute('stop-color', '#22c55e');
-                stop2.setAttribute('stop-color', '#16a34a');
-            } else if (score >= 0.6) {
-                stop1.setAttribute('stop-color', '#eab308');
-                stop2.setAttribute('stop-color', '#ca8a04');
-            } else {
-                stop1.setAttribute('stop-color', '#ef4444');
-                stop2.setAttribute('stop-color', '#b91c1c');
+    function updateSources(sources) {
+        for (const [name, score] of Object.entries(sources)) {
+            const scoreEl = document.getElementById(`score-${name}`);
+            const cardEl = document.getElementById(`card-${name}`);
+            const statusEl = document.getElementById(`status-${name}`);
+            if (scoreEl) {
+                scoreEl.textContent = (score * 100).toFixed(0) + '%';
+                cardEl.className = `source-card ${scoreClass(score)}`;
             }
+            if (statusEl) {
+                if (score >= 0.85) statusEl.textContent = '✅ 数据一致';
+                else if (score >= 0.6) statusEl.textContent = '⚠️ 部分不一致';
+                else statusEl.textContent = '❌ 数据偏差';
+            }
+        }
+    }
 
-            // Show/hide ripple rings based on score
-            const ripples = document.querySelectorAll('.ripple-ring');
-            ripples.forEach(r => {
-                r.style.display = score < 0.85 ? 'block' : 'none';
+    async function loadDashboard() {
+        if (!meshEnabled) return;
+        try {
+            const res = await fetch('/api/v1/cognitive-mesh/mesh/hygiene-score');
+            const json = await res.json();
+            const data = json.data || json;
+            if (json.ok !== false && data.global_index != null) {
+                updateDroplet(data.global_index);
+                updateSources(data.sources || {});
+            }
+        } catch (e) {
+            if (window.qcLogError) window.qcLogError('Dashboard fetch failed', e);
+        }
+    }
+
+    async function triggerQuorumScan() {
+        if (!meshEnabled) return;
+        const log = document.getElementById('heal-log');
+        log.innerHTML = '<div class="heal-entry"><span class="time">[' + new Date().toLocaleTimeString() + ']</span> <span class="action-ok">开始对账扫描...</span></div>' + log.innerHTML;
+        try {
+            await fetch('/api/v1/cognitive-mesh/mesh/crowding', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    feature_a: 'all', feature_b: 'all',
+                    ic_series_a: [0.5], ic_series_b: [0.5],
+                }),
             });
+            log.innerHTML = `<div class="heal-entry"><span class="time">[${new Date().toLocaleTimeString()}]</span> <span class="action-ok">扫描完成</span></div>` + log.innerHTML;
+            loadDashboard();
+        } catch (e) {
+            log.innerHTML = `<div class="heal-entry"><span class="time">[${new Date().toLocaleTimeString()}]</span> <span class="action-err">扫描失败: ${e.message}</span></div>` + log.innerHTML;
         }
+    }
 
-        // ── Update source cards ───────────────────────
-        function updateSources(sources) {
-            for (const [name, score] of Object.entries(sources)) {
-                const scoreEl = document.getElementById(`score-${name}`);
-                const cardEl = document.getElementById(`card-${name}`);
-                const statusEl = document.getElementById(`status-${name}`);
-
-                if (scoreEl) {
-                    scoreEl.textContent = (score * 100).toFixed(0) + '%';
-                    cardEl.className = `source-card ${scoreClass(score)}`;
-                }
-                if (statusEl) {
-                    if (score >= 0.85) statusEl.textContent = '✅ 数据一致';
-                    else if (score >= 0.6) statusEl.textContent = '⚠️ 部分不一致';
-                    else statusEl.textContent = '❌ 数据偏差';
-                }
-            }
-        }
-
-        const meshEnabled = {{ feature_federated_mesh|tojson }};
-
-        // ── Load dashboard ────────────────────────────
-        async function loadDashboard() {
-            if (!meshEnabled) {
-                return;
-            }
-            try {
-                const res = await fetch('/api/v1/cognitive-mesh/mesh/hygiene-score');
-                const json = await res.json();
-                const data = json.data || json;
-                if (json.ok !== false && data.global_index != null) {
-                    updateDroplet(data.global_index);
-                    updateSources(data.sources || {});
-                }
-            } catch (e) {
-                window.qcLogError('Dashboard fetch failed', e);
-            }
-        }
-
-        // ── Quorum scan ──────────────────────────────
-        async function triggerQuorumScan() {
-            if (!meshEnabled) {
-                return;
-            }
-            const log = document.getElementById('heal-log');
-            log.innerHTML = '<div class="heal-entry"><span class="time">[' + new Date().toLocaleTimeString() + ']</span> <span class="action-ok">开始对账扫描...</span></div>' + log.innerHTML;
-
-            try {
-                const res = await fetch('/api/v1/cognitive-mesh/mesh/crowding', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        feature_a: 'all', feature_b: 'all',
-                        ic_series_a: [0.5], ic_series_b: [0.5],
-                    }),
-                });
-                const data = await res.json();
-                log.innerHTML = `<div class="heal-entry"><span class="time">[${new Date().toLocaleTimeString()}]</span> <span class="action-ok">扫描完成</span></div>` + log.innerHTML;
-                // Reload dashboard after scan
-                loadDashboard();
-            } catch (e) {
-                log.innerHTML = `<div class="heal-entry"><span class="time">[${new Date().toLocaleTimeString()}]</span> <span class="action-err">扫描失败: ${e.message}</span></div>` + log.innerHTML;
-            }
-        }
-
-        // ── Heal log ─────────────────────────────────
-        async function loadHealLog() {
-            try {
-                const res = await fetch('/api/v1/data-truth/heal-log?limit=20');
-                const data = await res.json();
-                if (data.ok && data.actions) {
-                    const log = document.getElementById('heal-log');
-                    if (data.actions.length === 0) {
-                        log.innerHTML = '<div class="heal-entry">暂无自愈记录</div>';
-                        return;
-                    }
-                    log.innerHTML = data.actions.map(a =>
-                        `<div class="heal-entry">
-                            <span class="time">[${a.timestamp || 'N/A'}]</span>
-                            <span class="${a.action === 'acknowledge' ? 'action-ok' : 'action-err'}">
-                                ${a.action} → ${a.symbol || 'N/A'}
-                            </span>
-                        </div>`
-                    ).join('');
-                }
-            } catch (e) {
-                window.qcLogError('Heal log fetch failed', e);
-            }
-        }
-
-        // ── Auto refresh ─────────────────────────────
-        function toggleAutoRefresh() {
-            autoRefresh = !autoRefresh;
-            document.getElementById('refresh-label').textContent =
-                `自动刷新：${autoRefresh ? '开启' : '关闭'}`;
-        }
-
-        function startRefresh() {
-            const bar = document.getElementById('refresh-bar');
-            let progress = 0;
-
-            if (refreshTimer) clearInterval(refreshTimer);
-
-            refreshTimer = setInterval(() => {
-                if (!autoRefresh) {
-                    bar.style.width = '0%';
+    async function loadHealLog() {
+        try {
+            const res = await fetch('/api/v1/data-truth/heal-log?limit=20');
+            const data = await res.json();
+            if (data.ok && data.actions) {
+                const log = document.getElementById('heal-log');
+                if (data.actions.length === 0) {
+                    log.innerHTML = '<div class="heal-entry">暂无自愈记录</div>';
                     return;
                 }
-                progress += 100 / (REFRESH_INTERVAL / 100);
-                bar.style.width = `${Math.min(progress, 100)}%`;
-
-                if (progress >= 100) {
-                    progress = 0;
-                    loadDashboard();
-                    loadHealLog();
-                }
-            }, 100);
+                log.innerHTML = data.actions.map(function (a) {
+                    return `<div class="heal-entry">
+                        <span class="time">[${a.timestamp || 'N/A'}]</span>
+                        <span class="${a.action === 'acknowledge' ? 'action-ok' : 'action-err'}">
+                            ${a.action} → ${a.symbol || 'N/A'}
+                        </span>
+                    </div>`;
+                }).join('');
+            }
+        } catch (e) {
+            if (window.qcLogError) window.qcLogError('Heal log fetch failed', e);
         }
+    }
 
-        // ── Init ─────────────────────────────────────
-        document.addEventListener('click', function (e) {
-            const el = e.target.closest('[data-td-action]');
-            if (!el) return;
-            const action = el.dataset.tdAction;
-            if (action === 'trigger-scan') triggerQuorumScan();
-            else if (action === 'toggle-refresh') toggleAutoRefresh();
-        });
-        loadDashboard();
-        loadHealLog();
-        startRefresh();
-    </script>
-</body>
-</html>
+    function toggleAutoRefresh() {
+        autoRefresh = !autoRefresh;
+        document.getElementById('refresh-label').textContent =
+            `自动刷新：${autoRefresh ? '开启' : '关闭'}`;
+    }
+
+    function startRefresh() {
+        const bar = document.getElementById('refresh-bar');
+        let progress = 0;
+        if (refreshTimer) clearInterval(refreshTimer);
+        refreshTimer = setInterval(function () {
+            if (!autoRefresh) {
+                bar.style.width = '0%';
+                return;
+            }
+            progress += 100 / (REFRESH_INTERVAL / 100);
+            bar.style.width = `${Math.min(progress, 100)}%`;
+            if (progress >= 100) {
+                progress = 0;
+                loadDashboard();
+                loadHealLog();
+            }
+        }, 100);
+    }
+
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-td-action]');
+        if (!el) return;
+        const action = el.dataset.tdAction;
+        if (action === 'trigger-scan') triggerQuorumScan();
+        else if (action === 'toggle-refresh') toggleAutoRefresh();
+    });
+
+    loadDashboard();
+    loadHealLog();
+    startRefresh();
+})();
+</script>
+{% endblock %}

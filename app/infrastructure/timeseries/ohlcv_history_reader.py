@@ -61,6 +61,11 @@ def _rows_to_bars(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return out
 
 
+def _row_limit_for_range(start_date: date, end_date: date, *, cap: int = 10000) -> int:
+    days = max(1, (end_date - start_date).days + 1)
+    return min(cap, max(120, int(days * 0.72) + 40))
+
+
 def fetch_questdb_ohlcv(
     symbol: str,
     market: MarketCode,
@@ -81,6 +86,7 @@ def fetch_questdb_ohlcv(
         code = _stock_code(symbol, market)
         start_s = start_date.strftime("%Y-%m-%d")
         end_s = end_date.strftime("%Y-%m-%d")
+        row_limit = _row_limit_for_range(start_date, end_date)
         sql = (
             f"SELECT {date_expr} AS trade_date, open, high, low, close, volume, amount "
             f"FROM {table} "
@@ -88,7 +94,7 @@ def fetch_questdb_ohlcv(
             f"AND {date_expr} >= '{_safe_literal(start_s)}' "
             f"AND {date_expr} <= '{_safe_literal(end_s)}' "
             f"ORDER BY {date_expr} ASC "
-            f"LIMIT 10000"
+            f"LIMIT {row_limit}"
         )
         rows = adapter.execute_raw_query(sql)
         bars = _rows_to_bars(rows)
@@ -119,6 +125,7 @@ def fetch_clickhouse_ohlcv(
         code = _stock_code(symbol, market)
         start_s = start_date.strftime("%Y-%m-%d")
         end_s = end_date.strftime("%Y-%m-%d")
+        row_limit = _row_limit_for_range(start_date, end_date)
         sql = (
             f"SELECT trade_date, open, high, low, close, volume, amount "
             f"FROM {table} "
@@ -126,7 +133,7 @@ def fetch_clickhouse_ohlcv(
             f"AND trade_date >= '{_safe_literal(start_s)}' "
             f"AND trade_date <= '{_safe_literal(end_s)}' "
             f"ORDER BY trade_date ASC "
-            f"LIMIT 10000"
+            f"LIMIT {row_limit}"
         )
         rows = adapter.execute_raw_query(sql)
         bars = _rows_to_bars(rows)
@@ -164,6 +171,12 @@ def probe_ohlcv_tables() -> dict[str, Any]:
                 adapter.disconnect()
         out["questdb_table"] = table
         out["questdb_rows"] = rows
+        out["history_query"] = {
+            "engine": "questdb",
+            "filter_key": "stock_code + trade_date range",
+            "limit_strategy": "range_scaled",
+            "symbol_index_hint": "SYMBOL(stock_code) recommended for point lookups",
+        }
 
     ch_table = (get_runtime("CLICKHOUSE_OHLCV_TABLE", "") or "").strip()
     if ch_table and load_clickhouse_settings() is not None:

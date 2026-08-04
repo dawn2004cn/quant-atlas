@@ -17,14 +17,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
     <link rel="stylesheet" href="{{ versioned_url('static', filename='css/common.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/evidence-card.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/trading-dna-spiral.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/components/wisdom-mesh-browser.css') }}">
-    {# Preload high-traffic page CSS so shell-nav swaps paint faster #}
-    <link rel="preload" href="{{ url_for('static', filename='css/pages/workbench.css') }}" as="style">
-    <link rel="preload" href="{{ url_for('static', filename='css/pages/stock-detail.css') }}" as="style">
-    <link rel="preload" href="{{ url_for('static', filename='css/pages/strategy.css') }}" as="style">
-    <link rel="preload" href="{{ url_for('static', filename='css/pages/market.css') }}" as="style">
+    {% block component_css %}{% endblock %}
+    {% if page_css_preload %}
+    <link rel="preload" href="{{ url_for('static', filename=page_css_preload) }}" as="style">
+    {% endif %}
     {% block extra_css %}{% endblock %}
 </head>
 <body {% block body_element_attrs %}data-qa-focus-refresh="auto" data-nav-endpoint="{{ request.endpoint or '' }}"{% endblock %}>
@@ -57,8 +53,10 @@
                         <a class="dropdown-item {% if ep == 'pages.self_stocks' %}active{% endif %}" href="/self-stocks" data-nav-label="我的自选股">⭐ 我的自选股</a>
                         <a class="dropdown-item {% if ep == 'pages.market_panorama' %}active{% endif %}" href="/market-panorama" data-nav-label="市场全景">📈 市场全景</a>
                         <a class="dropdown-item {% if ep == 'pages.global_radar' %}active{% endif %}" href="/global-radar" data-nav-label="全球透视塔">🌏 全球透视塔</a>
+                        {% if nav_spa_shell %}
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="/app" data-nav-label="SPA 版">⚡ SPA 版</a>
+                        {% endif %}
                         <a class="dropdown-item {% if ep == 'pages.hot_sectors' %}active{% endif %}" href="/hot-sectors" data-nav-label="热点板块">🔥 热点板块</a>
                         <a class="dropdown-item {% if ep == 'pages.longhu_bang' %}active{% endif %}" href="/longhu-bang" data-nav-label="龙虎榜">🐉 龙虎榜</a>
                         <a class="dropdown-item {% if ep == 'pages.yanbao_hub' %}active{% endif %}" href="/yanbao-hub" data-nav-label="研报中心">📑 研报中心</a>
@@ -75,21 +73,31 @@
                         <a class="dropdown-item {% if ep == 'pages.ai_research_report' %}active{% endif %}" href="/ai-research-report" data-nav-label="研究报告">📋 研究报告</a>
                         <a class="dropdown-item {% if ep == 'pages.research_pipeline' %}active{% endif %}" href="/research-pipeline" data-nav-label="研究闭环">🔄 研究闭环</a>
                         <a class="dropdown-item {% if ep == 'pages.quant_lab' %}active{% endif %}" href="/quant-lab" data-nav-label="量化实验室">🧪 量化实验室</a>
+                        {% if nav_ai_hedge_fund or nav_agent_center or nav_voice_briefing or nav_research_canvas or feature_war_room %}
                         <div class="nav-group" data-nav-group="research-more">
                             <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false">
                                 <span>更多研究工具</span>
                                 <svg class="nav-group-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3"/></svg>
                             </div>
                             <div class="nav-group-body">
+                                {% if nav_ai_hedge_fund %}
                                 <a class="dropdown-item {% if ep == 'pages.ai_hedge_fund' %}active{% endif %}" href="/ai-hedge-fund" data-nav-label="分析师天团">🎯 分析师天团</a>
+                                {% endif %}
+                                {% if nav_agent_center %}
                                 <a class="dropdown-item" href="/agent-center" data-nav-label="Agent 中心">🎯 Agent 中心</a>
+                                {% endif %}
+                                {% if nav_voice_briefing %}
                                 <a class="dropdown-item {% if ep == 'pages.voice_briefing' %}active{% endif %}" href="/voice-briefing" data-nav-label="语音简报">🎙️ 语音简报</a>
+                                {% endif %}
+                                {% if nav_research_canvas %}
                                 <a class="dropdown-item {% if ep == 'pages.research_canvas' %}active{% endif %}" href="/research-canvas" data-nav-label="Research Canvas">🎨 Research Canvas</a>
+                                {% endif %}
                                 {% if feature_war_room %}
                                 <a class="dropdown-item {% if ep == 'pages.war_room' %}active{% endif %}" href="/war-room" data-nav-label="War Room">⚔️ War Room</a>
                                 {% endif %}
                             </div>
                         </div>
+                        {% endif %}
                     </div>
                 </li>
                 <!-- 策略 -->
@@ -102,14 +110,24 @@
                         <a class="dropdown-item {% if ep == 'pages.stock_selector' %}active{% endif %}" href="/stock-selector" data-nav-label="智能选股">🔍 智能选股</a>
                         <a class="dropdown-item {% if ep == 'pages.signal_observations' %}active{% endif %}" href="/signal-observations" data-nav-label="模拟观察单">🧾 模拟观察单</a>
                         <a class="dropdown-item {% if ep == 'pages.strategy_wizard' %}active{% endif %}" href="/strategy-wizard" data-nav-label="策略向导">🧙 策略向导</a>
+                        {% if nav_alpha_factory or nav_data_lake_health or feature_alpha_marketplace %}
                         <div class="dropdown-divider"></div>
+                        {% if nav_alpha_factory %}
                         <a class="dropdown-item {% if ep == 'pages.alpha_factory' %}active{% endif %}" href="/alpha-factory" data-nav-label="Alpha Factory">🧬 Alpha Factory</a>
+                        {% endif %}
                         <a class="dropdown-item {% if ep == 'pages.factor_repository' %}active{% endif %}" href="/factor-repository" data-nav-label="因子仓库">📚 因子仓库</a>
                         {% if feature_alpha_marketplace %}
                         <a class="dropdown-item {% if ep == 'pages.alpha_marketplace' %}active{% endif %}" href="/alpha-marketplace" data-nav-label="Alpha Marketplace">🏪 Alpha 市场</a>
                         {% endif %}
                         <a class="dropdown-item {% if ep == 'pages.optimize' %}active{% endif %}" href="/optimize" data-nav-label="参数优化">⚙️ 参数优化</a>
+                        {% if nav_data_lake_health %}
                         <a class="dropdown-item {% if ep == 'pages.data_lake_health' %}active{% endif %}" href="/data-lake-health" data-nav-label="数据湖健康">💾 数据湖健康</a>
+                        {% endif %}
+                        {% else %}
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item {% if ep == 'pages.factor_repository' %}active{% endif %}" href="/factor-repository" data-nav-label="因子仓库">📚 因子仓库</a>
+                        <a class="dropdown-item {% if ep == 'pages.optimize' %}active{% endif %}" href="/optimize" data-nav-label="参数优化">⚙️ 参数优化</a>
+                        {% endif %}
                     </div>
                 </li>
                 <!-- 我的 -->
@@ -121,6 +139,7 @@
                         <a class="dropdown-item {% if ep == 'pages.profile' %}active{% endif %}" href="{{ url_for('pages.profile') }}" data-nav-label="个人中心">👤 个人中心</a>
                         <a class="dropdown-item {% if ep == 'pages.task_center' %}active{% endif %}" href="/task-center" data-nav-label="任务中心">🎯 任务中心</a>
                         <a class="dropdown-item {% if ep == 'pages.message_center' %}active{% endif %}" href="{{ url_for('pages.message_center') }}" data-nav-label="消息中心">🔔 消息中心</a>
+                        {% if nav_user_tiers %}
                         <div class="nav-group" data-nav-group="mine-tiers">
                             <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false">
                                 <span>角色工作台</span>
@@ -131,22 +150,37 @@
                                 <a class="dropdown-item" href="/user-tiers/investment" data-nav-label="投资公司">🏦 投资公司</a>
                                 <a class="dropdown-item" href="/user-tiers/fund" data-nav-label="基金管理">📋 基金管理</a>
                                 <a class="dropdown-item" href="/user-tiers/institution" data-nav-label="机构级">🐋 机构级</a>
+                                {% if nav_zen_terminal %}
                                 <a class="dropdown-item {% if ep == 'pages.zen_terminal' %}active{% endif %}" href="/zen-terminal" data-nav-label="禅意终端">🧘 禅意终端</a>
+                                {% endif %}
                             </div>
                         </div>
+                        {% endif %}
+                        {% if nav_integration_hub or nav_observability or nav_moments or nav_investment_managers %}
                         <div class="nav-group" data-nav-group="mine-platform">
                             <div class="nav-group-header" role="button" tabindex="0" aria-expanded="false">
                                 <span>平台与协作</span>
                                 <svg class="nav-group-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4.5l3 3 3-3"/></svg>
                             </div>
                             <div class="nav-group-body">
+                                {% if nav_integration_hub %}
                                 <a class="dropdown-item {% if ep == 'pages.integration_hub' %}active{% endif %}" href="/integration-hub" data-nav-label="集成中枢">🔗 集成中枢</a>
+                                {% endif %}
                                 <a class="dropdown-item {% if ep == 'pages.alert_center' %}active{% endif %}" href="/alert-center" data-nav-label="预警中心">🚨 预警中心</a>
+                                {% if nav_observability %}
                                 <a class="dropdown-item {% if ep == 'pages.observability' %}active{% endif %}" href="/observability" data-nav-label="观测台">🔎 观测台</a>
+                                {% endif %}
+                                {% if nav_moments %}
                                 <a class="dropdown-item {% if ep == 'pages.moments' %}active{% endif %}" href="/moments" data-nav-label="研究朋友圈">🌐 研究朋友圈</a>
+                                {% endif %}
+                                {% if nav_investment_managers %}
                                 <a class="dropdown-item {% if ep == 'pages.investment_managers' %}active{% endif %}" href="/investment-managers" data-nav-label="投资经理">💼 投资经理</a>
+                                {% endif %}
                             </div>
                         </div>
+                        {% else %}
+                        <a class="dropdown-item {% if ep == 'pages.alert_center' %}active{% endif %}" href="/alert-center" data-nav-label="预警中心">🚨 预警中心</a>
+                        {% endif %}
                     </div>
                 </li>
                 {% if current_user.is_authenticated %}
@@ -284,29 +318,33 @@
 {% endblock %}
 
 {% block core_scripts %}
-    <script src="{{ url_for('static', filename='js/vendor/jquery-3.7.1.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/vendor/bootstrap-4.6.2.bundle.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/helpers/htmlescape.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/shell_nav.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/base_app.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/api_client.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/state_bus.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/focus_context.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/focus_context_enhancer.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/persona_mask.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/scanner_events.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/compliance_footer.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/truth_badge_client.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/watchlist_quick_actions.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/qa_user_center.js') }}"></script>
-<script src="{{ url_for('static', filename='js/api_error_banner.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/vendor/jquery-3.7.1.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/vendor/bootstrap-4.6.2.bundle.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/helpers/htmlescape.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/shell_nav.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/base_app.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/api_client.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/state_bus.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/focus_context.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/focus_context_enhancer.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/compliance_footer.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/api_error_banner.js') }}"></script>
     {% if enable_socketio and current_user.is_authenticated %}
-    <script src="{{ url_for('static', filename='js/vendor/socket.io.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/vendor/socket.io.min.js') }}"></script>
     {% endif %}
-    <script src="{{ url_for('static', filename='js/components/qa-focus-bar.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/components/qa-health-banner.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/components/qa-truth-badge.js') }}"></script>
-    <script src="{{ versioned_url('static', filename='js/predictive_preload.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/components/qa-focus-bar.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/components/qa-health-banner.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/components/qa-truth-badge.js') }}"></script>
+    <script defer src="{{ versioned_url('static', filename='js/ux_onboarding.js') }}"></script>
+    <script id="shellDeferredConfig" type="application/json" nonce="{{ csp_nonce() }}">{{ [
+        versioned_url('static', filename='js/persona_mask.js'),
+        versioned_url('static', filename='js/scanner_events.js'),
+        versioned_url('static', filename='js/truth_badge_client.js'),
+        versioned_url('static', filename='js/watchlist_quick_actions.js'),
+        versioned_url('static', filename='js/qa_user_center.js'),
+        versioned_url('static', filename='js/predictive_preload.js')
+    ]|tojson }}</script>
+    <script defer src="{{ versioned_url('static', filename='js/shell_deferred.js') }}"></script>
     <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {

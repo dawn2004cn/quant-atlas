@@ -34,13 +34,6 @@ def _make_market_service(reg: Any) -> Any:
 register_factory("market_service", _make_market_service)
 
 
-def _make_market_facade(reg):
-    from app.modules.market_data.services.market_service import MarketApplicationService
-    return MarketApplicationService()
-
-register_factory("market_facade", _make_market_facade)
-
-
 def _make_watchlist_service(reg: Any) -> Any:
     from app.bootstrap_components.service_wiring import resolve_registry_session_factory
     from app.config import CONFIG_DIR, get_settings

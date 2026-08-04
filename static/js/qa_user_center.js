@@ -191,15 +191,25 @@
                 qs.append('symbol', String(c).replace(/\.(SH|SZ|HK)$/i, ''));
             });
             try {
-                const res = await fetch(
-                    '/api/v1/markets/' + encodeURIComponent(mkt) + '/quotes?' + qs.toString(),
+                const pageQs = new URLSearchParams(qs.toString());
+                pageQs.set('page', '1');
+                pageQs.set('page_size', String(Math.min(200, Math.max(list.length, 40))));
+                pageQs.set('scope', 'symbols');
+                let res = await fetch(
+                    '/api/v1/markets/' + encodeURIComponent(mkt) + '/quotes/page?' + pageQs.toString(),
                     { credentials: 'same-origin' }
                 );
+                if (!res.ok && mkt === 'CN') {
+                    res = await fetch(
+                        '/api/v1/markets/' + encodeURIComponent(mkt) + '/quotes?' + qs.toString(),
+                        { credentials: 'same-origin' }
+                    );
+                }
                 const json = await res.json();
                 const rows = unwrapData(json);
                 const arr = Array.isArray(rows)
                     ? rows
-                    : (rows && (rows.stocks || rows.items)) || [];
+                    : (rows && (rows.items || rows.stocks)) || [];
                 arr.forEach(function (row) {
                     const raw = row.symbol || row.code || row.ticker;
                     if (!raw) return;

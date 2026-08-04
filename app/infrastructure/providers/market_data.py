@@ -668,28 +668,38 @@ class MultiSourceMarketProvider(MarketDataProvider):
     def get_stock_history(self, symbol: str, market: MarketCode, start: str, end: str) -> list[dict[str, Any]]:
         """A 股日 K - 使用多数据源适配器."""
         from .history_adapters import get_multi_source_history_provider
+        from app.infrastructure.cache.history_coalesce import get_history_coalesced
 
         market_id, code = self._normalize_symbol(symbol)
         cache_key = self._cache_key(market, code)
+        start_s, end_s = start[:10], end[:10]
+        coalesce_key = f"hist:{market.value}:{code}:{start_s}:{end_s}"
 
-        try:
-            start_date = datetime.strptime(start[:10], "%Y-%m-%d").date()
-            end_date = datetime.strptime(end[:10], "%Y-%m-%d").date()
-        except Exception:
-            from datetime import timedelta
-            end_date = date.today()
-            start_date = end_date - timedelta(days=365)
-
-        provider = get_multi_source_history_provider()
-        bars = provider.get_history(code, market, start_date, end_date)
-
-        if bars:
+        def _fetch() -> list[dict[str, Any]]:
             try:
-                self._cache.save_stock_history(cache_key, bars)
-            except Exception as e:
-                logger.warning("Failed to cache history for %s (non-critical): %s", symbol, e)
+                start_date = datetime.strptime(start_s, "%Y-%m-%d").date()
+                end_date = datetime.strptime(end_s, "%Y-%m-%d").date()
+            except Exception:
+                from datetime import timedelta
 
-        return _filter_sort_history(bars, start, end) if bars else []
+                end_date = date.today()
+                start_date = end_date - timedelta(days=365)
+
+            provider = get_multi_source_history_provider()
+            bars = provider.get_history(code, market, start_date, end_date)
+            self._last_history_source = getattr(provider, "last_source", None)
+
+            if bars:
+                try:
+                    self._cache.save_stock_history(cache_key, bars)
+                except Exception as e:
+                    logger.warning("Failed to cache history for %s (non-critical): %s", symbol, e)
+
+            return _filter_sort_history(bars, start, end) if bars else []
+
+        if not hasattr(self, "_last_history_source"):
+            self._last_history_source = None
+        return get_history_coalesced(coalesce_key, _fetch)
 
     def get_stock_profile(self, symbol: str, market: MarketCode) -> dict[str, Any]:
         quotes = self.get_realtime_quotes([symbol], market=market)

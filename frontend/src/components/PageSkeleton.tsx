@@ -1,12 +1,51 @@
-export function PageSkeleton({ rows = 3 }: { rows?: number }) {
+/** Shared daisy progress strip for async / loading states (SPA 风格对齐). */
+export function AsyncProgressBar({
+  label,
+  value,
+  indeterminate = false,
+  className = "",
+}: {
+  label?: string;
+  value?: number;
+  indeterminate?: boolean;
+  className?: string;
+}) {
+  const showValue = !indeterminate && typeof value === "number" && Number.isFinite(value);
   return (
-    <div className="space-y-4 animate-pulse" aria-busy="true" aria-label="加载中">
-      {Array.from({ length: rows }, (_, index) => (
-        <div
-          key={index}
-          className="h-20 rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50"
-        />
-      ))}
+    <div className={`space-y-1 ${className}`.trim()} aria-busy="true">
+      {(label || showValue) && (
+        <div className="flex items-center justify-between text-xs text-zinc-500">
+          <span>{label ?? "进度"}</span>
+          {showValue ? <span>{Math.round(value)}%</span> : null}
+        </div>
+      )}
+      <progress
+        className="progress progress-primary w-full h-2"
+        value={indeterminate ? undefined : value}
+        max={100}
+      />
+    </div>
+  );
+}
+
+export function PageSkeleton({
+  rows = 3,
+  showProgress = false,
+}: {
+  rows?: number;
+  showProgress?: boolean;
+}) {
+  return (
+    <div className="space-y-4" aria-busy="true" aria-label="加载中">
+      {showProgress ? <AsyncProgressBar label="加载中…" indeterminate /> : null}
+      <div className="space-y-4 animate-pulse">
+        {Array.from({ length: rows }, (_, index) => (
+          <div
+            key={index}
+            className="h-20 rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50"
+          />
+        ))}
+      </div>
     </div>
   );
 }

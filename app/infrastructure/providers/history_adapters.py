@@ -3,6 +3,7 @@ from __future__ import annotations
 """Market Data Source Adapters - 多数据源适配器."""
 
 
+import threading
 import time
 from datetime import date
 from typing import Any
@@ -309,6 +310,15 @@ class MultiSourceHistoryProvider:
         return []
 
 
+_provider_singleton: MultiSourceHistoryProvider | None = None
+_provider_lock = threading.Lock()
+
+
 def get_multi_source_history_provider() -> MultiSourceHistoryProvider:
-    """获取多数据源历史提供者单例."""
-    return MultiSourceHistoryProvider()
+    """Return shared multi-source history provider (adapter chain + last_source)."""
+    global _provider_singleton
+    if _provider_singleton is None:
+        with _provider_lock:
+            if _provider_singleton is None:
+                _provider_singleton = MultiSourceHistoryProvider()
+    return _provider_singleton

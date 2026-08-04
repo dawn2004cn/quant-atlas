@@ -1,6 +1,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
+import { CoreNextSteps, CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -47,9 +48,11 @@ export function AIAnalysisPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <CoreWorkflowStrip />
+      <PageQuickNav items={QUICK_NAV_PRESETS.aiAnalysis} />
       <div>
-        <h1 className="text-2xl font-bold">AI 分析</h1>
-        <p className="text-sm text-zinc-500">输入标的代码，获取 AI 多维度分析报告</p>
+        <h1 className="text-2xl font-bold">AI 诊股</h1>
+        <p className="text-sm text-zinc-500">多智能体证据链 — 技术、基本面、情绪与风险综合研判</p>
       </div>
 
       <Panel className="flex flex-wrap items-end gap-3 p-4">
@@ -127,6 +130,8 @@ export function AIAnalysisPage() {
               <p className="text-sm">{data.summary}</p>
             </div>
           )}
+
+          <CoreNextSteps symbol={data.symbol} />
 
           <div className="grid gap-3 md:grid-cols-2">
             {data.technical && (

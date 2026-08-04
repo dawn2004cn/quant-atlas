@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from app.application.errors import ExternalServiceError, ValidationError
-from app.modules.system.services.helpers.data_optimizer_access import (
+from app.modules.data.services.helpers.data_optimizer_access import (
     build_scenario_service,
     resolve_configured_tdx_root,
 )

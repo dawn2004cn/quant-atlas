@@ -56,14 +56,43 @@ jobs:
         run: python -m compileall -q app/ tests/ scripts/
       - name: Boot test (no external services)
         env:
-          FLASK_ENV: testing
+          FLASK_ENV: development
+          FLASK_SECRET_KEY: ci-boot-gate-secret
           ENABLE_CELERY: "0"
           ENABLE_QLIB: "0"
           ENABLE_RD_AGENT: "0"
           MESH_ENABLED: "0"
           PERCEPTION_ENABLED: "0"
           ENABLE_SOCKETIO: "0"
-        run: python -c "from app import create_app; app = create_app(); print(f\"Boot OK: {len(app.url_map._rules)} routes\")"
+          TUSHARE_TOKEN: ""
+          TASK_MESSAGE_REDIS_URL: "memory://"
+        run: python scripts/boot_gate.py
+      - name: API route contract tests
+        env:
+          FLASK_ENV: development
+          FLASK_SECRET_KEY: ci-boot-gate-secret
+          ENABLE_CELERY: "0"
+          ENABLE_QLIB: "0"
+          ENABLE_RD_AGENT: "0"
+          MESH_ENABLED: "0"
+          PERCEPTION_ENABLED: "0"
+          ENABLE_SOCKETIO: "0"
+          TUSHARE_TOKEN: ""
+          TASK_MESSAGE_REDIS_URL: "memory://"
+        run: pytest tests/api/test_template_fetch_contract.py tests/api/test_phase_a_route_contract.py tests/api/test_public_api_contract.py tests/api/test_api_contract.py -q --tb=short
+      - name: Frontend SPA API path audit
+        env:
+          FLASK_ENV: development
+          FLASK_SECRET_KEY: ci-boot-gate-secret
+          ENABLE_CELERY: "0"
+          ENABLE_QLIB: "0"
+          ENABLE_RD_AGENT: "0"
+          MESH_ENABLED: "0"
+          PERCEPTION_ENABLED: "0"
+          ENABLE_SOCKETIO: "0"
+          TUSHARE_TOKEN: ""
+          TASK_MESSAGE_REDIS_URL: "memory://"
+        run: python scripts/audit_frontend_api_paths.py
 
   smoke:
     name: Smoke tests (no external services)

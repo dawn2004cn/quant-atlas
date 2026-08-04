@@ -51,7 +51,7 @@
 </div>
 {% endfor %}
 
-<section class="qc-ux-onboarding" aria-label="新手上手三步">
+<section class="qc-ux-onboarding" aria-label="新手上手三步" data-ux-onboarding="workbench">
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
         <div class="qc-ux-step-title">加自选</div>
@@ -71,6 +71,14 @@
         <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">模拟观察单</a>
     </div>
 </section>
+
+{% set quick_nav_items = [
+    {'href': url_for('pages.self_stocks'), 'label': '加自选', 'primary': true},
+    {'href': url_for('pages.market_panorama'), 'label': '市场全景'},
+    {'href': url_for('pages.ai_analysis'), 'label': 'AI 诊股'},
+    {'href': url_for('pages.signal_observations'), 'label': '观察单'},
+] %}
+{% include "partials/page_quick_nav.html" %}
 
 <div id="wbPsychologyBanner" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger wb-psychology-banner" role="alert"></div>
 
@@ -189,7 +197,7 @@
     </section>
     <section class="cockpit-card" data-wb-card="decision-review">
         <div class="card-head">
-            <h2 class="card-title">🧑‍⚖️ 待复核决策</h2>
+            <h2 class="card-title">🧑⚖️ 待复核决策</h2>
             <a class="btn-soft btn-sm" href="/signal-observations">观察单</a>
         </div>
         <div id="wbDecisionReview"><div class="wb-skel" aria-hidden="true"></div></div>
@@ -504,6 +512,10 @@ function wbRenderHealthBanner(banner) {
     const meta = [];
     if (banner.critical_count) meta.push('严重 ' + banner.critical_count);
     if (banner.warning_count) meta.push('预警 ' + banner.warning_count);
+    if (banner.quotes_full_dump_warn) {
+        meta.push('全量 quotes dump ' + (banner.quotes_full_dump_count || 0) +
+            '（阈值≥' + (banner.quotes_full_dump_threshold || 1) + '）');
+    }
     if (banner.allow_live_trading === false) meta.push('不建议实盘');
     else if (level === 'ok') meta.push('可正常研究/模拟');
     $('#wbHealthMeta').text(meta.join(' · ') || '');
@@ -937,7 +949,11 @@ async function loadWorkbench() {
         wbRenderHeadlines(data.headlines);
         wbRenderTradePlan(data.trade_plan_strip);
         wbRenderIntegration(data.integration_digest);
-        loadDecisionReviewPanel();
+        if (data.decision_review_summary) {
+            wbRenderDecisionReview(data.decision_review_summary);
+        } else {
+            loadDecisionReviewPanel();
+        }
 
         $('#lastUpdate').text('更新于: ' + new Date().toLocaleTimeString());
         wbApplyCardOrder();

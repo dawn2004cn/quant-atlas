@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}鑲＄エ绠＄悊 路 琛屾儏缂撳瓨 - Quant Atlas{% endblock %}
+{% block title %}股票管理 · 行情缓存 - Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
@@ -8,9 +8,9 @@
 {% block spa_switcher %}
 <a href="/app/stocks_manage" class="spa-switcher-link"
    data-spa-switcher="stocks_manage">
-  璇曡瘯鏂扮増 鈫?
+  试试新版 →
 </a>
-{% endblock %%}
+{% endblock %}
 
 
 
@@ -18,36 +18,36 @@
 <div class="sm-wrap">
     <section class="sm-hero">
         <div class="hero-caption">Cache &amp; Universe</div>
-        <h1 class="page-title">鑲＄エ绠＄悊</h1>
-        <p class="page-subtitle">鏌ョ湅鏈湴琛屾儏缂撳瓨涓殑鏍囩殑瑙勬ā銆佸悓姝ユ椂闂翠笌鏄庣粏锛屽苟涓€閿烦杞爺绌堕摼璺€?/p>
+        <h1 class="page-title">股票管理</h1>
+        <p class="page-subtitle">查看本地行情缓存中的标的规模、同步时间与明细，并一键跳转研究链路。</p>
         <div class="sm-badges">
             <span class="sm-badge">stock_cache.db</span>
-            <span class="sm-badge">绠＄悊鍛?/span>
-            <span class="sm-badge">鍙瀹¤</span>
+            <span class="sm-badge">管理员</span>
+            <span class="sm-badge">只读审计</span>
         </div>
     </section>
 
     <section class="qa-is-hidden section-shell" id="panelStats">
         <div class="sm-stats">
             <div class="sm-stat">
-                <div class="sm-stat-k">缂撳瓨鏍囩殑</div>
-                <div class="sm-stat-v" id="statStockCount">鈥?/div>
-                <div class="sm-stat-sub">stocks 琛ㄨ鏁?/div>
+                <div class="sm-stat-k">缓存标的</div>
+                <div class="sm-stat-v" id="statStockCount">—</div>
+                <div class="sm-stat-sub">stocks 表行数</div>
             </div>
             <div class="sm-stat">
-                <div class="sm-stat-k">K 绾跨紦瀛樻潯鏁?/div>
-                <div class="sm-stat-v" id="statHistCount">鈥?/div>
+                <div class="sm-stat-k">K 线缓存条数</div>
+                <div class="sm-stat-v" id="statHistCount">—</div>
                 <div class="sm-stat-sub">stock_history</div>
             </div>
             <div class="sm-stat">
-                <div class="sm-stat-k">鏈€杩戝悓姝?/div>
-                <div class="sm-stat-v sm-stat-sm" id="statLatest">鈥?/div>
+                <div class="sm-stat-k">最近同步</div>
+                <div class="sm-stat-v sm-stat-sm" id="statLatest">—</div>
                 <div class="sm-stat-sub">MAX(update_time)</div>
             </div>
             <div class="sm-stat">
-                <div class="sm-stat-k">搴撴枃浠惰矾寰?/div>
-                <div class="sm-stat-v sm-stat-path" id="statDbPath">鈥?/div>
-                <div class="sm-stat-sub">瀹炰緥鐩綍涓?SQLite</div>
+                <div class="sm-stat-k">库文件路径</div>
+                <div class="sm-stat-v sm-stat-path" id="statDbPath">—</div>
+                <div class="sm-stat-sub">实例目录下 SQLite</div>
             </div>
         </div>
     </section>
@@ -55,32 +55,32 @@
     <section class="section-shell">
         <div class="panel-head">
             <div>
-                <h2 class="panel-title">鏍囩殑鏄庣粏</h2>
-                <div class="panel-subtitle">鎸夋垚浜ら鎺掑簭锛涙敮鎸佷唬鐮?/ 鍚嶇О / 琛屼笟绛涢€?/div>
+                <h2 class="panel-title">标的明细</h2>
+                <div class="panel-subtitle">按成交额排序；支持代码 / 名称 / 行业筛选</div>
             </div>
-            <button type="button" class="btn-soft" id="btnReload">閲嶆柊鍔犺浇</button>
+            <button type="button" class="btn-soft" id="btnReload">重新加载</button>
         </div>
-        <p class="sm-note">鏁版嵁鐢卞悗鍙拌鎯呮壂鎻忋€佸叏鏅悓姝ユ垨 Qlib 瀵煎嚭绛変换鍔″啓鍏ャ€傛湰椤典笉淇敼鏁版嵁搴擄紝浠呬究浜庤繍缁翠笌鏍稿鏍囩殑姹犮€?/p>
-        <div id="loadState" class="sm-empty sm-load-mt">鍔犺浇涓€?/div>
+        <p class="sm-note">数据由后台行情扫描、全景同步或 Qlib 导出等任务写入。本页不修改数据库，仅便于运维与核对标的池。</p>
+        <div id="loadState" class="sm-empty sm-load-mt">加载中...</div>
         <div id="tablePanel" class="qa-is-hidden">
             <div class="sm-toolbar">
                 <div class="sm-search-wrap">
-                    <input type="search" class="sm-search" id="filterInput" placeholder="绛涢€夛細浠ｇ爜銆佸悕绉版垨琛屼笟鈥? autocomplete="off">
+                    <input type="search" class="sm-search" id="filterInput" placeholder="筛选：代码、名称或行业…" autocomplete="off">
                 </div>
-                <span class="sm-meta"><span id="visibleCount">0</span> / <span id="totalLoaded">0</span> 鏉?/span>
+                <span class="sm-meta"><span id="visibleCount">0</span> / <span id="totalLoaded">0</span> 条</span>
             </div>
             <div class="sm-table-wrap">
                 <table class="sm-table">
                     <thead>
                         <tr>
-                            <th>浠ｇ爜</th>
-                            <th>鍚嶇О</th>
-                            <th>琛屼笟</th>
-                            <th class="sm-num">鐜颁环</th>
-                            <th class="sm-num">娑ㄨ穼%</th>
-                            <th class="sm-num">鎴愪氦棰?/th>
-                            <th>鏇存柊鏃堕棿</th>
-                            <th>鎿嶄綔</th>
+                            <th>代码</th>
+                            <th>名称</th>
+                            <th>行业</th>
+                            <th class="sm-num">现价</th>
+                            <th class="sm-num">涨跌%</th>
+                            <th class="sm-num">成交额</th>
+                            <th>更新时间</th>
+                            <th>操作</th>
                         </tr>
                     </thead>
                     <tbody id="tbody"></tbody>
@@ -106,15 +106,15 @@
 
     function fmtNum(n, digits) {
         var x = Number(n);
-        if (!isFinite(x)) return '鈥?;
+        if (!isFinite(x)) return '—';
         return x.toFixed(digits != null ? digits : 2);
     }
 
     function fmtAmount(v) {
         var x = Number(v);
-        if (!isFinite(x) || x <= 0) return '鈥?;
-        if (x >= 1e8) return (x / 1e8).toFixed(2) + ' 浜?;
-        if (x >= 1e4) return (x / 1e4).toFixed(1) + ' 涓?;
+        if (!isFinite(x) || x <= 0) return '—';
+        if (x >= 1e8) return (x / 1e8).toFixed(2) + ' 亿';
+        if (x >= 1e4) return (x / 1e4).toFixed(1) + ' 万';
         return fmtNum(x, 0);
     }
 
@@ -134,15 +134,15 @@
         return (
             '<tr data-code="' + esc(code) + '" data-name="' + esc(row.name || '') + '" data-industry="' + esc(row.industry || '') + '">' +
             '<td><span class="sm-code">' + esc(code) + '</span></td>' +
-            '<td><span class="sm-name" title="' + esc(row.name) + '">' + esc(row.name || '鈥?) + '</span></td>' +
-            '<td><span class="sm-industry" title="' + esc(row.industry) + '">' + esc(row.industry || '鈥?) + '</span></td>' +
+            '<td><span class="sm-name" title="' + esc(row.name) + '">' + esc(row.name || '—') + '</span></td>' +
+            '<td><span class="sm-industry" title="' + esc(row.industry) + '">' + esc(row.industry || '—') + '</span></td>' +
             '<td class="sm-num">' + fmtNum(row.price, 3) + '</td>' +
-            '<td class="sm-num ' + pctC + '">' + (pct === '鈥? ? '鈥? : pct + '%') + '</td>' +
+            '<td class="sm-num ' + pctC + '">' + (pct === '—' ? '—' : pct + '%') + '</td>' +
             '<td class="sm-num">' + fmtAmount(row.amount) + '</td>' +
-            '<td>' + esc(row.update_time || '鈥?) + '</td>' +
+            '<td>' + esc(row.update_time || '—') + '</td>' +
             '<td><div class="sm-actions">' +
-            '<a href="' + '{{ url_for("pages.stock_detail", symbol="__C__") }}'.replace('__C__', symQ) + '">璇︽儏</a>' +
-            '<a href="{{ url_for("pages.backtest") }}?symbol=' + symQ + '&market=CN">鍥炴祴</a>' +
+            '<a href="' + '{{ url_for("pages.stock_detail", symbol="__C__") }}'.replace('__C__', symQ) + '">详情</a>' +
+            '<a href="{{ url_for("pages.backtest") }}?symbol=' + symQ + '&market=CN">回测</a>' +
             '<a href="{{ url_for("pages.ai_analysis") }}?symbol=' + symQ + '&market=CN">AI</a>' +
             '</div></td></tr>'
         );
@@ -172,7 +172,7 @@
     }
 
     function loadData() {
-        $('#loadState').show().removeClass('sm-error').text('鍔犺浇涓€?);
+        $('#loadState').show().removeClass('sm-error').text('加载中...');
         $('#tablePanel').hide();
         $('#panelStats').hide();
         $.getJSON('/api/v1/admin/stock-cache')
@@ -183,11 +183,11 @@
                 rawItems = items;
                 $('#statStockCount').text(stats.stock_count != null ? stats.stock_count : '0');
                 $('#statHistCount').text(stats.history_bar_count != null ? stats.history_bar_count : '0');
-                $('#statLatest').text(stats.latest_update || '鈥?);
-                $('#statDbPath').text(stats.db_path || '鈥?);
+                $('#statLatest').text(stats.latest_update || '—');
+                $('#statDbPath').text(stats.db_path || '—');
                 $('#panelStats').show();
                 if (!items.length) {
-                    $('#loadState').text('缂撳瓨涓殏鏃犳爣鐨勩€傝鍏堣繍琛岃鎯呮壂鎻忔垨鍏ㄦ櫙鍚屾浠诲姟銆?).show();
+                    $('#loadState').text('缓存中暂无标的。请先运行行情扫描或全景同步任务。').show();
                     return;
                 }
                 $('#loadState').hide();
@@ -195,7 +195,7 @@
                 $('#tablePanel').show();
             })
             .fail(function (xhr) {
-                var msg = xhr.status === 403 ? '闇€瑕佺鐞嗗憳鏉冮檺' : '鍔犺浇澶辫触';
+                var msg = xhr.status === 403 ? '需要管理员权限' : '加载失败';
                 $('#loadState').addClass('sm-error').text(msg).show();
             });
     }

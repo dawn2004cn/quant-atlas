@@ -100,11 +100,12 @@ class AgentTopologyService:
 
     def _load_attribution_summary(self, symbol: str, period: str) -> dict[str, Any]:
         try:
-            from app.modules.strategy.services.analytics.unified_attribution_service import (
-                UnifiedAttributionService,
-            )
+            import importlib
 
-            svc = UnifiedAttributionService()
+            attr_mod = importlib.import_module(
+                "app.modules.strategy.services.analytics.unified_attribution_service"
+            )
+            svc = attr_mod.UnifiedAttributionService()
             report = svc.build_report(
                 strategy_name="agent_topology",
                 period=period,

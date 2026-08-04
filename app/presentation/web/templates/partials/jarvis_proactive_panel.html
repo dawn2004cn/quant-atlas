@@ -47,17 +47,13 @@
 
     function scan() {
         if (stopped) return;
-        fetch('/api/v1/jarvis/proactive', { credentials: 'same-origin' })
-            .then(function (r) {
-                if (r.status === 401) { stopped = true; return null; }
-                return r.json();
+        QCApi.get('/jarvis/proactive')
+            .then(function (d) {
+                render((d && d.signals) || []);
             })
-            .then(function (res) {
-                if (!res) return;
-                var d = res.data || res;
-                render(d.signals || []);
-            })
-            .catch(function () {});
+            .catch(function (err) {
+                if (err && err.status === 401) stopped = true;
+            });
     }
 
     if (dismissBtn) dismissBtn.addEventListener('click', function () { stopped = true; panel.style.display = 'none'; });

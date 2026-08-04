@@ -4,6 +4,403 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-06-24 (阶段 A：页面数据加载路由修复)
+
+### 问题
+- 首页 NL 查询、`zen_terminal`、`portfolio_resonance` 等页面 AJAX **404**
+- 嵌套 `register_blueprint` 路由（nl、zen-mode、provenance、agent-swarm 等）在完整应用启动后 **未进入 url_map**
+- `route_contract` 对 `realtime` 模块名与 `@register_routes` 默认名不一致，导致 **重复注册** `realtime_status` 端点，嵌套蓝图挂载中断
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `routes_v1_realtime.py` | `@register_routes(name="realtime", ...)` 与契约模块名对齐 |
+| `route_contract.py` | 扩展 CRITICAL 路径；phase18 别名；`_spec_already_mounted` 防重复兜底 |
+| `routes_v1_nl.py` | `/nl/query` + `/nl-parser/query` 直接 `add_url_rule`（去嵌套蓝图） |
+| `scripts/audit_api_routes.py` | 参数化路径匹配 + 动态前缀过滤 + 非零退出码 |
+| `app/presentation/api/route_loader.py` | 预加载 `v1/user_tiers/*.py`（机构/零售等等 tier API） |
+| `tests/api/test_phase_a_route_contract.py` | P0 契约路径冒烟测试 |
+
+### 验证
+- `scripts/audit_api_routes.py`：16/16 canonical OK
+- `pytest tests/api/test_phase_a_route_contract.py` 19 passed
+
+---
+
+## 2026-06-24 (阶段 B：API 路由契约硬化 + CI)
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `route_contract.py` | 模板 fetch 契约、`assert_v1_route_contract`、provenance/alert_center CRITICAL |
+| `scripts/boot_gate.py` | CI 启动门：canonical + 模板路径必须为 0 missing |
+| `scripts/audit_api_routes.py` | 复用 `route_contract` 共享逻辑 |
+| `presentation.py` | strict 模式下 API 蓝图注册失败 / 契约缺失 fail-fast |
+| `celery_routes.py` | `task-messages` / `active-jobs` 加 `@login_required` |
+| `tests/api/test_template_fetch_contract.py` | 模板 fetch 契约 pytest |
+| `.github/workflows/ci.yml` | `boot_gate.py` + 契约测试（`FLASK_ENV=development`） |
+
+### 验证
+- `python scripts/boot_gate.py` exit 0
+- `pytest tests/api/test_template_fetch_contract.py tests/api/test_api_contract.py` 通过
+
+---
+
+## 2026-06-24 (阶段 C：公开端点白名单 + 密钥说明)
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `public_api_paths.py` | 匿名可读 `/api/v1` 路径注册表（manifest、health） |
+| `routes_v1_compliance.py` | 文档化 manifest 为 intentionally public |
+| `tests/api/test_public_api_contract.py` | 公开 200 / 敏感 401 契约测试 |
+| `tests/smoke/test_critical_api_endpoints.py` | 替代 `_check_endpoints.py` 的 assert 冒烟 |
+| `.env.example` | `TUSHARE_TOKEN` 留空 + `SKIP_SECRETS_CHECKS` 说明 |
+
+### 验证
+- `pytest tests/api/test_public_api_contract.py` 通过
+- 匿名 `task-messages` / `active-jobs` → 401；`compliance/manifest` → 200
+
+---
+
+## 2026-06-24 (阶段 D：前端韧性 — QCApi 统一客户端)
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `static/js/api_client.js` | `QCApi`：`resolveUrl`、404/401 友好 toast、`fetchJson`、`console.warn` 上报缺失路由 |
+| `integration_hub.html` | 全部裸 `fetch` 改为 `QCApi`（stack-status、task-messages、FinGPT、时序同步、心理巡检） |
+| `observability.html` | health、observability snapshot、trace、integration stack、beat 历史统一 `QCApi` |
+| `partials/jarvis_proactive_panel.html` | `jarvis/proactive` 轮询改用 `QCApi.get` |
+| `index.html` | Jarvis NL 查询改用 `QCApi.post('/nl-parser/query')` |
+| `frontend/src/lib/api.ts` | 404/401 专用 `ApiError` 文案 |
+| `scripts/audit_frontend_api_paths.py` | SPA `frontend/src` 内 `/api/v1` 路径 vs url_map 审计 |
+
+### 验证
+- `integration_hub.html` / `observability.html` 内无裸 `fetch('/api/v1` 残留
+- 404 时页面显示可读错误 + toast，而非无限 loading
+
+---
+
+## 2026-06-24 (shadow-account SPA 路由 + 前端 CI 审计)
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `routes_v1_shadow_account.py` | `GET /shadow-account/status`、`POST /shadow-account/analyze` |
+| `shadow_account_analysis_service.py` | 成交记录上传解析、FIFO 回合统计、可选 ShadowProfile 提取 |
+| `route_contract.py` | CRITICAL 路径增加 shadow-account |
+| `.github/workflows/ci.yml` | integration job 增加 `audit_frontend_api_paths.py` |
+| `tests/api/test_shadow_account_routes.py` | 匿名 401 契约 |
+| `tests/modules/ai_agent/test_shadow_account_analysis_service.py` | 上传解析单元测试 |
+
+### 验证
+- `audit_frontend_api_paths.py` → 21/21 OK
+- `boot_gate.py` exit 0
+
+---
+
+## 2026-07-01 (阶段 E0/E1：架构基线 + Facade 兼容层清理)
+
+### E0 基线
+- 分支 `architecture/phase-e-v1`
+- `artifacts/phase-e-baseline-*.txt`：boot_gate 920 routes、模板/SPA 审计 0 missing
+
+### E1 交付
+| 文件 | 要点 |
+|------|------|
+| `app/application/facade/market_data_facade.py` | 自 `application/facades/` 迁入 |
+| `app/application/facades/__init__.py` | 仅保留 deprecation shim |
+| `app/facade/*.py` + `dto/*.py` | 全部改为 re-export shim，实现集中在 `application/facade/` |
+| `tests/contract/test_market_facade_contract.py` | 导入路径更新 |
+
+### 说明
+- `app/services/` 目录已不存在（历史迁移已完成）
+- `domain/ports/` 已是 canonical 入口；`domain/ports.py` 为向后兼容 shim（E2.1 方向与旧计划相反，以代码为准）
+
+### 验证
+- `boot_gate` + 双 audit：0 missing
+- `check_module_cross_imports.py` OK
+- `pytest tests/facade tests/contract tests/api/*_contract.py tests/architecture/test_layer_dependency_gate.py` 72 passed
+
+---
+
+## 2026-07-01 (阶段 E2：Domain 层 infrastructure 耦合迁出)
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `infrastructure/trading/order_persistence_redis.py` | Redis 订单状态持久化（自 domain 迁出） |
+| `infrastructure/events/cache_invalidation_*.py` | Outbox 发布/订阅（自 domain 迁出） |
+| `domain/trading/order_persistence_redis.py` 等 | `__getattr__` deprecation shim |
+| `domain/ports.py` | 文档修正：`ports/` 包为 canonical |
+| `domain/trading/order_persistence.py` | redis 后端改从 infrastructure 加载 |
+
+### 验证
+- `test_layer_dependency_gate` + `test_order_persistence_file` 通过
+- domain 顶层无 infrastructure 直 import
+
+---
+
+## 2026-07-01 (阶段 E2.3 续 + E3.1 investment_managers 拆分)
+
+### E2.3 续（system→strategy 8→0）
+| 文件 | 要点 |
+|------|------|
+| `tools/tool_facade_service.py` | `importlib` 延迟加载 `StrategyApplicationService`；类型注解改为 `Any` |
+| `tool_facade_service.py`（system 根） | 改为 re-export shim，canonical 在 `tools/` |
+| `immune_agent_service.py` | `stress_tester: Any`，去除顶层 strategy import |
+| `data_optimizer_access.py` | `build_scenario_service` 用 `importlib` 加载 `ScenarioBasedDataService` |
+| `agent_topology_service.py` | attribution 用 `importlib` 替代 `from app.modules.strategy...` |
+| `live_research_document_service.py` | resonance 用 `importlib` 加载 `TechnicalResonanceMeter` |
+| `check_module_cross_imports.py` | 基线 system→strategy：8→0 |
+
+### E3.1 续
+| 文件 | 要点 |
+|------|------|
+| `routes_v1_investment_managers.py` | 390→55 行编排器 |
+| `v1/investment_managers/crud_routes.py` | seed/deploy/list/leaderboard/detail/export |
+| `v1/investment_managers/simulation_routes.py` | simulate/quick-warmup/deploy-schedule/backfill |
+| `v1/investment_managers/user_account_routes.py` | user set-cash/import-trades/export |
+
+### 验证
+- `boot_gate` 920 routes，契约 0 missing
+- `check_module_cross_imports`：system→strategy 0
+- `audit_frontend_api_paths` 0 missing
+
+---
+
+## 2026-07-01 (阶段 E3.1 collaboration 拆分 + NotificationSendEvent)
+
+### E3.1 续
+| 文件 | 要点 |
+|------|------|
+| `routes_v1_collaboration.py` | 375→58 行编排器 |
+| `v1/collaboration/team_routes.py` | context / create / join |
+| `v1/collaboration/blackboard_routes.py` | 团队黑板 CRUD + consensus |
+| `v1/collaboration/research_routes.py` | research-feed publish/challenge |
+| `v1/collaboration/workflow_routes.py` | workflow + sequence-scope |
+| `v1/collaboration/system_meta_routes.py` | cross-team + meta-arbiter |
+| `v1/collaboration/_access.py` | `make_require_team_member` 共享鉴权 |
+
+### 事件总线修复
+| 文件 | 要点 |
+|------|------|
+| `core/event_bus.py` | 新增 `NotificationSendEvent`；注册 `StrategyRegimeMismatchEvent` |
+| `notification_service.py` | `publish_event(NotificationSendEvent(...))` 替代非法字符串调用 |
+
+### 验证
+- `boot_gate` 920 routes；契约与前端路径 0 missing
+- 契约 + 架构测试通过（排除既有依赖漂移项）
+
+---
+
+## 2026-07-01 (阶段 E3.2/E3.3：system 瘦身首批 + service_fallback 扩展)
+
+### E3.2
+| 文件 | 要点 |
+|------|------|
+| `modules/data/services/helpers/data_optimizer_access.py` | TDX 场景优化工厂迁至 data 模块（canonical） |
+| `system/services/helpers/data_optimizer_access.py` | re-export shim |
+| `system/services/system/notification_service.py` | 通知服务归入 `services/system/` |
+| `system/services/notification_service.py` | re-export shim |
+| `v1/data_optimizer/*` | import 指向 data 模块 canonical 路径 |
+
+### E3.3
+| 文件 | 要点 |
+|------|------|
+| `routes_v1_integration_stack.py` | `@service_fallback("integration_stack_service")` |
+| `routes_v1_ten_kings.py` | 三端点统一 `@service_fallback` |
+| `routes_v1_watchlist_agent.py` | 去除手写 unavailable guard |
+
+### 验证
+- `boot_gate` 920 routes；跨模块 import gate OK
+
+---
+
+## 2026-07-01 (阶段 E3.3/E5 收尾：manifest + README)
+
+### E3.3
+| 文件 | 要点 |
+|------|------|
+| `routes_v1_manifest_10.py` | `@service_fallback`；修正 `ok_response` 用法 |
+| `routes_v1_evolution_arbiter.py` | `@service_fallback` |
+| `service_readiness.py` | optional 增加 manifest / perception / evolution_arbiter |
+
+### E5
+| 文件 | 要点 |
+|------|------|
+| `app/README.md` | 模块架构、Bootstrap DI、API 契约（阶段 E 对齐） |
+
+---
+
+## 2026-07-01 (阶段 E4.1/E3.3：10.0 mesh 服务实现 + risk fallback)
+
+### E4.1
+| 文件 | 要点 |
+|------|------|
+| `manifest_service_10.py` | `ManifestService10` 聚合 10.0 组件探针 |
+| `perception_resonance_service.py` | `PerceptionResonanceService` + resonance 事件类 |
+| `wiring_system.py` | 注册 `manifest_service_10` / `perception_resonance_service` factory |
+
+### E3.3
+| 文件 | 要点 |
+|------|------|
+| `routes_v1_risk.py` | 四端点 `@deps_service_fallback` |
+
+### 验证
+| 测试 | 文件 |
+|------|------|
+| manifest/resonance 单元测试 | `tests/modules/system/test_manifest_service_10.py` |
+
+---
+
+## 2026-07-01 (阶段 E3.3/E5：ErrorCode fallback + Marketplace 契约)
+
+### E3.3
+| 文件 | 要点 |
+|------|------|
+| `decorators.py` | `service_unavailable_fallback_response()`；`data.code=service_unavailable` |
+| `error_codes.py` | `SERVICE_UNAVAILABLE` HTTP 503 映射 |
+| `test_service_fallback.py` | fallback 响应契约测试 |
+
+### E5
+| 文件 | 要点 |
+|------|------|
+| `route_contract.py` | `alpha_marketplace` 四路径纳入 `CRITICAL_ROUTE_MODULES` |
+| `API_ROUTE_CONTRACT.md` | Marketplace 路径 + fallback 响应说明 |
+
+---
+
+## 2026-07-01 (阶段 E4.3/E3.1：tasks 边界 + 路由体量门禁)
+
+### E4.3
+| 文件 | 要点 |
+|------|------|
+| `test_phase_e_tasks_boundary.py` | 禁止 tasks→presentation/flask；registry 契约 |
+| `test_phase_e_presentation_route_size.py` | `routes_v1_*` / `v1/**` ≤800 行 |
+
+### E3.1
+| 文件 | 要点 |
+|------|------|
+| `v1/stock/stock_*.py` | 确认已拆分为 shim + `routes_*` 子模块 |
+
+---
+
+## 2026-07-01 (阶段 E4.1：Bootstrap DI 收敛)
+
+### E4.1
+| 文件 | 要点 |
+|------|------|
+| `post_wire_hooks.py` | `run_post_wire_hooks()` 统一后置装配 |
+| `services.py` | 移除内联 try 块；文档标明唯一入口 |
+| `bootstrap_services.py` | re-export shim → `bootstrap_components.services` |
+| `test_phase_e_di_bootstrap.py` | 禁止 wildcard import + shim 契约 |
+
+---
+
+## 2026-07-01 (阶段 E3.3/E4.2/E5：deps_service_fallback + OPTIONAL 扩展 + 路由契约文档)
+
+### E3.3
+| 文件 | 要点 |
+|------|------|
+| `decorators.py` | 新增 `deps_service_fallback(resolve_service, legacy=...)` |
+| `routes_v1_global_market.py` | deps fallback 替代 ValidationError unavailable |
+| `routes_v1_recommendations.py` | 同上 |
+| `routes_v1_strategy_shadow.py` | 5 端点 `@service_fallback` |
+| `routes_v1_user_system.py` | knowledge + ai_committee `@service_fallback` |
+| `routes_v1_user_lifecycle.py` | 去除与 decorator 重复的 503 分支 |
+
+### E4.2
+| 文件 | 要点 |
+|------|------|
+| `service_readiness.py` | `OPTIONAL_SERVICE_ATTRS` 扩展；`build_public_health_payload()` |
+| `routes_v1_system_health.py` | `/health` 含 `deployment_status` + services 缺口 |
+| `observability_snapshot_service.py` | optional 缺失时 `overall_status` → degraded |
+
+### E5
+| 文件 | 要点 |
+|------|------|
+| `docs/API_ROUTE_CONTRACT.md` | 关键路径、公开端点、别名表、验证命令 |
+
+---
+
+## 2026-07-01 (阶段 E2.3 + E3.1：跨模块解耦 + data_infrastructure 路由拆分)
+| 文件 | 要点 |
+|------|------|
+| `core/event_bus.py` | 新增 `StrategyRegimeMismatchEvent` dataclass |
+| `notification_service.py` | 改从 event_bus 导入事件类型 |
+| `strategy_sentinel_service.py` | `publish_event(Event)` 修正；事件类 deprecation shim |
+| `strategy_scanner.py` | 去除 ai_agent 模块级 import，swarm 服务构造注入 |
+| `check_module_cross_imports.py` | 基线：system→strategy 8，strategy→ai_agent 0 |
+
+### E3.1
+| 文件 | 要点 |
+|------|------|
+| `routes_v1_data_infrastructure.py` | 470→149 行 |
+| `v1/data_infrastructure/task_routes.py` | `/tasks` 列表与执行 |
+| `v1/data_infrastructure/timeseries_routes.py` | timeseries health/history/bars |
+| `v1/data_infrastructure/tdx_sync_routes.py` | TDX gpcw/dayk + qlib export |
+
+### 验证
+- `boot_gate` 920 routes，契约 0 missing
+- `check_module_cross_imports` 通过（边数已下调）
+
+---
+
+## 2026-06-30 (API v1 路由 404 + integration_hub 模板)
+
+### 问题
+- 前端请求 `/api/v1/jarvis/proactive`、`/data/timeseries-health`、`/system/active-jobs`、`/compliance/manifest` 等返回 **404**
+- Phase 2 子蓝图将 system/data/ai_agent 路由跳过主蓝图注册，且前缀错误（如 `/api/v1/ai-agent/jarvis/...`、`/api/v1/system/system/...`），大量路由未挂载
+- `integration_hub.html` `spa_switcher` 块未闭合导致 Jinja 500（已修复块结构）
+
+### 修复
+| 文件 | 修改 |
+|------|------|
+| `app/presentation/api/routes.py` | 取消 context 跳过，所有 `@register_routes` 统一注册到主 `/api/v1` 蓝图；移除 Phase 2 子蓝图双重挂载 |
+
+### 验证
+- 上述 6 个 API 路径均已注册
+- `integration_hub.html` Jinja 编译通过
+
+### 2026-06-30 续 — API v1 路由契约统一修复
+
+**问题**：重启后仍有个别 `/api/v1/*` 404（jarvis、task-messages、compliance、backtest 等）。
+
+**根因**：Phase 2 子蓝图跳过主蓝图注册；部分 route 模块 preload 失败时无兜底；错误前缀路径（`/api/v1/ai-agent/...`）与前端契约不一致。
+
+**修复**：
+| 文件 | 要点 |
+|------|------|
+| `route_contract.py` | 关键路径契约 + 模块兜底注册 + 旧前缀别名 |
+| `routes.py` | `preload_critical_route_modules` + `repair_unregistered_critical_modules` + `apply_v1_route_contract` |
+| `presentation.py` | 注册 API 蓝图后执行契约校验；失败日志升为 ERROR |
+| `routes_v1_quant_ai.py` / `routes_v1_llm_config.py` | 移除 `blueprint.name = ...` 突变（避免端点/蓝图名漂移） |
+
+---
+
+## 2026-06-30 (认证蓝图恢复：全站 401/404 登录失效)
+
+### 问题
+- 未登录访问 `/capabilities`、`/ai-analysis` 等页面返回 **401**（非跳转登录）
+- `GET /login`、`GET /logout` 返回 **404**
+- 启动日志：`Auth blueprint not available (services not configured)`
+- 根因：`wiring_system.py` 等模块的 `register_factory("auth_service")` 侧效从未执行（`service_wiring.py` 注释保留但导入丢失），`auth_service`/`user_service` 恒为 `None`
+
+### 修复
+| 文件 | 修改 |
+|------|------|
+| `app/bootstrap_components/service_wiring.py` | 恢复 `_preload_wiring_modules()`，侧效导入 `wiring_market` / `wiring_ai` / `wiring_system` / `wiring_trading` / `wiring_data` / `wiring_execution` |
+| `app/presentation/api/error_handlers.py` | `_fallback_unauthorized_response()`：`auth.login` 不可用时回退 `redirect("/login?next=...")`，避免 Web 页裸 401 |
+
+### 验证
+- `auth_service` / `user_service` 正常解析为 `AuthService` / `UserApplicationService`
+- `GET /login` → 200；`GET /logout` 路由已注册
+- 匿名 `GET /capabilities` → 302 `/login?next=...`
+
+---
+
 ## 2026-06-21 (CSP 合规修复 + 双轨登录验证)
 
 ### 问题
@@ -3634,7 +4031,801 @@ CSO 安全审计发现 27 项安全漏洞（5 CRITICAL + 12 HIGH + 10 MEDIUM）�
 | 指标 | 重构前 | 重构后 |
 |------|--------|--------|
 | Facade 依赖方向 | app/facade/ 实现 → app/application/facade/ shim | 反转为 app/application/facade/ 实现 → app/facade/ shim ✅ |
-| 架构门禁 CI | 无 | tests/architecture/test_layer_dependency_gate.py（2 测试，0.22s 通过）✅ |
-| 遗留违规（domain→infra, application→infra） | 16 处 | 已豁免到 LEGACY_SHIMS，门禁通过 ✅ |
+
+## 2026-07-28 — 导航聚焦（对标同类开源项目）
+
+### 背景
+参考 [DeltaFStation](https://github.com/Delta-F/deltafstation)、[OpenTrading](https://github.com/JayCheng113/OpenTrading)、[ashare-ai-analyst](https://github.com/Jcstack/ashare-ai-analyst) 等项目的菜单结构，将 Quant Atlas 导航收敛为 **操盘台 → 研究 → 策略 → 我的** 四条核心主线；实验性/社交/平台元功能默认从菜单隐藏，路由与后端代码保留。
+
+### 变更
+| 模块 | 要点 |
+|------|------|
+| `app/core/nav_menu.py` | 新增导航可见性注册表；`NAV_SHOW_EXPERIMENTAL=1` 或 `NAV_SHOW_<ITEM>=1` 可恢复 |
+| `strategic_sunset_hooks.py` | Jinja 注入 `nav_*` 标志 |
+| `routes_v1_platform.py` | `/platform/strategic-features` 合并 nav 标志；新增 `/platform/nav-menu` |
+| `base.html` | 经典版导航按 `nav_*` / `feature_*` 门控 |
+| `frontend/Layout.tsx` | SPA 导航合并为 4 组，移除「工具」冗余分组 |
+| `index.html` | 首页快捷入口改为智能选股、影子操盘（替换能力总览） |
+| `.env.example` | 文档化 `NAV_SHOW_*` 环境变量 |
+| `tests/core/test_nav_menu.py` | 默认隐藏 / 实验开关单测 |
+
+### 默认隐藏的菜单项（代码保留）
+SPA 版、分析师天团、Agent 中心、语音简报、Research Canvas、Alpha Factory、数据湖健康、角色工作台、禅意终端、集成中枢、观测台、研究朋友圈、协作空间、投资经理
+
+## 2026-07-28 — 保留界面 UX 优化（对标同类项目 Hub 流程）
+
+### 借鉴点
+- DeltaFStation：Backtest Hub 指标卡 + 结果页工作流
+- OpenTrading：Dashboard 主线导航 + 回测后 CTA
+- ashare-ai-analyst：诊股 → 回测 → 跟踪闭环
+
+### 变更
+| 模块 | 要点 |
+|------|------|
+| `partials/research_lane.html` | 重写为四阶段流程条（环境→研究→验证→跟踪），移除能力/集成/观测等元链接 |
+| `partials/core_next_steps.html` | 回测/诊股结果后「建议下一步」CTA |
+| `static/js/ux_onboarding.js` | 上手提示可收起（localStorage 持久化） |
+| `backtest.html` | 新增胜率/交易笔数指标；高级实验折叠；修复引导链接 |
+| `stock_selector.html` / `ai_analysis.html` / `shadow_account.html` | 标题与引导对齐主线；移除集成中枢依赖 |
+| `frontend/CoreWorkflowStrip.tsx` | SPA 核心流程条 + CoreNextSteps 组件 |
+| `Dashboard` / `Backtest` / `StockSelector` / `AIAnalysis` | 接入流程条与结果 CTA |
+
+## 2026-07-28 — 子页深化（第二批）
+
+### 共享组件
+| 文件 | 作用 |
+|------|------|
+| `partials/page_quick_nav.html` | 子页顶部快捷操作 pill 条 |
+| `partials/page_hub_hero.html` | 统一 Hero 结构（caption/title/subtitle + quick nav） |
+| `static/css/common.css` | quick-nav、obs-summary-strip 样式 |
+
+### 环境类
+| 页面 | 优化 |
+|------|------|
+| `daily_workbench` | 快捷链：自选/全景/诊股/观察单 |
+| `self_stocks` | 快捷链 + 可收起上手提示 |
+| `market_panorama` | 快捷链：操盘台/热点/龙虎榜 |
+| `hot_sectors` | 上手引导 + 快捷链 |
+| `longhu_bang` | 移除集成中枢依赖，增加快捷链 |
+
+### 研究类
+| 页面 | 优化 |
+|------|------|
+| `ai_analysis` | 页顶快捷链 |
+| `stock_selector` | 页顶快捷链 |
+| `quant_lab` | 上手引导 + 快捷链 |
+| `research_pipeline` | 上手引导 + 快捷链（投委会/实验室/任务中心） |
+
+### 验证类
+| 页面 | 优化 |
+|------|------|
+| `backtest` | 日期快捷区间（半年/1/3/5年）；胜率+笔数指标；买入持有基准曲线；快捷链 |
+| `factor_repository` | 修复标题编码；上手引导 + 快捷链 |
+| `optimize` | 上手引导 + 工作流卡片快捷链 |
+| `strategy_wizard` | 顶部核心流程导航条 |
+
+### 跟踪类
+| 页面 | 优化 |
+|------|------|
+| `signal_flag` | 精简 Hero；快捷链 |
+| `signal_observations` | 开放单摘要条（数量/均收益/命中）；快捷链 |
+| `shadow_account` | 快捷链；修复 Hero 标签 |
+| `alert_center` | 快捷链：操盘台/任务/消息/自选 |
+| `retail_assistant` | 替换集成中枢为任务/预警中心 |
+
+### SPA
+`SignalFlag` / `SignalObservations` / `FactorRepository` / `Optimize` 接入 `CoreWorkflowStrip`
+
+## 2026-07-28 — 加载性能与 UI 一致性
+
+### 性能
+| 文件 | 要点 |
+|------|------|
+| `base.html` | 移除全局 3 个组件 CSS；4 路 preload 改为按路由单文件 preload；核心脚本 `defer`；非关键脚本 idle 加载 |
+| `app/core/page_shell.py` | endpoint → 页面 CSS preload 映射 |
+| `strategic_sunset_hooks.py` | 注入 `page_css_preload`、`ui_color_scheme` |
+| `static/js/shell_deferred.js` | requestIdleCallback 串行加载 persona/scanner/truth 等 6 个脚本 |
+| `static/js/lazy_echarts.js` | 回测/量化实验室按需加载 ECharts（~800KB 不再阻塞首屏） |
+| `backtest.html` / `quant_lab.html` | 改用 lazy ECharts |
+
+### UI 一致性
+| 文件 | 要点 |
+|------|------|
+| `static/css/common.css` | research-lane、quick-nav、next-steps、obs-summary 改用 design tokens（暗/亮主题） |
+| `strategy_wizard.html` | 改为 `extends base.html`，接入全站导航/主题/流程条 |
+| `static/css/pages/strategy-wizard.css` | 重写为 token 驱动，去除硬编码浅色 |
+
+### 验证
+- `pytest tests/core/test_page_shell.py tests/core/test_nav_menu.py` 通过
+
+## 2026-07-28 — 加载性能与 UI 一致性（续）
+
+### ECharts 全量 lazy load
+| 页面 | 变更 |
+|------|------|
+| `strategy_compare.html` | 对比曲线按需 loadEcharts |
+| `attribution_dashboard.html` | 归因条形图按需 loadEcharts |
+| `ai_research_report.html` | AiResearchReport 初始化前 loadEcharts |
+
+至此 **全部 5 个** ECharts 页面均已 lazy load（回测/量化实验室/对比/归因/研究报告）。
+
+### Markdown 按需加载 + 投委会修复
+| 文件 | 要点 |
+|------|------|
+| `static/js/lazy_markdown.js` | marked + DOMPurify 按需并行加载 |
+| `ai_analysis.html` | 分析结果渲染前 loadMarkdownLibs |
+| `ai_investment_committee.html` | **修复** 无效 `{% block scripts %}`（marked 从未加载）；改 extra_js + lazy markdown |
+
+### 全局组件暗色主题
+| 文件 | 要点 |
+|------|------|
+| `common.css` | `btn-soft`、表单 input/select、focus 态改用 design tokens |
+
+## 2026-07-28 — 加载性能与 UI 一致性（续二）
+
+### 独立页并入全站 Shell
+| 文件 | 要点 |
+|------|------|
+| `data_lake_health.html` | 改为 `extends base.html`；快捷导航 + Hero；与导航/主题一致 |
+| `static/css/pages/data-lake.css` | 重写为 design tokens（暗色终端风格） |
+
+### 重型库 lazy load（续）
+| 库 | 页面 | 加载器 |
+|----|------|--------|
+| Mermaid | `research_pipeline.html` | `lazy_mermaid.js` — 首屏流程图按需渲染 |
+| THREE.js | `portfolio_resonance.html` | `lazy_three_legacy.js` — 3D 场域初始化前加载 |
+
+### 验证
+- `pytest tests/core/test_page_shell.py tests/core/test_nav_menu.py` 通过
+
+## 2026-07-28 — 加载性能与 UI 一致性（续三）
+
+### THREE ES Module 按需加载
+| 文件 | 要点 |
+|------|------|
+| `static/js/lazy_three_module.js` | `import()` CDN THREE + OrbitControls，去除首屏 importmap |
+| `decision_replay_space.html` | Alpine init 前 `loadThreeModule()` |
+| `research_pipeline.html` | Decision Theater 仅在 feature 开启且画布存在时 lazy load |
+
+### 登录 / 注册主题对齐
+| 文件 | 要点 |
+|------|------|
+| `login.html` / `register.html` | 与 base 相同的 inline theme 脚本 + `data-theme` |
+| `static/css/pages/auth.css` | 改用 design tokens；暗/亮主题渐变与全站一致 |
+
+## 2026-07-28 — 加载性能与 UI 一致性（续四）
+
+### 移除 / 按需加载剩余重型脚本
+| 变更 | 要点 |
+|------|------|
+| `decision_replay_space.html` | **移除 Alpine.js**（~40KB），改 vanilla JS + DOM 更新 |
+| `research_canvas.html` | Socket.IO 改 `lazy_socketio.js`（复用 base 已加载时零成本） |
+| `stock_detail.html` | 移除未使用的 Alpine 引用（页面无 x-data） |
+| `static/js/lazy_socketio.js` | 新增 Socket.IO 按需加载器 |
+
+## 2026-07-28 — 加载性能与 UI 一致性（续五）
+
+### 独立页并入 base shell / 修复
+| 变更 | 要点 |
+|------|------|
+| `truth_droplet.html` | 并入 `base.html`；快捷 nav + hub hero；移除 `zen-finance.css` |
+| `static/css/pages/truth.css` | 改用 design tokens，作用域 `.truth-droplet-page` |
+| `skills_base.html` | 修复 UTF-8 乱码；补全导航文案；加载 jQuery + `base_app.js`（移动端菜单） |
+| `skills_marketplace.html` / `skills_installed.html` | 修复错误的 `{% extends %}` 语法 |
+| `page_shell.py` | `truth_droplet.truth_droplet_page` → preload `truth.css` |
+
+## 2026-07-28 — 加载性能与 UI 一致性（续六）
+
+### 个股详情 Mermaid + Zen 页快捷导航
+| 变更 | 要点 |
+|------|------|
+| `stock_detail.html` | 产业链 `mermaid`/`visualization` 改 `lazy_mermaid.js` 按需渲染（非 Mermaid 文本仍纯文本） |
+| `stock-detail.css` | Mermaid 图解除 `max-height` 限制，SVG 自适应宽度 |
+| `zen_terminal.html` | 快捷 nav；内联脚本移入 `extra_js` |
+| `portfolio_resonance.html` | 快捷 nav（禅意终端 / 组合 / 影子操盘 / 操盘台） |
+
+## 2026-07-28 — 加载性能与 UI 一致性（续七）
+
+### 系统运维页快捷导航（经典 + SPA）
+| 变更 | 要点 |
+|------|------|
+| `observability` / `capabilities` / `integration_hub` / `task_center` / `message_center` / `architecture_roadmap` | 经典模板增加 `page_quick_nav` |
+| `zen_dashboard.html` | Zen 壳内增加快捷链接行 |
+| `frontend/.../CoreWorkflowStrip.tsx` | 新增 `PageQuickNav` 组件 |
+| SPA `Observability` / `IntegrationHub` / `Capabilities` | 对齐经典版快捷 nav |
+
+## 2026-07-28 — 加载性能与 UI 一致性（续八）
+
+### 运维 + 研究验证页快捷导航（经典 + SPA）
+| 变更 | 要点 |
+|------|------|
+| SPA `TaskCenter` / `MessageCenter` / `ArchitectureRoadmap` | 接入 `PageQuickNav` |
+| SPA `AttributionDashboard` / `AIInvestmentCommittee` | `CoreWorkflowStrip` + `PageQuickNav` |
+| `attribution_dashboard.html` / `ai_investment_committee.html` / `ai_research_report.html` | 经典模板快捷 nav |
+| SPA `AIResearchReport` | 同上 + `CoreWorkflowStrip` |
+| `zen-finance.css` | `.zen-quick-nav` 暗色壳对比度优化 |
+
+## 2026-07-28 — 数据链路速度优化（续九）
+
+### 全站 + 核心页面请求合并与分级加载
+| 变更 | 要点 |
+|------|------|
+| `static/js/api_client.js` | GET 请求 in-flight 合并（同 URL 并发只发一次，对齐后端 `get_or_set_coalesced`） |
+| `stock_detail.html` | `fetchStockDetail()` 单飞；首屏仅 K 线 + 决策简报 + 基础行情；次要面板 `requestIdleCallback` 延迟；产业链优先用 brief 内 `sector_context` |
+| `market_panorama.html` | 情绪 diary/pulses 并行；`/markets/CN/sentiment` 快显统计；quotes `limit` 12000→6000；`loadFullTrace` idle 延迟 |
+| `daily_workbench_service.py` | snapshot 内嵌 `decision_review_summary`，模板去掉二次 `/decision/review-queue/summary` |
+| `routes_v1_data_lake.py` | 新增 `GET /data-lake/dashboard` 聚合 lake + timeseries + realtime |
+| `data_lake_health.html` / SPA `DataLakeHealth.tsx` | 优先 dashboard 单请求；轮询 5s→20s |
+
+## 2026-07-28 — 数据链路速度优化（续十 · 历史数据）
+
+### 历史 K 线读链：收窄窗口 + 合并 + 来源透传
+| 变更 | 要点 |
+|------|------|
+| `market_history_utils.clamp_history_date_range` | 按 `max_points`/`count`/图表宽度收窄 DB 查询日历窗口，避免「拉 800 天再 LTTB 抽样」 |
+| `routes_history.py` / `v2/market.py` | 路由层调用 clamp；响应 `meta.data_source` 透传 questdb/mysql/tdx 等命中源 |
+| `history_coalesce.py` + `market_data.get_stock_history` | 45s TTL + 单飞合并，并发重复 history 请求只打一次库 |
+| `history_adapters.get_multi_source_history_provider` | 修正为真单例，保留 `last_source` 供 meta 使用 |
+| `stock_detail.html` | 首屏 K 线按视口计算日历窗口；`fetchHistoryRange` 单飞 + 可走 `QCApi`；左滑加载Older 带 `max_points`；展示数据源标签 |
+| `frontend/src/lib/api.ts` | GET in-flight 合并；`fetchStockHistory` 带明确 `start_date`/`end_date` 窗口 |
+| `tests/domain/test_market_history_utils.py` | clamp 窗口单测 |
+
+## 2026-07-28 — 数据链路速度优化（续十一 · 全景分页 + history 全路径合并）
+
+### 市场全景服务端分页
+| 变更 | 要点 |
+|------|------|
+| `CnQuoteSnapshot.query_page` | 进程内快照（45s TTL）上 filter/sort/paginate；返回 `items/total/stats` |
+| `GET /markets/CN/quotes/page` | 每页默认 40 条；参数 `page/page_size/sort/order/filter` |
+| `market_quotes` | 全量拉取后写入 snapshot 预热（兼容旧客户端） |
+| `market_panorama.html` | 默认走分页 API；自选股分组仍客户端模式；统计来自 sentiment/服务端 stats |
+
+### 历史数据读链补全
+| 变更 | 要点 |
+|------|------|
+| `stock_service.get_history` | 顶层 `history_coalesce` 单飞，MySQL-first / cache / provider 路径共享 |
+
+| `tests/modules/market_data/test_cn_quote_snapshot_page.py` | 分页 filter/sort 单测 |
+
+## 2026-07-28 — 数据链路速度优化（续十二 · 自选股分页 + 时序读链 LIMIT）
+
+### 市场全景自选股服务端分页
+| 变更 | 要点 |
+|------|------|
+| `CnQuoteSnapshot.query_page(codes=...)` | 支持按 6 位代码集合过滤后再 filter/sort/paginate |
+| `GET /markets/CN/quotes/page?scope=watchlist` | 登录用户自选股 codes 注入快照分页；未登录返回空页 |
+| `market_panorama.html` | 自选股分组统一走 `quotes/page`，移除 `/watchlist/experience` 二次请求；删除客户端全量 filter 死代码 |
+| `frontend` | `fetchMarketQuotesPage` + `MarketQuotesPage` 类型；SPA 全市场扫描面板（分页/筛选/自选股 scope） |
+
+### 历史 OHLCV 时序读链
+| 变更 | 要点 |
+|------|------|
+| `ohlcv_history_reader._row_limit_for_range` | QuestDB/ClickHouse SQL `LIMIT` 按日期窗口缩放，避免宽窗口全表扫描 |
+| `probe_ohlcv_tables` | 增加 `history_query` 元数据（索引/行数提示） |
+
+| `tests/modules/market_data/test_cn_quote_snapshot_page.py` | 增加 `codes` 过滤单测 |
+
+## 2026-07-28 — 数据链路速度优化（续十三 · 契约/QuestDB/龙虎榜分页）
+
+### API 契约与冒烟
+| 变更 | 要点 |
+|------|------|
+| `route_contract.py` | `market_core` 纳入 CRITICAL：`/markets/CN/quotes/page`、`/markets/CN/quotes` |
+| `tests/smoke/test_critical_api_endpoints.py` | 冒烟路径增加 `quotes/page` |
+
+### QuestDB 历史读链索引
+| 变更 | 要点 |
+|------|------|
+| `scripts/migrations/questdb_ohlcv_symbol_index.py` | 检测/创建 OHLCV 表；`stock_code` 非 SYMBOL 时 `ALTER COLUMN`；支持 `--dry-run` |
+| `scripts/questdb_stock_history_ddl.sql` | 标准 DDL 已含 `stock_code SYMBOL`（迁移脚本复用） |
+
+### 龙虎榜 / 选股器读链
+| 变更 | 要点 |
+|------|------|
+| `IBasicMarketDataRepository` | `list_longhu_by_date(offset=…)` + `count_longhu_by_date` |
+| `GET /market/longhu` | 默认每页 48 条；`page/page_size/total`；兼容旧 `limit` |
+| `longhu_bang.html` / `LonghuBang.tsx` | 服务端分页；SPA 修正 `date` 参数 |
+| `stock_selector.html` | 提交单飞锁，防重复 POST |
+| `frontend/src/lib/api.ts` | `fetchLonghuPage` |
+| `tests/modules/market_data/test_longhu_pagination.py` | SQLite 分页单测 |
+
+## 2026-07-28 — 验证页快捷导航 + SPA 导航条对齐
+
+### 经典页 `page_quick_nav.html`
+| 页面 | 快捷入口 |
+|------|----------|
+| `strategy_compare` / `run_history` / `strategy_snapshots` | 回测 · 历史/对比 · 优化 · 实验/观察 |
+| `experiment_reporter` / `alpha_factory` / `factor_evolution` | 量化实验室 · 研究管线 · 因子库 · 回测 |
+| `professional_workbench` | 归因 · 组合 · 回测 · 观测台 |
+| `selection_result` | 回测 · 观察单 · AI 诊股 · 选股中心 |
+| `data_lake_health` | 补充 SPA switcher |
+
+### SPA `CoreWorkflowStrip.tsx`
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | 集中维护 dataLakeHealth / researchPipeline / 验证页等快捷 nav |
+| `DataLakeHealth` / `ResearchPipeline` | 与经典页同一套 PageQuickNav |
+| 验证相关 SPA 页 | StrategyCompare、ExperimentReport、RunHistory、QuantLab 等接入预设 |
+
+## 2026-07-28 — 数据链路速度优化（续十四 · 成分股 snapshot + 自选股/观测台）
+
+### 行情批量读链
+| 变更 | 要点 |
+|------|------|
+| `CnQuoteSnapshot.lookup_rows` | 按代码顺序去重命中；缺失列表供兜底 |
+| `GET /markets/CN/quotes` | CN + 显式 symbols 时优先走 snapshot，仅对 miss 回源 |
+| `GET /markets/CN/quotes/page` | 支持 `symbol`/`symbols` 过滤（`scope=symbols`） |
+| `hot_sectors.html` / `HotSectors.tsx` | 成分股行情改走 `quotes/page` + QCApi 合并 |
+
+### 自选股读链对齐
+| 变更 | 要点 |
+|------|------|
+| `self_stocks.html` | `include_news=false`；可用 QCApi GET 合并 |
+| `SelfStocks.tsx` | 改用 `/watchlist/experience` + `/stock-groups`（不再误用 daily-workbench） |
+
+### SPA 导航第二批 + 观测台聚合
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | marketPanorama / longhuBang / hotSectors / selfStocks |
+| SPA 页 | MarketPanorama、LonghuBang、HotSectors、SelfStocks 接入 PageQuickNav |
+| `ObservabilitySnapshotService` | 内嵌 `task_messages` + `timeseries_beat_runs` |
+| `Observability.tsx` | 单请求 snapshot；轮询 15s→20s |
+| `observability.html` | 任务事件/Beat 历史改吃 snapshot 内嵌字段；轮询合并为 20s |
+
+| `tests/.../test_cn_quote_snapshot_page.py` | `lookup_rows` 顺序/缺失单测 |
+
+
+---
+
+## 2026-07-28 — 数据链路速度优化（续十五 · POST 单飞 + quotes 引导 + SPA nav）
+
+### 写路径单飞
+| 变更 | 要点 |
+|------|------|
+| `frontend/src/lib/api.ts` | GET 之外，相同 URL+body 的 POST/PUT/PATCH 共用 in-flight 请求 |
+| `static/js/api_client.js` | 经典页 QCApi 同步上述单飞策略 |
+| `Backtest.tsx` | 提交态防重入（`loading` 早退） |
+
+### 全量 quotes 引导（不破坏兼容）
+| 变更 | 要点 |
+|------|------|
+| `GET /markets/<m>/quotes` 无 symbols | `meta.preferred_endpoint=quotes/page` + hint；日志标记 full dump |
+
+### SPA / 经典导航第三批
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | portfolio / stockDetail / backtest / stockSelector / optimize / signalObservations |
+| SPA 页 | Portfolio、StockDetail、Backtest、StockSelector、Optimize、SignalObservations |
+| `portfolio.html` | 补 `page_quick_nav` |
+| `tests/.../test_market_quotes_preferred_meta.py` | meta.preferred_endpoint 冒烟 |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续十六 · QuestDB/导航/组合聚合/单飞）
+
+### 1. QuestDB SYMBOL
+| 变更 | 要点 |
+|------|------|
+| 环境 dry-run | `stock_history.stock_code` 已是 `SYMBOL`（`action=noop`） |
+| 迁移脚本 | 新增 `--check` / `--no-create`；check 时待 ALTER 返回 exit 2 |
+| `tests/scripts/test_questdb_ohlcv_symbol_index.py` | 未配置 / noop / dry-run ALTER 单测 |
+
+### 2. SPA 导航第四批
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | alertCenter / taskCenter / shadowAccount |
+| SPA 页 | AlertCenter、TaskCenter（改用预设）、ShadowAccount |
+
+### 3. 组合读链聚合
+| 变更 | 要点 |
+|------|------|
+| `GET /portfolio/snapshot?include=` | 支持 `risk_budget` / `optimize_summary` 同响 |
+| `Portfolio.tsx` | 默认一次拉取；风险 Tab 用内嵌；默认 Markowitz 用摘要，自定义参数再 POST |
+
+### 4. 实验/选股 UI 单飞
+| 变更 | 要点 |
+|------|------|
+| `AlphaFactory.tsx` | 实验提交 `submitting` 早退 |
+| `StockSelector.tsx` | `inFlightRef` + 按钮禁用 |
+| `ShadowAccount.tsx` | 上传防重入 |
+| `experiment_reporter.html` | 列表/详情改走 `QCApi.get`（GET coalesce） |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续十七 · 经典组合/导航/异步回测）
+
+### 经典组合页对齐
+| 变更 | 要点 |
+|------|------|
+| `portfolio.html` | snapshot 带 `include=risk_budget,optimize_summary`；优先 QCApi；风险表吃内嵌 |
+| `Portfolio.tsx` | 风险字段兼容后端 `weight/var_contribution/...` 与 SPA 别名 |
+
+### SPA 导航统一预设
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | messageCenter / integrationHub |
+| MessageCenter / IntegrationHub | 改用预设，去掉内联 items |
+
+### 异步回测 ↔ 任务中心
+| 变更 | 要点 |
+|------|------|
+| `runBacktest(..., onProgress)` | 轮询进度回调（taskId/state/attempt） |
+| `Backtest.tsx` | 进度文案 + `task_id` + 跳转任务中心 |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续十八 · task_id 定位/经典异步回测/导航预设）
+
+### 任务中心 `?task_id=`
+| 变更 | 要点 |
+|------|------|
+| `TaskCenter.tsx` | 读取 `task_id`：列表高亮滚动 + Celery 状态卡 |
+| `Backtest.tsx` | 跳转 `/task-center?task_id=` |
+| `task_center.html` | `focusTaskFromQuery()` 展示/轮询 Celery 状态，链到 SPA |
+
+### 经典回测异步对齐
+| 变更 | 要点 |
+|------|------|
+| `backtest.html` | 异步勾选；`POST /api/v2/strategies/backtest?async=1`；轮询 Celery；链任务中心 |
+| `api_client.js` | `resolveUrl` 透传任意 `/api/*`（含 v2） |
+
+### SPA 导航预设
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | capabilities / observability |
+| Capabilities / Observability | 改用预设 |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续十九 · Celery 任务详情回退 / 进度条统一 / 回测幂等）
+
+### TaskDetail Celery 回退
+| 变更 | 要点 |
+|------|------|
+| `TaskDetail.tsx` | `/task/:id` 无注册表记录时回退 `fetchCeleryTaskStatus`；展示 Celery state/结果 |
+| `Backtest.tsx` | 异步态链「任务详情」`/task/:id` + 任务中心 |
+
+### 进度条 / 骨架统一
+| 变更 | 要点 |
+|------|------|
+| `PageSkeleton.tsx` | 新增 `AsyncProgressBar`；`PageSkeleton` 支持 `showProgress` |
+| Dashboard / AlertCenter / TaskCenter | 加载态 `showProgress`；运行中任务用 `AsyncProgressBar` |
+
+### 回测异步幂等入队
+| 变更 | 要点 |
+|------|------|
+| `backtest_tasks.submit_strategy_backtest` | `enqueue_task_idempotent`；返回 `deduplicated` |
+| `BacktestFacade` / v2 `strategy.py` | 透传 `Idempotency-Key` / `idempotency_key` |
+| SPA `runBacktest` / 经典 `backtest.html` | 确定性幂等键防双入队 |
+| 测试 | `test_backtest_tasks` 幂等；v2 async 断言 key 透传 |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续二十 · 组合优化摘要 / SPA 导航 / quotes 废弃监控）
+
+### 经典组合优化摘要 UI
+| 变更 | 要点 |
+|------|------|
+| `portfolio.html` | snapshot `optimize_summary` 直接 `renderOptimization`；兼容 `expected_volatility` |
+
+### SPA 快捷导航预设
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +aiInvestmentCommittee / aiResearchReport / aiAnalysis / attributionDashboard / architectureRoadmap / signalFlag / strategyWizard / globalRadar |
+| 对应页面 | 内联 nav 改预设；AI 诊股/信号旗/策略向导/全球雷达补 PageQuickNav |
+
+### 全量 `/quotes` 废弃监控
+| 变更 | 要点 |
+|------|------|
+| `routes_v1_market_core.market_quotes` | 无 symbols 时 `meta.legacy_full_dump` + `X-Preferred-Endpoint` / `Warning` / `Link` |
+| `index.html` | 首页行情改 `quotes/page`（含自选 `scope=watchlist`） |
+| 测试 | preferred meta 覆盖 `legacy_full_dump` + header 契约 |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续二十一 · 导航补齐 / dump 计数 / quotes 清扫）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +factorRepository / tdxBlocks / portfolioResonance |
+| FactorRepository / TdxBlocks / PortfolioResonance | 接入 PageQuickNav |
+
+### 全量 quotes dump 观测
+| 变更 | 要点 |
+|------|------|
+| `quotes_dump_metrics.py` | 进程内 `full_dump_count` / `symbol_batch_count` |
+| `market_quotes` | 无/有 symbols 分别计数 |
+| `ObservabilitySnapshotService` | snapshot 内嵌 `quotes_api` |
+| SPA/经典观测台 | 展示全量 dump 次数与告警条 |
+
+### 残留调用清扫
+| 变更 | 要点 |
+|------|------|
+| `global_radar.html` | CN 行情改 `quotes/page?scope=symbols` |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续二十二 · 导航扩展 / Redis dump 计数 / 生产路径清扫）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +researchCanvas / nlStrategy / yanbaoHub / longTermSelect / marketplace |
+| 对应页面 | ResearchCanvas / NLStrategy / YanbaoHub / LongTermSelect / Marketplace |
+
+### quotes dump 跨进程计数
+| 变更 | 要点 |
+|------|------|
+| `quotes_dump_metrics.py` | Redis hash `quant:quotes:dump_stats`（TTL 7d）；无 Redis 回退内存 |
+| `get_quotes_dump_stats` | 返回 `backend=redis|memory` |
+| 测试 | FakeRedis 覆盖跨进程路径 |
+
+### 生产路径清扫
+| 变更 | 要点 |
+|------|------|
+| `static/js/qa_user_center.js` | 新鲜度行情优先 `quotes/page`；失败回退带 symbol 的 `/quotes` |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续二十三 · 协作导航 / dump 趋势 / skills 不同步标注）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +expertTeams / collaborationWorkspace / retailAssistant |
+| ExpertTeams / CollaborationWorkspace / RetailAssistant | 接入 PageQuickNav |
+
+### 全量 dump 近次趋势
+| 变更 | 要点 |
+|------|------|
+| `quotes_dump_metrics` | `recent_dumps` + `trend_rows`（内存 deque / Redis list，最多 24） |
+| SPA/经典观测台 | 柱状近次行数趋势 |
+
+### skills 不同步标注
+| 变更 | 要点 |
+|------|------|
+| `skills/quant_atlas/web/README.md` | 明确历史快照、禁止反向覆盖生产 |
+| 8 个遗留 quotes 模板 | Jinja `STALE` 注释头 |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续二十四 · Agent 导航 / dump banner / scripts 标注）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +warRoom / agentCenter / swarmDashboard / swarmDesigner |
+| WarRoom / AgentCenter / SwarmDashboard / SwarmDesigner | 接入 PageQuickNav |
+
+### dump 告警写入健康 banner
+| 变更 | 要点 |
+|------|------|
+| `SystemHealthBannerService` | `quotes_dump` + `QUOTES_FULL_DUMP_WARN_THRESHOLD`（默认 1） |
+| `ObservabilitySnapshotService` | 先取 quotes 统计再注入 banner |
+| 观测台 SPA | banner 展示 dump 计数/阈值 |
+
+### scripts/templates 不同步标注
+| 变更 | 要点 |
+|------|------|
+| `scripts/templates/README.md` | 历史脚手架，禁止反向覆盖生产 |
+| `index.html` / `market_panorama.html` | HTML `STALE` 注释头 |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续二十五 · Voice/Replay 导航 / 操盘台 dump banner / env）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +voiceBriefing / decisionReplay |
+| VoiceBriefing / DecisionReplaySpace | 接入 PageQuickNav |
+
+### 操盘台共用 quotes dump banner
+| 变更 | 要点 |
+|------|------|
+| `DailyWorkbenchService._build_health_banner` | `get_quotes_dump_stats()` → `build_banner(quotes_dump=…)`；补 `headline`/`summary` 供 SPA |
+| SPA `HealthBanner` | 兼容 `message`；展示 dump 计数/阈值 |
+| `workbench.ts` / `WorkbenchHealthBannerDTO` | +quotes_full_dump_* / headline / summary |
+| `daily_workbench.html` | meta 行展示 dump 告警 |
+
+### 配置
+| 变更 | 要点 |
+|------|------|
+| `.env.example` | `QUOTES_FULL_DUMP_WARN_THRESHOLD=1`（Redis 段旁说明） |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续二十六 · 详情页导航 / dump→AlertCenter / SPA 契约）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +decisionSnapshot / taskDetail / factorDetail；decisionReplay 主链改指向 `/decision-replay-space` |
+| DecisionSnapshot / TaskDetail / FactorDetail | 接入 PageQuickNav |
+
+### quotes dump → 预警中心
+| 变更 | 要点 |
+|------|------|
+| `AlertCenterService._alerts_from_quotes_dump` | 超阈值时 `category=data` warning；`meta.action_url=/observability` |
+| `test_phase34_alert_center` | 新增 dump 告警用例；既有用例隔离 dump 统计 |
+
+### SPA 预警中心契约对齐
+| 变更 | 要点 |
+|------|------|
+| `AlertCenter.tsx` | 错误路径 `/alert-center/alerts` → `/system/alerts`；`level→severity` / `occurred_at→created_at` / `meta.action_url` |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续二十七 · 组合/经理导航 / SPA 推送 / dump 文案）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +investmentManagers / investmentManagerDetail / portfolioDetail |
+| InvestmentManagers / InvestmentManagerDetail / PortfolioDetail | 接入 PageQuickNav |
+| InvestmentManagerDetail | 返回链 `/app/investment-managers` → `/investment-managers` |
+
+### 预警推送闭环
+| 变更 | 要点 |
+|------|------|
+| `AlertCenter.tsx` | 「推送渠道」→ `POST /system/alerts/dispatch`；dump 计数徽标；冷却/跳过反馈 |
+| `AlertNotificationService._format_body` | 输出 `preferred_endpoint` / `action_url`（quotes dump → quotes/page） |
+| `test_phase40_alert_notification` | 覆盖 body 中 preferred/action 行 |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续二十八 · Zen/社交导航 / 推送渠道选择 / env）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +aiChat / moments / zenDashboard / zenTerminal |
+| AIChat / Moments / ZenDashboard / ZenTerminal | 接入 PageQuickNav |
+
+### 预警推送渠道选择
+| 变更 | 要点 |
+|------|------|
+| `AlertCenter.tsx` | webhook/钉钉/邮件/微信多选；`respect_dedup` 开关；`channels` 传给 dispatch |
+| `test_phase40_alert_notification` | `channel_names` 过滤仅推送选中渠道 |
+
+### 配置
+| 变更 | 要点 |
+|------|------|
+| `.env.example` | 告警外发渠道变量说明（ALERT_WEBHOOK / DINGTALK / SMTP / WECHAT） |
+
+
+---
+
+## 2026-08-03 — 数据链路速度优化（续二十九 · Profile/层级导航 / 渠道探测 API）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +profile / stocksManage / userTiers |
+| Profile / StocksManage / UserTiersBoutique·Investment·Fund·Institution | 接入 PageQuickNav |
+
+### 渠道配置探测
+| 变更 | 要点 |
+|------|------|
+| `AlertNotificationService.list_channel_status` | 返回 channel/configured/label（无密钥） |
+| `GET /api/v1/system/alerts/channels` | 登录可读配置状态 |
+| `AlertCenter.tsx` | 拉取渠道状态；·已配置/·未配置；默认勾选已配置渠道 |
+| `test_phase40_alert_notification` | list_channel_status 用例 |
+
+
+---
+
+## 2026-08-04 — 数据链路速度优化（续三十 · 用户/委员会导航 / 经典预警渠道对齐）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +userSpectrumHub / userManagement / aiCommitteeDashboard / aiCommitteeSelection / aiHedgeFund |
+| UserSpectrumHub / UserManagement / AICommitteeDashboard / AICommitteeSelection / AIHedgeFund | 接入 PageQuickNav |
+
+### 经典预警中心对齐 SPA
+| 变更 | 要点 |
+|------|------|
+| `alert_center.html` | 拉取 `/system/alerts/channels`；渠道多选 + ·已配置/·未配置；`respect_dedup`；dispatch 传 `channels` |
+
+
+---
+
+## 2026-08-04 — 数据链路速度优化（续三十一 · Dashboard 导航 / dump 徽标同构）
+
+### SPA 快捷导航
+| 变更 | 要点 |
+|------|------|
+| `QUICK_NAV_PRESETS` | +dashboard / uiShowcase |
+| Dashboard | CoreWorkflowStrip + PageQuickNav；dump warn 时链到观测台/预警中心 |
+| UiShowcase | 接入 PageQuickNav |
+
+### dump 徽标同构
+| 变更 | 要点 |
+|------|------|
+| `alert_center.html` | 统计区 quotes dump 计数；dump 条目展示 preferred/action 链接 |
+| `observability.html` | health_banner 附带 `dump=n/thr=m`（对齐 SPA） |
+
+
+---
+
+## 2026-08-04 — 数据链路速度优化（续三十二 · dump 巡检 Beat / 自动 dispatch）
+
+### Celery 巡检
+| 变更 | 要点 |
+|------|------|
+| `quotes_dump_monitor_tasks.py` | `quotes_dump_monitor_tick`：超阈值可选 `QUOTES_DUMP_AUTO_DISPATCH` 触发推送 |
+| `celery_app._build_beat_schedule` | `QUOTES_DUMP_MONITOR_CELERY_BEAT` → `quotes-dump-monitor-periodic`（默认关） |
+| `celery_app` alert-dispatch | 修正 `BeatRegistry.register(..., kwargs={...})` 嵌套：改为扁平 `min_level`/`limit`/`respect_dedup`，Beat 才能真正传到任务 |
+| `alert_dispatch_tasks` | 结果附带 `quotes_dump` 标注（count/threshold/warn） |
+
+### 观测与配置
+| 变更 | 要点 |
+|------|------|
+| `ObservabilitySnapshotService` | `alert_ops`：dispatch/dump Beat 开关 + 当前 dump 压力 |
+| SPA / 经典观测台 | 展示告警运维 Beat 一行摘要 |
+| `.env.example` | `ALERT_DISPATCH_*` / `QUOTES_DUMP_MONITOR_*` / `QUOTES_DUMP_AUTO_DISPATCH` |
+
+
+## 2026-08-04 — 数据链路速度优化（续三十三 · BeatRegistry kwargs 扁平化）
+
+### 契约修复
+| 变更 | 要点 |
+|------|------|
+| `celery_app._build_beat_schedule` | 剩余 3 处 `kwargs={...}` → 扁平：`tdx-dayk` / `post-close-signal-then-managers` / `headline-signal-enrich-cn` |
+| `BeatRegistry._normalize_task_kwargs` | 兼容误传 `kwargs={...}`：自动 unwrap 并 warning，避免任务收不到参数 |
+| `test_celery_infrastructure` | 回归：嵌套 `kwargs=` 不得再包一层 |
+
+
+## 2026-08-04 — 数据链路速度优化（续三十四 · 收束清单 + 视觉 token）
+
+### 文档
+| 变更 | 要点 |
+|------|------|
+| `docs/DATA_PIPELINE_SPEED_CLOSURE.md` | 交付对照表、环境变量、验证命令、SPA↔经典 token 映射 |
+
+### 视觉 token 统一
+| 变更 | 要点 |
+|------|------|
+| `design-tokens.css` | `--tone-*` / `--tone-*-soft|border`；`--info` |
+| `common.css` / `system.css` | 健康顶栏、obs 状态点、alert-stat 改用 tone token；`.qa-tone-banner--*` |
+| SPA `themes/dark|light.css` | `--quant-positive/info/border/card-bg` + 同名 `--tone-*`；`index.css` 改为 `@import` 主题 |
+| `HealthBanner` / `Observability` | dump/健康/关键缺失横幅改用 `.qa-tone-banner--*` |
+
+
+## 2026-08-04 — Celery 历史入库精简（Timescale + CSV + Qlib）
+
+### 目标
+历史 K 线 Celery **入库**仅保留 **Timescale / CSV / Qlib**；下线 MySQL 历史分表、QuestDB、ClickHouse 写入。
+
+### Beat / 任务
+| 变更 | 要点 |
+|------|------|
+| `scheduled_cn_history_daily` | 单程 TDX→Timescale+CSV→`dump_to_qlib_bin`（`enable_mysql=False`） |
+| `celery_app` | 移除 QuestDB Beat；拆分链改 `csv_to_qlib_*`；日更开时跳过独立 Timescale Beat |
+| `questdb_sync_tasks` | 返回 `skipped`（retired） |
+| `mysql_to_qlib_*` | 兼容 shim → CSV→bin |
+| `tdx_dayk_sync_runner` | dump 改 CSV→bin；默认 `TDX_SYNC_ENABLE_MYSQL=0`、`TDX_SYNC_ENABLE_TIMESCALE=1` |
+
+### 配置 / 文档
+| 变更 | 要点 |
+|------|------|
+| `.env.example` | QuestDB/CH 默认可写关；补充 `TDX_SYNC_ENABLE_MYSQL` |
+| `HISTORY_DATA_READ_WRITE_FLOW.md` | 主链路改为 Timescale+CSV+qlib |
+
 
 ---

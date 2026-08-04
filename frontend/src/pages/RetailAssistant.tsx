@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type AssistantData = {
@@ -38,6 +39,7 @@ export default function RetailAssistantPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.retailAssistant} />
       <div>
         <h1 className="page-title">散户助手</h1>
         <p className="text-sm text-slate-500 mt-1">投资学习与组合健康检查</p>

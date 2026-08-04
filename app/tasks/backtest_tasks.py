@@ -62,8 +62,14 @@ def submit_strategy_backtest(
     start: str,
     end: str,
     initial_capital: float = 100000.0,
+    client_idempotency_key: str | None = None,
 ) -> dict[str, Any]:
-    """Submit async backtest when Celery is configured; else run inline."""
+    """Submit async backtest when Celery is configured; else run inline.
+
+    Async path uses ``enqueue_task_idempotent`` so identical payloads within the
+    idempotency bucket reuse the same Celery ``task_id`` (no double enqueue).
+    Optional ``client_idempotency_key`` further scopes the hash (e.g. UI key).
+    """
     payload = {
         "symbol": symbol,
         "strategy_name": strategy_name,
@@ -72,11 +78,22 @@ def submit_strategy_backtest(
         "initial_capital": initial_capital,
     }
     if run_strategy_backtest_task is not None:
-        async_result = run_strategy_backtest_task.delay(**payload)
+        from app.infrastructure.messaging.celery_reliability import enqueue_task_idempotent
+
+        task_name = "app.tasks.backtest_tasks.run_strategy_backtest"
+        key = (client_idempotency_key or "").strip()
+        if key:
+            task_name = f"{task_name}:{key[:80]}"
+        _ar, task_id, enqueued = enqueue_task_idempotent(
+            run_strategy_backtest_task,
+            task_name=task_name,
+            kwargs=payload,
+        )
         return {
             "status": "queued",
-            "task_id": async_result.id,
+            "task_id": task_id,
             "mode": "async",
+            "deduplicated": not enqueued,
         }
     logger.info("Celery unavailable; running backtest synchronously")
     result = run_strategy_backtest(**payload)

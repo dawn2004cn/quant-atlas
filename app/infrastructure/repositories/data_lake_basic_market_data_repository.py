@@ -141,10 +141,21 @@ class DataLakeBasicMarketDataRepository(IBasicMarketDataRepository):
             return df.index[-1].strftime("%Y%m%d")
         return None
 
-    def list_longhu_by_date(self, trade_date: str, *, limit: int = 500) -> list[dict[str, Any]]:
+    def list_longhu_by_date(
+        self,
+        trade_date: str,
+        *,
+        limit: int = 500,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
         """List longhu by date."""
+        _ = offset
         # Implementation omitted for brevity, similar to list_longhu_for_code
         return []
+
+    def count_longhu_by_date(self, trade_date: str) -> int:
+        _ = trade_date
+        return 0
 
     def list_longhu_latest_dates(self, limit: int = 20) -> list[str]:
         """List latest trade dates."""

@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any
 
-from app.core.event_bus import publish_event
+from app.core.event_bus import StrategyRegimeMismatchEvent, publish_event
 from app.core.logger import get_logger
 from app.core.registry import ServiceRegistry
 from app.domain.services.market_regime_service import MarketRegimeService
@@ -11,13 +11,14 @@ from app.modules.strategy.services.strategy.strategy_service import StrategyAppl
 
 logger = get_logger(__name__)
 
-class StrategyRegimeMismatchEvent:
-    """Event published when a strategy's type no longer matches the market regime."""
-    def __init__(self, strategy_id: str, strategy_name: str, current_regime: str, recommended_category: str):
-        self.strategy_id = strategy_id
-        self.strategy_name = strategy_name
-        self.current_regime = current_regime
-        self.recommended_category = recommended_category
+
+def __getattr__(name: str):
+    if name == "StrategyRegimeMismatchEvent":
+        from app.core.event_bus import StrategyRegimeMismatchEvent
+
+        return StrategyRegimeMismatchEvent
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 class StrategySentinelService:
     """
@@ -72,12 +73,11 @@ class StrategySentinelService:
 
                 # Publish event for WebSocket/Notification
                 publish_event(
-                    "strategy.regime.mismatch",
                     StrategyRegimeMismatchEvent(
                         strategy_id=strat["id"],
                         strategy_name=strat["name"],
                         current_regime=current_stance,
-                        recommended_category=recommended_cat
+                        recommended_category=recommended_cat or "",
                     )
                 )
 

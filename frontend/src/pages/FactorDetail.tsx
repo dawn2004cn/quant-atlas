@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { fetchFactorDetail } from "../lib/api";
 
 type FactorDetail = {
@@ -78,6 +79,7 @@ export default function FactorDetail() {
 
   return (
     <div className="space-y-6">
+      <PageQuickNav items={QUICK_NAV_PRESETS.factorDetail} />
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-[var(--quant-muted)]">
         <Link to="/factor-repository" className="hover:text-[var(--quant-accent)]">因子库</Link>

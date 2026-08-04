@@ -14,6 +14,28 @@
 {% endblock %}
 
 {% block content %}
+<section class="qc-ux-onboarding" aria-label="研究管线提示" data-ux-onboarding="research-pipeline">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">看管线状态</div>
+        <p class="qc-ux-step-desc">监控行情入库、Qlib 转换与 RD-Agent 任务；失败项在预警中心跟进。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.alert_center') }}">预警中心</a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">接入研究</div>
+        <p class="qc-ux-step-desc">候选 → 证据 → 辩论 → 回测门禁 → 观察单，与 AI 投委会联动。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.ai_investment_committee') }}">AI 投委会</a>
+    </div>
+</section>
+{% set quick_nav_items = [
+    {'href': url_for('pages.ai_investment_committee'), 'label': 'AI 投委会', 'primary': true},
+    {'href': url_for('pages.quant_lab'), 'label': '量化实验室'},
+    {'href': url_for('pages.backtest'), 'label': '回测'},
+    {'href': url_for('pages.task_center'), 'label': '任务中心'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 <div class="rp-hero">
     <div class="hero-caption">Alpha Production Line</div>
     <div class="rp-hero-row">
@@ -177,20 +199,24 @@
 
 {% block extra_js %}
 {% if feature_decision_theater %}
-<script type="importmap" nonce="{{ csp_nonce() }}">
-{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
-</script>
-<script type="module" nonce="{{ csp_nonce() }}">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
+<script id="lazyThreeModuleConfig" type="application/json" nonce="{{ csp_nonce() }}">{{ {
+    'three': 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js',
+    'controls': 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js'
+}|tojson }}</script>
+<script defer src="{{ url_for('static', filename='js/lazy_three_module.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
 async function loadDecisionTheater() {
     const wrap = document.getElementById('theaterCanvasWrap');
     const canvas = document.getElementById('theaterCanvas');
     const meta = document.getElementById('theaterMeta');
     if (!wrap || !canvas) return;
     try {
+        const libs = typeof loadThreeModule === 'function'
+            ? await loadThreeModule()
+            : window.__ThreeModule;
+        if (!libs) throw new Error('THREE module unavailable');
+        const THREE = libs.THREE;
+        const OrbitControls = libs.OrbitControls;
         const res = await fetch('/api/v1/decision-theater/space');
         const json = await res.json();
         const data = json.data || {};
@@ -247,10 +273,20 @@ async function loadDecisionTheater() {
         console.warn(err);
     }
 }
-loadDecisionTheater();
+if (document.getElementById('theaterCanvasWrap')) {
+    if (typeof loadThreeModule === 'function') {
+        loadThreeModule().then(loadDecisionTheater).catch(function () {
+            const meta = document.getElementById('theaterMeta');
+            if (meta) meta.textContent = '3D 引擎加载失败';
+        });
+    } else {
+        loadDecisionTheater();
+    }
+}
 </script>
 {% endif %}
-<script src="{{ url_for('static', filename='js/vendor/mermaid.min.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/lazy_mermaid.js') }}"
+        data-mermaid-src="{{ url_for('static', filename='js/vendor/mermaid.min.js') }}"></script>
 <script nonce="{{ csp_nonce() }}">
 async function loadPipeline() {
     try {
@@ -271,6 +307,9 @@ async function loadPipeline() {
             const el = document.getElementById('rpMermaid');
             el.removeAttribute('data-processed');
             el.textContent = d.mermaid;
+            if (typeof loadMermaid === 'function') {
+                await loadMermaid();
+            }
             mermaid.run({ nodes: [el] }).catch(() => {});
         }
     } catch (e) { window.qcLogError('research_pipeline load failed', e); }
@@ -322,9 +361,18 @@ function markPipelineReview(type) {
     showToast(labels[type] || '已记录人工复核', 'info');
 }
 
-mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
 $(document).ready(() => {
-    loadPipeline();
+    const bootMermaid = function () {
+        const el = document.getElementById('rpMermaid');
+        if (el && window.mermaid) {
+            mermaid.run({ nodes: [el] }).catch(() => {});
+        }
+    };
+    if (typeof loadMermaid === 'function') {
+        loadMermaid().then(bootMermaid).finally(loadPipeline);
+    } else {
+        loadPipeline();
+    }
     $('#rpRefresh').on('click', loadPipeline);
     document.addEventListener('click', function (e) {
         const el = e.target.closest('[data-rp-action]');

@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { VirtualSignalTable } from "../components/virtual/VirtualSignalTable";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { fetchSignalFlagPool, runSignalFlagScan } from "../lib/api";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -40,6 +41,8 @@ export function SignalFlagPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <CoreWorkflowStrip />
+      <PageQuickNav items={QUICK_NAV_PRESETS.signalFlag} />
       {/* Header */}
       <div>
         <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">Signal Flag</div>

@@ -13,7 +13,6 @@ from app.core.event_bus import EventBus, get_event_bus
 from app.core.logger import get_logger
 from app.domain.data_truth.guardian_schema import MarketRegime
 from app.domain.strategy.strategy_spec import StrategySpec
-from app.modules.strategy.services.analytics.stress_tester import StressTestService
 
 logger = get_logger(__name__)
 
@@ -68,7 +67,7 @@ class ImmuneAgentService:
         self,
         *,
         strategy_spec: StrategySpec,
-        stress_tester: StressTestService,
+        stress_tester: Any,
         event_bus: EventBus | None = None,
         store_path: Path | str | None = None,
     ):

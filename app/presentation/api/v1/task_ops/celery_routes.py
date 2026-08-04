@@ -22,6 +22,7 @@ def register_task_ops_celery_routes(
     legacy = runtime.legacy
 
     @blueprint.get("/system/active-jobs")
+    @login_required
     def system_active_jobs():
         from app.modules.system.services.system.active_job_tracker_service import ActiveJobTrackerService
 
@@ -48,6 +49,7 @@ def register_task_ops_celery_routes(
         )
 
     @blueprint.get("/system/task-messages")
+    @login_required
     def system_task_messages():
         if runtime.ctx.task_message_store is None:
             return ok_response(

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from app.domain.dto.service_result import GenericResponseDTO
-
 """Strategy selection and backtest service with market sentiment awareness."""
 
 
@@ -13,6 +11,7 @@ import pandas as pd
 
 from app.application.dto.strategy_dto import ScreeningCriteria
 from app.core.base_service import BaseApplicationService
+from app.domain.dto.service_result import GenericResponseDTO
 from app.domain.enums import MarketCode
 from app.domain.ports import BacktestProvider, IndicatorProvider, MarketDataProvider, StrategyProvider
 from app.domain.services.regime_manager import MarketRegimeManager
@@ -35,6 +34,17 @@ class StrategyApplicationService(BaseApplicationService):
         self._backtest_provider = backtest_provider
         self._market_provider = market_provider
         self._indicator_provider = indicator_provider
+
+    def list_strategies(self) -> list[dict[str, Any]]:
+        """List available strategies through provider."""
+        return self._strategy_provider.list_strategies()
+
+    def get_strategy(self, name: str) -> dict[str, Any]:
+        """Get a single strategy by name."""
+        for s in self._strategy_provider.list_strategies():
+            if s.get("name") == name or s.get("id") == name:
+                return s
+        return {"name": name, "error": "not_found"}
 
     def select_stocks(
         self,

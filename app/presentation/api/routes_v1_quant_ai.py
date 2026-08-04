@@ -24,7 +24,6 @@ def register_quant_ai_routes(
     *,
     deps: AiRouteDeps | None = None,
 ) -> None:
-    blueprint.name = "quant_ai"
     route_deps = deps or build_ai_route_deps(ctx)
     runtime = QuantAiRuntime.from_deps(route_deps)
     register_quant_ai_strategy_routes(blueprint, ctx, runtime=runtime)

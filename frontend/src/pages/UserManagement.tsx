@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type UserItem = {
@@ -76,6 +77,7 @@ export default function UserManagement() {
 
   return (
     <div className="space-y-6">
+      <PageQuickNav items={QUICK_NAV_PRESETS.userManagement} />
       <div>
         <div className="text-xs text-[var(--quant-accent)] font-medium mb-1">User Management</div>
         <h1 className="page-title">用户管理</h1>

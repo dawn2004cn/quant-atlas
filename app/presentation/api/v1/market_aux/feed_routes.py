@@ -30,9 +30,25 @@ def register_market_aux_feed_routes(
         """龙虎榜列表（本地库 ``instance/basic_market_data.db``）；``date`` 可选 YYYY-MM-DD。"""
         basic_market_data_service = getattr(ctx, "basic_market_data_service", None)
         date_arg = (request.args.get("date") or "").strip() or None
-        lim = parse_int_param(request.args.get("limit"), name="limit", default=400, min_value=1)
-        lim = min(lim, 800)
-        td, items = basic_market_data_service.longhu_day(date_arg, limit=lim)
+        page = parse_int_param(request.args.get("page"), name="page", default=0, min_value=0)
+        page_size = parse_int_param(
+            request.args.get("page_size"),
+            name="page_size",
+            default=0,
+            min_value=1,
+            max_value=200,
+        )
+        if page > 0:
+            lim = page_size or 48
+            offset = (page - 1) * lim
+        else:
+            page = 1
+            lim = parse_int_param(request.args.get("limit"), name="limit", default=48, min_value=1)
+            lim = min(lim, 800)
+            offset = 0
+            page_size = lim
+        td, items = basic_market_data_service.longhu_day(date_arg, limit=lim, offset=offset)
+        total = basic_market_data_service.count_longhu_day(td) if td else 0
         dates = basic_market_data_service.repository.list_longhu_latest_dates(limit=20)
         latest_upd = ""
         for row in items:
@@ -50,6 +66,9 @@ def register_market_aux_feed_routes(
         payload["trade_date"] = td
         payload["items"] = items
         payload["available_dates"] = dates
+        payload["page"] = page
+        payload["page_size"] = page_size
+        payload["total"] = total
         return ok_response(
             data=payload,
             legacy_alias_key=None,

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type InstitutionTier = {
@@ -82,6 +83,7 @@ export default function UserTiersInstitution() {
 
   return (
     <div className="space-y-6">
+      <PageQuickNav items={QUICK_NAV_PRESETS.userTiers} />
       <div>
         <h1 className="page-title">机构版</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">机构级功能与权益概览</p>

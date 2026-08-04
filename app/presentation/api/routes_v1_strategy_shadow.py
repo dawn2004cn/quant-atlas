@@ -9,6 +9,7 @@ from ...application.errors import ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from ...core.registry import register_routes
 from .common import ok_response
+from .decorators import service_fallback
 from .v1_context import ApiV1Context
 
 
@@ -22,11 +23,10 @@ def register_strategy_shadow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> 
 
     @blueprint.get("/shadow/profile")
     @login_required
+    @service_fallback("strategy_shadow_service")
     def shadow_profile():
         """Get user's behavioral shadow profile."""
         svc = getattr(ctx, "strategy_shadow_service", None)
-        if svc is None:
-            raise ValidationError("strategy_shadow_service_unavailable")
         profile = svc.get_shadow_profile(_uid())
         return ok_response(
             data={"ok": True, "profile": profile},
@@ -36,11 +36,10 @@ def register_strategy_shadow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> 
 
     @blueprint.post("/shadow/record")
     @login_required
+    @service_fallback("strategy_shadow_service")
     def shadow_record_decision():
         """Record a user decision for shadow learning."""
         svc = getattr(ctx, "strategy_shadow_service", None)
-        if svc is None:
-            raise ValidationError("strategy_shadow_service_unavailable")
         body = request.get_json(silent=True) or {}
         action = body.get("action")
         if not action:
@@ -63,11 +62,10 @@ def register_strategy_shadow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> 
 
     @blueprint.post("/shadow/detect")
     @login_required
+    @service_fallback("strategy_shadow_service")
     def shadow_detect_deviation():
         """Detect if a proposed action deviates from user's normal patterns."""
         svc = getattr(ctx, "strategy_shadow_service", None)
-        if svc is None:
-            raise ValidationError("strategy_shadow_service_unavailable")
         body = request.get_json(silent=True) or {}
         action = body.get("action")
         if not action:
@@ -87,11 +85,10 @@ def register_strategy_shadow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> 
 
     @blueprint.post("/shadow/coaching/outcome")
     @login_required
+    @service_fallback("strategy_shadow_service")
     def shadow_coaching_outcome():
         """Record coaching nudge outcome (accepted/rejected/ignored)."""
         svc = getattr(ctx, "strategy_shadow_service", None)
-        if svc is None:
-            raise ValidationError("strategy_shadow_service_unavailable")
         body = request.get_json(silent=True) or {}
         nudge_type = body.get("nudge_type")
         outcome = body.get("outcome")
@@ -111,11 +108,10 @@ def register_strategy_shadow_routes(blueprint: Blueprint, ctx: ApiV1Context) -> 
 
     @blueprint.get("/shadow/coaching/stats")
     @login_required
+    @service_fallback("strategy_shadow_service")
     def shadow_coaching_stats():
         """Get coaching effectiveness statistics."""
         svc = getattr(ctx, "strategy_shadow_service", None)
-        if svc is None:
-            raise ValidationError("strategy_shadow_service_unavailable")
         stats = svc.get_coaching_stats(_uid())
         return ok_response(
             data={"ok": True, **stats},

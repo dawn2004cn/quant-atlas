@@ -14,6 +14,14 @@
 {% endblock %}
 
 {% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.message_center'), 'label': '消息中心', 'primary': true},
+    {'href': url_for('pages.observability'), 'label': '观测台'},
+    {'href': url_for('pages.integration_hub'), 'label': '集成中枢'},
+    {'href': url_for('pages.daily_workbench'), 'label': '操盘台'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 <div class="task-center" id="mainContent">
     <div class="task-hero">
         <h1>🎯 任务中心</h1>
@@ -41,6 +49,62 @@ const taskRegistryMap = {};
 
 function escHtml(s) {
     return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+
+async function focusTaskFromQuery() {
+    try {
+        const qs = new URLSearchParams(window.location.search || '');
+        const taskId = (qs.get('task_id') || '').trim();
+        if (!taskId) return;
+        let panel = document.getElementById('tcFocusTask');
+        if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'tcFocusTask';
+            panel.className = 'qc-ux-banner qc-ux-banner--info mt-3';
+            const hero = document.querySelector('.task-hero');
+            if (hero) hero.appendChild(panel);
+            else document.getElementById('mainContent').prepend(panel);
+        }
+        panel.innerHTML = '<div class="qc-ux-banner__title">定位任务</div>' +
+            '<div class="qc-ux-banner__body font-mono">' + escHtml(taskId) + '</div>' +
+            '<div id="tcFocusTaskStatus" class="mt-2 text-sm">查询 Celery 状态中…</div>' +
+            '<div class="mt-2"><a class="btn-soft btn-sm" href="/app/task-center?task_id=' +
+            encodeURIComponent(taskId) + '">在新版任务中心打开</a></div>';
+
+        async function refreshOnce() {
+            try {
+                let status;
+                if (window.QCApi && typeof QCApi.get === 'function') {
+                    status = await QCApi.get('/system/celery/task/' + encodeURIComponent(taskId));
+                } else {
+                    const res = await fetch(API_BASE + '/system/celery/task/' + encodeURIComponent(taskId), { credentials: 'include' });
+                    const json = await res.json();
+                    status = (json && json.data) || json;
+                }
+                const el = document.getElementById('tcFocusTaskStatus');
+                if (!el) return true;
+                const state = (status && status.state) || (status && status.ready ? 'READY' : 'PENDING');
+                el.textContent = 'Celery 状态: ' + state +
+                    (status && status.successful ? ' · 成功' : '') +
+                    (status && status.failed ? ' · 失败' : '');
+                return !!(status && status.ready);
+            } catch (e) {
+                const el = document.getElementById('tcFocusTaskStatus');
+                if (el) el.textContent = 'Celery 状态查询失败';
+                return true;
+            }
+        }
+
+        const done = await refreshOnce();
+        if (!done) {
+            const timer = setInterval(async function () {
+                if (await refreshOnce()) clearInterval(timer);
+            }, 2000);
+        }
+    } catch (e) {
+        window.qcLogError && window.qcLogError('focusTaskFromQuery', e);
+    }
 }
 
 async function loadTasks() {
@@ -235,6 +299,7 @@ async function runTask(taskName, cardId) {
 
 document.addEventListener('DOMContentLoaded', function () {
     loadTasks();
+focusTaskFromQuery();
     document.addEventListener('click', function (e) {
         const el = e.target.closest('[data-tc-action]');
         if (!el || el.dataset.tcAction !== 'run-task') return;

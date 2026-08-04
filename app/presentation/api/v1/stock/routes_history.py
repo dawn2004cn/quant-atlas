@@ -55,6 +55,15 @@ def register_stock_history(blueprint: Blueprint, ctx: ApiV1Context) -> None:
 
         chart_width = req.width
 
+        from app.domain.shared.market_history_utils import clamp_history_date_range
+
+        start, end = clamp_history_date_range(
+            start,
+            end,
+            max_points=max_points if max_points > 0 else None,
+            chart_width=chart_width if chart_width > 0 else None,
+        )
+
 
 
 
@@ -281,6 +290,15 @@ def register_stock_history(blueprint: Blueprint, ctx: ApiV1Context) -> None:
 
 
             meta_kw["max_points"] = sample_target
+
+        data_source = None
+        try:
+            mp = getattr(stock_service, "_market_provider", None)
+            data_source = getattr(mp, "_last_history_source", None)
+        except Exception:
+            data_source = None
+        if data_source:
+            meta_kw["data_source"] = data_source
 
 
 

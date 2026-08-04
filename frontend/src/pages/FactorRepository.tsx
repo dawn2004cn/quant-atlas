@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { fetchFactorRepository } from "../lib/api";
 import type { AlphaFactorItem } from "../types/alpha";
 
@@ -64,6 +65,8 @@ export default function FactorRepository() {
 
   return (
     <div className="space-y-6">
+      <CoreWorkflowStrip />
+      <PageQuickNav items={QUICK_NAV_PRESETS.factorRepository} />
       {/* Header */}
       <div>
         <h1 className="page-title">因子库</h1>

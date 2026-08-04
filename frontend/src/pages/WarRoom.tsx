@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -45,6 +46,7 @@ export function WarRoomPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.warRoom} />
       <div>
         <h1 className="text-2xl font-bold">{data.room_name || "作战室"}</h1>
         <p className="text-sm text-slate-500">多视角市场分析与数据面板</p>

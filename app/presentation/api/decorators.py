@@ -19,8 +19,24 @@ from flask_login import current_user
 from app.application.errors import ApplicationError, ExternalServiceError, ValidationError
 from app.core.logger import get_logger
 from app.presentation.api.common import ok_response
+from app.presentation.api.error_codes import ErrorCode
 
 logger = get_logger(__name__)
+
+SERVICE_UNAVAILABLE_FALLBACK_DATA: dict[str, object] = {
+    "available": False,
+    "summary": "Service unavailable",
+    "code": ErrorCode.SERVICE_UNAVAILABLE.value,
+}
+
+
+def service_unavailable_fallback_response(*, enable_legacy_alias: bool = False):
+    """Soft-degraded 200 response with canonical ``ErrorCode.SERVICE_UNAVAILABLE`` in body."""
+    return ok_response(
+        data=dict(SERVICE_UNAVAILABLE_FALLBACK_DATA),
+        legacy_alias_key=None,
+        enable_legacy_alias=enable_legacy_alias,
+    )
 
 
 class RoleChecker:
@@ -159,9 +175,10 @@ def handle_service_errors(service_name: str = "Service"):
 
 
 def service_fallback(service_attr: str, *, auto_catch: bool = False):
-    """Decorator: if the given service attribute is None, return a 503 JSON immediately.
+    """Decorator: if the given service attribute is None, return a degraded JSON immediately.
 
-    Two modes:
+    Returns HTTP 200 with ``data.available=false`` and ``data.code=service_unavailable``
+    (backward compatible). See also ``self_healing_execution`` for strict 503 envelopes.
 
     1. Default (auto_catch=False) — requires the inner function to have a closure
        variable named ``ctx`` (or ``runtime``) with an ``enable_legacy_response_fields``
@@ -180,11 +197,7 @@ def service_fallback(service_attr: str, *, auto_catch: bool = False):
                     return func(*args, **kwargs)
                 except AttributeError as e:
                     if "'NoneType' object has no attribute" in str(e):
-                        return ok_response(
-                            data={"available": False, "summary": "Service unavailable"},
-                            legacy_alias_key=None,
-                            enable_legacy_alias=False,
-                        )
+                        return service_unavailable_fallback_response(enable_legacy_alias=False)
                     raise
 
             # Default mode: walk closure for ctx
@@ -192,11 +205,36 @@ def service_fallback(service_attr: str, *, auto_catch: bool = False):
             if ctx is not None:
                 svc = getattr(ctx, service_attr, None)
                 if svc is None:
-                    return ok_response(
-                        data={"available": False, "summary": "Service unavailable"},
-                        legacy_alias_key=None,
+                    return service_unavailable_fallback_response(
                         enable_legacy_alias=getattr(ctx, "enable_legacy_response_fields", False),
                     )
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def deps_service_fallback(
+    resolve_service: Callable[[], Any],
+    *,
+    legacy: Callable[[], bool] | None = None,
+):
+    """Decorator for routes that resolve services from ``route_deps`` closures.
+
+    ``resolve_service`` should return the wired service instance (or ``None``).
+    Optional ``legacy`` supplies ``enable_legacy_alias`` for the fallback payload.
+    """
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            if resolve_service() is None:
+                enable_legacy = False
+                if legacy is not None:
+                    enable_legacy = bool(legacy())
+                else:
+                    ctx = _find_ctx_in_closure(func)
+                    if ctx is not None:
+                        enable_legacy = getattr(ctx, "enable_legacy_response_fields", False)
+                return service_unavailable_fallback_response(enable_legacy_alias=enable_legacy)
             return func(*args, **kwargs)
         return wrapper
     return decorator

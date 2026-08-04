@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.core.logger import get_logger
+from app.core.runtime_config import get_runtime_int
 from app.modules.system.services.system.alert_center_service import AlertCenterService
 
 logger = get_logger(__name__)
@@ -21,9 +22,11 @@ class SystemHealthBannerService:
         *,
         integration: dict[str, Any] | None = None,
         task_digest: dict[str, Any] | None = None,
+        quotes_dump: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         integration = integration or {}
         task_digest = task_digest or {}
+        quotes_dump = quotes_dump or {}
         critical = 0
         warning = 0
         messages: list[str] = []
@@ -49,6 +52,15 @@ class SystemHealthBannerService:
             warning += 1
             messages.append(f"近期任务异常 {fail_n} 条")
 
+        dump_n = int(quotes_dump.get("full_dump_count") or 0)
+        dump_threshold = max(1, int(get_runtime_int("QUOTES_FULL_DUMP_WARN_THRESHOLD", 1)))
+        dump_warn = dump_n >= dump_threshold
+        if dump_warn:
+            warning += 1
+            messages.append(
+                f"全量 /quotes dump 累计 {dump_n} 次（阈值≥{dump_threshold}），请改用 quotes/page"
+            )
+
         level = "ok"
         if critical > 0:
             level = "critical"
@@ -70,4 +82,7 @@ class SystemHealthBannerService:
             "critical_count": critical,
             "warning_count": warning,
             "stale_data": stale,
+            "quotes_full_dump_count": dump_n,
+            "quotes_full_dump_warn": dump_warn,
+            "quotes_full_dump_threshold": dump_threshold,
         }

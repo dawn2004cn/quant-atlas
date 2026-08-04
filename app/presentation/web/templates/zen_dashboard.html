@@ -10,6 +10,21 @@
 {% endblock %}
 
 {% block zen_content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.zen_terminal'), 'label': '禅意终端', 'primary': true},
+    {'href': url_for('pages.portfolio_resonance'), 'label': '3D 共鸣场'},
+    {'href': url_for('pages.observability'), 'label': '观测台'},
+    {'href': url_for('pages.daily_workbench'), 'label': '操盘台'},
+] %}
+<nav class="qc-page-quick-nav zen-quick-nav mb-3" aria-label="本页快捷操作">
+    {% for item in quick_nav_items %}
+    <a href="{{ item.href }}"
+       class="qc-page-quick-nav__link{% if item.primary %} qc-page-quick-nav__link--primary{% endif %}">
+        {{ item.label }}
+    </a>
+    {% endfor %}
+</nav>
+
 {% include "components/skeleton.html" %}
 
 <div class="zen-grid zen-grid-4 zen-fade-in" id="zenStats">

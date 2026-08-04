@@ -22,7 +22,13 @@
 
 
 {% block content %}
-
+{% set quick_nav_items = [
+    {'href': url_for('pages.backtest'), 'label': '回测验证', 'primary': true},
+    {'href': url_for('pages.strategy_compare'), 'label': '策略对比'},
+    {'href': url_for('pages.optimize'), 'label': '参数优化'},
+    {'href': url_for('pages.experiment_reporter'), 'label': '实验报告'},
+] %}
+{% include "partials/page_quick_nav.html" %}
 <div class="section-shell">
 
     <div class="hero-caption">Backtest History</div>

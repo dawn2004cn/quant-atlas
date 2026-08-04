@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { StockQuoteCard } from "../components/stock/StockQuoteCard";
 import { AiInsightPanel } from "../components/stock/AiInsightPanel";
 import { TradePlanPanel } from "../components/stock/TradePlanPanel";
@@ -62,6 +63,7 @@ export function StockDetailPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.stockDetail} />
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link className="rounded-lg bg-zinc-800/40 px-3 py-1.5 text-xs font-medium text-zinc-400 ring-1 ring-zinc-700/40 transition-colors hover:bg-zinc-800 hover:text-zinc-200" to="/app">← 操盘台</Link>

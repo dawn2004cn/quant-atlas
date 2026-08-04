@@ -2,7 +2,7 @@
 
 from dataclasses import asdict
 
-from flask import Blueprint, request
+from flask import request
 
 from app.application.errors import ExternalServiceError, ValidationError
 from app.core.registry import register_routes
@@ -10,11 +10,6 @@ from app.modules.ai_agent.services.nl_parser import AdvancedNLParser
 
 from .common import ok_response
 
-# Parent blueprint already uses url_prefix ``/api/v1``; nest only the NL segment.
-nl_bp = Blueprint("nl", __name__, url_prefix="/nl")
-
-
-@nl_bp.route("/query", methods=["POST"])
 def parse_query():
     """Parse natural language query."""
     data = request.get_json(silent=True) or {}
@@ -36,5 +31,11 @@ def parse_query():
 
 @register_routes(name="nl", context="ai_agent", description="Natural language query parser")
 def register_nl_routes(blueprint, ctx=None):
-    """Register NL parser routes."""
-    blueprint.register_blueprint(nl_bp)
+    """Register NL parser routes (canonical + legacy frontend path)."""
+    blueprint.add_url_rule("/nl/query", endpoint="nl_query", view_func=parse_query, methods=["POST"])
+    blueprint.add_url_rule(
+        "/nl-parser/query",
+        endpoint="nl_parser_query",
+        view_func=parse_query,
+        methods=["POST"],
+    )

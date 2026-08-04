@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}鐢ㄦ埛绠＄悊 - Quant Atlas{% endblock %}
+{% block title %}用户管理 - Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/admin.css') }}">
@@ -8,9 +8,9 @@
 {% block spa_switcher %}
 <a href="/app/user-management" class="spa-switcher-link"
    data-spa-switcher="user-management">
-  璇曡瘯鏂扮増 鈫?
+  试试新版 →
 </a>
-{% endblock %%}
+{% endblock %}
 
 
 
@@ -18,49 +18,49 @@
 <div class="users-container">
     <section class="section-shell">
         <div class="hero-caption">User Management</div>
-        <h1 class="page-title">鐢ㄦ埛绠＄悊</h1>
-        <p class="page-subtitle">鍒涘缓鍜岀鐞嗙郴缁熺敤鎴?/p>
+        <h1 class="page-title">用户管理</h1>
+        <p class="page-subtitle">创建和管理系统用户</p>
     </section>
 
     <section class="section-shell form-section">
         <div class="panel-head">
             <div>
-                <h2 class="panel-title">鍒涘缓鏂扮敤鎴?/h2>
-                <div class="panel-subtitle">娣诲姞鏂扮殑绯荤粺鐢ㄦ埛</div>
+                <h2 class="panel-title">创建新用户</h2>
+                <div class="panel-subtitle">添加新的系统用户</div>
             </div>
         </div>
         <form id="createUserForm">
             <div class="form-group">
-                <label class="label" for="newUsername">鐢ㄦ埛鍚?/label>
+                <label class="label" for="newUsername">用户名</label>
                 <input type="text" class="input-soft" id="newUsername" required>
             </div>
             <div class="form-group">
-                <label class="label" for="newPassword">瀵嗙爜</label>
+                <label class="label" for="newPassword">密码</label>
                 <input type="password" class="input-soft" id="newPassword" required>
             </div>
             <div class="form-group">
-                <label class="label" for="newRole">瑙掕壊</label>
+                <label class="label" for="newRole">角色</label>
                 <select id="newRole" class="select-soft">
-                    <option value="viewer">璁垮</option>
-                    <option value="trader">浜ゆ槗鍛?/option>
-                    <option value="researcher">鐮旂┒鍛?/option>
-                    <option value="developer">寮€鍙戣€?/option>
-                    <option value="admin">绠＄悊鍛?/option>
+                    <option value="viewer">访客</option>
+                    <option value="trader">交易员</option>
+                    <option value="researcher">研究员</option>
+                    <option value="developer">开发者</option>
+                    <option value="admin">管理员</option>
                 </select>
             </div>
-            <button type="submit" class="btn-brand">鍒涘缓鐢ㄦ埛</button>
+            <button type="submit" class="btn-brand">创建用户</button>
         </form>
     </section>
 
     <section class="section-shell users-section">
         <div class="panel-head">
             <div>
-                <h2 class="panel-title">鐜版湁鐢ㄦ埛</h2>
-                <div class="panel-subtitle">绠＄悊宸插垱寤虹殑鐢ㄦ埛</div>
+                <h2 class="panel-title">现有用户</h2>
+                <div class="panel-subtitle">管理已创建的用户</div>
             </div>
         </div>
         <div id="userList">
-            <div class="empty-state">鍔犺浇涓?..</div>
+            <div class="empty-state">加载中...</div>
         </div>
     </section>
 </div>
@@ -77,7 +77,7 @@ $(document).ready(function() {
             roleCatalog = d.items || d.roles || [];
             if (cb) cb();
         }).fail(function(xhr) {
-            showToast(xhr.status === 403 ? '鏃犳潈闄? : '鍔犺浇瑙掕壊澶辫触', 'error');
+            showToast(xhr.status === 403 ? '无权限' : '加载角色失败', 'error');
         });
     }
 
@@ -95,18 +95,18 @@ $(document).ready(function() {
                 const users = res.data || res.users || [];
                 $('#userList').empty();
                 if (users.length === 0) {
-                    $('#userList').append('<div class="empty-state">鏆傛棤鐢ㄦ埛</div>');
+                    $('#userList').append('<div class="empty-state">暂无用户</div>');
                 } else {
                     users.forEach(function(user) {
-                        var demo = user.protected ? '<span class="badge-demo">婕旂ず璐﹀彿</span> ' : '';
-                        var delBtn = user.protected ? '' : '<button type="button" class="btn-soft btn-sm delete-user" data-username="' + user.username + '">鍒犻櫎</button>';
+                        var demo = user.protected ? '<span class="badge-demo">演示账号</span> ' : '';
+                        var delBtn = user.protected ? '' : '<button type="button" class="btn-soft btn-sm delete-user" data-username="' + user.username + '">删除</button>';
                         $('#userList').append(`
                             <div class="user-item">
                                 <div class="user-info">${demo}${user.username} <span class="um-role-muted">(${user.role_name})</span></div>
                                 <div class="user-actions">
-                                    <select class="select-soft role-select" data-username="${user.username}" aria-label="瑙掕壊">${roleOptionsHtml(user.role)}</select>
-                                    <button type="button" class="btn-soft btn-sm save-role" data-username="${user.username}">淇濆瓨瑙掕壊</button>
-                                    <button type="button" class="btn-soft btn-sm change-password" data-username="${user.username}">淇敼瀵嗙爜</button>
+                                    <select class="select-soft role-select" data-username="${user.username}" aria-label="角色">${roleOptionsHtml(user.role)}</select>
+                                    <button type="button" class="btn-soft btn-sm save-role" data-username="${user.username}">保存角色</button>
+                                    <button type="button" class="btn-soft btn-sm change-password" data-username="${user.username}">修改密码</button>
                                     ${delBtn}
                                 </div>
                             </div>
@@ -114,11 +114,11 @@ $(document).ready(function() {
                     });
                 }
             } else {
-                showToast('鍔犺浇鐢ㄦ埛澶辫触: ' + (res.message || '鏈煡閿欒'), 'error');
+                showToast('加载用户失败: ' + (res.message || '未知错误'), 'error');
             }
         }).fail(function(xhr) {
             if (xhr.status === 403) {
-                $('#userList').html('<div class="empty-state">鏃犳潈闄愯闂敤鎴峰垪琛紙闇€绠＄悊鍛橈級</div>');
+                $('#userList').html('<div class="empty-state">无权限访问用户列表（需管理员）</div>');
             }
         });
     }
@@ -136,11 +136,11 @@ $(document).ready(function() {
             data: JSON.stringify({ username: newUsername, password: newPassword, role: newRole }),
             success: function(res) {
                 if (!res.status || res.status === 'success') {
-                    showToast(res.message || '鐢ㄦ埛鍒涘缓鎴愬姛', 'success');
+                    showToast(res.message || '用户创建成功', 'success');
                     $('#createUserForm')[0].reset();
                     loadUsers();
                 } else {
-                    showToast('鍒涘缓鐢ㄦ埛澶辫触: ' + (res.message || '鏈煡閿欒'), 'error');
+                    showToast('创建用户失败: ' + (res.message || '未知错误'), 'error');
                 }
             }
         });
@@ -156,30 +156,30 @@ $(document).ready(function() {
             data: JSON.stringify({ role: role }),
             success: function(res) {
                 if (!res.status || res.status === 'success') {
-                    showToast(res.message || '瑙掕壊宸叉洿鏂?, 'success');
+                    showToast(res.message || '角色已更新', 'success');
                     loadUsers();
                 } else {
-                    showToast(res.message || '鏇存柊澶辫触', 'error');
+                    showToast(res.message || '更新失败', 'error');
                 }
             },
             error: function(xhr) {
-                showToast(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : '鏇存柊澶辫触', 'error');
+                showToast(xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : '更新失败', 'error');
             }
         });
     });
 
     $('#userList').on('click', '.delete-user', function() {
         const username = $(this).data('username');
-        if (confirm(`纭畾瑕佸垹闄ょ敤鎴?${username} 鍚楋紵`)) {
+        if (confirm(`确定要删除用户 ${username} 吗？`)) {
             $.ajax({
                 url: `/api/v1/users/${username}`,
                 method: 'DELETE',
                 success: function(res) {
                     if (!res.status || res.status === 'success') {
-                        showToast(res.message || '鐢ㄦ埛鍒犻櫎鎴愬姛', 'success');
+                        showToast(res.message || '用户删除成功', 'success');
                         loadUsers();
                     } else {
-                        showToast('鍒犻櫎澶辫触: ' + (res.message || '鏈煡閿欒'), 'error');
+                        showToast('删除失败: ' + (res.message || '未知错误'), 'error');
                     }
                 }
             });
@@ -188,9 +188,9 @@ $(document).ready(function() {
 
     $('#userList').on('click', '.change-password', function() {
         const username = $(this).data('username');
-        const newPassword = prompt(`璇疯緭鍏?${username} 鐨勬柊瀵嗙爜:`);
+        const newPassword = prompt(`请输入 ${username} 的新密码:`);
         if (newPassword) {
-            const confirmPassword = prompt('璇峰啀娆¤緭鍏ユ柊瀵嗙爜杩涜纭:');
+            const confirmPassword = prompt('请再次输入新密码进行确认:');
             if (newPassword === confirmPassword) {
                 $.ajax({
                     url: '/api/v1/change-password',
@@ -199,14 +199,14 @@ $(document).ready(function() {
                     data: JSON.stringify({ username: username, new_password: newPassword, confirm_password: confirmPassword }),
                     success: function(res) {
                         if (!res.status || res.status === 'success') {
-                            showToast(res.message || '瀵嗙爜淇敼鎴愬姛', 'success');
+                            showToast(res.message || '密码修改成功', 'success');
                         } else {
-                            showToast('淇敼瀵嗙爜澶辫触: ' + (res.message || '鏈煡閿欒'), 'error');
+                            showToast('修改密码失败: ' + (res.message || '未知错误'), 'error');
                         }
                     }
                 });
             } else {
-                showToast('涓ゆ杈撳叆鐨勫瘑鐮佷笉涓€鑷达紒', 'warning');
+                showToast('两次输入的密码不一致！', 'warning');
             }
         }
     });

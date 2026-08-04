@@ -37,7 +37,8 @@ export type OptimizationResult = {
   method: string;
   optimal_weights: Record<string, number>;
   expected_return: number;
-  expected_volatility: number;
+  expected_volatility?: number;
+  volatility?: number;
   sharpe_ratio: number;
   efficient_frontier?: Array<{ volatility: number; return_val: number }>;
 };
@@ -67,9 +68,13 @@ export type PortfolioAttribution = {
 
 export type RiskBudgetItem = {
   symbol: string;
-  contribution_pct: number;
-  marginal_risk: number;
-  component_var: number;
+  contribution_pct?: number;
+  marginal_risk?: number;
+  component_var?: number;
+  weight?: number;
+  var_contribution?: number;
+  marginal_var?: number;
+  risk_contribution_pct?: number;
 };
 
 export type RiskBudgetResult = {

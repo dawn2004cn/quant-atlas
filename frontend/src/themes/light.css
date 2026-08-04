@@ -10,6 +10,8 @@
   --quant-accent-2: #2563eb;
   --quant-danger: #dc2626;
   --quant-warn: #d97706;
+  --quant-positive: #16a34a;
+  --quant-info: #2563eb;
 
   /* Flask-compatible surface levels */
   --quant-surface-2: #f8fbfd;
@@ -18,6 +20,21 @@
   --quant-surface-elevated: #ffffff;
   --quant-surface-border: #d8e1ea;
   --quant-surface-border-soft: #e2e8f0;
+
+  --quant-border: var(--quant-surface-border);
+  --quant-card-bg: var(--quant-surface-strong);
+
+  --tone-ok: var(--quant-positive);
+  --tone-warn: var(--quant-warn);
+  --tone-danger: var(--quant-danger);
+  --tone-info: var(--quant-info);
+  --tone-ok-soft: rgba(22, 163, 74, 0.10);
+  --tone-warn-soft: rgba(217, 119, 6, 0.10);
+  --tone-danger-soft: rgba(220, 38, 38, 0.10);
+  --tone-info-soft: rgba(37, 99, 235, 0.10);
+  --tone-ok-border: rgba(22, 163, 74, 0.28);
+  --tone-warn-border: rgba(217, 119, 6, 0.30);
+  --tone-danger-border: rgba(220, 38, 38, 0.30);
 
   /* Shadows */
   --quant-shadow: 0 20px 64px rgba(15, 23, 42, 0.11);

@@ -45,6 +45,17 @@ def preload_route_modules(*, package: str = "app.presentation.api") -> int:
                 loaded += 1
             except Exception as exc:
                 logger.warning("Route preload skipped %s: %s", module_name, exc)
+        tiers_dir = v1_dir / "user_tiers"
+        if tiers_dir.is_dir():
+            for tier_file in sorted(tiers_dir.glob("*.py")):
+                if tier_file.name.startswith("_"):
+                    continue
+                module_name = f"{package}.v1.user_tiers.{tier_file.stem}"
+                try:
+                    importlib.import_module(module_name)
+                    loaded += 1
+                except Exception as exc:
+                    logger.warning("Route preload skipped %s: %s", module_name, exc)
 
     if loaded:
         logger.debug("Preloaded %d route modules from %s", loaded, package)

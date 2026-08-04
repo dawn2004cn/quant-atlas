@@ -158,38 +158,34 @@ from ..celery_app import celery as _celery
 
 if _celery is not None:
 
+    @_celery.task(name="app.tasks.qlib_data_update.csv_to_qlib_incremental_sync")
+    def csv_to_qlib_incremental_sync(
+        max_workers: int = 8,
+        dump_incremental: bool | None = True,
+    ) -> dict[str, Any]:
+        """``qlib_export`` CSV → ``qlib_bin``（历史入库推荐路径）。"""
+        svc = create_default_qlib_pipeline_service()
+        logger.info("Starting csv_to_qlib_incremental_sync...")
+        return svc.dump_to_qlib_bin(
+            max_workers=max_workers,
+            incremental=dump_incremental,
+        )
+
     @_celery.task(name="app.tasks.qlib_data_update.mysql_to_qlib_full_sync")
     def mysql_to_qlib_full_sync() -> dict[str, Any]:
-        """
-        [MySQL专用] 全量重建任务：从 MySQL 真实数据全量导出至 Qlib 二进制。
-        """
-        svc = create_default_qlib_pipeline_service()
-        logger.info("Starting mysql_to_qlib_full_sync...")
-        # mysql_to_bin_sync 默认就是全量同步当前 MySQL 存量
-        return svc.mysql_to_bin_sync()
+        """Deprecated shim：原 MySQL→bin 已下线，改为 CSV→bin。"""
+        logger.warning("mysql_to_qlib_full_sync retired → csv_to_qlib_incremental_sync")
+        return csv_to_qlib_incremental_sync(dump_incremental=False)
 
     @_celery.task(name="app.tasks.qlib_data_update.mysql_to_qlib_incremental_sync")
     def mysql_to_qlib_incremental_sync(
         limit_stocks: int | None = None,
         days_lookback: int | None = None,
     ) -> dict[str, Any]:
-        """
-        [MySQL专用] 每日增量任务：从 MySQL 真实数据同步至 Qlib 二进制。
-        """
-        from ..core.runtime_config import get_runtime_int
-
-        svc = create_default_qlib_pipeline_service()
-        lookback = days_lookback
-        if lookback is None:
-            lookback = get_runtime_int("QLIB_MYSQL_BIN_DAYS_LOOKBACK", 10)
-        logger.info(
-            "Starting mysql_to_qlib_incremental_sync (days_lookback=%s)...",
-            lookback,
-        )
-        return svc.mysql_to_bin_sync(
-            days_lookback=lookback,
-            limit_stocks=limit_stocks,
-        )
+        """Deprecated shim：原 MySQL→bin 已下线，改为 CSV→bin。"""
+        _ = (limit_stocks, days_lookback)
+        logger.warning("mysql_to_qlib_incremental_sync retired → csv_to_qlib_incremental_sync")
+        return csv_to_qlib_incremental_sync(dump_incremental=True)
 
     @_celery.task(name="app.tasks.qlib_data_update.qlib_incremental_pipeline")
     def qlib_incremental_pipeline(
@@ -213,5 +209,8 @@ if _celery is not None:
         return full_qlib_kline_cache_and_bin_if_empty(period=period, max_workers=max_workers)
 
 else:
+    csv_to_qlib_incremental_sync = None  # type: ignore[misc, assignment]
+    mysql_to_qlib_full_sync = None  # type: ignore[misc, assignment]
+    mysql_to_qlib_incremental_sync = None  # type: ignore[misc, assignment]
     qlib_incremental_pipeline = None  # type: ignore[misc, assignment]
     qlib_full_backfill_if_empty = None  # type: ignore[misc, assignment]

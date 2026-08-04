@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type StockResult = { symbol: string; name?: string; price?: number };
@@ -58,6 +59,7 @@ export default function ZenTerminal() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.zenTerminal} />
       <h1 className="page-title">禅终端</h1>
       <div className="grid gap-5 md:grid-cols-2">
         <div className="quant-card p-5 space-y-4">

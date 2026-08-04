@@ -18,10 +18,10 @@ def register_system_health_routes(blueprint: Blueprint, ctx: ApiV1Context) -> No
 
     @blueprint.get("/health")
     def health():
-        """Health check endpoint."""
-        # Health contract: tests expect top-level {"status": "ok"} (not the canonical
-        # success_response wrapper that uses status="success").
-        return jsonify({"status": "ok"}), 200
+        """Health check endpoint (public — ``PUBLIC_API_V1_GET_PATHS``)."""
+        from app.bootstrap_components.service_readiness import build_public_health_payload
+
+        return jsonify(build_public_health_payload(ctx)), 200
 
     @blueprint.get("/system/health")
     def system_health():

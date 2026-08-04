@@ -1,5 +1,6 @@
 import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import type {
   PortfolioPosition,
@@ -10,8 +11,29 @@ import type {
 import { apiFetchV1 } from "../lib/api";
 
 /* ── API ── */
-function fetchSnapshot(symbols: string): Promise<{ portfolio: { total_value: number; cash: number; positions: PortfolioPosition[]; returns: { total_return_pct: number; total_pnl: number; benchmark_return_pct?: number; alpha_pct?: number } } }> {
-  return apiFetchV1(`/portfolio/snapshot?symbols=${encodeURIComponent(symbols)}&cash=100000`);
+type SnapshotPayload = {
+  portfolio: {
+    total_value: number;
+    cash: number;
+    positions: PortfolioPosition[];
+    returns: {
+      total_return_pct: number;
+      total_pnl: number;
+      benchmark_return_pct?: number;
+      alpha_pct?: number;
+    };
+  };
+  risk_budget?: RiskBudgetItem[];
+  optimize_summary?: OptimizationResult | null;
+};
+
+function fetchSnapshot(symbols: string): Promise<SnapshotPayload> {
+  const q = new URLSearchParams({
+    symbols,
+    cash: "100000",
+    include: "risk_budget,optimize_summary",
+  });
+  return apiFetchV1(`/portfolio/snapshot?${q.toString()}`);
 }
 
 const DEFAULT_SYMBOLS = "600519,000858,600036,601318,000333,600900";
@@ -46,6 +68,52 @@ function Panel({ children, className = "" }: { children: React.ReactNode; classN
   return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
 }
 
+function OptimizePanel({
+  optimization,
+}: {
+  optimization: OptimizationResult;
+}) {
+  const vol = optimization.expected_volatility ?? (optimization as { volatility?: number }).volatility ?? 0;
+  const weights = optimization.optimal_weights ?? {};
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-lg bg-zinc-800/40 p-3">
+          <div className="text-[10px] font-mono uppercase text-zinc-500">预期年化收益</div>
+          <div className="mt-1 text-lg font-bold font-mono tabular-nums text-emerald-400">{((optimization.expected_return ?? 0) * 100).toFixed(2)}%</div>
+        </div>
+        <div className="rounded-lg bg-zinc-800/40 p-3">
+          <div className="text-[10px] font-mono uppercase text-zinc-500">预期年化波动</div>
+          <div className="mt-1 text-lg font-bold font-mono tabular-nums text-zinc-200">{(vol * 100).toFixed(2)}%</div>
+        </div>
+        <div className="rounded-lg bg-zinc-800/40 p-3">
+          <div className="text-[10px] font-mono uppercase text-zinc-500">夏普比率</div>
+          <div className="mt-1 text-lg font-bold font-mono tabular-nums text-emerald-400">{(optimization.sharpe_ratio ?? 0).toFixed(3)}</div>
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">最优配置</p>
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(weights).map(([sym, w]) => (
+            <span key={sym} className="rounded-md bg-emerald-500/10 px-3 py-1.5 font-mono text-xs text-emerald-400">
+              {sym} {(w * 100).toFixed(1)}%
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex h-5 overflow-hidden rounded-full">
+        {Object.entries(weights).map(([sym, w], i) => (
+          <div key={sym} className="flex items-center justify-center text-[9px] font-bold text-white" style={{ width: `${w * 100}%`, backgroundColor: ALLOC_COLORS[i % ALLOC_COLORS.length] }}>
+            {(w * 100) > 8 ? `${sym}` : null}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 export function PortfolioPage() {
   const { mutate } = useSWRConfig();
   const [symbolsInput, setSymbolsInput] = useState(DEFAULT_SYMBOLS);
@@ -62,8 +130,9 @@ export function PortfolioPage() {
     { refreshInterval: 30_000 },
   );
 
+  const needsCustomOptimize = tab === "optimize" && (method !== "markowitz" || riskAversion !== 1.0);
   const { data: optimizeData, error: optErr, isLoading: optLoading } = useSWR(
-    tab === "optimize" ? ["portfolio/optimize", symbolsList.join(","), method, riskAversion] : null,
+    needsCustomOptimize ? ["portfolio/optimize", symbolsList.join(","), method, riskAversion] : null,
     () => apiFetchV1<{ optimization: OptimizationResult }>("/portfolio/optimize", {
       method: "POST",
       body: JSON.stringify({ symbols: symbolsList, method, risk_aversion: riskAversion }),
@@ -77,20 +146,19 @@ export function PortfolioPage() {
     ),
   );
 
-  const { data: riskData, isLoading: riskLoading } = useSWR(
-    tab === "risk" ? ["portfolio/risk", symbolsList.join(",")] : null,
-    () => apiFetchV1<{ risk_budget: RiskBudgetItem[] }>(
-      `/portfolio/risk-budget?symbols=${encodeURIComponent(symbolsList.join(","))}`,
-    ),
-  );
-
   if (snapLoading && !snapshot) return <PageSkeleton rows={4} />;
 
   const positions = snapshot?.portfolio?.positions ?? [];
   const returns = snapshot?.portfolio?.returns;
+  const embeddedOpt = snapshot?.optimize_summary ?? null;
+  const optimization =
+    (needsCustomOptimize ? optimizeData?.optimization : null) ??
+    (tab === "optimize" ? embeddedOpt : null);
+  const riskBudget = snapshot?.risk_budget ?? [];
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.portfolio} />
       {/* Header */}
       <div>
         <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">
@@ -197,42 +265,9 @@ export function PortfolioPage() {
           {optLoading && <p className="text-sm text-zinc-500">计算中...</p>}
           {optErr && <p className="text-sm text-rose-400">{optErr.message}</p>}
 
-          {optimizeData?.optimization && (
-            <>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="rounded-lg bg-zinc-800/40 p-3">
-                  <div className="text-[10px] font-mono uppercase text-zinc-500">预期年化收益</div>
-                  <div className="mt-1 text-lg font-bold font-mono tabular-nums text-emerald-400">{(optimizeData.optimization.expected_return * 100).toFixed(2)}%</div>
-                </div>
-                <div className="rounded-lg bg-zinc-800/40 p-3">
-                  <div className="text-[10px] font-mono uppercase text-zinc-500">预期年化波动</div>
-                  <div className="mt-1 text-lg font-bold font-mono tabular-nums text-zinc-200">{(optimizeData.optimization.expected_volatility * 100).toFixed(2)}%</div>
-                </div>
-                <div className="rounded-lg bg-zinc-800/40 p-3">
-                  <div className="text-[10px] font-mono uppercase text-zinc-500">夏普比率</div>
-                  <div className="mt-1 text-lg font-bold font-mono tabular-nums text-emerald-400">{optimizeData.optimization.sharpe_ratio.toFixed(3)}</div>
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-2 text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">最优配置</p>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(optimizeData.optimization.optimal_weights).map(([sym, w]) => (
-                    <span key={sym} className="rounded-md bg-emerald-500/10 px-3 py-1.5 font-mono text-xs text-emerald-400">
-                      {sym} {(w * 100).toFixed(1)}%
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex h-5 overflow-hidden rounded-full">
-                {Object.entries(optimizeData.optimization.optimal_weights).map(([sym, w], i) => (
-                  <div key={sym} className="flex items-center justify-center text-[9px] font-bold text-white" style={{ width: `${w * 100}%`, backgroundColor: ALLOC_COLORS[i % ALLOC_COLORS.length] }}>
-                    {(w * 100) > 8 ? `${sym}` : null}
-                  </div>
-                ))}
-              </div>
-            </>
+          {optimization && <OptimizePanel optimization={optimization} />}
+          {!optLoading && !optimization && (
+            <p className="text-sm text-zinc-600">暂无优化摘要，请调整参数后重试</p>
           )}
         </Panel>
       )}
@@ -295,8 +330,8 @@ export function PortfolioPage() {
       {/* Risk */}
       {tab === "risk" && (
         <Panel className="space-y-4 p-5">
-          {riskLoading && <p className="text-sm text-zinc-500">加载中...</p>}
-          {riskData?.risk_budget && (
+          {!riskBudget.length && <p className="text-sm text-zinc-500">暂无风险预算（随组合快照加载）</p>}
+          {!!riskBudget.length && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -308,14 +343,21 @@ export function PortfolioPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800/30">
-                  {riskData.risk_budget.map((r: RiskBudgetItem) => (
+                  {riskBudget.map((r: RiskBudgetItem) => {
+                    const contrib =
+                      r.contribution_pct ??
+                      (r.risk_contribution_pct != null ? r.risk_contribution_pct / 100 : r.weight ?? 0);
+                    const marginal = r.marginal_risk ?? r.marginal_var ?? 0;
+                    const cvar = r.component_var ?? r.var_contribution ?? 0;
+                    return (
                     <tr key={r.symbol} className="transition-colors hover:bg-zinc-800/30">
                       <td className="px-4 py-3 font-mono text-xs text-zinc-400">{r.symbol}</td>
-                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{(r.contribution_pct * 100).toFixed(1)}%</td>
-                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{r.marginal_risk.toFixed(4)}</td>
-                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{r.component_var.toFixed(4)}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{(contrib * 100).toFixed(1)}%</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{Number(marginal).toFixed(4)}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-zinc-300">{Number(cvar).toFixed(4)}</td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

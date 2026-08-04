@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type RoadmapItem = { name: string; status: string; description: string };
@@ -38,6 +39,7 @@ export default function ArchitectureRoadmapPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.architectureRoadmap} />
       <div>
         <h1 className="page-title">架构路线图</h1>
         <p className="text-sm text-slate-500 mt-1">系统架构阶段与里程碑进展</p>

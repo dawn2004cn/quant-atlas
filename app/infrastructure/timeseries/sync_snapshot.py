@@ -205,23 +205,19 @@ def get_timeseries_sync_snapshot() -> dict[str, Any] | None:
 
 
 def describe_questdb_sync_beat() -> dict[str, Any]:
-    """Celery Beat schedule for QuestDB incremental sync (ops dashboards)."""
-    from app.core.runtime_config import get_runtime, get_runtime_int
+    """QuestDB/ClickHouse Celery Beat retired (history ingest = Timescale/CSV/Qlib)."""
+    from app.core.runtime_config import get_runtime_int
 
-    enabled = str(get_runtime("QUESTDB_SYNC_BEAT", "1")).strip().lower() in (
-        "1",
-        "true",
-        "yes",
-    )
-    hour = 16
-    minute = 35
     out: dict[str, Any] = {
-        "enabled": enabled,
+        "enabled": False,
+        "retired": True,
+        "reason": "questdb_clickhouse_ingest_retired",
+        "preferred": ["timescale", "csv", "qlib"],
         "celery_beat_key": "questdb-ohlcv-after-close",
         "task": "app.tasks.questdb_sync_tasks.questdb_ohlcv_sync_tick",
-        "schedule_hour": hour,
-        "schedule_minute": minute,
-        "schedule_label": f"每日 {hour:02d}:{minute:02d}",
+        "schedule_hour": 16,
+        "schedule_minute": 35,
+        "schedule_label": "retired",
         "sync_limit": get_runtime_int("TIMESERIES_SYNC_LIMIT", 0),
         "max_symbols_cap": get_runtime_int("TIMESERIES_SYNC_MAX_SYMBOLS", 50_000),
     }
@@ -232,19 +228,7 @@ def describe_questdb_sync_beat() -> dict[str, Any]:
             "source": snap.get("source"),
             "ok": snap.get("ok"),
             "mode": snap.get("mode"),
-            "questdb_rows_written": snap.get("questdb_rows_written"),
-            "failed_samples": snap.get("failed_samples"),
         }
-        if snap.get("source") == "celery_beat":
-            out["last_beat_run_at"] = snap.get("recorded_at")
-            out["last_beat_run_ok"] = snap.get("ok")
-    prog = get_timeseries_sync_progress()
-    if prog and prog.get("status") == "running":
-        out["sync_in_progress"] = True
-        out["sync_progress"] = prog
-    recent = get_timeseries_sync_history(limit=5, source="celery_beat")
-    if recent:
-        out["recent_beat_runs"] = recent
     return out
 
 

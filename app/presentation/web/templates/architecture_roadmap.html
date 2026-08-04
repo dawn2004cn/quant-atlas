@@ -7,6 +7,14 @@
 {% endblock %}
 
 {% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.observability'), 'label': '观测台', 'primary': true},
+    {'href': url_for('pages.capabilities'), 'label': '能力总览'},
+    {'href': url_for('pages.integration_hub'), 'label': '集成中枢'},
+    {'href': url_for('pages.research_pipeline'), 'label': '研究闭环'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 <div class="roadmap-hero">
     <div class="roadmap-hero-head">
         <div>

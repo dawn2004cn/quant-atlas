@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 from app.domain.trading.order_persistence import OrderPersistence
 from app.domain.trading.order_persistence_file import FileOrderPersistenceBackend
-from app.domain.trading.order_persistence_redis import RedisOrderPersistenceBackend
+from app.infrastructure.trading.order_persistence_redis import RedisOrderPersistenceBackend
 from app.domain.trading.order_persistence_sqlite import SqliteOrderPersistenceBackend
 
 

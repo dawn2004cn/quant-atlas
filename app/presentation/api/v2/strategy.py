@@ -41,12 +41,18 @@ def create_strategy_blueprint(ctx):
 
         if ctx.backtest_facade is not None:
             run_async = str(request.args.get("async", "")).lower() in {"1", "true", "yes"}
-            runner = (
-                ctx.backtest_facade.run_backtest_async
-                if run_async
-                else ctx.backtest_facade.run_backtest
-            )
-            result = runner(**payload)
+            if run_async:
+                client_key = (
+                    (request.headers.get("Idempotency-Key") or "").strip()
+                    or str(body.get("idempotency_key") or "").strip()
+                    or None
+                )
+                result = ctx.backtest_facade.run_backtest_async(
+                    **payload,
+                    client_idempotency_key=client_key,
+                )
+            else:
+                result = ctx.backtest_facade.run_backtest(**payload)
         else:
             result = ctx.strategy_service.backtest(
                 symbol=payload["symbol"],

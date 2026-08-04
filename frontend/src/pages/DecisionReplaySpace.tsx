@@ -1,5 +1,6 @@
 import { useState } from "react";
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -96,6 +97,7 @@ export function DecisionReplaySpacePage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.decisionReplay} />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">决策回放空间</h1>

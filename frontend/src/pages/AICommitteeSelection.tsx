@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -44,6 +45,7 @@ export function AICommitteeSelectionPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.aiCommitteeSelection} />
       <div>
         <h1 className="text-2xl font-bold">AI 委员会选股</h1>
         <p className="text-sm text-zinc-500">

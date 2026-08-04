@@ -8,6 +8,9 @@ from typing import Any, TypeVar
 
 from flask import Blueprint, Flask, jsonify, render_template, request
 
+from app.config import get_settings
+from app.core.nav_menu import jinja_nav_flags
+from app.core.page_shell import page_css_preload_for_endpoint
 from app.core.strategic_sunset import (
     api_path_sunset_feature,
     feature_enabled,
@@ -48,8 +51,14 @@ def register_strategic_sunset(app: Flask) -> None:
     """Jinja globals + optional API guard (also attach via blueprint)."""
 
     @app.context_processor
-    def _inject_sunset_flags() -> dict[str, bool]:
-        return jinja_feature_flags()
+    def _inject_sunset_flags() -> dict[str, Any]:
+        settings = get_settings()
+        return {
+            **jinja_feature_flags(),
+            **jinja_nav_flags(),
+            "ui_color_scheme": settings.ui_color_scheme,
+            "page_css_preload": page_css_preload_for_endpoint(request.endpoint),
+        }
 
 
 def attach_api_sunset_guard(blueprint: Blueprint) -> None:

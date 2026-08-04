@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type Moment = { id: string; content: string; created_at: string; type: string };
@@ -27,6 +28,7 @@ export default function MomentsPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.moments} />
       <div>
         <h1 className="page-title">投资动态</h1>
         <p className="text-sm text-slate-500 mt-1">AI 投资笔记与社区动态</p>

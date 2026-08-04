@@ -1,7 +1,8 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import useSWR from "swr";
-import { PageSkeleton } from "../components/PageSkeleton";
-import { apiFetchV1 } from "../lib/api";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { AsyncProgressBar, PageSkeleton } from "../components/PageSkeleton";
+import { apiFetchV1, fetchCeleryTaskStatus } from "../lib/api";
 
 type TaskDetailData = {
   id: string;
@@ -15,6 +16,7 @@ type TaskDetailData = {
   result?: Record<string, unknown>;
   error?: string;
   logs?: string[];
+  source?: "registry" | "celery";
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -33,24 +35,112 @@ const STATUS_CLASS: Record<string, string> = {
   cancelled: "badge-ghost",
 };
 
+function mapCeleryToTask(taskId: string, celery: Awaited<ReturnType<typeof fetchCeleryTaskStatus>>): TaskDetailData {
+  const state = String(celery.state || (celery.ready ? "READY" : "PENDING")).toUpperCase();
+  let status: TaskDetailData["status"] = "pending";
+  if (celery.successful || state === "SUCCESS") status = "completed";
+  else if (celery.failed || state === "FAILURE" || state === "REVOKED") status = "failed";
+  else if (state === "STARTED" || state === "RETRY" || state === "RECEIVED" || state === "PROGRESS") {
+    status = "running";
+  } else if (celery.ready) {
+    status = celery.successful ? "completed" : "failed";
+  }
+
+  let progress = 15;
+  if (status === "running") progress = 55;
+  if (status === "completed" || status === "failed" || status === "cancelled") progress = 100;
+
+  const result =
+    celery.result && typeof celery.result === "object"
+      ? (celery.result as Record<string, unknown>)
+      : undefined;
+  const error =
+    typeof celery.error === "string"
+      ? celery.error
+      : typeof celery.result === "string" && status === "failed"
+        ? celery.result
+        : undefined;
+
+  return {
+    id: taskId,
+    name: "Celery 异步任务",
+    description: `来自 Celery · state=${state}`,
+    status,
+    progress,
+    created_at: "—",
+    updated_at: new Date().toLocaleString("zh-CN"),
+    type: "celery",
+    result,
+    error,
+    source: "celery",
+  };
+}
+
 export function TaskDetailPage() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
 
-  const { data, error, isLoading } = useSWR(
+  const {
+    data: registryData,
+    error: registryError,
+    isLoading: registryLoading,
+  } = useSWR(
     taskId ? `task-detail-${taskId}` : null,
     () => apiFetchV1<TaskDetailData>(`/task/${encodeURIComponent(taskId ?? "")}`),
-    { refreshInterval: taskId ? 10_000 : undefined },
+    {
+      refreshInterval: (latest) =>
+        latest && (latest.status === "running" || latest.status === "pending") ? 10_000 : 0,
+      shouldRetryOnError: false,
+    },
   );
 
-  if (isLoading && !data) return <PageSkeleton rows={5} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">任务未找到</div>;
+  const needCelery = Boolean(taskId) && !registryLoading && !registryData;
+
+  const {
+    data: celeryRaw,
+    error: celeryError,
+    isLoading: celeryLoading,
+  } = useSWR(
+    needCelery && taskId ? `celery-task-detail-${taskId}` : null,
+    () => fetchCeleryTaskStatus(taskId ?? ""),
+    {
+      refreshInterval: (latest) => (latest && !latest.ready ? 5_000 : 0),
+      shouldRetryOnError: false,
+    },
+  );
+
+  const celeryTask =
+    needCelery && celeryRaw && taskId ? mapCeleryToTask(taskId, celeryRaw) : null;
+  const data = registryData ?? celeryTask ?? null;
+
+  if ((registryLoading && !registryData) || (needCelery && celeryLoading && !celeryTask)) {
+    return <PageSkeleton rows={5} showProgress />;
+  }
+
+  if (!data) {
+    const msg =
+      (celeryError instanceof Error && celeryError.message) ||
+      (registryError instanceof Error && registryError.message) ||
+      "任务未找到";
+    return (
+      <div className="space-y-4">
+        <button type="button" className="link link-primary text-sm" onClick={() => navigate(-1)}>
+          &larr; 返回
+        </button>
+        <div className="alert alert-warning">{msg}</div>
+        {taskId ? (
+          <p className="text-xs text-slate-500 font-mono">task_id: {taskId}</p>
+        ) : null}
+      </div>
+    );
+  }
 
   const task = data;
+  const indeterminate = task.status === "running" || task.status === "pending";
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.taskDetail} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <button
@@ -62,6 +152,14 @@ export function TaskDetailPage() {
           </button>
           <h1 className="text-2xl font-bold">{task.name}</h1>
           <p className="text-sm text-slate-500">{task.description || "无描述"}</p>
+          {task.source === "celery" ? (
+            <p className="mt-1 text-xs text-sky-500/80">
+              注册表无此任务，已回退 Celery 状态 ·{" "}
+              <Link className="link" to={`/task-center?task_id=${encodeURIComponent(task.id)}`}>
+                任务中心定位
+              </Link>
+            </p>
+          ) : null}
         </div>
         <span className={`badge badge-lg ${STATUS_CLASS[task.status] ?? "badge-ghost"}`}>
           {STATUS_LABEL[task.status] ?? task.status}
@@ -69,18 +167,11 @@ export function TaskDetailPage() {
       </div>
 
       <div className="glass-card p-6 space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-500 mb-2">任务进度</h3>
-          <div className="flex items-center justify-between text-sm mb-1">
-            <span>{task.progress}%</span>
-            <span className="text-slate-500">{task.status === "running" ? "执行中..." : STATUS_LABEL[task.status]}</span>
-          </div>
-          <progress
-            className="progress progress-primary w-full h-3"
-            value={task.progress}
-            max={100}
-          />
-        </div>
+        <AsyncProgressBar
+          label={task.status === "running" ? "执行中…" : STATUS_LABEL[task.status] ?? task.status}
+          value={task.progress}
+          indeterminate={indeterminate && task.progress < 100}
+        />
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>

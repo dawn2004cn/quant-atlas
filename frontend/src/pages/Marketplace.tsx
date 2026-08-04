@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { GovernanceProposalModal } from "../components/governance/GovernanceProposalModal";
 import { MlflowRunModal } from "../components/mlflow/MlflowRunModal";
 import { MarketplaceHeader } from "../components/marketplace/MarketplaceHeader";
@@ -288,6 +289,7 @@ export function MarketplacePage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.marketplace} />
       <MarketplaceHeader
         score={score}
         orderCount={orders.length}

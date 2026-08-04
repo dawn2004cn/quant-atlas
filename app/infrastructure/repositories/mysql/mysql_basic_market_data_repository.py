@@ -44,8 +44,17 @@ class MySQLBasicMarketDataRepository:
     def upsert_longhu_rows(self, rows: list[dict[str, Any]]) -> int:
         return self._write.upsert_longhu_rows(rows)
 
-    def list_longhu_by_date(self, trade_date: str, *, limit: int = 500) -> list[dict[str, Any]]:
-        return self._read.list_longhu_by_date(trade_date, limit=limit)
+    def list_longhu_by_date(
+        self,
+        trade_date: str,
+        *,
+        limit: int = 500,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        return self._read.list_longhu_by_date(trade_date, limit=limit, offset=offset)
+
+    def count_longhu_by_date(self, trade_date: str) -> int:
+        return self._read.count_longhu_by_date(trade_date)
 
     def list_longhu_latest_dates(self, limit: int = 20) -> list[str]:
         return self._read.list_longhu_latest_dates(limit=limit)

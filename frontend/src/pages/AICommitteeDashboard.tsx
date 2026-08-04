@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -36,6 +37,7 @@ export function AICommitteeDashboardPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.aiCommitteeDashboard} />
       <div>
         <h1 className="text-2xl font-bold">AI 委员会仪表盘</h1>
         <p className="text-sm text-zinc-500">AI 投资委员会成员表现与共识概览</p>

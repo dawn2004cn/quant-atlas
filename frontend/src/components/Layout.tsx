@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { logoutSession } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
-import { usePlatformFeatures } from "../hooks/usePlatformFeatures";
+import { usePlatformFeatures, isNavItemVisible } from "../hooks/usePlatformFeatures";
 import { useTheme } from "../hooks/useTheme";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
@@ -17,7 +17,10 @@ interface NavItem {
   to?: string;
   href?: string;
   badge?: string;
+  /** strategic_sunset feature key, e.g. feature_war_room */
   feature?: string;
+  /** nav_menu item id, e.g. moments → nav_show_moments */
+  navId?: string;
 }
 
 interface NavGroup {
@@ -49,13 +52,13 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "AI 投委会", to: "/ai-investment-committee" },
       { label: "AI 诊股", to: "/ai-analysis" },
       { label: "研究报告", to: "/ai-research-report" },
-      { label: "AI 对冲基金", to: "/ai-hedge-fund" },
+      { label: "研究闭环", to: "/research-pipeline" },
       { label: "量化实验室", to: "/quant-lab" },
-      { label: "War Room", to: "/war-room" },
-      { label: "语音简报", to: "/voice-briefing" },
-      { label: "Agent 中心", to: "/agent-center" },
-      { label: "能力总览", to: "/capabilities" },
-      { label: "架构路线图", to: "/architecture-roadmap" },
+      { label: "AI 对冲基金", to: "/ai-hedge-fund", navId: "ai_hedge_fund" },
+      { label: "War Room", to: "/war-room", feature: "feature_war_room" },
+      { label: "语音简报", to: "/voice-briefing", navId: "voice_briefing" },
+      { label: "Agent 中心", to: "/agent-center", navId: "agent_center" },
+      { label: "研究画布", to: "/research-canvas", navId: "research_canvas" },
     ],
   },
   {
@@ -67,53 +70,34 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "智能选股", to: "/stock-selector" },
       { label: "模拟观察单", to: "/signal-observations" },
       { label: "策略向导", to: "/strategy-wizard" },
-      { label: "Alpha Factory", to: "/alpha-factory" },
+      { label: "Alpha Factory", to: "/alpha-factory", navId: "alpha_factory" },
       { label: "因子仓库", to: "/factor-repository" },
       { label: "因子演化", to: "/factor-evolution" },
       { label: "因子市场", to: "/marketplace", feature: "feature_alpha_marketplace" },
-      { label: "实验报告", to: "/experiments" },
-      { label: "数据湖健康", to: "/data-lake-health" },
+      { label: "参数优化", to: "/optimize" },
+      { label: "数据湖健康", to: "/data-lake-health", navId: "data_lake_health" },
       { label: "归因面板", to: "/attribution-dashboard" },
-      { label: "专业工作台", to: "/professional-workbench" },
     ],
   },
   {
     label: "我的",
     icon: "👤",
     items: [
+      { label: "零售助理", to: "/retail-assistant" },
+      { label: "个人中心", to: "/profile" },
       { label: "任务中心", to: "/task-center" },
       { label: "消息中心", to: "/message-center" },
       { label: "预警中心", to: "/alert-center" },
-      { label: "协作空间", to: "/collaboration-workspace" },
-      { label: "研究画布", to: "/research-canvas" },
-      { label: "研究闭环", to: "/research-pipeline" },
-      { label: "个人中心", to: "/profile" },
-      { label: "用户管理", to: "/user-management" },
-      { label: "用户光谱", to: "/user-spectrum-hub" },
-      { label: "券商管理", to: "/stocks-manage" },
-      { label: "等级·精品", to: "/user-tiers/boutique" },
-      { label: "等级·投资", to: "/user-tiers/investment" },
-      { label: "等级·基金", to: "/user-tiers/fund" },
-      { label: "等级·机构", to: "/user-tiers/institution" },
-    ],
-  },
-  {
-    label: "工具",
-    icon: "🔧",
-    items: [
-      { label: "观测台", to: "/observability" },
-      { label: "集成中枢", to: "/integration-hub" },
-      { label: "能力总览", to: "/capabilities" },
-      { label: "架构路线图", to: "/architecture-roadmap" },
-      { label: "归因面板", to: "/attribution-dashboard" },
-      { label: "优化器", to: "/optimize" },
-      { label: "投资笔记", to: "/moments" },
-      { label: "零售助理", to: "/retail-assistant" },
-      { label: "UI 展示", to: "/ui-showcase" },
-      { label: "专业工作台", to: "/professional-workbench" },
-      { label: "简洁面板", to: "/zen-dashboard" },
-      { label: "简洁终端", to: "/zen-terminal" },
-      { label: "投资组合谐振", to: "/portfolio-resonance" },
+      { label: "协作空间", to: "/collaboration-workspace", navId: "collaboration_workspace" },
+      { label: "等级·精品", to: "/user-tiers/boutique", navId: "user_tiers" },
+      { label: "等级·投资", to: "/user-tiers/investment", navId: "user_tiers" },
+      { label: "等级·基金", to: "/user-tiers/fund", navId: "user_tiers" },
+      { label: "等级·机构", to: "/user-tiers/institution", navId: "user_tiers" },
+      { label: "投资经理", to: "/investment-managers", navId: "investment_managers" },
+      { label: "观测台", to: "/observability", navId: "observability" },
+      { label: "集成中枢", to: "/integration-hub", navId: "integration_hub" },
+      { label: "投资笔记", to: "/moments", navId: "moments" },
+      { label: "简洁终端", to: "/zen-terminal", navId: "zen_terminal" },
     ],
   },
 ];
@@ -138,9 +122,13 @@ function DropdownGroup({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const visibleItems = group.items.filter(
-    (item) => !item.feature || features[item.feature]
+  const visibleItems = group.items.filter((item) =>
+    isNavItemVisible(features, item.navId, item.feature),
   );
+
+  if (visibleItems.length === 0) {
+    return null;
+  }
 
   return (
     <div ref={ref} className="relative">
@@ -215,7 +203,7 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
                 features={featureMap}
                 onClose={() => {}}
               />
-            ))}
+            )).filter(Boolean)}
           </nav>
 
           {/* Right Side */}
@@ -264,15 +252,18 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
         {/* ── Mobile Nav ────────────────────────────────────────── */}
         {mobileOpen && (
           <div className="lg:hidden border-t border-[var(--quant-nav-border)] bg-[var(--quant-nav-bg)] px-4 py-4 space-y-4">
-            {NAV_GROUPS.map((group) => (
+            {NAV_GROUPS.map((group) => {
+              const items = group.items.filter((item) =>
+                isNavItemVisible(featureMap, item.navId, item.feature),
+              );
+              if (items.length === 0) return null;
+              return (
               <div key={group.label}>
                 <div className="text-xs font-bold text-[var(--quant-muted)] uppercase tracking-wider mb-2">
                   {group.icon} {group.label}
                 </div>
                 <div className="grid grid-cols-2 gap-1">
-                  {group.items
-                    .filter((item) => !item.feature || featureMap[item.feature])
-                    .map((item) => (
+                  {items.map((item) => (
                       <Link
                         key={item.label}
                         to={item.to ?? item.href!}
@@ -284,7 +275,8 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
                     ))}
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </header>

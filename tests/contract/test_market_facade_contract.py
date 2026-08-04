@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock
-from app.application.facades.market_data_facade import MarketDataFacade
+from app.application.facade.market_data_facade import MarketDataFacade
 from app.presentation.dto.response import ResponseEnvelope
 
 def test_get_market_intelligence_contract():

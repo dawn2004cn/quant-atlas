@@ -13,7 +13,11 @@ class _FakeStore:
         return self._items[:limit]
 
 
-def test_alert_center_collects_factor_and_task_failure_alerts() -> None:
+def test_alert_center_collects_factor_and_task_failure_alerts(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "app.modules.market_data.services.quotes_dump_metrics.get_quotes_dump_stats",
+        lambda: {"full_dump_count": 0},
+    )
     store = _FakeStore(
         [
             {
@@ -48,7 +52,11 @@ def test_alert_center_collects_factor_and_task_failure_alerts() -> None:
     assert feed.counts_by_category.get("factor") == 1
 
 
-def test_alert_center_adds_data_freshness_warning() -> None:
+def test_alert_center_adds_data_freshness_warning(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "app.modules.market_data.services.quotes_dump_metrics.get_quotes_dump_stats",
+        lambda: {"full_dump_count": 0},
+    )
     service = AlertCenterService(
         message_store_factory=lambda: _FakeStore([]),
         freshness_checker=lambda _table, _minutes=15: False,
@@ -58,7 +66,11 @@ def test_alert_center_adds_data_freshness_warning() -> None:
     assert any(item.category == "data" for item in feed.items)
 
 
-def test_alert_center_respects_min_level_filter() -> None:
+def test_alert_center_respects_min_level_filter(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "app.modules.market_data.services.quotes_dump_metrics.get_quotes_dump_stats",
+        lambda: {"full_dump_count": 0},
+    )
     store = _FakeStore(
         [
             {
@@ -79,3 +91,32 @@ def test_alert_center_respects_min_level_filter() -> None:
     )
     feed = service.list_alerts(limit=10, min_level="critical", include_system_probes=False)
     assert feed.total == 0
+    assert all(item.level == "critical" for item in feed.items)
+
+
+def test_alert_center_includes_quotes_dump_warning(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "app.modules.market_data.services.quotes_dump_metrics.get_quotes_dump_stats",
+        lambda: {
+            "full_dump_count": 4,
+            "last_full_dump_at": "2026-08-03T12:00:00Z",
+            "last_full_dump_market": "CN",
+            "last_full_dump_rows": 5000,
+            "backend": "memory",
+        },
+    )
+    monkeypatch.setattr(
+        "app.core.runtime_config.get_runtime_int",
+        lambda key, default=0: 2 if "THRESHOLD" in key else default,
+    )
+    service = AlertCenterService(
+        message_store_factory=lambda: _FakeStore([]),
+        freshness_checker=lambda _table, _minutes=15: True,
+    )
+    feed = service.list_alerts(limit=10, include_system_probes=False)
+    dump_items = [i for i in feed.items if i.id == "data:quotes:full_dump"]
+    assert len(dump_items) == 1
+    assert dump_items[0].category == "data"
+    assert dump_items[0].level == "warning"
+    assert "quotes/page" in dump_items[0].message
+    assert dump_items[0].meta.get("action_url") == "/observability"

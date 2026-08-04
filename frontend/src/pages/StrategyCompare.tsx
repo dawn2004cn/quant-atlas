@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import useSWR from "swr";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 import type { BacktestCompareRow } from "../types/backtest";
 
@@ -23,12 +24,23 @@ export function StrategyComparePage() {
   const [startDate, setStartDate] = useState("2024-01-01");
   const [endDate, setEndDate] = useState("2025-12-31");
   const [strategies, setStrategies] = useState(DEFAULT_STRATEGIES.join("\n"));
+  const inFlightRef = useRef(false);
 
   const stratList = strategies.split("\n").map((s) => s.trim()).filter(Boolean);
 
   const { data, error, isLoading, mutate } = useSWR(
     stratList.length ? ["compare", symbol, startDate, endDate, stratList.join(",")] : null,
-    () => compareStrategies(symbol, stratList, startDate, endDate),
+    async () => {
+      if (inFlightRef.current) {
+        return undefined as unknown as { comparisons: BacktestCompareRow[]; winner?: string | null };
+      }
+      inFlightRef.current = true;
+      try {
+        return await compareStrategies(symbol, stratList, startDate, endDate);
+      } finally {
+        inFlightRef.current = false;
+      }
+    },
   );
 
   const rows = data?.comparisons ?? [];
@@ -36,6 +48,8 @@ export function StrategyComparePage() {
 
   return (
     <div className="space-y-5">
+      <CoreWorkflowStrip />
+      <PageQuickNav items={QUICK_NAV_PRESETS.strategyCompare} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">策略对比</h1>
@@ -59,7 +73,7 @@ export function StrategyComparePage() {
         </div>
         <div>
           <label className="text-xs font-semibold text-slate-500">&nbsp;</label>
-          <button type="button" className="btn btn-primary btn-sm w-full" onClick={() => mutate()}>对比</button>
+          <button type="button" className="btn btn-primary btn-sm w-full" disabled={isLoading} onClick={() => { if (isLoading || inFlightRef.current) return; void mutate(); }}>对比</button>
         </div>
       </div>
 

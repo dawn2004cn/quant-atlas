@@ -35,6 +35,20 @@
     --negative: #ff6b6b;
     --warning: #ffd166;
     --danger: #ff6b6b;
+    --info: #5aa7ff;
+
+    /* Semantic tones (dump / health / alerts) */
+    --tone-ok: var(--positive);
+    --tone-warn: var(--warning);
+    --tone-danger: var(--danger);
+    --tone-info: var(--info);
+    --tone-ok-soft: rgba(85, 228, 139, 0.12);
+    --tone-warn-soft: rgba(255, 209, 102, 0.12);
+    --tone-danger-soft: rgba(255, 107, 107, 0.12);
+    --tone-info-soft: rgba(90, 167, 255, 0.12);
+    --tone-ok-border: rgba(85, 228, 139, 0.30);
+    --tone-warn-border: rgba(255, 209, 102, 0.35);
+    --tone-danger-border: rgba(255, 107, 107, 0.35);
 
     --shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
     --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.3);
@@ -84,6 +98,19 @@
     --negative: #dc2626;
     --warning: #d97706;
     --danger: #dc2626;
+    --info: #2563eb;
+
+    --tone-ok: var(--positive);
+    --tone-warn: var(--warning);
+    --tone-danger: var(--danger);
+    --tone-info: var(--info);
+    --tone-ok-soft: rgba(22, 163, 74, 0.10);
+    --tone-warn-soft: rgba(217, 119, 6, 0.10);
+    --tone-danger-soft: rgba(220, 38, 38, 0.10);
+    --tone-info-soft: rgba(37, 99, 235, 0.10);
+    --tone-ok-border: rgba(22, 163, 74, 0.28);
+    --tone-warn-border: rgba(217, 119, 6, 0.30);
+    --tone-danger-border: rgba(220, 38, 38, 0.30);
 
     --shadow: 0 20px 64px rgba(15, 23, 42, 0.11);
     --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.04);

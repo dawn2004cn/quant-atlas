@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type Capability = {
@@ -58,6 +59,7 @@ export default function CapabilitiesPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.capabilities} />
       <div>
         <h1 className="page-title">系统能力</h1>
         <p className="text-sm text-slate-500 mt-1">查看系统核心组件与能力注册表状态</p>

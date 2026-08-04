@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import useSWR from "swr";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { fetchExperiment, fetchExperiments } from "../lib/api";
 import type { ExperimentDetail } from "../types/experiment";
 
@@ -60,6 +61,8 @@ export function ExperimentReportPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <CoreWorkflowStrip />
+      <PageQuickNav items={QUICK_NAV_PRESETS.experimentReport} />
       <div>
         <h1 className="text-2xl font-bold">实验报告</h1>
         <p className="text-sm text-zinc-500">投研实验列表与权益曲线 · `/api/v1/experiments`</p>

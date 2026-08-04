@@ -2,13 +2,6 @@
 
 {% block title %}AI 投资委员会决策流 - Quant Atlas{% endblock %}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/vendor/marked.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js" crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='js/qa_markdown_safe.js') }}"></script>
-{{ super() }}
-{% endblock %}
-
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/research.css') }}">
 {% endblock %}
@@ -21,6 +14,14 @@
 {% endblock %}
 
 {% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.ai_analysis'), 'label': 'AI 诊股', 'primary': true},
+    {'href': url_for('pages.ai_research_report'), 'label': '研究报告'},
+    {'href': url_for('pages.signal_observations'), 'label': '观察单'},
+    {'href': url_for('pages.backtest'), 'label': '回测'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 {% for h in ux_env_hints|default([]) %}
 <div class="qc-ux-banner qc-ux-banner--info">
     <div class="qc-ux-banner__title">{{ h.title }}</div>
@@ -179,6 +180,12 @@
 {% endblock %}
 
 {% block extra_js %}
+<script id="lazyMarkdownConfig" type="application/json" nonce="{{ csp_nonce() }}">{{ {
+    'marked': url_for('static', filename='js/vendor/marked.min.js'),
+    'purify': 'https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js'
+}|tojson }}</script>
+<script defer src="{{ url_for('static', filename='js/lazy_markdown.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/qa_markdown_safe.js') }}"></script>
 <script nonce="{{ csp_nonce() }}">
 async function startDebate() {
     const symbol = document.getElementById('symbolInput').value.trim();
@@ -202,6 +209,10 @@ async function startDebate() {
         const data = json.data !== undefined ? json.data : json;
         if (!data || !Array.isArray(data.steps) || !data.consensus) {
             throw new Error('返回结构不符合预期（缺少 steps/consensus）');
+        }
+
+        if (typeof loadMarkdownLibs === 'function') {
+            await loadMarkdownLibs();
         }
 
         for (let i = 0; i < data.steps.length; i++) {

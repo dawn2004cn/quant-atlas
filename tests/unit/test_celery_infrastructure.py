@@ -98,6 +98,21 @@ class TestBeatRegistry:
         assert entry["options"]["queue"] == "low"
         assert entry["kwargs"]["key"] == "val"
 
+    def test_register_unwraps_nested_kwargs_dict(self):
+        """register(..., kwargs={...}) must not nest under Celery beat kwargs."""
+        Registry = self._import()
+        from celery.schedules import crontab
+        Registry.clear()
+        Registry.register(
+            "nested-compat",
+            "app.tasks.nested.run",
+            crontab(minute="*"),
+            kwargs={"dump_qlib_bin": False, "limit": 10},
+        )
+        entry = Registry.get_task("nested-compat").as_beat_entry
+        assert entry["kwargs"] == {"dump_qlib_bin": False, "limit": 10}
+        assert "kwargs" not in entry["kwargs"]
+
     def test_thread_safety(self):
         Registry = self._import()
         from celery.schedules import crontab

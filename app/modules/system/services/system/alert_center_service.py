@@ -44,6 +44,7 @@ class AlertCenterService:
         items: list[AlertEventDTO] = []
         items.extend(self._alerts_from_task_messages(limit=limit * 2))
         items.extend(self._alerts_from_data_freshness())
+        items.extend(self._alerts_from_quotes_dump())
         items.extend(self._alerts_from_cross_team())
         if include_system_probes:
             items.extend(self._alerts_from_system_probes())
@@ -155,6 +156,47 @@ class AlertCenterService:
                 occurred_at="",
             )
         ]
+
+    def _alerts_from_quotes_dump(self) -> list[AlertEventDTO]:
+        """Surface legacy full-market /quotes dump pressure as a data-category alert."""
+        try:
+            from app.core.runtime_config import get_runtime_int
+            from app.modules.market_data.services.quotes_dump_metrics import get_quotes_dump_stats
+
+            stats = get_quotes_dump_stats() or {}
+            dump_n = int(stats.get("full_dump_count") or 0)
+            threshold = max(1, int(get_runtime_int("QUOTES_FULL_DUMP_WARN_THRESHOLD", 1)))
+            if dump_n < threshold:
+                return []
+            market = stats.get("last_full_dump_market") or "?"
+            rows = stats.get("last_full_dump_rows")
+            rows_note = f"，最近一次 {market} rows={rows}" if rows is not None else ""
+            return [
+                AlertEventDTO(
+                    id="data:quotes:full_dump",
+                    level="warning",
+                    category="data",
+                    title="全量 /quotes 调用偏多",
+                    message=(
+                        f"累计 dump {dump_n} 次（阈值≥{threshold}）{rows_note}，"
+                        "请改用 quotes/page"
+                    )[:2000],
+                    source="quotes_dump_metrics",
+                    occurred_at=str(stats.get("last_full_dump_at") or ""),
+                    meta={
+                        "full_dump_count": dump_n,
+                        "threshold": threshold,
+                        "backend": stats.get("backend"),
+                        "action_url": "/observability",
+                        "preferred_endpoint": "quotes/page",
+                    },
+                )
+            ]
+        except Exception as exc:
+            from app.core.logger import get_logger
+
+            get_logger(__name__).debug("quotes dump alert: %s", exc)
+            return []
 
     def _alerts_from_cross_team(self) -> list[AlertEventDTO]:
         if self._cross_team is None:

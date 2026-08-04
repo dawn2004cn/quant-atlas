@@ -1,4 +1,8 @@
-"""Services configuration."""
+"""Services configuration — sole entry for the runtime ``Services`` container.
+
+Use :func:`create_services` only. Do not import the inner ``Services`` class or
+use ``from app.bootstrap_components.services import *`` (architecture gate).
+"""
 
 from __future__ import annotations
 
@@ -75,25 +79,9 @@ def create_services(
             }
             initialize_all_modules(self, session_factory=None, config=_registry_config)
 
-            try:
-                from app.bootstrap_components.service_wiring import wire_recommendation_service
-                wire_recommendation_service(self)
-            except Exception:
-                logger.warning("Recommendation service wiring failed", exc_info=True)
-            try:
-                from app.bootstrap_components.wiring_optimization import wire_optimization_services
-                wire_optimization_services(self)
-            except Exception as exc:
-                logger.debug("Optimization wiring skipped: %s", exc)
+            from app.bootstrap_components.post_wire_hooks import run_post_wire_hooks
 
-            # FastPath wiring handled in wiring_optimization
-
-            # Wire Strategy SOP Service (Cognitive Governance)
-            try:
-                from app.bootstrap_components.wiring_strategy import wire_strategy_sop
-                wire_strategy_sop()
-            except Exception as exc:
-                logger.warning("Strategy SOP wiring failed: %s", exc)
+            run_post_wire_hooks(self)
 
             self._eager_resolve_required(reg)
             validate_service_readiness(self)

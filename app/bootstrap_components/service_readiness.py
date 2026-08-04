@@ -25,13 +25,24 @@ REQUIRED_SERVICE_ATTRS: tuple[str, ...] = (
     "stock_group_service",
 )
 
-# Wired when possible; routes use require_ctx_service → 400 if missing.
+# Wired when possible; routes use @service_fallback / deps_service_fallback if missing.
 OPTIONAL_SERVICE_ATTRS: tuple[str, ...] = (
     "data_infrastructure_service",
     "user_lifecycle_service",
     "risk_service",
     "integration_stack_service",
     "research_report_rag_service",
+    "global_market_service",
+    "recommendation_service",
+    "strategy_shadow_service",
+    "ten_kings_sniper_service",
+    "watchlist_agent_service",
+    "user_knowledge_service",
+    "ai_committee_service",
+    "self_healing_execution_service",
+    "manifest_service_10",
+    "perception_resonance_service",
+    "evolution_arbiter_service",
 )
 
 # Gated by AppSettings / env (qlib, rdagent, etc.) — never fail bootstrap.
@@ -103,6 +114,45 @@ def validate_service_readiness(services: Any, *, strict: bool | None = None) -> 
     )
     report.raise_if_strict()
     return report
+
+
+def inspect_service_readiness(services: Any) -> ServiceReadinessReport:
+    """Inspect readiness without raising (for health/observability endpoints)."""
+    missing_required = tuple(
+        name for name in REQUIRED_SERVICE_ATTRS if getattr(services, name, None) is None
+    )
+    missing_optional = tuple(
+        name for name in OPTIONAL_SERVICE_ATTRS if getattr(services, name, None) is None
+    )
+    return ServiceReadinessReport(
+        missing_required=missing_required,
+        missing_optional=missing_optional,
+        strict=False,
+    )
+
+
+def build_public_health_payload(services: Any) -> dict[str, Any]:
+    """Public liveness JSON — ``status`` stays ``ok`` when HTTP handler is up."""
+    report = inspect_service_readiness(services)
+    critical_missing = [
+        name for name in CRITICAL_RESOLVE_SERVICES if getattr(services, name, None) is None
+    ]
+    if report.missing_required or critical_missing:
+        deployment_status = "critical"
+    elif report.missing_optional:
+        deployment_status = "degraded"
+    else:
+        deployment_status = "ok"
+
+    return {
+        "status": "ok",
+        "deployment_status": deployment_status,
+        "services": {
+            "required_missing": list(report.missing_required),
+            "optional_missing": list(report.missing_optional),
+            "critical_missing": critical_missing,
+        },
+    }
 
 
 @dataclass(frozen=True)

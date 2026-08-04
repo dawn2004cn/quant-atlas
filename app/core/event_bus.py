@@ -165,6 +165,29 @@ class MarketRegimeChangedEvent(Event):
     ttl_seconds: float | None = 3600.0
 
 
+@dataclass
+class StrategyRegimeMismatchEvent(Event):
+    """Strategy design category no longer matches the active market regime."""
+    strategy_id: str = ""
+    strategy_name: str = ""
+    current_regime: str = ""
+    recommended_category: str = ""
+    priority: int = EVENT_PRIORITY_HIGH
+    ttl_seconds: float | None = 3600.0
+
+
+@dataclass
+class NotificationSendEvent(Event):
+    """User-facing notification for WebSocket or in-app delivery."""
+    user_id: str = ""
+    title: str = ""
+    message: str = ""
+    level: str = "info"
+    action_url: str | None = None
+    priority: int = EVENT_PRIORITY_NORMAL
+    ttl_seconds: float | None = 300.0
+
+
 # ── Quant Atlas 4.0 arbitration / truth events ───────────────────────────
 
 @dataclass
@@ -316,6 +339,8 @@ _EVENT_TYPES: dict[str, type[Event]] = {
         PositionChangedEvent,
         MarketDataUpdatedEvent,
         MarketRegimeChangedEvent,
+        StrategyRegimeMismatchEvent,
+        NotificationSendEvent,
         DebateRoundEvent,
         TruthDeviationEvent,
         AnalysisStaleEvent,

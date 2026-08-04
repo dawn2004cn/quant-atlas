@@ -25,7 +25,16 @@
 </div>
 {% endfor %}
 
-<section class="qc-ux-onboarding" aria-label="AI 诊股使用提示">
+{% endfor %}
+
+{% set quick_nav_items = [
+    {'href': url_for('pages.backtest'), 'label': '策略回测', 'primary': true},
+    {'href': url_for('pages.signal_observations'), 'label': '观察单'},
+    {'href': url_for('pages.self_stocks'), 'label': '自选股'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
+<section class="qc-ux-onboarding" aria-label="AI 诊股使用提示" data-ux-onboarding="ai-analysis">
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
         <div class="qc-ux-step-title">先填代码与市场</div>
@@ -42,9 +51,9 @@
 
 <div class="ai-page">
     <section class="ai-hero">
-        <div class="hero-caption">Cognitive Intelligence</div>
+        <div class="hero-caption">AI Research Assistant</div>
         <h1 class="page-title">{{ _('ai_analysis.title') }}</h1>
-        <p class="page-subtitle">{{ _('ai_analysis.hero_page_subtitle') }}</p>
+        <p class="page-subtitle">多智能体证据链分析 — 技术、基本面、情绪与风险维度综合研判。</p>
     </section>
 
     <section class="section-shell p-4">
@@ -117,6 +126,10 @@
             <div id="summaryText" class="markdown-body text-lg line-height-relaxed aa-summary-min"></div>
         </div>
 
+        <div id="aiNextSteps" class="qa-is-hidden">
+            {% include "partials/core_next_steps.html" %}
+        </div>
+
         <div class="evidence-layout" id="evidenceArea">
             <aside class="trust-card">
                 <div class="text-xs font-black uppercase opacity-70 mb-2">{{ _('ai_analysis.trust_score') }}</div>
@@ -163,10 +176,13 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/trace_link.js') }}"></script>
-<script src="{{ url_for('static', filename='js/vendor/marked.min.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js" crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='js/qa_markdown_safe.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/trace_link.js') }}"></script>
+<script id="lazyMarkdownConfig" type="application/json" nonce="{{ csp_nonce() }}">{{ {
+    'marked': url_for('static', filename='js/vendor/marked.min.js'),
+    'purify': 'https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js'
+}|tojson }}</script>
+<script defer src="{{ url_for('static', filename='js/lazy_markdown.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/qa_markdown_safe.js') }}"></script>
 <script nonce="{{ csp_nonce() }}">
 function aiHideError() {
     $('#aiGlobalError').hide().empty();
@@ -248,6 +264,11 @@ async function runAnalysis() {
     aiHideError();
     $('#reqStatus').text('{{ _("ai_analysis.status_running") }}').addClass('run');
     $('#resultShell').show();
+    $('#aiNextSteps').show();
+    const symEnc = encodeURIComponent(symbol);
+    const mktEnc = encodeURIComponent(market);
+    $('#aiNextSteps a[href*="backtest"]').first().attr('href', '/backtest?symbol=' + symEnc);
+    $('#aiNextSteps a[href*="ai-analysis"]').attr('href', '/ai-analysis?symbol=' + symEnc + '&market=' + mktEnc);
     $('#summaryText').html('<div class="loading-tile">Thinking...</div>');
     $('#hypothesisPanel').hide();
 
@@ -255,7 +276,7 @@ async function runAnalysis() {
         const body = Object.assign({ symbol: symbol, market: market }, hypothesisPayload());
         const res = await fetch('/api/v1/ai/analyze', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{csrf_token()}}'},
             body: JSON.stringify(body)
         });
         let json = {};
@@ -276,6 +297,9 @@ async function runAnalysis() {
             return;
         }
         const analysis = json.data?.ai?.analysis || json.analysis || '';
+        if (typeof loadMarkdownLibs === 'function') {
+            await loadMarkdownLibs();
+        }
         $('#summaryText').html(renderMarkdownSafe(analysis, '<p class="text-muted">（空结论）</p>'));
         $('#reqStatus').text('{{ _("ai_analysis.status_success") }}').removeClass('run').addClass('ok');
         renderHypothesisEvaluation(json.data?.hypothesis_evaluation);

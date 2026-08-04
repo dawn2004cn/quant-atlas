@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type StackLayer = {
@@ -93,6 +94,7 @@ export default function IntegrationHub() {
 
   return (
     <div className="space-y-6">
+      <PageQuickNav items={QUICK_NAV_PRESETS.integrationHub} />
       <div>
         <h1 className="page-title">集成中枢</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">系统组件状态、数据层、任务监控</p>

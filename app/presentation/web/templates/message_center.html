@@ -14,6 +14,13 @@
 {% endblock %}
 
 {% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.observability'), 'label': '观测台', 'primary': true},
+    {'href': url_for('pages.task_center'), 'label': '任务中心'},
+    {'href': url_for('pages.daily_workbench'), 'label': '操盘台'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 <div id="mcGlobalError" class="qa-is-hidden qc-ux-banner qc-ux-banner--danger" role="alert"></div>
 {% for h in ux_env_hints|default([]) %}
 <div class="qc-ux-banner qc-ux-banner--info">

@@ -3,6 +3,7 @@
 Services in this group:
   active_job_tracker_service, alert_center_service,
   alert_notification_service, data_truth_guardian_service,
+  notification_service,
   failure_memory_service, memory_optimization_service,
   mesh_gateway_service, payment_orchestrator, pool_service,
   realtime_gateway_service, system_health_banner_service,

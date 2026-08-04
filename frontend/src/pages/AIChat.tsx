@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -126,6 +127,7 @@ export function AIChatPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.aiChat} />
       <div>
         <h1 className="text-2xl font-bold">AI 对话</h1>
         <p className="text-sm text-zinc-500">与投资研究助手自然语言交流</p>

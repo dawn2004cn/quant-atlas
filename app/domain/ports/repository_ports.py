@@ -54,7 +54,17 @@ class IBasicMarketDataRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def list_longhu_by_date(self, trade_date: str, *, limit: int = 500) -> list[dict[str, Any]]:
+    def list_longhu_by_date(
+        self,
+        trade_date: str,
+        *,
+        limit: int = 500,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def count_longhu_by_date(self, trade_date: str) -> int:
         raise NotImplementedError
 
     @abstractmethod

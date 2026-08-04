@@ -94,8 +94,16 @@ def register_blueprints(app: Flask, settings: Any = None, api_bundle: Any = None
             enable_rd_agent=getattr(settings, "enable_rd_agent", False),
         )
         app.register_blueprint(api_blueprint)
+        from app.bootstrap_components.service_readiness import is_strict_bootstrap
+        from app.presentation.api.routes import apply_v1_route_contract
+
+        apply_v1_route_contract(app, strict=is_strict_bootstrap())
     except Exception as e:
-        logger.warning("Could not register API blueprint: %s", e, exc_info=True)
+        from app.bootstrap_components.service_readiness import is_strict_bootstrap
+
+        logger.error("Could not register API blueprint: %s", e, exc_info=True)
+        if is_strict_bootstrap():
+            raise
 
     # Register legacy API blueprint (/api/* compatibility routes)
     try:

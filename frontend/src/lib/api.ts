@@ -48,6 +48,38 @@ export class ApiError extends Error {
   }
 }
 
+const inflightRequests = new Map<string, Promise<Response>>();
+
+/** Identical in-flight GET/HEAD, and identical POST/PUT/PATCH (same URL+body), share one network call. */
+function coalescedFetch(input: string, init?: RequestInit): Promise<Response> {
+  const method = (init?.method || "GET").toUpperCase();
+  const body = init?.body;
+  if (
+    method !== "GET" &&
+    method !== "HEAD" &&
+    method !== "POST" &&
+    method !== "PUT" &&
+    method !== "PATCH"
+  ) {
+    return fetch(input, init);
+  }
+  if (body != null && typeof body !== "string") {
+    return fetch(input, init);
+  }
+  const key = `${method} ${input} ${typeof body === "string" ? body : ""}`;
+  const existing = inflightRequests.get(key);
+  if (existing) {
+    return existing;
+  }
+  const pending = fetch(input, init).finally(() => {
+    if (inflightRequests.get(key) === pending) {
+      inflightRequests.delete(key);
+    }
+  });
+  inflightRequests.set(key, pending);
+  return pending;
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
@@ -58,7 +90,7 @@ export async function apiFetch<T>(
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(path, {
+  const response = await coalescedFetch(path, {
     ...options,
     credentials: "same-origin",
     headers,
@@ -66,7 +98,13 @@ export async function apiFetch<T>(
 
   const json = (await response.json().catch(() => ({}))) as ApiEnvelope<T>;
   if (!response.ok) {
-    const message = json?.error?.message || `\u8bf7\u6c42\u5931\u8d25 (${response.status})`;
+    if (response.status === 404) {
+      throw new ApiError("接口未注册或暂时不可用", 404);
+    }
+    if (response.status === 401) {
+      throw new ApiError("请先登录后再操作", 401);
+    }
+    const message = json?.error?.message || `请求失败 (${response.status})`;
     throw new ApiError(message, response.status);
   }
   return unwrap<T>(json);
@@ -178,12 +216,60 @@ export async function fetchMarketPanorama(): Promise<{ data: import("../types/ma
   return apiFetch<{ data: import("../types/market").MarketPanorama }>("/api/v1/markets/CN/panorama");
 }
 
+export async function fetchMarketQuotesPage(params: {
+  page?: number;
+  page_size?: number;
+  sort?: string;
+  order?: "asc" | "desc";
+  filter?: string;
+  scope?: "market" | "watchlist";
+  symbols?: string[];
+}): Promise<import("../types/market").MarketQuotesPage> {
+  const q = new URLSearchParams();
+  q.set("page", String(params.page ?? 1));
+  q.set("page_size", String(params.page_size ?? 40));
+  if (params.sort) q.set("sort", params.sort);
+  if (params.order) q.set("order", params.order);
+  if (params.filter) q.set("filter", params.filter);
+  if (params.scope) q.set("scope", params.scope);
+  for (const sym of params.symbols ?? []) {
+    if (sym) q.append("symbol", sym);
+  }
+  return apiFetchV1<import("../types/market").MarketQuotesPage>(`/markets/CN/quotes/page?${q}`);
+}
+
 export async function fetchMarketSentiment(): Promise<{ data: { score?: number; level?: string; description?: string } }> {
   return apiFetch<{ data: { score?: number; level?: string; description?: string } }>("/api/v1/markets/CN/sentiment");
 }
 
 export async function fetchMarketHeadlines(limit = 40): Promise<{ data: { items?: Array<{ title?: string; summary?: string; source?: string }> } }> {
   return apiFetch(`/api/v1/markets/CN/headlines?limit=${limit}`);
+}
+
+export async function fetchLonghuPage(params: {
+  page?: number;
+  page_size?: number;
+  date?: string;
+}): Promise<{
+  items: Array<{
+    code?: string;
+    name?: string;
+    reason?: string;
+    trade_date?: string;
+    updated_at?: string;
+    detail?: Record<string, unknown>;
+  }>;
+  total: number;
+  page: number;
+  page_size: number;
+  trade_date?: string;
+  available_dates?: string[];
+}> {
+  const q = new URLSearchParams();
+  q.set("page", String(params.page ?? 1));
+  q.set("page_size", String(params.page_size ?? 48));
+  if (params.date) q.set("date", params.date);
+  return apiFetchV1(`/market/longhu?${q}`);
 }
 
 export async function fetchAlphaFactoryStatus(): Promise<AlphaFactoryStatus> {
@@ -376,9 +462,14 @@ export async function fetchStockHistory(
   market = "CN",
   count = 120,
 ): Promise<unknown> {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - Math.ceil(count * 2.2) - 40);
   const query = new URLSearchParams({
     market,
     count: String(count),
+    start_date: start.toISOString().slice(0, 10),
+    end_date: end.toISOString().slice(0, 10),
   });
   return apiFetch(`/api/v2/stocks/${encodeURIComponent(symbol)}/history?${query}`);
 }
@@ -436,9 +527,26 @@ export async function fetchCeleryTaskStatus(taskId: string): Promise<CeleryTaskS
   return apiFetchV1(`/system/celery/task/${encodeURIComponent(taskId)}`);
 }
 
-async function waitForBacktestTask(taskId: string): Promise<BacktestResult> {
-  for (let attempt = 0; attempt < 45; attempt += 1) {
+export type BacktestProgress = {
+  taskId: string;
+  attempt: number;
+  maxAttempts: number;
+  state?: string;
+};
+
+async function waitForBacktestTask(
+  taskId: string,
+  onProgress?: (progress: BacktestProgress) => void,
+): Promise<BacktestResult> {
+  const maxAttempts = 45;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const status = await fetchCeleryTaskStatus(taskId);
+    onProgress?.({
+      taskId,
+      attempt: attempt + 1,
+      maxAttempts,
+      state: status.state || (status.ready ? "READY" : "PENDING"),
+    });
     if (status.ready) {
       if (status.successful && status.result && typeof status.result === "object") {
         return status.result as BacktestResult;
@@ -455,12 +563,22 @@ async function waitForBacktestTask(taskId: string): Promise<BacktestResult> {
 export async function runBacktest(
   payload: BacktestRequest,
   asyncMode = false,
+  onProgress?: (progress: BacktestProgress) => void,
 ): Promise<BacktestResult> {
   const suffix = asyncMode ? "?async=1" : "";
+  const idempotencyKey = [
+    "bt",
+    payload.symbol,
+    payload.strategy_name,
+    payload.start,
+    payload.end,
+    String(payload.initial_capital ?? ""),
+  ].join(":");
   const data = await apiFetch<BacktestResult | BacktestAsyncEnvelope>(
     `/api/v2/strategies/backtest${suffix}`,
     {
       method: "POST",
+      headers: asyncMode ? { "Idempotency-Key": idempotencyKey } : undefined,
       body: JSON.stringify({
         symbol: payload.symbol,
         strategy_name: payload.strategy_name,
@@ -468,13 +586,20 @@ export async function runBacktest(
         start: payload.start,
         end: payload.end,
         initial_capital: payload.initial_capital,
+        ...(asyncMode ? { idempotency_key: idempotencyKey } : {}),
       }),
     },
   );
   if (data && typeof data === "object") {
     const envelope = data as BacktestAsyncEnvelope;
     if (envelope.status === "queued" && envelope.task_id) {
-      return waitForBacktestTask(envelope.task_id);
+      onProgress?.({
+        taskId: envelope.task_id,
+        attempt: 0,
+        maxAttempts: 45,
+        state: "QUEUED",
+      });
+      return waitForBacktestTask(envelope.task_id, onProgress);
     }
     if (envelope.result && typeof envelope.result === "object") {
       return envelope.result;

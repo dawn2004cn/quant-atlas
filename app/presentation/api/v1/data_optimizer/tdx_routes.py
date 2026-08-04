@@ -6,7 +6,7 @@ from flask import Blueprint, request
 from flask_login import login_required
 
 from app.domain.enums import MarketCode
-from app.modules.system.services.helpers.data_optimizer_access import (
+from app.modules.data.services.helpers.data_optimizer_access import (
     build_tdx_history_adapter,
     build_tdx_optimized_adapter,
 )

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import useSWR from "swr";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -52,6 +53,8 @@ export function AIResearchReportPage() {
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
+      <CoreWorkflowStrip />
+      <PageQuickNav items={QUICK_NAV_PRESETS.aiResearchReport} />
       <div>
         <h1 className="text-2xl font-bold">AI 研究报告</h1>
         <p className="text-sm text-zinc-500">生成专业的个股研究报告</p>

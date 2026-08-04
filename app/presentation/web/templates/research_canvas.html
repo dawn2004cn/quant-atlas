@@ -28,7 +28,8 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/vendor/socket.io.min.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/lazy_socketio.js') }}"
+        data-socketio-src="{{ url_for('static', filename='js/vendor/socket.io.min.js') }}"></script>
 <script type="module" nonce="{{ csp_nonce() }}">
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'https://esm.sh/react@18.3.1';
 import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
@@ -200,95 +201,107 @@ function ResearchCanvas() {
     const { screenToFlowPosition } = useReactFlow();
 
     useEffect(() => {
-        try {
-            const socket = io({ transports: ['websocket', 'polling'] });
-            socketRef.current = socket;
-            socket.on('connect', () => {
-                setSocketConnected(true);
-                socket.emit('subscribe', { room: 'canvas', symbols: [] });
-            });
-            socket.on('disconnect', () => setSocketConnected(false));
-            socket.on('canvas_update', (data) => {
-                if (data.node_id) {
-                    setNodes((nds) => nds.map((n) =>
-                        n.id === data.node_id ? { ...n, data: { ...n.data, ...data.updates } } : n
-                    ));
+        let cancelled = false;
+        let heartbeat = null;
+        let socket = null;
+
+        const connect = async () => {
+            try {
+                if (typeof loadSocketIo === 'function') {
+                    await loadSocketIo();
                 }
-            });
-            socket.on('mesh_event', (data) => {
-                setNodes((nds) => nds.map((n) => {
-                    if (n.data.nodeType === 'agent_team' && data.event_name) {
-                        return { ...n, data: { ...n.data, lastEvent: data.event_name, status: 'running' } };
+                if (cancelled || typeof io !== 'function') return;
+                socket = io({ transports: ['websocket', 'polling'] });
+                socketRef.current = socket;
+                socket.on('connect', () => {
+                    setSocketConnected(true);
+                    socket.emit('subscribe', { room: 'canvas', symbols: [] });
+                });
+                socket.on('disconnect', () => setSocketConnected(false));
+                socket.on('canvas_update', (data) => {
+                    if (data.node_id) {
+                        setNodes((nds) => nds.map((n) =>
+                            n.id === data.node_id ? { ...n, data: { ...n.data, ...data.updates } } : n
+                        ));
                     }
-                    return n;
-                }));
-            });
-            
-            // 10.0 Neural Resonance events
-            socket.on('canvas_resonance_update', (data) => {
-                const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-                const evt = {
-                    time,
-                    type: 'resonance',
-                    label: '共鸣触发',
-                    detail: `${data.action_type} (相似度 ${(data.similarity * 100).toFixed(1)}%)`,
-                    priority: data.similarity > 0.8 ? 'high' : data.similarity > 0.7 ? 'medium' : 'low',
-                };
-                setResonanceEvents((evts) => [evt, ...evts].slice(0, 100));
-                
-                // Update node status if symbol matches
-                const symbol = data.trigger_vector?.metadata?.symbol;
-                if (symbol) {
+                });
+                socket.on('mesh_event', (data) => {
+                    setNodes((nds) => nds.map((n) => {
+                        if (n.data.nodeType === 'agent_team' && data.event_name) {
+                            return { ...n, data: { ...n.data, lastEvent: data.event_name, status: 'running' } };
+                        }
+                        return n;
+                    }));
+                });
+
+                socket.on('canvas_resonance_update', (data) => {
+                    const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+                    const evt = {
+                        time,
+                        type: 'resonance',
+                        label: '共鸣触发',
+                        detail: `${data.action_type} (相似度 ${(data.similarity * 100).toFixed(1)}%)`,
+                        priority: data.similarity > 0.8 ? 'high' : data.similarity > 0.7 ? 'medium' : 'low',
+                    };
+                    setResonanceEvents((evts) => [evt, ...evts].slice(0, 100));
+
+                    const symbol = data.trigger_vector?.metadata?.symbol;
+                    if (symbol) {
+                        setNodes((nds) => nds.map((n) =>
+                            n.data.config?.symbols === symbol ? { ...n, data: { ...n.data, status: 'live', lastEvent: 'resonance' } } : n
+                        ));
+                    }
+                });
+
+                socket.on('canvas_research_trigger_update', (data) => {
+                    const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+                    const evt = {
+                        time,
+                        type: 'research_trigger',
+                        label: '研究触发',
+                        detail: `${data.symbol} - ${data.trigger_type} (置信度 ${(data.confidence * 100).toFixed(1)}%)`,
+                        priority: data.confidence > 0.8 ? 'high' : 'medium',
+                    };
+                    setResonanceEvents((evts) => [evt, ...evts].slice(0, 100));
+
                     setNodes((nds) => nds.map((n) =>
-                        n.data.config?.symbols === symbol ? { ...n, data: { ...n.data, status: 'live', lastEvent: 'resonance' } } : n
+                        n.data.nodeType === 'agent_team' ? { ...n, data: { ...n.data, status: 'running', lastEvent: 'research_triggered' } } : n
                     ));
-                }
-            });
-            
-            socket.on('canvas_research_trigger_update', (data) => {
-                const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-                const evt = {
-                    time,
-                    type: 'research_trigger',
-                    label: '研究触发',
-                    detail: `${data.symbol} - ${data.trigger_type} (置信度 ${(data.confidence * 100).toFixed(1)}%)`,
-                    priority: data.confidence > 0.8 ? 'high' : 'medium',
-                };
-                setResonanceEvents((evts) => [evt, ...evts].slice(0, 100));
-                
-                // Update node status for research nodes
-                setNodes((nds) => nds.map((n) =>
-                    n.data.nodeType === 'agent_team' ? { ...n, data: { ...n.data, status: 'running', lastEvent: 'research_triggered' } } : n
-                ));
-            });
-            
-            socket.on('canvas_execution_update', (data) => {
-                const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-                const isFailover = data.event_type === 'execution_failover';
-                const isRecovery = data.event_type === 'execution_recovery';
-                const evt = {
-                    time,
-                    type: 'execution',
-                    label: isFailover ? '执行故障转移' : isRecovery ? '场所恢复' : '执行更新',
-                    detail: isFailover
-                        ? `${data.symbol}: ${data.original_venue} → ${data.failover_venue}`
-                        : isRecovery
-                        ? `${data.venue_id}: ${data.previous_status} → ${data.new_status}`
-                        : JSON.stringify(data).slice(0, 80),
-                    priority: isFailover ? 'high' : isRecovery ? 'low' : 'medium',
-                };
-                setResonanceEvents((evts) => [evt, ...evts].slice(0, 100));
-                
-                // Update trading account nodes
-                if (data.symbol) {
-                    setNodes((nds) => nds.map((n) =>
-                        n.data.nodeType === 'trading_account' ? { ...n, data: { ...n.data, status: isFailover ? 'error' : 'live', lastEvent: data.event_type } } : n
-                    ));
-                }
-            });
-            const heartbeat = setInterval(() => socket.emit('heartbeat'), 25000);
-            return () => { clearInterval(heartbeat); socket.disconnect(); };
-        } catch (e) { /* silent: SocketIO unavailable */ }
+                });
+
+                socket.on('canvas_execution_update', (data) => {
+                    const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+                    const isFailover = data.event_type === 'execution_failover';
+                    const isRecovery = data.event_type === 'execution_recovery';
+                    const evt = {
+                        time,
+                        type: 'execution',
+                        label: isFailover ? '执行故障转移' : isRecovery ? '场所恢复' : '执行更新',
+                        detail: isFailover
+                            ? `${data.symbol}: ${data.original_venue} → ${data.failover_venue}`
+                            : isRecovery
+                            ? `${data.venue_id}: ${data.previous_status} → ${data.new_status}`
+                            : JSON.stringify(data).slice(0, 80),
+                        priority: isFailover ? 'high' : isRecovery ? 'low' : 'medium',
+                    };
+                    setResonanceEvents((evts) => [evt, ...evts].slice(0, 100));
+
+                    if (data.symbol) {
+                        setNodes((nds) => nds.map((n) =>
+                            n.data.nodeType === 'trading_account' ? { ...n, data: { ...n.data, status: isFailover ? 'error' : 'live', lastEvent: data.event_type } } : n
+                        ));
+                    }
+                });
+                heartbeat = setInterval(() => socket.emit('heartbeat'), 25000);
+            } catch (e) { /* silent: SocketIO unavailable */ }
+        };
+
+        connect();
+        return () => {
+            cancelled = true;
+            if (heartbeat) clearInterval(heartbeat);
+            if (socket) socket.disconnect();
+        };
     }, []);
 
     const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);

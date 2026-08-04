@@ -56,6 +56,7 @@ class ErrorCode(str, Enum):
             ErrorCode.VALIDATION_ERROR: 400,
             ErrorCode.INTERNAL_ERROR: 500,
             ErrorCode.EXTERNAL_SERVICE_ERROR: 503,
+            ErrorCode.SERVICE_UNAVAILABLE: 503,
         }
         return mapping.get(self, 400)
 

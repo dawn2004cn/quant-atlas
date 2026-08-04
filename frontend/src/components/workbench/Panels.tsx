@@ -139,31 +139,56 @@ export function MacroRow({ data }: { data: WorkbenchSnapshot }) {
 
 export function HealthBanner({ data }: { data: WorkbenchSnapshot }) {
   const banner = data.health_banner;
-  if (!banner?.headline) return null;
-  const level = banner.level ?? "ok";
+  const headline = banner?.headline || banner?.message;
+  if (!headline) return null;
+  const level = banner?.level ?? "ok";
   const isCritical = level === "critical";
   const isWarning = level === "warning";
+  const toneClass = isCritical
+    ? "qa-tone-banner--danger"
+    : isWarning
+      ? "qa-tone-banner--warn"
+      : "qa-tone-banner--ok";
 
   return (
-    <div className={`rounded-xl border px-4 py-3 text-sm ${
-      isCritical
-        ? "border-rose-500/20 bg-rose-500/5"
-        : isWarning
-          ? "border-amber-500/20 bg-amber-500/5"
-          : "border-emerald-500/20 bg-emerald-500/5"
-    }`}>
-      <div className="flex items-center gap-2">
-        <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-          isCritical ? "bg-rose-500/20 text-rose-400" :
-          isWarning ? "bg-amber-500/20 text-amber-400" :
-          "bg-emerald-500/20 text-emerald-400"
-        }`}>
+    <div className={`qa-tone-banner ${toneClass}`}>
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
+          style={{
+            background: isCritical
+              ? "var(--tone-danger-soft)"
+              : isWarning
+                ? "var(--tone-warn-soft)"
+                : "var(--tone-ok-soft)",
+            color: isCritical
+              ? "var(--tone-danger)"
+              : isWarning
+                ? "var(--tone-warn)"
+                : "var(--tone-ok)",
+          }}
+        >
           {isCritical ? "!" : isWarning ? "!" : "✓"}
         </span>
-        <strong className={isCritical ? "text-rose-300" : isWarning ? "text-amber-300" : "text-emerald-300"}>
-          {banner.headline}
+        <strong
+          style={{
+            color: isCritical
+              ? "var(--tone-danger)"
+              : isWarning
+                ? "var(--tone-warn)"
+                : "var(--tone-ok)",
+          }}
+        >
+          {headline}
         </strong>
-        {banner.summary ? <span className="text-zinc-500">{banner.summary}</span> : null}
+        {banner?.summary ? (
+          <span className="text-[var(--quant-muted)]">{banner.summary}</span>
+        ) : null}
+        {banner?.quotes_full_dump_warn ? (
+          <span className="font-mono text-[10px]" style={{ color: "var(--tone-warn)" }}>
+            dump={banner.quotes_full_dump_count ?? 0}/thr={banner.quotes_full_dump_threshold ?? 1}
+          </span>
+        ) : null}
       </div>
     </div>
   );

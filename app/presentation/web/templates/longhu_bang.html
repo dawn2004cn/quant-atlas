@@ -1,199 +1,237 @@
 {% extends "base.html" %}
+
+{% block title %}龙虎榜 - Quant Atlas{% endblock %}
 {% block spa_switcher %}
 <a href="/app/longhu-bang" class="spa-switcher-link"
    data-spa-switcher="longhu-bang">
   试试新版 &#8594;
 </a>
 {% endblock %}
-
-
-{% block title %}龙虎姒?- Quant Atlas{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
-{% endblock %}
-
-{% block content %}
-<div id="lhbGlobalError" class="qc-ux-banner qc-ux-banner--danger qa-is-hidden" role="alert"></div>
-{% for h in ux_env_hints|default([]) %}
-<div class="qc-ux-banner qc-ux-banner--info">
-    <div class="qc-ux-banner__title">{{ h.title }}</div>
-    <div class="qc-ux-banner__body">{{ h.body }}</div>
-    {% if h.href and h.label %}
-    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
-    {% endif %}
-</div>
-{% endfor %}
-
-<section class="qc-ux-onboarding" aria-label="龙虎榜与主流程联鍔?>
-    <div class="qc-ux-step">
-        <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">对照操盘鍙?/div>
-        <p class="qc-ux-step-desc">首页操盘台有龙虎榜摘要卡片；先看资金结构再点开个股日线銆?/p>
-        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘鍙?/a>
-    </div>
-    <div class="qc-ux-step">
-        <span class="qc-ux-step-num">2</span>
-        <div class="qc-ux-step-title">个股里看上榜原因</div>
-        <p class="qc-ux-step-desc">在个股详情可结合买卖计划与诊股；无数据时可点「同步数据」或等待收盘后定时入库銆?/p>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.market_panorama') }}">市场全景</a>
-        <a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>
-    </div>
-</section>
-
-<section class="section-shell lhb-hero">
-    <div class="hero-caption">Market Flow</div>
-    <h1 class="page-title">龙虎姒?/h1>
-    <p class="page-subtitle">基础数据层定时入库（AkShare 东财明细），供行情页与六分析师工鍏?<code>get_cn_longhu_for_symbol</code> 使用</p>
-    <div id="lhbFreshnessStrip" class="qc-freshness-strip market-freshness-strip--hero qa-is-hidden" aria-live="polite"></div>
-    <div id="lhbActiveJobs" class="market-jobs-hint market-jobs-hint--hero"></div>
-</section>
-
-<section class="section-shell">
-    <div class="lhb-toolbar">
-        <div>
-            <label class="label field-label" for="lhbDatePick">交易鏃?/label>
-            <input type="date" id="lhbDatePick" class="input-soft lhb-date-input">
-        </div>
-        <button type="button" class="btn-brand" id="lhbLoadBtn">刷新列表</button>
-        <button type="button" class="btn-soft" id="lhbRefreshDataBtn" title="触发服务端入搴?>同步数据</button>
-    </div>
-    <div id="lhbSyncProgress" class="market-sync-progress"></div>
-    <div class="date-strip" id="lhbDateChips"></div>
-    <div id="lhbSummary" class="panel-subtitle mt-2">--</div>
-    <div class="lhb-grid mt-3" id="lhbGrid">
-        <div class="empty-hint">加载中鈥?/div>
-    </div>
-</section>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{{ url_for('static', filename='js/task_feedback.js') }}"></script>
-<script nonce="{{ csp_nonce() }}">
-function pickData(res) { return res.data !== undefined ? res.data : res; }
-
-function lhbHideError() {
-    $('#lhbGlobalError').hide().empty();
-}
-function lhbShowError(msg) {
-    const safe = $('<div/>').text(msg || '未知错误').html();
-    $('#lhbGlobalError').html(
-        '<div class="qc-ux-banner__title">龙虎榜加载失璐?/div>' +
-        '<div class="qc-ux-banner__body">' + safe + '</div>' +
-        '<button type="button" class="btn-brand btn-sm" data-lhb-action="retry">重试</button> ' +
-        '<a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>'
-    ).show();
-}
-
-function renderCards(items, tradeDate) {
-    const $g = $('#lhbGrid');
-    if (!items || !items.length) {
-        $g.html(
-            '<div class="empty-hint">暂无数据。可点击「同步数据」或等待定时任务（约 17:00）銆?/div>' +
-            '<div class="empty-hint empty-hint--compact">' +
-            '<a class="btn-brand btn-sm" href="{{ url_for("pages.daily_workbench") }}">操盘鍙?/a> ' +
-            '<a class="btn-soft btn-sm" href="/message-center">消息中心</a>' +
-            '</div>'
-        );
-        return;
-    }
-    $g.html(items.map(it => `
-        <article class="lhb-card">
-            <div class="d-flex justify-content-between align-items-start">
-                <span class="lhb-pill">${tradeDate || it.trade_date || ''}</span>
-                <div class="lhb-card-actions">
-                <a class="btn-soft btn-compact" href="/stock/${it.code}?m=CN">行情</a>
-                <a class="btn-soft btn-compact" href="/stock/${encodeURIComponent(it.code)}?m=CN#decision-brief-strip">简鎶?/a>
-                </div>
-            </div>
-            <div class="lhb-code">${it.code}</div>
-            <div class="lhb-name">${it.name || '鈥?}</div>
-            <div class="lhb-reason">${it.reason || (it.detail && it.detail['上榜原因']) || '鈥?}</div>
-            <div class="lhb-meta">更新 ${it.updated_at || ''}</div>
-        </article>
-    `).join(''));
-}
-
-function loadLonghu(dateStr) {
-    lhbHideError();
-    const q = dateStr ? ('?date=' + encodeURIComponent(dateStr)) : '';
-    $.getJSON('/api/v1/market/longhu' + q).done(function(res) {
-        const d = pickData(res);
-        const td = d.trade_date;
-        const items = d.items || [];
-        $('#lhbSummary').text(td ? `鍏?${items.length} 鏉?· 交易鏃?${td}` : '库中暂无龙虎榜数鎹?);
-        renderCards(items, td);
-        if (window.QAUserCenter) {
-            QAUserCenter.renderEvidenceFeedFreshness(
-                document.getElementById('lhbFreshnessStrip'),
-                d,
-                '龙虎姒?
-            );
-        }
-        const chips = d.available_dates || [];
-        const $strip = $('#lhbDateChips').empty();
-        chips.slice(0, 18).forEach(dt => {
-            const active = dt === td ? 'active' : '';
-            $strip.append(`<button type="button" class="date-chip ${active}" data-d="${dt}">${dt}</button>`);
-        });
-    }).fail(function(xhr) {
-        const detail = (xhr && xhr.responseJSON && xhr.responseJSON.message)
-            ? String(xhr.responseJSON.message)
-            : (xhr.statusText || '网络或服务异甯?);
-        lhbShowError(detail);
-        $('#lhbGrid').html(
-            '<div class="empty-hint">加载失败（请登录后重试）</div>' +
-            '<div class="empty-hint empty-hint--retry"><button type="button" class="btn-brand btn-sm" data-lhb-action="retry">重试</button></div>'
-        );
-    });
-}
-
-$(function() {
-    const t = new Date().toISOString().split('T')[0];
-    $('#lhbDatePick').val(t);
-    if (window.QAUserCenter) {
-        QAUserCenter.mountActiveJobsPanel('lhbActiveJobs', 5);
-    }
-    loadLonghu('');
-
-    $('#lhbLoadBtn').on('click', function() {
-        const v = $('#lhbDatePick').val();
-        loadLonghu(v || '');
-    });
-    $('#lhbDateChips').on('click', '.date-chip', function() {
-        const d = $(this).data('d');
-        $('#lhbDatePick').val(d);
-        loadLonghu(d);
-    });
-    $('#lhbRefreshDataBtn').on('click', function() {
-        const $b = $(this).prop('disabled', true);
-        const prog = document.getElementById('lhbSyncProgress');
-        if (prog) prog.innerHTML = '<div class="mini-label">正在提交同步任务鈥?/div>';
-        const done = function() {
-            if (window.updateNavMessageBadge) window.updateNavMessageBadge();
-            loadLonghu($('#lhbDatePick').val() || '');
-            $b.prop('disabled', false);
-        };
-        if (window.QAUserCenter && window.QAUserCenter.runBasicDataRefresh) {
-            QAUserCenter.runBasicDataRefresh('longhu', { element: prog, onComplete: done })
-                .catch(function() { done(); });
-            return;
-        }
-        $.ajax({
-            url: '/api/v1/market/basic-data/refresh',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({ kind: 'longhu' }),
-            success: done,
-            complete: function() { $b.prop('disabled', false); }
-        });
-    });
-    document.addEventListener('click', function (e) {
-        const el = e.target.closest('[data-lhb-action]');
-        if (!el || el.dataset.lhbAction !== 'retry') return;
-        lhbHideError();
-        loadLonghu(document.getElementById('lhbDatePick').value || '');
-    });
-});
-</script>
-{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/market.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="lhbGlobalError" class="qc-ux-banner qc-ux-banner--danger qa-is-hidden" role="alert"></div>
+{% for h in ux_env_hints|default([]) %}
+<div class="qc-ux-banner qc-ux-banner--info">
+    <div class="qc-ux-banner__title">{{ h.title }}</div>
+    <div class="qc-ux-banner__body">{{ h.body }}</div>
+    {% if h.href and h.label %}
+    <a class="btn-soft btn-sm" href="{{ h.href }}">{{ h.label }}</a>
+    {% endif %}
+</div>
+{% endfor %}
+
+<section class="qc-ux-onboarding" aria-label="龙虎榜与主流程联动" data-ux-onboarding="longhu-bang">
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">1</span>
+        <div class="qc-ux-step-title">对照操盘台</div>
+        <p class="qc-ux-step-desc">首页操盘台有龙虎榜摘要卡片；先看资金结构再点开个股日线。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.daily_workbench') }}">今日操盘台</a>
+    </div>
+    <div class="qc-ux-step">
+        <span class="qc-ux-step-num">2</span>
+        <div class="qc-ux-step-title">个股里看上榜原因</div>
+        <p class="qc-ux-step-desc">在个股详情可结合买卖计划与诊股；无数据时可点「同步数据」或等待收盘后定时入库。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">自选股</a>
+    </div>
+</section>
+
+{% set quick_nav_items = [
+    {'href': url_for('pages.market_panorama'), 'label': '市场全景', 'primary': true},
+    {'href': url_for('pages.hot_sectors'), 'label': '热点板块'},
+    {'href': url_for('pages.ai_analysis'), 'label': 'AI 诊股'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
+<section class="section-shell lhb-hero">    <div class="hero-caption">Market Flow</div>
+    <h1 class="page-title">龙虎榜</h1>
+    <p class="page-subtitle">基础数据层定时入库（AkShare 东财明细），供行情页与六分析师工具 <code>get_cn_longhu_for_symbol</code> 使用</p>
+    <div id="lhbFreshnessStrip" class="qc-freshness-strip market-freshness-strip--hero qa-is-hidden" aria-live="polite"></div>
+    <div id="lhbActiveJobs" class="market-jobs-hint market-jobs-hint--hero"></div>
+</section>
+
+<section class="section-shell">
+    <div class="lhb-toolbar">
+        <div>
+            <label class="label field-label" for="lhbDatePick">交易日</label>
+            <input type="date" id="lhbDatePick" class="input-soft lhb-date-input">
+        </div>
+        <button type="button" class="btn-brand" id="lhbLoadBtn">刷新列表</button>
+        <button type="button" class="btn-soft" id="lhbRefreshDataBtn" title="触发服务端入库">同步数据</button>
+    </div>
+    <div id="lhbSyncProgress" class="market-sync-progress"></div>
+    <div class="date-strip" id="lhbDateChips"></div>
+    <div id="lhbSummary" class="panel-subtitle mt-2">--</div>
+    <div class="lhb-grid mt-3" id="lhbGrid">
+        <div class="empty-hint">加载中…</div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-3" id="lhbPager"></div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/task_feedback.js') }}"></script>
+<script nonce="{{ csp_nonce() }}">
+function pickData(res) { return res.data !== undefined ? res.data : res; }
+
+let lhbPage = 1;
+const lhbPageSize = 48;
+let lhbTotal = 0;
+
+function renderLhbPager(page, total, pageSize) {
+    const pages = Math.max(1, Math.ceil((total || 0) / (pageSize || lhbPageSize)));
+    const $p = $('#lhbPager').empty();
+    if (pages <= 1) return;
+    $p.append(
+        '<button type="button" class="btn-soft btn-sm" data-lhb-page="' + Math.max(1, page - 1) + '" ' +
+        (page <= 1 ? 'disabled' : '') + '>上一页</button>' +
+        '<span class="mini-label mx-2">' + page + ' / ' + pages + '</span>' +
+        '<button type="button" class="btn-soft btn-sm" data-lhb-page="' + Math.min(pages, page + 1) + '" ' +
+        (page >= pages ? 'disabled' : '') + '>下一页</button>'
+    );
+}
+
+function lhbHideError() {
+    $('#lhbGlobalError').hide().empty();
+}
+function lhbShowError(msg) {
+    const safe = $('<div/>').text(msg || '未知错误').html();
+    $('#lhbGlobalError').html(
+        '<div class="qc-ux-banner__title">龙虎榜加载失败</div>' +
+        '<div class="qc-ux-banner__body">' + safe + '</div>' +
+        '<button type="button" class="btn-brand btn-sm" data-lhb-action="retry">重试</button> ' +
+        '<a class="btn-soft btn-sm" href="/integration-hub">集成中枢</a>'
+    ).show();
+}
+
+function renderCards(items, tradeDate) {
+    const $g = $('#lhbGrid');
+    if (!items || !items.length) {
+        $g.html(
+            '<div class="empty-hint">暂无数据。可点击「同步数据」或等待定时任务（约 17:00）。</div>' +
+            '<div class="empty-hint empty-hint--compact">' +
+            '<a class="btn-brand btn-sm" href="{{ url_for("pages.daily_workbench") }}">操盘台</a> ' +
+            '<a class="btn-soft btn-sm" href="/message-center">消息中心</a>' +
+            '</div>'
+        );
+        return;
+    }
+    $g.html(items.map(it => `
+        <article class="lhb-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="lhb-pill">${tradeDate || it.trade_date || ''}</span>
+                <div class="lhb-card-actions">
+                <a class="btn-soft btn-compact" href="/stock/${it.code}?m=CN">行情</a>
+                <a class="btn-soft btn-compact" href="/stock/${encodeURIComponent(it.code)}?m=CN#decision-brief-strip">简报</a>
+                </div>
+            </div>
+            <div class="lhb-code">${it.code}</div>
+            <div class="lhb-name">${it.name || '—'}</div>
+            <div class="lhb-reason">${it.reason || (it.detail && it.detail['上榜原因']) || '—'}</div>
+            <div class="lhb-meta">更新 ${it.updated_at || ''}</div>
+        </article>
+    `).join(''));
+}
+
+function loadLonghu(dateStr, page) {
+    lhbHideError();
+    const pg = page || lhbPage || 1;
+    lhbPage = pg;
+    const params = new URLSearchParams({ page: String(pg), page_size: String(lhbPageSize) });
+    if (dateStr) params.set('date', dateStr);
+    $.getJSON('/api/v1/market/longhu?' + params.toString()).done(function(res) {
+        const d = pickData(res);
+        const td = d.trade_date;
+        const items = d.items || [];
+        lhbTotal = d.total != null ? d.total : items.length;
+        $('#lhbSummary').text(td ? `共 ${lhbTotal} 条 · 第 ${pg} 页 · 交易日 ${td}` : '库中暂无龙虎榜数据');
+        renderCards(items, td);
+        renderLhbPager(pg, lhbTotal, d.page_size || lhbPageSize);
+        if (window.QAUserCenter) {
+            QAUserCenter.renderEvidenceFeedFreshness(
+                document.getElementById('lhbFreshnessStrip'),
+                d,
+                '龙虎榜'
+            );
+        }
+        const chips = d.available_dates || [];
+        const $strip = $('#lhbDateChips').empty();
+        chips.slice(0, 18).forEach(dt => {
+            const active = dt === td ? 'active' : '';
+            $strip.append(`<button type="button" class="date-chip ${active}" data-d="${dt}">${dt}</button>`);
+        });
+    }).fail(function(xhr) {
+        const detail = (xhr && xhr.responseJSON && xhr.responseJSON.message)
+            ? String(xhr.responseJSON.message)
+            : (xhr.statusText || '网络或服务异常');
+        lhbShowError(detail);
+        $('#lhbGrid').html(
+            '<div class="empty-hint">加载失败（请登录后重试）</div>' +
+            '<div class="empty-hint empty-hint--retry"><button type="button" class="btn-brand btn-sm" data-lhb-action="retry">重试</button></div>'
+        );
+    });
+}
+
+$(function() {
+    const t = new Date().toISOString().split('T')[0];
+    $('#lhbDatePick').val(t);
+    if (window.QAUserCenter) {
+        QAUserCenter.mountActiveJobsPanel('lhbActiveJobs', 5);
+    }
+    loadLonghu('', 1);
+
+    $('#lhbLoadBtn').on('click', function() {
+        const v = $('#lhbDatePick').val();
+        lhbPage = 1;
+        loadLonghu(v || '', 1);
+    });
+    $('#lhbDateChips').on('click', '.date-chip', function() {
+        const d = $(this).data('d');
+        $('#lhbDatePick').val(d);
+        lhbPage = 1;
+        loadLonghu(d, 1);
+    });
+    $('#lhbRefreshDataBtn').on('click', function() {
+        const $b = $(this).prop('disabled', true);
+        const prog = document.getElementById('lhbSyncProgress');
+        if (prog) prog.innerHTML = '<div class="mini-label">正在提交同步任务…</div>';
+        const done = function() {
+            if (window.updateNavMessageBadge) window.updateNavMessageBadge();
+            loadLonghu($('#lhbDatePick').val() || '', lhbPage);
+            $b.prop('disabled', false);
+        };
+        if (window.QAUserCenter && window.QAUserCenter.runBasicDataRefresh) {
+            QAUserCenter.runBasicDataRefresh('longhu', { element: prog, onComplete: done })
+                .catch(function() { done(); });
+            return;
+        }
+        $.ajax({
+            url: '/api/v1/market/basic-data/refresh',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ kind: 'longhu' }),
+            success: done,
+            complete: function() { $b.prop('disabled', false); }
+        });
+    });
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-lhb-action]');
+        if (el && el.dataset.lhbAction === 'retry') {
+            lhbHideError();
+            loadLonghu(document.getElementById('lhbDatePick').value || '', lhbPage);
+            return;
+        }
+        const pgBtn = e.target.closest('[data-lhb-page]');
+        if (pgBtn) {
+            const next = parseInt(pgBtn.getAttribute('data-lhb-page'), 10);
+            if (!Number.isNaN(next)) {
+                loadLonghu(document.getElementById('lhbDatePick').value || '', next);
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

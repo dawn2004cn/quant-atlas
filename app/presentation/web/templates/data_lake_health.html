@@ -1,581 +1,344 @@
-<!DOCTYPE html>
-
-<html lang="zh-CN">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Data Lake Health - QuantAtlas</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/design-tokens.css') }}">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/data-lake.css') }}">
-
-</head>
-
-<body>
-
-    <div class="health-container">
-
-        <h1>📊 Data Lake Health Monitor</h1>
-
-        <p>统一数据湖完整性、QuestDB 时序库、WebSocket 推送与迁移状态。</p>
-
-
-
-        <div id="ts-warn-banner" class="warn-banner"></div>
-
-
-
-        <div class="status-card">
-
-            <h3>SQLite 数据湖</h3>
-
-            <div class="status-grid" id="health-grid">
-
-                <div class="status-item">
-
-                    <div class="status-label">Storage Engine</div>
-
-                    <div class="status-value" id="engine-val">Loading...</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">Health Status</div>
-
-                    <div class="status-value" id="status-val">Loading...</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">Migration</div>
-
-                    <div class="status-value" id="migration-val">Loading...</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">P95 Latency</div>
-
-                    <div class="status-value" id="latency-val">Loading...</div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="status-card">
-
-            <h3>QuestDB / 时序同步</h3>
-
-            <div class="status-grid">
-
-                <div class="status-item">
-
-                    <div class="status-label">QuestDB</div>
-
-                    <div class="status-value" id="questdb-val">Loading...</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">OHLCV 行数</div>
-
-                    <div class="status-value" id="questdb-rows-val">—</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">最近同步</div>
-
-                    <div class="status-value dl-status-sm" id="last-sync-val">—</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">同步进度</div>
-
-                    <div class="status-value" id="sync-progress-val">空闲</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">Celery Beat</div>
-
-                    <div class="status-value dl-status-sm" id="celery-beat-val">—</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">QMT 执行</div>
-
-                    <div class="status-value dl-status-sm" id="qmt-exec-val">—</div>
-
-                </div>
-
-            </div>
-
-            <div class="progress-wrap" id="sync-progress-wrap">
-
-                <div class="progress-bar"><div class="progress-fill" id="sync-progress-bar"></div></div>
-
-                <div class="progress-meta" id="sync-progress-meta"></div>
-
-            </div>
-
-            <div id="beat-history-strip" class="muted dl-beat-strip"></div>
-
-            <div class="progress-wrap dl-backfill-mt" id="backfill-target-wrap">
-                <div class="progress-meta" id="backfill-target-meta">Backfill 目标进度 —</div>
-                <div class="progress-bar"><div class="progress-fill" id="backfill-target-bar"></div></div>
-            </div>
-
-        </div>
-
-
-
-        <div class="status-card">
-
-            <h3>实时推送 (WebSocket)</h3>
-
-            <div class="status-grid">
-
-                <div class="status-item">
-
-                    <div class="status-label">SocketIO</div>
-
-                    <div class="status-value" id="socketio-val">Loading...</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">行情广播</div>
-
-                    <div class="status-value" id="quote-broadcast-val">Loading...</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">market 房间</div>
-
-                    <div class="status-value" id="market-room-val">—</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">alerts 房间</div>
-
-                    <div class="status-value" id="alerts-room-val">—</div>
-
-                </div>
-
-                <div class="status-item">
-
-                    <div class="status-label">Tick 流</div>
-
-                    <div class="status-value" id="tick-stream-val">—</div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-
-        <div class="migration-panel">
-
-            <h3>🚀 Legacy Data Migration</h3>
-
-            <p>Consolidate all scattered .db files into the unified lake.</p>
-
-            <button class="btn btn-warning" type="button" data-dlh-action="migrate">Start Full Migration</button>
-
-            <div id="migration-log">Ready for migration...</div>
-
-        </div>
-
+{% extends "base.html" %}
+
+{% block title %}数据湖健康 - Quant Atlas{% endblock %}
+{% block spa_switcher %}
+<a href="/app/data-lake-health" class="spa-switcher-link"
+   data-spa-switcher="data-lake-health">
+  试试新版 →
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/data-lake.css') }}">
+{% endblock %}
+
+{% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.daily_workbench'), 'label': '操盘台', 'primary': true},
+    {'href': url_for('pages.observability'), 'label': '观测台'},
+    {'href': url_for('pages.task_center'), 'label': '任务中心'},
+    {'href': url_for('pages.alert_center'), 'label': '预警中心'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
+<div class="health-container">
+    <div class="qc-hub-hero">
+        <div class="hero-caption">Data Lake</div>
+        <h1 class="page-title">数据湖健康监控</h1>
+        <p class="page-subtitle">统一数据湖完整性、QuestDB 时序库、WebSocket 推送与迁移状态。</p>
     </div>
 
+    <div id="ts-warn-banner" class="warn-banner"></div>
 
+    <div class="status-card">
+        <h3>SQLite 数据湖</h3>
+        <div class="status-grid" id="health-grid">
+            <div class="status-item">
+                <div class="status-label">Storage Engine</div>
+                <div class="status-value" id="engine-val">Loading...</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Health Status</div>
+                <div class="status-value" id="status-val">Loading...</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Migration</div>
+                <div class="status-value" id="migration-val">Loading...</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">P95 Latency</div>
+                <div class="status-value" id="latency-val">Loading...</div>
+            </div>
+        </div>
+    </div>
 
-    <script nonce="{{ csp_nonce() }}">
+    <div class="status-card">
+        <h3>QuestDB / 时序同步</h3>
+        <div class="status-grid">
+            <div class="status-item">
+                <div class="status-label">QuestDB</div>
+                <div class="status-value" id="questdb-val">Loading...</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">OHLCV 行数</div>
+                <div class="status-value" id="questdb-rows-val">—</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">最近同步</div>
+                <div class="status-value dl-status-sm" id="last-sync-val">—</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">同步进度</div>
+                <div class="status-value" id="sync-progress-val">空闲</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Celery Beat</div>
+                <div class="status-value dl-status-sm" id="celery-beat-val">—</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">QMT 执行</div>
+                <div class="status-value dl-status-sm" id="qmt-exec-val">—</div>
+            </div>
+        </div>
+        <div class="progress-wrap" id="sync-progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" id="sync-progress-bar"></div></div>
+            <div class="progress-meta" id="sync-progress-meta"></div>
+        </div>
+        <div id="beat-history-strip" class="muted dl-beat-strip"></div>
+        <div class="progress-wrap dl-backfill-mt" id="backfill-target-wrap">
+            <div class="progress-meta" id="backfill-target-meta">Backfill 目标进度 —</div>
+            <div class="progress-bar"><div class="progress-fill" id="backfill-target-bar"></div></div>
+        </div>
+    </div>
 
-        function setStatus(elId, text, level) {
+    <div class="status-card">
+        <h3>实时推送 (WebSocket)</h3>
+        <div class="status-grid">
+            <div class="status-item">
+                <div class="status-label">SocketIO</div>
+                <div class="status-value" id="socketio-val">Loading...</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">行情广播</div>
+                <div class="status-value" id="quote-broadcast-val">Loading...</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">market 房间</div>
+                <div class="status-value" id="market-room-val">—</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">alerts 房间</div>
+                <div class="status-value" id="alerts-room-val">—</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">Tick 流</div>
+                <div class="status-value" id="tick-stream-val">—</div>
+            </div>
+        </div>
+    </div>
 
-            const el = document.getElementById(elId);
+    <div class="migration-panel">
+        <h3>Legacy 数据迁移</h3>
+        <p>将分散的 .db 文件整合进统一数据湖。</p>
+        <button class="btn btn-warning" type="button" data-dlh-action="migrate">开始全量迁移</button>
+        <div id="migration-log">Ready for migration...</div>
+    </div>
+</div>
+{% endblock %}
 
-            if (!el) return;
+{% block extra_js %}
+<script nonce="{{ csp_nonce() }}">
+function setStatus(elId, text, level) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    el.innerText = text;
+    el.className = 'status-value' + (level ? ' status-' + level : '');
+}
 
-            el.innerText = text;
+async function updateLakeHealth(cached) {
+    try {
+        const raw = cached || await (async function () {
+            const res = await fetch('/api/v1/data-lake/health');
+            return res.json();
+        })();
+        const data = cached ? raw : (raw.data !== undefined ? raw.data : raw);
+        const store = data.store || {};
+        const migration = data.migration || {};
+        const metrics = data.metrics || {};
 
-            el.className = 'status-value' + (level ? ' status-' + level : '');
+        setStatus('engine-val', data.engine || store.type || 'Unknown');
+        const healthy = (data.status || store.status) === 'healthy';
+        setStatus('status-val', data.status || store.status || 'Unknown', healthy ? 'ok' : 'err');
+        setStatus('migration-val', migration.status || '—', migration.status === 'migration_complete' ? 'ok' : 'warn');
+        const p95ms = metrics.p95_latency_ms;
+        setStatus('latency-val', p95ms != null ? (p95ms / 1000).toFixed(3) + 's' : 'N/A');
+    } catch (e) {
+        window.qcLogError && window.qcLogError('Lake health fetch failed', e);
+        setStatus('status-val', 'Error', 'err');
+    }
+}
 
+async function updateTimeseriesHealth(cached) {
+    try {
+        const data = cached || await (async function () {
+            const res = await fetch('/api/v1/data/timeseries-health');
+            const json = await res.json();
+            return json.data || json;
+        })();
+        const q = data.questdb || {};
+        const ohlcv = data.ohlcv_tables || {};
+        const last = data.last_sync || {};
+        const progress = data.sync_progress || {};
+        const beat = data.celery_beat || {};
+        const execution = data.execution || {};
+        const qmt = (execution.qmt) || {};
+        const warnings = data.warnings || [];
+        const backfill = data.backfill || {};
+
+        const banner = document.getElementById('ts-warn-banner');
+        if (warnings.length) {
+            banner.style.display = 'block';
+            banner.textContent = '⚠ ' + warnings.join(' · ');
+        } else {
+            banner.style.display = 'none';
         }
 
+        if (!q.enabled) {
+            setStatus('questdb-val', '未启用', 'warn');
+        } else if (!q.connected) {
+            setStatus('questdb-val', '离线', 'err');
+        } else {
+            setStatus('questdb-val', '在线', 'ok');
+        }
 
+        const rows = ohlcv.questdb_rows;
+        setStatus('questdb-rows-val', rows != null ? Number(rows).toLocaleString() : '—');
 
-        async function updateLakeHealth() {
+        const bfMeta = document.getElementById('backfill-target-meta');
+        const bfBar = document.getElementById('backfill-target-bar');
+        if (bfMeta && bfBar && backfill.target_rows) {
+            const pct = backfill.coverage_pct != null ? backfill.coverage_pct : 0;
+            const tgt = Number(backfill.target_rows).toLocaleString();
+            const met = backfill.meets_target ? '已达标' : '未达标';
+            bfMeta.textContent = 'Backfill ' + met + ' · ' + Number(backfill.questdb_rows || 0).toLocaleString()
+                + ' / ' + tgt + ' 行 (' + pct + '%)';
+            bfBar.style.width = Math.min(100, pct) + '%';
+            bfBar.style.background = backfill.meets_target ? 'var(--positive)' : 'var(--brand)';
+        }
 
-            try {
+        if (last.recorded_at) {
+            const ok = last.ok ? '成功' : '失败';
+            const src = last.source ? ' · ' + last.source : '';
+            const mode = last.mode ? ' · ' + last.mode : '';
+            const rowNote = last.questdb_rows_written != null ? ' · +' + last.questdb_rows_written + '行' : '';
+            setStatus('last-sync-val', last.recorded_at.slice(0, 19) + ' · ' + ok + src + mode + rowNote);
+        } else {
+            setStatus('last-sync-val', '尚无记录', 'warn');
+        }
 
-                const res = await fetch('/api/v1/data-lake/health');
-
-                const data = await res.json();
-
-                const store = data.store || {};
-
-                const migration = data.migration || {};
-
-                const metrics = data.metrics || {};
-
-
-
-                setStatus('engine-val', data.engine || store.type || 'Unknown');
-
-                const healthy = (data.status || store.status) === 'healthy';
-
-                setStatus('status-val', data.status || store.status || 'Unknown', healthy ? 'ok' : 'err');
-
-                setStatus('migration-val', migration.status || '—', migration.status === 'migration_complete' ? 'ok' : 'warn');
-
-                const p95ms = metrics.p95_latency_ms;
-
-                setStatus('latency-val', p95ms != null ? (p95ms / 1000).toFixed(3) + 's' : 'N/A');
-
-            } catch (e) {
-
-                window.qcLogError && window.qcLogError('Lake health fetch failed', e);
-
-                setStatus('status-val', 'Error', 'err');
-
+        if (!beat.enabled) {
+            setStatus('celery-beat-val', 'Beat 关闭', 'warn');
+        } else {
+            let beatLabel = (beat.schedule_label || '16:35') + ' · ' + (beat.celery_beat_key || 'questdb');
+            if (beat.sync_in_progress) {
+                const pct = (beat.sync_progress && beat.sync_progress.percent) || 0;
+                beatLabel += ' · 同步中 ' + pct + '%';
+            } else if (beat.last_beat_run_at) {
+                const ok = beat.last_beat_run_ok ? '✓' : '✗';
+                beatLabel += ' · 上次 ' + String(beat.last_beat_run_at).slice(0, 16) + ' ' + ok;
             }
-
+            setStatus('celery-beat-val', beatLabel, beat.last_beat_run_ok === false ? 'warn' : 'ok');
         }
 
-
-
-        async function updateTimeseriesHealth() {
-
-            try {
-
-                const res = await fetch('/api/v1/data/timeseries-health');
-
-                const json = await res.json();
-
-                const data = json.data || json;
-
-                const q = data.questdb || {};
-
-                const ohlcv = data.ohlcv_tables || {};
-
-                const last = data.last_sync || {};
-
-                const progress = data.sync_progress || {};
-
-                const beat = data.celery_beat || {};
-
-                const execution = data.execution || {};
-
-                const qmt = (execution.qmt) || {};
-
-                const warnings = data.warnings || [];
-                const backfill = data.backfill || {};
-
-
-
-                const banner = document.getElementById('ts-warn-banner');
-
-                if (warnings.length) {
-
-                    banner.style.display = 'block';
-
-                    banner.textContent = '⚠ ' + warnings.join(' · ');
-
-                } else {
-
-                    banner.style.display = 'none';
-
-                }
-
-
-
-                if (!q.enabled) {
-
-                    setStatus('questdb-val', '未启用', 'warn');
-
-                } else if (!q.connected) {
-
-                    setStatus('questdb-val', '离线', 'err');
-
-                } else {
-
-                    setStatus('questdb-val', '在线', 'ok');
-
-                }
-
-                const rows = ohlcv.questdb_rows;
-
-                setStatus('questdb-rows-val', rows != null ? Number(rows).toLocaleString() : '—');
-
-                const bfMeta = document.getElementById('backfill-target-meta');
-                const bfBar = document.getElementById('backfill-target-bar');
-                if (bfMeta && bfBar && backfill.target_rows) {
-                    const pct = backfill.coverage_pct != null ? backfill.coverage_pct : 0;
-                    const tgt = Number(backfill.target_rows).toLocaleString();
-                    const met = backfill.meets_target ? '已达标' : '未达标';
-                    bfMeta.textContent = 'Backfill ' + met + ' · ' + Number(backfill.questdb_rows || 0).toLocaleString()
-                        + ' / ' + tgt + ' 行 (' + pct + '%)';
-                    bfBar.style.width = Math.min(100, pct) + '%';
-                    bfBar.style.background = backfill.meets_target ? 'var(--positive)' : 'var(--brand)';
-                }
-
-
-
-                if (last.recorded_at) {
-
-                    const ok = last.ok ? '成功' : '失败';
-
-                    const src = last.source ? ' · ' + last.source : '';
-
-                    const mode = last.mode ? ' · ' + last.mode : '';
-
-                    const rows = last.questdb_rows_written != null
-                        ? ' · +' + last.questdb_rows_written + '行'
-                        : '';
-
-                    setStatus(
-                        'last-sync-val',
-                        last.recorded_at.slice(0, 19) + ' · ' + ok + src + mode + rows
-                    );
-
-                } else {
-
-                    setStatus('last-sync-val', '尚无记录', 'warn');
-
-                }
-
-
-
-                if (!beat.enabled) {
-
-                    setStatus('celery-beat-val', 'Beat 关闭', 'warn');
-
-                } else {
-                    let beatLabel = (beat.schedule_label || '16:35') + ' · ' + (beat.celery_beat_key || 'questdb');
-                    if (beat.sync_in_progress) {
-                        const pct = (beat.sync_progress && beat.sync_progress.percent) || 0;
-                        beatLabel += ' · 同步中 ' + pct + '%';
-                    } else if (beat.last_beat_run_at) {
-                        const ok = beat.last_beat_run_ok ? '✓' : '✗';
-                        beatLabel += ' · 上次 ' + String(beat.last_beat_run_at).slice(0, 16) + ' ' + ok;
-                    }
-                    setStatus('celery-beat-val', beatLabel, beat.last_beat_run_ok === false ? 'warn' : 'ok');
-                }
-
-                const histEl = document.getElementById('beat-history-strip');
-                const runs = beat.recent_beat_runs || [];
-                if (histEl) {
-                    if (runs.length) {
-                        histEl.textContent = 'Beat 近' + runs.length + '次: ' + runs.map(function (r) {
-                            const mark = r.ok ? '✓' : '✗';
-                            const rows = r.questdb_rows_written != null ? '+' + r.questdb_rows_written : '';
-                            return String(r.recorded_at || '').slice(0, 16) + ' ' + mark + rows;
-                        }).join(' · ');
-                    } else {
-                        histEl.textContent = '';
-                    }
-                }
-
-                const qMode = qmt.execution_mode || 'disabled';
-
-                if (qMode === 'simulation') {
-
-                    setStatus('qmt-exec-val', 'simulation', 'ok');
-
-                } else if (qMode === 'live') {
-
-                    setStatus('qmt-exec-val', 'live', 'warn');
-
-                } else {
-
-                    setStatus('qmt-exec-val', '未配置', 'warn');
-
-                }
-
-
-
-                const wrap = document.getElementById('sync-progress-wrap');
-
-                if (progress.status === 'running') {
-
-                    const pct = progress.percent != null ? progress.percent : 0;
-
-                    setStatus('sync-progress-val', pct + '%', 'warn');
-
-                    wrap.style.display = 'block';
-
-                    document.getElementById('sync-progress-bar').style.width = pct + '%';
-
-                    document.getElementById('sync-progress-meta').textContent =
-
-                        (progress.symbols_done || 0) + ' / ' + (progress.symbols_total || '?') + ' 标的';
-
-                } else {
-
-                    setStatus('sync-progress-val', '空闲', 'ok');
-
-                    wrap.style.display = 'none';
-
-                }
-
-            } catch (e) {
-
-                window.qcLogError && window.qcLogError('Timeseries health fetch failed', e);
-
-                setStatus('questdb-val', 'Error', 'err');
-
+        const histEl = document.getElementById('beat-history-strip');
+        const runs = beat.recent_beat_runs || [];
+        if (histEl) {
+            if (runs.length) {
+                histEl.textContent = 'Beat 近' + runs.length + '次: ' + runs.map(function (r) {
+                    const mark = r.ok ? '✓' : '✗';
+                    const rowCount = r.questdb_rows_written != null ? '+' + r.questdb_rows_written : '';
+                    return String(r.recorded_at || '').slice(0, 16) + ' ' + mark + rowCount;
+                }).join(' · ');
+            } else {
+                histEl.textContent = '';
             }
-
         }
 
-
-
-        async function updateRealtimeHealth() {
-
-            try {
-
-                const res = await fetch('/api/v1/realtime/status');
-
-                const json = await res.json();
-
-                const data = json.data || json;
-
-                setStatus('socketio-val', data.socketio_enabled ? '已启用' : '未启用', data.socketio_enabled ? 'ok' : 'warn');
-
-                const originsOk = data.origins_configured !== false;
-
-                setStatus(
-                    'quote-broadcast-val',
-                    data.quote_broadcast
-                        ? (originsOk ? '开启' : '缺 origins')
-                        : '关闭',
-                    data.quote_broadcast && originsOk ? 'ok' : 'warn'
-                );
-
-                const rooms = data.rooms || {};
-
-                setStatus('market-room-val', String(rooms.market != null ? rooms.market : '—'));
-
-                setStatus('alerts-room-val', String(rooms.alerts != null ? rooms.alerts : '—'));
-
-                const tick = data.tick || {};
-
-                setStatus('tick-stream-val', data.tick_stream ? (tick.status || 'on') : '关闭');
-
-            } catch (e) {
-
-                window.qcLogError && window.qcLogError('Realtime status fetch failed', e);
-
-                setStatus('socketio-val', 'Error', 'err');
-
-            }
-
+        const qMode = qmt.execution_mode || 'disabled';
+        if (qMode === 'simulation') {
+            setStatus('qmt-exec-val', 'simulation', 'ok');
+        } else if (qMode === 'live') {
+            setStatus('qmt-exec-val', 'live', 'warn');
+        } else {
+            setStatus('qmt-exec-val', '未配置', 'warn');
         }
 
-
-
-        async function updateHealth() {
-
-            await Promise.all([updateLakeHealth(), updateTimeseriesHealth(), updateRealtimeHealth()]);
-
+        const wrap = document.getElementById('sync-progress-wrap');
+        if (progress.status === 'running') {
+            const pct = progress.percent != null ? progress.percent : 0;
+            setStatus('sync-progress-val', pct + '%', 'warn');
+            wrap.style.display = 'block';
+            document.getElementById('sync-progress-bar').style.width = pct + '%';
+            document.getElementById('sync-progress-meta').textContent =
+                (progress.symbols_done || 0) + ' / ' + (progress.symbols_total || '?') + ' 标的';
+        } else {
+            setStatus('sync-progress-val', '空闲', 'ok');
+            wrap.style.display = 'none';
         }
+    } catch (e) {
+        window.qcLogError && window.qcLogError('Timeseries health fetch failed', e);
+        setStatus('questdb-val', 'Error', 'err');
+    }
+}
 
+async function updateRealtimeHealth(cached) {
+    try {
+        const data = cached || await (async function () {
+            const res = await fetch('/api/v1/realtime/status');
+            const json = await res.json();
+            return json.data || json;
+        })();
+        setStatus('socketio-val', data.socketio_enabled ? '已启用' : '未启用', data.socketio_enabled ? 'ok' : 'warn');
+        const originsOk = data.origins_configured !== false;
+        setStatus(
+            'quote-broadcast-val',
+            data.quote_broadcast ? (originsOk ? '开启' : '缺 origins') : '关闭',
+            data.quote_broadcast && originsOk ? 'ok' : 'warn'
+        );
+        const rooms = data.rooms || {};
+        setStatus('market-room-val', String(rooms.market != null ? rooms.market : '—'));
+        setStatus('alerts-room-val', String(rooms.alerts != null ? rooms.alerts : '—'));
+        const tick = data.tick || {};
+        setStatus('tick-stream-val', data.tick_stream ? (tick.status || 'on') : '关闭');
+    } catch (e) {
+        window.qcLogError && window.qcLogError('Realtime status fetch failed', e);
+        setStatus('socketio-val', 'Error', 'err');
+    }
+}
 
+async function updateHealth() {
+    try {
+        const res = await fetch('/api/v1/data-lake/dashboard');
+        const json = await res.json();
+        const dash = json.data || json;
+        await Promise.all([
+            updateLakeHealth(dash.lake),
+            updateTimeseriesHealth(dash.timeseries),
+            updateRealtimeHealth(dash.realtime),
+        ]);
+    } catch (e) {
+        window.qcLogError && window.qcLogError('Dashboard health fetch failed, falling back', e);
+        await Promise.all([updateLakeHealth(), updateTimeseriesHealth(), updateRealtimeHealth()]);
+    }
+}
 
-        async function runMigration() {
-
-            const log = document.getElementById('migration-log');
-
-            log.innerHTML = 'Starting migration... Please wait...<br>';
-
-
-
-            try {
-
-                const res = await fetch('/api/v1/data-lake/migrate', { method: 'POST' });
-
-                const data = await res.json();
-
-
-
-                if (data.status === 'completed') {
-
-                    log.innerHTML += `✅ Migration completed successfully!<br>`;
-
-                    log.innerHTML += `Scanned ${data.total_files_scanned} files.<br>`;
-
-                    log.innerHTML += `Migrated ${data.total_rows_migrated} rows.<br>`;
-
-                    (data.details || []).forEach(d => {
-
-                        log.innerHTML += `Migrated ${d.rows} rows from ${d.path}<br>`;
-
-                    });
-
-                } else {
-
-                    log.innerHTML += `❌ Migration failed: ${data.message || 'Unknown error'}<br>`;
-
-                }
-
-                updateLakeHealth();
-
-            } catch (e) {
-
-                log.innerHTML += `❌ Network error: ${e.message}<br>`;
-
-            }
-
+async function runMigration() {
+    const log = document.getElementById('migration-log');
+    log.innerHTML = 'Starting migration... Please wait...<br>';
+    try {
+        const res = await fetch('/api/v1/data-lake/migrate', { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'completed') {
+            log.innerHTML += '✅ Migration completed successfully!<br>';
+            log.innerHTML += 'Scanned ' + data.total_files_scanned + ' files.<br>';
+            log.innerHTML += 'Migrated ' + data.total_rows_migrated + ' rows.<br>';
+            (data.details || []).forEach(function (d) {
+                log.innerHTML += 'Migrated ' + d.rows + ' rows from ' + d.path + '<br>';
+            });
+        } else {
+            log.innerHTML += '❌ Migration failed: ' + (data.message || 'Unknown error') + '<br>';
         }
+        updateLakeHealth();
+    } catch (e) {
+        log.innerHTML += '❌ Network error: ' + e.message + '<br>';
+    }
+}
 
-
-
-        setInterval(updateHealth, 5000);
-
-        updateHealth();
-
-        document.addEventListener('click', function (e) {
-
-            const el = e.target.closest('[data-dlh-action]');
-
-            if (el && el.dataset.dlhAction === 'migrate') runMigration();
-
-        });
-
-    </script>
-
-</body>
-
-</html>
-
+setInterval(updateHealth, 20000);
+updateHealth();
+document.addEventListener('click', function (e) {
+    const el = e.target.closest('[data-dlh-action]');
+    if (el && el.dataset.dlhAction === 'migrate') runMigration();
+});
+</script>
+{% endblock %}

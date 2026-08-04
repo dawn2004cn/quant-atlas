@@ -47,11 +47,11 @@ def count_cross_imports() -> dict[tuple[str, str], int]:
 
 # Baseline captured 2026-06-16 — gate fails only when counts increase.
 BASELINE: dict[tuple[str, str], int] = {
-    ("system", "strategy"): 9,
+    ("system", "strategy"): 0,
     ("system", "ai_agent"): 4,
     ("system", "user"): 4,
-    ("strategy", "ai_agent"): 1,
-    ("strategy", "user"): 1,
+    ("strategy", "ai_agent"): 0,
+    ("strategy", "user"): 0,
     ("ai_agent", "user"): 0,
 }
 

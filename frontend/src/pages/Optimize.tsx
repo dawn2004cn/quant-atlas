@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type OptimizationResult = {
@@ -40,6 +41,8 @@ export default function OptimizePage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.optimize} />
+      <CoreWorkflowStrip />
       <div>
         <h1 className="page-title">组合优化</h1>
         <p className="text-sm text-slate-500 mt-1">均值-方差优化器</p>

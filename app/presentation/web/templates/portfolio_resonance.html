@@ -8,10 +8,19 @@
    data-spa-switcher="portfolio_resonance">
   试试新版 →
 </a>
-{% endblock %%}
+
+{% endblock %}
 
 
 {% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.zen_terminal'), 'label': '禅意终端', 'primary': true},
+    {'href': url_for('pages.portfolio'), 'label': '我的组合'},
+    {'href': url_for('pages.shadow_account'), 'label': '影子操盘'},
+    {'href': url_for('pages.daily_workbench'), 'label': '操盘台'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 <div class="container">
   <div class="header">
     <div class="logo">✦ 3D 组合共鸣场</div>
@@ -40,9 +49,14 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
-<script src="{{ url_for('static', filename='js/vendor/three.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/vendor/OrbitControls.min.js') }}"></script>
+{% block extra_js %}
+<script id="lazyThreeConfig" type="application/json" nonce="{{ csp_nonce() }}">{{ {
+    'three': url_for('static', filename='js/vendor/three.min.js'),
+    'controls': url_for('static', filename='js/vendor/OrbitControls.min.js')
+}|tojson }}</script>
+<script defer src="{{ url_for('static', filename='js/lazy_three_legacy.js') }}"></script>
 <script nonce="{{ csp_nonce() }}">
 let scene, camera, renderer, controls, particles = [], autoRotate = true;
 let particleMeshes = [];
@@ -178,7 +192,8 @@ function toggleAutoRotate() {
   controls.autoRotate = !controls.autoRotate;
 }
 
-// Load demo data
+// Load demo data after THREE is ready
+function bootResonanceField() {
 fetch("/api/v1/phase18/resonance/field", {
   method: "POST",
   headers: {"Content-Type": "application/json"},
@@ -205,6 +220,16 @@ fetch("/api/v1/phase18/resonance/field", {
 .catch(() => {
   initThree();
 });
+}
+
+if (typeof loadThreeLegacy === 'function') {
+  loadThreeLegacy().then(bootResonanceField).catch(function () {
+    document.getElementById('three-container').innerHTML =
+      '<div class="loading-tile">3D 引擎加载失败，请刷新重试。</div>';
+  });
+} else {
+  bootResonanceField();
+}
 document.addEventListener('click', function (e) {
   const el = e.target.closest('[data-pr-action]');
   if (!el) return;

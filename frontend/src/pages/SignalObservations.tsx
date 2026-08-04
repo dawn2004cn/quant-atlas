@@ -1,6 +1,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { apiFetchV1 } from "../lib/api";
 
 type Observation = {
@@ -53,6 +54,8 @@ export function SignalObservationsPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.signalObservations} />
+      <CoreWorkflowStrip />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">信号观测</h1>

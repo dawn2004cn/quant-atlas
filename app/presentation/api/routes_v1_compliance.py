@@ -16,7 +16,10 @@ def register_compliance_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None:
 
     @blueprint.get("/compliance/manifest")
     def compliance_manifest():
-        """Public compliance copy + beta SLA targets for UI footers."""
+        """Public compliance copy + beta SLA targets for UI footers.
+
+        Intentionally unauthenticated — listed in ``PUBLIC_API_V1_GET_PATHS``.
+        """
         return ok_response(
             data=build_compliance_manifest(),
             legacy_alias_key=None,

@@ -3,6 +3,7 @@ from __future__ import annotations
 """Tool facade service - delegates to self-registering capabilities."""
 
 
+import importlib
 from typing import Any
 
 from app.domain.enums import MarketCode
@@ -11,7 +12,6 @@ from app.domain.ports.cn_fundamentals_port import CnFundamentalsPort
 from app.domain.ports.news_archive_port import NewsArchiveRepository
 from app.infrastructure.capabilities.registry import CapabilityRegistry
 from app.modules.market_data.services.stock_service import StockApplicationService
-from app.modules.strategy.services.strategy.strategy_service import StrategyApplicationService
 from app.modules.system.services.helpers.cn_fundamentals_access import get_cn_fundamentals_port
 
 _tool_facade_service_instance = None
@@ -22,7 +22,6 @@ def get_tool_facade_service() -> ToolFacadeService:
     global _tool_facade_service_instance
     if _tool_facade_service_instance is None:
         from app.modules.market_data.services.stock_service import StockApplicationService
-        from app.modules.strategy.services.strategy.strategy_service import StrategyApplicationService
         from app.modules.system.services.helpers.cn_fundamentals_access import get_cn_fundamentals_port
         from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
         from app.modules.system.services.helpers.strategy_providers_access import (
@@ -32,7 +31,10 @@ def get_tool_facade_service() -> ToolFacadeService:
 
         market_provider = get_market_data_provider()
         stock_service = StockApplicationService(market_provider=market_provider)
-        strategy_service = StrategyApplicationService(
+        strategy_mod = importlib.import_module(
+            "app.modules.strategy.services.strategy.strategy_service"
+        )
+        strategy_service = strategy_mod.StrategyApplicationService(
             strategy_provider=create_strategy_provider(market_provider),
             backtest_provider=create_backtest_provider(),
             market_provider=market_provider,
@@ -69,7 +71,7 @@ class ToolFacadeService(ToolFacadePort):
         stock_service: StockApplicationService | None = None,
         archive: NewsArchiveRepository | None = None,
         fundamental_provider: CnFundamentalsPort | None = None,
-        strategy_service: StrategyApplicationService | None = None,
+        strategy_service: Any | None = None,
     ) -> None:
         # Keep direct references for backward compatibility.
         self._marketProvider = market_provider

@@ -175,3 +175,75 @@ def test_dispatch_deduplicates_within_cooldown(tmp_path) -> None:
     second = svc.dispatch(min_level="warning", include_system_probes=False)
     assert second.deduplicated is True
     assert second.skipped is True
+
+
+def test_format_body_includes_preferred_endpoint() -> None:
+    body = AlertNotificationService._format_body(
+        [
+            AlertEventDTO(
+                id="data:quotes:full_dump",
+                level="warning",
+                category="data",
+                title="全量 /quotes 调用偏多",
+                message="累计 dump 4 次，请改用 quotes/page",
+                source="quotes_dump_metrics",
+                occurred_at="2026-08-03T12:00:00Z",
+                meta={
+                    "preferred_endpoint": "quotes/page",
+                    "action_url": "/observability",
+                },
+            )
+        ]
+    )
+    assert "preferred=quotes/page" in body
+    assert "action=/observability" in body
+
+
+def test_dispatch_respects_channel_names_filter() -> None:
+    alert_service = AlertCenterService(
+        message_store_factory=lambda: _FakeAlertStore(),
+        freshness_checker=lambda _table, _minutes=15: True,
+    )
+    ok_channel = _OkChannel()
+    fail_channel = _FailChannel()
+    svc = AlertNotificationService(
+        alert_service=alert_service,
+        channels=[ok_channel, fail_channel],
+    )
+    result = svc.dispatch(
+        min_level="warning",
+        include_system_probes=False,
+        respect_dedup=False,
+        channel_names=["webhook"],
+    )
+    assert result.sent == 1
+    assert result.failed == 0
+    assert ok_channel.sent is True
+
+
+def test_list_channel_status_reports_configured() -> None:
+    class _Configured:
+        channel_name = "webhook"
+
+        def is_configured(self) -> bool:
+            return True
+
+    class _Bare:
+        channel_name = "dingtalk"
+
+        def is_configured(self) -> bool:
+            return False
+
+    svc = AlertNotificationService(
+        alert_service=AlertCenterService(
+            message_store_factory=lambda: _FakeAlertStore(),
+            freshness_checker=lambda _table, _minutes=15: True,
+        ),
+        channels=[_Configured(), _Bare()],
+    )
+    rows = svc.list_channel_status()
+    assert len(rows) == 2
+    by_name = {r["channel"]: r for r in rows}
+    assert by_name["webhook"]["configured"] is True
+    assert by_name["dingtalk"]["configured"] is False
+    assert by_name["webhook"]["label"] == "Webhook"

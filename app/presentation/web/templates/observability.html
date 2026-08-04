@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}瑙傛祴鍙?- Quant Atlas{% endblock %}
+{% block title %}观测台 - Quant Atlas{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/system.css') }}">
@@ -8,13 +8,21 @@
 {% block spa_switcher %}
 <a href="/app/observability" class="spa-switcher-link"
    data-spa-switcher="observability">
-  璇曡瘯鏂扮増 鈫?
+    试试新版 →
 </a>
-{% endblock %%}
+{% endblock %}
 
 
 
 {% block content %}
+{% set quick_nav_items = [
+    {'href': url_for('pages.message_center'), 'label': '消息中心', 'primary': true},
+    {'href': url_for('pages.integration_hub'), 'label': '集成中枢'},
+    {'href': url_for('pages.task_center'), 'label': '任务中心'},
+    {'href': url_for('pages.data_lake_health'), 'label': '数据湖健康'},
+] %}
+{% include "partials/page_quick_nav.html" %}
+
 {% for h in ux_env_hints|default([]) %}
 <div class="qc-ux-banner qc-ux-banner--info">
     <div class="qc-ux-banner__title">{{ h.title }}</div>
@@ -25,18 +33,18 @@
 </div>
 {% endfor %}
 
-<section class="qc-ux-onboarding" aria-label="瑙傛祴鍙颁娇鐢ㄦ彁绀?>
+<section class="qc-ux-onboarding" aria-label="观测台使用提示">
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">1</span>
-        <div class="qc-ux-step-title">鍏堜粠娑堟伅涓績鎷?ID</div>
-        <p class="qc-ux-step-desc">寮傛浠诲姟涓庣郴缁熶簨浠堕€氬父浼氬甫 Task ID/Trace ID锛涗粠娑堟伅涓績澶嶅埗鍚庡湪姝ゅ弽鏌ユ洿蹇€?/p>
-        <a class="btn-brand btn-sm" href="{{ url_for('pages.message_center') }}">娑堟伅涓績</a>
+        <div class="qc-ux-step-title">先从消息中心拿 ID</div>
+        <p class="qc-ux-step-desc">异步任务与系统事件通常会带 Task ID/Trace ID；从消息中心复制后在此反查更快。</p>
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.message_center') }}">消息中心</a>
     </div>
     <div class="qc-ux-step">
         <span class="qc-ux-step-num">2</span>
-        <div class="qc-ux-step-title">鍐嶆帓鏌ラ泦鎴愪笌鏁版嵁</div>
-        <p class="qc-ux-step-desc">Trace 鏄剧ず澶栭儴渚濊禆鐔旀柇鎴栨暟鎹柊椴滃害涓嶈冻鏃讹紝浼樺厛鍥為泦鎴愪腑鏋㈢‘璁よ繍琛岀姸鎬併€?/p>
-        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">闆嗘垚涓灑</a>
+        <div class="qc-ux-step-title">再排查集成与数据</div>
+        <p class="qc-ux-step-desc">Trace 显示外部依赖熔断或数据新鲜度不足时，优先回集成中枢确认运行状态。</p>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.integration_hub') }}">集成中枢</a>
     </div>
 </section>
 
@@ -44,18 +52,18 @@
     <div class="obs-hero-row">
         <div>
             <div class="hero-caption">System Observability</div>
-            <h1 class="page-title">瑙傛祴鍙?/h1>
-            <p class="page-subtitle">浠庣敤鎴疯瑙掕拷韪竴娆℃姇鐮斾换鍔★細璇锋眰鏄惁杩涙潵銆丄gent 鏄惁鎵ц銆佹暟鎹槸鍚︽柊椴溿€佸閮?API 鏄惁鐔旀柇銆?/p>
+            <h1 class="page-title">观测台</h1>
+            <p class="page-subtitle">从用户视角追踪一次投研任务：请求是否进来、Agent 是否执行、数据是否新鲜、外部 API 是否熔断。</p>
         </div>
         <div class="obs-actions">
-            <a class="btn-soft" href="/architecture-roadmap">鏋舵瀯婕旇繘</a>
-            <a class="btn-soft" href="/integration-hub">闆嗘垚涓灑</a>
+            <a class="btn-soft" href="/architecture-roadmap">架构演进</a>
+            <a class="btn-soft" href="/integration-hub">集成中枢</a>
         </div>
     </div>
     <div class="obs-search">
-        <input id="traceIdInput" type="text" placeholder="杈撳叆 Trace ID / 浠诲姟 ID / 鍏抽敭璇?>
-        <button class="btn-brand" type="button" data-obs-action="fetch-trace">鏌ヨ Trace</button>
-        <button class="btn-soft" type="button" data-obs-action="load-messages">鍒锋柊浜嬩欢</button>
+        <input id="traceIdInput" type="text" placeholder="输入 Trace ID / 任务 ID / 关键词">
+        <button class="btn-brand" type="button" data-obs-action="fetch-trace">查询 Trace</button>
+        <button class="btn-soft" type="button" data-obs-action="load-messages">刷新事件</button>
     </div>
     <div id="obsFreshnessStrip" class="qa-is-hidden qc-freshness-strip obs-freshness-mt" aria-live="polite"></div>
     <div id="obsActiveJobs" class="obs-jobs-sm"></div>
@@ -64,34 +72,58 @@
 <div class="obs-stat-grid">
     <div class="obs-stat">
         <div class="obs-stat-label">Health</div>
-        <div class="obs-stat-value" id="healthState"><span class="obs-status-dot warn"></span>妫€鏌ヤ腑</div>
-        <div class="obs-stat-note" id="healthNote">姝ｅ湪璇诲彇绯荤粺鍋ュ悍鎺ュ彛</div>
+        <div class="obs-stat-value" id="healthState"><span class="obs-status-dot warn"></span>检查中</div>
+        <div class="obs-stat-note" id="healthNote">正在读取系统健康接口</div>
     </div>
     <div class="obs-stat">
         <div class="obs-stat-label">Trace Logs</div>
         <div class="obs-stat-value" id="traceCount">--</div>
-        <div class="obs-stat-note">褰撳墠鏌ヨ鍛戒腑鐨勬棩蹇楁潯鏁?/div>
+        <div class="obs-stat-note">当前查询命中的日志条数</div>
     </div>
     <div class="obs-stat">
         <div class="obs-stat-label">Task Events</div>
         <div class="obs-stat-value" id="eventCount">--</div>
-        <div class="obs-stat-note">鏈€杩戜换鍔℃秷鎭笌鍚庡彴閫氱煡</div>
+        <div class="obs-stat-note">最近任务消息与后台通知</div>
     </div>
     <div class="obs-stat">
         <div class="obs-stat-label">Beta SLA</div>
         <div class="obs-stat-value" id="slaState"><span class="obs-status-dot warn"></span>--</div>
-        <div class="obs-stat-note" id="slaNote">姝ｅ湪璇诲彇 SLA 鐩爣</div>
+        <div class="obs-stat-note" id="slaNote">正在读取 SLA 目标</div>
     </div>
     <div class="obs-stat">
         <div class="obs-stat-label">Critical Path</div>
         <div class="obs-stat-value" id="criticalState">--</div>
-        <div class="obs-stat-note" id="criticalNote">鎿嶇洏鍙板叧閿湇鍔″氨缁姸鎬?/div>
+        <div class="obs-stat-note" id="criticalNote">操盘台关键服务就绪状态</div>
     </div>
     <div class="obs-stat">
-        <div class="obs-stat-label">Beat 鍚屾</div>
-        <div class="obs-stat-value" id="beatSyncState"><span class="obs-status-dot warn"></span>鈥?/div>
-        <div class="obs-stat-note" id="beatSyncNote">QuestDB 瀹氭椂鍚屾涓庤繎娆℃墽琛?/div>
+        <div class="obs-stat-label">Beat 同步</div>
+        <div class="obs-stat-value" id="beatSyncState"><span class="obs-status-dot warn"></span>—</div>
+        <div class="obs-stat-note" id="beatSyncNote">QuestDB 定时同步与近次执行</div>
     </div>
+    <div class="obs-stat">
+        <div class="obs-stat-label">全量 quotes</div>
+        <div class="obs-stat-value" id="quotesDumpState"><span class="obs-status-dot warn"></span>—</div>
+        <div class="obs-stat-note" id="quotesDumpNote">无 symbol 的 /quotes dump 次数（请用 quotes/page）</div>
+    </div>
+</div>
+
+<div class="obs-panel obs-section-spaced" id="alertOpsPanel" style="margin:12px 0 20px;">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">告警运维 Beat</h2>
+            <div class="panel-subtitle" id="alertOpsNote">dispatch / dump_monitor 开关</div>
+        </div>
+    </div>
+</div>
+
+<div class="obs-panel obs-section-spaced" id="quotesDumpTrendPanel" style="display:none;margin:12px 0 20px;">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">全量 quotes dump 近次行数</h2>
+            <div class="panel-subtitle" id="quotesDumpTrendNote">最近采样（最多 24）</div>
+        </div>
+    </div>
+    <div id="quotesDumpTrendBars" class="flex items-end gap-1" style="height:64px;"></div>
 </div>
 
 <div class="obs-grid">
@@ -99,34 +131,34 @@
         <div class="obs-panel">
             <div class="panel-head">
                 <div>
-                    <h2 class="panel-title">Trace 鏌ヨ</h2>
-                    <div class="panel-subtitle">瀹氫綅鏌愭鍒嗘瀽銆佸洖娴嬫垨寮傛浠诲姟鍦?SQL / 搴旂敤鏃ュ織涓殑鎵ц閾捐矾銆?/div>
+                    <h2 class="panel-title">Trace 查询</h2>
+                    <div class="panel-subtitle">定位某次分析、回测或异步任务在 SQL / 应用日志中的执行链路。</div>
                 </div>
             </div>
             <div id="traceResults" class="trace-list">
-                <div class="loading-tile">杈撳叆 Trace ID 鍚庡姞杞介摼璺棩蹇?/div>
+                <div class="loading-tile">输入 Trace ID 后加载链路日志</div>
             </div>
         </div>
 
         <div class="obs-panel">
             <div class="panel-head">
                 <div>
-                    <h2 class="panel-title">椤甸潰鍖栨帓闅滆矾绾?/h2>
-                    <div class="panel-subtitle">鎶婂悗绔彲瑙傛祴鑳藉姏缈昏瘧鎴愮敤鎴疯兘鎿嶄綔鐨勯〉闈㈠垽鏂€?/div>
+                    <h2 class="panel-title">页面化排障路线</h2>
+                    <div class="panel-subtitle">把后端可观测能力翻译成用户能操作的页面判断。</div>
                 </div>
             </div>
             <div class="obs-roadmap">
                 <div class="obs-roadmap-card">
-                    <h3>1. 鍏堢湅浠诲姟鐘舵€?/h3>
-                    <p>浠诲姟璇︽儏椤靛睍绀烘彁浜ゃ€佹帓闃熴€佹墽琛屻€侀€氱煡锛屼紭鍏堝洖绛斺€滅幇鍦ㄥ崱鍦ㄥ摢閲屸€濄€?/p>
+                    <h3>1. 先看任务状态</h3>
+                    <p>任务详情页展示提交、排队、执行、通知，优先回答“现在卡在哪里”。</p>
                 </div>
                 <div class="obs-roadmap-card">
-                    <h3>2. 鍐嶇湅 Trace</h3>
-                    <p>Trace 鏌ヨ涓茶捣 API銆丄gent銆佹暟鎹簱鍜屽閮ㄨ皟鐢紝閬垮厤鐢ㄦ埛鍦ㄦ棩蹇楅噷鐩叉壘銆?/p>
+                    <h3>2. 再看 Trace</h3>
+                    <p>Trace 查询串起 API、Agent、数据库和外部调用，避免用户在日志里盲找。</p>
                 </div>
                 <div class="obs-roadmap-card">
-                    <h3>3. 鏈€鍚庣湅渚濊禆</h3>
-                    <p>闆嗘垚涓灑灞曠ず Redis銆丵lib銆丱penBB銆丆elery 鐨勭姸鎬佸拰鏁版嵁鏂伴矞搴︺€?/p>
+                    <h3>3. 最后看依赖</h3>
+                    <p>集成中枢展示 Redis、Qlib、OpenBB、Celery 的状态和数据新鲜度。</p>
                 </div>
             </div>
         </div>
@@ -136,26 +168,26 @@
         <div class="obs-panel">
             <div class="panel-head">
                 <div>
-                    <h2 class="panel-title">浠诲姟浜嬩欢娴?/h2>
-                    <div class="panel-subtitle">灞曠ず鍚庡彴浠诲姟銆侀€氱煡鍜屾渶杩戣繍琛屼俊鍙枫€?/div>
+                    <h2 class="panel-title">任务事件流</h2>
+                    <div class="panel-subtitle">展示后台任务、通知和最近运行信号。</div>
                 </div>
             </div>
             <div class="event-stream" id="eventStream">
-                <div class="event-line"><span class="event-time">--:--:--</span><span class="event-msg">绛夊緟浜嬩欢鍔犺浇...</span></div>
+                <div class="event-line"><span class="event-time">--:--:--</span><span class="event-msg">等待事件加载...</span></div>
             </div>
         </div>
 
         <div class="obs-panel">
             <div class="panel-head">
                 <div>
-                    <h2 class="panel-title">澶栭儴渚濊禆涓庣啍鏂?/h2>
-                    <div class="panel-subtitle">璇诲彇闆嗘垚鏍堢湡瀹炵姸鎬侊紙涓嶅彂璧峰缃戣鎯呰姹傦級銆?/div>
+                    <h2 class="panel-title">外部依赖与熔断</h2>
+                    <div class="panel-subtitle">读取集成栈真实状态（不发起外网行情请求）。</div>
                 </div>
             </div>
             <div class="breaker-grid" id="breakerGrid">
                 <div class="breaker-card">
-                    <div class="breaker-name"><span class="obs-status-dot warn"></span>闆嗘垚鏍?/div>
-                    <div class="breaker-note">鍔犺浇涓€?/div>
+                    <div class="breaker-name"><span class="obs-status-dot warn"></span>集成栈</div>
+                    <div class="breaker-note">加载中…</div>
                 </div>
             </div>
         </div>
@@ -163,13 +195,13 @@
         <div class="obs-panel">
             <div class="panel-head">
                 <div>
-                    <h2 class="panel-title">Beat 鍚屾鍘嗗彶</h2>
-                    <div class="panel-subtitle">Celery Beat 16:35 鏃 鍐欏叆 QuestDB/ClickHouse 鐨勮繎娆¤褰曪紙JSONL锛夈€?/div>
+                    <h2 class="panel-title">Beat 同步历史</h2>
+                    <div class="panel-subtitle">Celery Beat 16:35 日K 写入 QuestDB/ClickHouse 的近次记录（JSONL）。</div>
                 </div>
-                <button class="btn-soft btn-sm" type="button" data-obs-action="reload-beat-history">鍒锋柊</button>
+                <button class="btn-soft btn-sm" type="button" data-obs-action="reload-beat-history">刷新</button>
             </div>
             <div class="beat-history-list" id="beatHistoryList">
-                <div class="loading-tile">鍔犺浇涓€?/div>
+                <div class="loading-tile">加载中…</div>
             </div>
         </div>
     </div>
@@ -190,14 +222,100 @@ async function loadHealth() {
     const state = document.getElementById('healthState');
     const note = document.getElementById('healthNote');
     try {
-        const res = await fetch('/api/v1/system/health');
-        const json = await res.json();
-        const ok = json.status === 'ok' || json.status === 'success';
-        state.innerHTML = `<span class="obs-status-dot ${ok ? 'ok' : 'warn'}"></span>${ok ? '姝ｅ父' : '闇€鍏虫敞'}`;
-        note.textContent = ok ? '鏍稿績鍋ュ悍鎺ュ彛鍝嶅簲姝ｅ父' : '鍋ュ悍鎺ュ彛杩斿洖寮傚父鐘舵€?;
+        const payload = await QCApi.get('/system/health');
+        const ok = payload && (payload.status === 'ok' || payload.status === 'success');
+        state.innerHTML = `<span class="obs-status-dot ${ok ? 'ok' : 'warn'}"></span>${ok ? '正常' : '需关注'}`;
+        note.textContent = ok ? '核心健康接口响应正常' : '健康接口返回异常状态';
     } catch (err) {
-        state.innerHTML = '<span class="obs-status-dot warn"></span>绂荤嚎';
-        note.textContent = '鏃犳硶璁块棶鍋ュ悍鎺ュ彛';
+        state.innerHTML = '<span class="obs-status-dot warn"></span>离线';
+        note.textContent = err && err.status === 404
+            ? '健康接口未注册'
+            : '无法访问健康接口';
+    }
+}
+
+let _lastObsSnap = null;
+
+function renderTaskMessages(items) {
+    const stream = document.getElementById('eventStream');
+    if (!stream) return;
+    const list = Array.isArray(items) ? items : [];
+    const countEl = document.getElementById('eventCount');
+    if (countEl) countEl.textContent = list.length;
+    if (!list.length) {
+        stream.innerHTML = '<div class="event-line"><span class="event-time">--:--:--</span><span class="event-msg">暂无任务事件</span></div>';
+        return;
+    }
+    stream.innerHTML = list.map(item => {
+        const raw = item.ts || item.timestamp || item.created_at || '';
+        const time = raw && String(raw).includes('T')
+            ? String(raw).split('T')[1].split('.')[0].slice(0, 8)
+            : '--:--:--';
+        const label = item.label || item.task_name || item.event || '任务';
+        const detail = item.detail || item.message || item.title || '';
+        const msg = detail ? label + ': ' + detail : label;
+        return `<div class="event-line"><span class="event-time">${escapeHtml(time)}</span><span class="event-msg">${escapeHtml(msg)}</span></div>`;
+    }).join('');
+}
+
+function renderQuotesDumpTrend(trendRows, recent) {
+    const panel = document.getElementById('quotesDumpTrendPanel');
+    const bars = document.getElementById('quotesDumpTrendBars');
+    const note = document.getElementById('quotesDumpTrendNote');
+    const rows = Array.isArray(trendRows) ? trendRows : [];
+    if (!panel || !bars) return;
+    if (!rows.length) {
+        panel.style.display = 'none';
+        bars.innerHTML = '';
+        return;
+    }
+    panel.style.display = '';
+    const max = Math.max.apply(null, rows.concat([1]));
+    bars.innerHTML = rows.map(function (n) {
+        const h = Math.max(8, Math.round((Number(n) || 0) / max * 100));
+        return '<div title="' + (Number(n) || 0) + ' 行" style="flex:1;min-width:6px;height:' + h + '%;background:rgba(217,119,6,0.7);border-radius:4px 4px 0 0;"></div>';
+    }).join('');
+    if (note) {
+        note.textContent = '最近 ' + (Array.isArray(recent) ? recent.length : rows.length) + ' 次采样（最多 24）';
+    }
+}
+
+function renderBeatRunsFromSnap(runs) {
+    const statEl = document.getElementById('beatSyncState');
+    const noteEl = document.getElementById('beatSyncNote');
+    const listEl = document.getElementById('beatHistoryList');
+    const list = Array.isArray(runs) ? runs : [];
+    if (statEl) {
+        if (!list.length) {
+            statEl.innerHTML = '<span class="obs-status-dot warn"></span>尚无记录';
+        } else {
+            const latest = list[0];
+            const ok = latest.ok !== false;
+            const label = String(latest.recorded_at || '').slice(0, 16) + (ok ? ' ✓' : ' ✗');
+            statEl.innerHTML = '<span class="obs-status-dot ' + (ok ? 'ok' : 'warn') + '"></span>' + escapeHtml(label);
+        }
+    }
+    if (noteEl) {
+        noteEl.textContent = list.length
+            ? ('Beat 历史 ' + list.length + ' 条（来自观测快照）')
+            : '尚无 celery_beat 同步记录';
+    }
+    if (listEl) {
+        if (!list.length) {
+            listEl.innerHTML = '<div class="empty-state">尚无 celery_beat 同步记录；Beat 首次执行后会出现在此。</div>';
+        } else {
+            listEl.innerHTML = list.map(function (r) {
+                const ok = r.ok ? '成功' : '失败';
+                const cls = r.ok ? '' : ' fail';
+                const rows = r.questdb_rows_written != null ? '+' + r.questdb_rows_written + ' 行' : '';
+                const mode = r.mode ? r.mode : '';
+                return '<div class="beat-history-row' + cls + '">' +
+                    '<span>' + escapeHtml(String(r.recorded_at || '').slice(0, 19)) + '</span>' +
+                    '<span>' + escapeHtml(ok) + '</span>' +
+                    '<span class="muted">' + escapeHtml([mode, rows, r.source].filter(Boolean).join(' · ')) + '</span>' +
+                    '</div>';
+            }).join('');
+        }
     }
 }
 
@@ -210,39 +328,66 @@ async function loadObservabilitySnapshot() {
     const healthNote = document.getElementById('healthNote');
     if (!slaState) return;
     try {
-        const fetcher = window.QCApi && window.QCApi.get
-            ? function (p) { return window.QCApi.get(p); }
-            : function (p) {
-                return fetch('/api/v1' + p).then(function (r) {
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    return r.json().then(function (b) { return b.data !== undefined ? b.data : b; });
-                });
-            };
-        const data = await fetcher('/system/observability/snapshot');
+        const data = await QCApi.get('/system/observability/snapshot');
+        _lastObsSnap = data;
         const overall = data.overall_status || 'ok';
         const dot = overall === 'ok' ? 'ok' : 'warn';
         if (healthState) {
             healthState.innerHTML = '<span class="obs-status-dot ' + dot + '"></span>' +
-                (overall === 'ok' ? '姝ｅ父' : overall === 'critical' ? '涓ラ噸' : '闄嶇骇');
+                (overall === 'ok' ? '正常' : overall === 'critical' ? '严重' : '降级');
         }
         if (healthNote && data.health_banner && data.health_banner.message) {
-            healthNote.textContent = data.health_banner.message;
+            var hb = data.health_banner;
+            var note = hb.message;
+            if (hb.quotes_full_dump_warn) {
+                note += ' · dump=' + (hb.quotes_full_dump_count ?? 0) +
+                    '/thr=' + (hb.quotes_full_dump_threshold ?? 1);
+            }
+            healthNote.textContent = note;
         }
         const sla = data.sla || {};
         slaState.innerHTML = '<span class="obs-status-dot ok"></span>' + (sla.uptime_target_pct || '--') + '%';
-        slaNote.textContent = 'API P95 鐩爣 ' + (sla.api_p95_ms || '--') + 'ms 路 澶嶆牳 ' +
+        slaNote.textContent = 'API P95 目标 ' + (sla.api_p95_ms || '--') + 'ms · 复核 ' +
             (sla.decision_review_sla_hours || 24) + 'h';
         const crit = data.critical_services || {};
         const critOk = crit.ok !== false;
         criticalState.innerHTML = '<span class="obs-status-dot ' + (critOk ? 'ok' : 'warn') + '"></span>' +
-            (critOk ? '灏辩华' : '缂哄け');
+            (critOk ? '就绪' : '缺失');
         const missing = (crit.critical_missing || []).concat(crit.required_missing || []);
         criticalNote.textContent = missing.length
-            ? ('鏈氨缁? ' + missing.slice(0, 3).join(', '))
-            : '鎿嶇洏鍙板叧閿湇鍔″凡鍏ㄩ儴瑙ｆ瀽';
+            ? ('未就绪: ' + missing.slice(0, 3).join(', '))
+            : '操盘台关键服务已全部解析';
+        renderTaskMessages(data.task_messages || []);
+        renderBeatRunsFromSnap(data.timeseries_beat_runs || []);
+        const qa = data.quotes_api || {};
+        const dumpEl = document.getElementById('quotesDumpState');
+        const dumpNote = document.getElementById('quotesDumpNote');
+        if (dumpEl) {
+            const n = Number(qa.full_dump_count || 0);
+            const ok = n === 0;
+            dumpEl.innerHTML = '<span class="obs-status-dot ' + (ok ? 'ok' : 'warn') + '"></span>' + n;
+            if (dumpNote) {
+                dumpNote.textContent = n > 0
+                    ? ('最近 ' + (qa.last_full_dump_at || '--') + ' · ' + (qa.last_full_dump_rows != null ? qa.last_full_dump_rows + ' 行' : '请改用 quotes/page'))
+                    : '无 symbol 的 /quotes dump 次数（请用 quotes/page）';
+            }
+        }
+        renderQuotesDumpTrend(qa.trend_rows || [], qa.recent_dumps || []);
+        const ops = data.alert_ops || {};
+        const opsNote = document.getElementById('alertOpsNote');
+        if (opsNote) {
+            opsNote.textContent =
+                'alert_dispatch=' + (ops.alert_dispatch_beat ? ('on/' + (ops.alert_dispatch_beat_minutes || '?') + 'm') : 'off') +
+                ' · dump_monitor=' + (ops.quotes_dump_monitor_beat ? ('on/' + (ops.quotes_dump_monitor_beat_minutes || '?') + 'm') : 'off') +
+                ' · auto_dispatch=' + (ops.quotes_dump_auto_dispatch ? 'on' : 'off') +
+                (ops.quotes_full_dump_warn
+                    ? (' · warn dump=' + (ops.quotes_full_dump_count || 0) + '/thr=' + (ops.quotes_full_dump_threshold || 1))
+                    : '') +
+                ' · preferred=' + (ops.preferred_endpoint || 'quotes/page');
+        }
     } catch (err) {
         slaState.innerHTML = '<span class="obs-status-dot warn"></span>--';
-        slaNote.textContent = '瑙傛祴蹇収鏆備笉鍙敤锛堥渶鐧诲綍锛?;
+        slaNote.textContent = '观测快照暂不可用（需登录）';
         if (criticalState) criticalState.textContent = '--';
         if (criticalNote) criticalNote.textContent = String(err.message || err);
     }
@@ -252,17 +397,16 @@ async function fetchTrace() {
     const tid = document.getElementById('traceIdInput').value.trim();
     const box = document.getElementById('traceResults');
     if (!tid) {
-        showToast('璇疯緭鍏?Trace ID 鎴栧叧閿瘝', 'warning');
+        showToast('请输入 Trace ID 或关键词', 'warning');
         return;
     }
-    box.innerHTML = '<div class="loading-tile">姝ｅ湪鏌ヨ Trace...</div>';
+    box.innerHTML = '<div class="loading-tile">正在查询 Trace...</div>';
     try {
-        const res = await fetch(`/api/v1/system/trace/${encodeURIComponent(tid)}`);
-        const json = await res.json();
-        const logs = normalizeListPayload(json);
+        const payload = await QCApi.get('/system/trace/' + encodeURIComponent(tid));
+        const logs = normalizeListPayload({ data: payload });
         document.getElementById('traceCount').textContent = logs.length;
         if (!logs.length) {
-            box.innerHTML = '<div class="empty-state">娌℃湁鍛戒腑鏃ュ織銆傚悗缁彲鎵╁睍涓烘寜浠诲姟 ID銆佽偂绁ㄤ唬鐮佸拰鐢ㄦ埛鍔ㄤ綔鏌ヨ銆?/div>';
+            box.innerHTML = '<div class="empty-state">没有命中日志。后续可扩展为按任务 ID、股票代码和用户动作查询。</div>';
             return;
         }
         box.innerHTML = logs.map((item, idx) => {
@@ -278,34 +422,25 @@ async function fetchTrace() {
         }).join('');
     } catch (err) {
         document.getElementById('traceCount').textContent = '0';
-        box.innerHTML = `<div class="empty-state">Trace 鏌ヨ澶辫触锛?{escapeHtml(err.message)}</div>`;
+        box.innerHTML = `<div class="empty-state">Trace 查询失败：${escapeHtml(err.message)}</div>`;
     }
 }
 
 async function loadTaskMessages() {
-    const stream = document.getElementById('eventStream');
+    if (_lastObsSnap && Array.isArray(_lastObsSnap.task_messages)) {
+        renderTaskMessages(_lastObsSnap.task_messages);
+        return;
+    }
     try {
-        const res = await fetch('/api/v1/system/task-messages?limit=40');
-        const json = await res.json();
-        const items = normalizeListPayload(json);
-        document.getElementById('eventCount').textContent = items.length;
-        if (!items.length) {
-            stream.innerHTML = '<div class="event-line"><span class="event-time">--:--:--</span><span class="event-msg">鏆傛棤浠诲姟浜嬩欢</span></div>';
-            return;
-        }
-        stream.innerHTML = items.map(item => {
-            const raw = item.ts || item.timestamp || item.created_at || '';
-            const time = raw && String(raw).includes('T')
-                ? String(raw).split('T')[1].split('.')[0].slice(0, 8)
-                : '--:--:--';
-            const label = item.label || item.task_name || item.event || '浠诲姟';
-            const detail = item.detail || item.message || item.title || '';
-            const msg = detail ? label + ': ' + detail : label;
-            return `<div class="event-line"><span class="event-time">${escapeHtml(time)}</span><span class="event-msg">${escapeHtml(msg)}</span></div>`;
-        }).join('');
+        const payload = await QCApi.get('/system/task-messages?limit=40');
+        renderTaskMessages(normalizeListPayload({ data: payload }));
     } catch (err) {
-        document.getElementById('eventCount').textContent = '0';
-        stream.innerHTML = '<div class="event-line"><span class="event-time">error</span><span class="event-msg">浠诲姟浜嬩欢鎺ュ彛鏆備笉鍙敤</span></div>';
+        const countEl = document.getElementById('eventCount');
+        if (countEl) countEl.textContent = '0';
+        const stream = document.getElementById('eventStream');
+        if (stream) {
+            stream.innerHTML = '<div class="event-line"><span class="event-time">error</span><span class="event-msg">任务事件接口暂不可用</span></div>';
+        }
     }
 }
 
@@ -349,19 +484,9 @@ function renderBreakerCard(title, okish, note) {
 async function loadIntegrationStack() {
     const box = document.getElementById("breakerGrid");
     if (!box) return;
-    box.innerHTML = '<div class="loading-tile">姝ｅ湪璇诲彇闆嗘垚鏍堢姸鎬?..</div>';
+    box.innerHTML = '<div class="loading-tile">正在读取集成栈状态...</div>';
     try {
-        const res = await fetch("/api/v1/integration/stack-status");
-        const json = await res.json();
-        const data = json && json.data !== undefined ? json.data : json;
-        if (!res.ok) {
-            const msg = (data && data.error && data.error.message) || (json && json.message) || ("HTTP " + res.status);
-            box.innerHTML =
-                '<div class="empty-state">闆嗘垚鏍堢姸鎬佽鍙栧け璐ワ細' + escapeHtml(String(msg)) + "</div>" +
-                '<div class="mt-2"><button type="button" class="btn-brand btn-sm" data-obs-action="retry-integration">閲嶈瘯</button> ' +
-                '<a class="btn-soft btn-sm" href="/integration-hub">闆嗘垚涓灑</a></div>';
-            return;
-        }
+        const data = await QCApi.get('/integration/stack-status');
         const flat = [];
         const layers = data && data.layers;
         if (layers && typeof layers === "object" && !Array.isArray(layers)) {
@@ -375,15 +500,15 @@ async function loadIntegrationStack() {
                 let note = v.message || v.detail || v.reason || "";
                 if (k === "timeseries_ohlcv") {
                     const beat = v.celery_beat || {};
-                    const rows = v.questdb_rows != null ? Number(v.questdb_rows).toLocaleString() + " 琛? : "";
-                    const last = v.last_sync_at ? String(v.last_sync_at).slice(0, 16) : "鏃犺褰?;
-                    note = [beat.schedule_label || "Beat", rows, "鏈€杩?" + last].filter(Boolean).join(" 路 ");
+                    const rows = v.questdb_rows != null ? Number(v.questdb_rows).toLocaleString() + " 行" : "";
+                    const last = v.last_sync_at ? String(v.last_sync_at).slice(0, 16) : "无记录";
+                    note = [beat.schedule_label || "Beat", rows, "最近 " + last].filter(Boolean).join(" · ");
                 } else if (k === "execution_gateway") {
                     const q = v.qmt || {};
                     note = "QMT " + (q.execution_mode || "disabled");
                 } else if (k === "celery_tasks") {
                     const beat = v.questdb_beat || {};
-                    note = beat.enabled ? (beat.schedule_label || "Beat 16:35") : "Beat 鍏抽棴";
+                    note = beat.enabled ? (beat.schedule_label || "Beat 16:35") : "Beat 关闭";
                 }
                 if (!note) note = String(v.status || "");
                 flat.push({ name: k, okish, note });
@@ -392,7 +517,7 @@ async function loadIntegrationStack() {
         const modules = data && (data.modules || data.services || data.providers || data.items);
         if (flat.length === 0 && Array.isArray(modules)) {
             modules.forEach((m) => {
-                const name = m.name || m.title || m.id || "妯″潡";
+                const name = m.name || m.title || m.id || "模块";
                 const okish = normBool(m.ok ?? m.enabled ?? m.available ?? m.online ?? m.ready ?? m.status);
                 const note = m.message || m.detail || m.reason || String(m.status || "");
                 flat.push({ name, okish, note });
@@ -410,74 +535,33 @@ async function loadIntegrationStack() {
             });
         }
         if (flat.length === 0) {
-            box.innerHTML = renderBreakerCard("闆嗘垚鏍?, null, "鏆傛棤鍙睍绀哄瓧娈碉紙璇锋鏌?integration_stack_service 杈撳嚭缁撴瀯锛?);
+            box.innerHTML = renderBreakerCard("集成栈", null, "暂无可展示字段（请检查 integration_stack_service 输出结构）");
             return;
         }
         box.innerHTML = flat.map((x) => renderBreakerCard(x.name, x.okish, x.note)).join("");
     } catch (err) {
         box.innerHTML =
-            '<div class="empty-state">闆嗘垚鏍堢姸鎬佽鍙栧け璐ワ細' + escapeHtml(String(err && err.message ? err.message : err)) + "</div>" +
-            '<div class="mt-2"><button type="button" class="btn-brand btn-sm" data-obs-action="retry-integration">閲嶈瘯</button></div>';
+            '<div class="empty-state">集成栈状态读取失败：' + escapeHtml(String(err && err.message ? err.message : err)) + "</div>" +
+            '<div class="mt-2"><button type="button" class="btn-brand btn-sm" data-obs-action="retry-integration">重试</button></div>';
     }
 }
 
 async function loadBeatSyncOps() {
-    const statEl = document.getElementById("beatSyncState");
-    const noteEl = document.getElementById("beatSyncNote");
+    if (_lastObsSnap && Array.isArray(_lastObsSnap.timeseries_beat_runs)) {
+        renderBeatRunsFromSnap(_lastObsSnap.timeseries_beat_runs);
+        return;
+    }
     const listEl = document.getElementById("beatHistoryList");
     try {
-        const [healthRes, histRes] = await Promise.all([
-            fetch("/api/v1/data/timeseries-health", { credentials: "same-origin" }),
-            fetch("/api/v1/data/timeseries-sync-history?limit=12&source=celery_beat", { credentials: "same-origin" }),
-        ]);
-        const healthJson = await healthRes.json();
-        const histJson = await histRes.json();
-        const health = healthJson.data || healthJson;
-        const hist = histJson.data || histJson;
-        const beat = health.celery_beat || {};
-        const runs = hist.runs || beat.recent_beat_runs || [];
-        const dotCls = beat.last_beat_run_ok === false ? "warn" : (beat.enabled ? "ok" : "warn");
-        if (statEl) {
-            let label = beat.enabled ? (beat.schedule_label || "16:35") : "Beat 鍏抽棴";
-            if (beat.sync_in_progress) {
-                const pct = (beat.sync_progress && beat.sync_progress.percent) || 0;
-                label += " 路 鍚屾涓?" + pct + "%";
-            } else if (beat.last_beat_run_at) {
-                label = String(beat.last_beat_run_at).slice(0, 16) + (beat.last_beat_run_ok ? " 鉁? : " 鉁?);
-            }
-            statEl.innerHTML = '<span class="obs-status-dot ' + dotCls + '"></span>' + escapeHtml(label);
-        }
-        if (noteEl) {
-            const qdb = health.questdb || {};
-            const rows = ((health.ohlcv_tables || {}).questdb_rows);
-            noteEl.textContent = [
-                beat.enabled ? "Beat 宸插惎鐢? : "QUESTDB_SYNC_BEAT=0",
-                qdb.connected ? "QuestDB 鍦ㄧ嚎" : "QuestDB 绂荤嚎",
-                rows != null ? Number(rows).toLocaleString() + " 琛? : "",
-                runs.length ? "鍘嗗彶 " + runs.length + " 鏉? : "灏氭棤 Beat 璁板綍",
-            ].filter(Boolean).join(" 路 ");
-        }
-        if (listEl) {
-            if (!runs.length) {
-                listEl.innerHTML = '<div class="empty-state">灏氭棤 celery_beat 鍚屾璁板綍锛汢eat 棣栨鎵ц鍚庝細鍑虹幇鍦ㄦ銆?/div>';
-            } else {
-                listEl.innerHTML = runs.map(function (r) {
-                    const ok = r.ok ? "鎴愬姛" : "澶辫触";
-                    const cls = r.ok ? "" : " fail";
-                    const rows = r.questdb_rows_written != null ? "+" + r.questdb_rows_written + " 琛? : "";
-                    const mode = r.mode ? r.mode : "";
-                    return '<div class="beat-history-row' + cls + '">' +
-                        '<span>' + escapeHtml(String(r.recorded_at || "").slice(0, 19)) + '</span>' +
-                        '<span>' + escapeHtml(ok) + '</span>' +
-                        '<span class="muted">' + escapeHtml([mode, rows, r.source].filter(Boolean).join(" 路 ")) + '</span>' +
-                        '</div>';
-                }).join("");
-            }
-        }
+        const hist = await QCApi.get('/data/timeseries-sync-history?limit=12&source=celery_beat');
+        const runs = (hist && hist.runs) || [];
+        renderBeatRunsFromSnap(runs);
     } catch (err) {
-        if (statEl) statEl.innerHTML = '<span class="obs-status-dot warn"></span>涓嶅彲鐢?;
+        const statEl = document.getElementById("beatSyncState");
+        const noteEl = document.getElementById("beatSyncNote");
+        if (statEl) statEl.innerHTML = '<span class="obs-status-dot warn"></span>不可用';
         if (noteEl) noteEl.textContent = String(err && err.message ? err.message : err);
-        if (listEl) listEl.innerHTML = '<div class="empty-state">Beat 鍘嗗彶鍔犺浇澶辫触</div>';
+        if (listEl) listEl.innerHTML = '<div class="empty-state">Beat 历史加载失败</div>';
     }
 }
 
@@ -500,9 +584,7 @@ document.getElementById('traceIdInput').addEventListener('keydown', event => {
 
 loadHealth();
 loadObservabilitySnapshot();
-loadTaskMessages();
 loadIntegrationStack();
-loadBeatSyncOps();
 if (window.QAUserCenter) {
     QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('obsFreshnessStrip'));
     QAUserCenter.mountActiveJobsPanel('obsActiveJobs', 6);
@@ -510,8 +592,7 @@ if (window.QAUserCenter) {
         QAUserCenter.mountActiveJobsPanel('obsActiveJobs', 6);
     }, 12000);
 }
-setInterval(loadTaskMessages, 15000);
-setInterval(loadBeatSyncOps, 30000);
+setInterval(loadObservabilitySnapshot, 20000);
 
 document.addEventListener('click', function (e) {
     const el = e.target.closest('[data-obs-action]');

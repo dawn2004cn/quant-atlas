@@ -30,7 +30,11 @@ def register_portfolio_core_routes(
     @blueprint.get("/portfolio/snapshot")
     @login_required
     def portfolio_snapshot():
-        """Get current portfolio snapshot."""
+        """Get current portfolio snapshot.
+
+        Optional ``include`` (comma-separated): ``risk_budget``, ``optimize_summary``.
+        Lets SPA holdings view hydrate risk/optimize tabs without extra round-trips.
+        """
         symbols = parse_symbols_param(request.args.get("symbols", ""))
         require_symbols(symbols)
 
@@ -45,9 +49,37 @@ def register_portfolio_core_routes(
             holdings = {s: 100 for s in symbols}
 
         snapshot = portfolio_service.get_portfolio_snapshot(symbols, holdings, cash)
-        return ok_resource(
-            resource=snapshot.model_dump(),
-            resource_key="portfolio",
+        include_raw = (request.args.get("include") or "").strip().lower()
+        include = {part.strip() for part in include_raw.split(",") if part.strip()}
+
+        payload: dict = {"portfolio": snapshot.model_dump()}
+        if "risk_budget" in include or "risk" in include:
+            try:
+                payload["risk_budget"] = portfolio_service.compute_risk_budget(symbols, holdings)
+            except Exception as exc:
+                logger.warning("portfolio_snapshot risk_budget failed: %s", exc)
+                payload["risk_budget"] = []
+        if "optimize_summary" in include or "optimize" in include:
+            try:
+                opt = portfolio_service.optimize_portfolio(
+                    OptimizationRequestDTO(symbols=symbols, method="markowitz", risk_aversion=1.0)
+                )
+                dump = opt.model_dump()
+                payload["optimize_summary"] = {
+                    "method": dump.get("method") or "markowitz",
+                    "expected_return": dump.get("expected_return"),
+                    "expected_volatility": dump.get("volatility"),
+                    "volatility": dump.get("volatility"),
+                    "sharpe_ratio": dump.get("sharpe_ratio"),
+                    "optimal_weights": dump.get("optimal_weights") or {},
+                }
+            except Exception as exc:
+                logger.warning("portfolio_snapshot optimize_summary failed: %s", exc)
+                payload["optimize_summary"] = None
+
+        return ok_response(
+            data=payload,
+            legacy_alias_key=None,
             enable_legacy_alias=False,
         )
 

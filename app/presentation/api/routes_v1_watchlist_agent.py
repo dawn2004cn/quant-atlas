@@ -11,6 +11,7 @@ from app.core.registry import register_routes
 from ...application.errors import ValidationError
 from ...core.middleware.request_context import require_authenticated_user_id
 from .common import ok_response, parse_market
+from .decorators import service_fallback
 from .request_parsers import parse_bool_param, parse_int_param
 from .v1_context import ApiV1Context
 
@@ -25,10 +26,9 @@ def register_watchlist_agent_routes(blueprint: Blueprint, ctx: ApiV1Context) -> 
 
     @blueprint.get("/watchlist/agent")
     @login_required
+    @service_fallback("watchlist_agent_service")
     def watchlist_agent_snapshot():
         svc = getattr(ctx, "watchlist_agent_service", None)
-        if svc is None:
-            raise ValidationError("watchlist_agent_service_unavailable")
         raw_group = (request.args.get("group_id") or "").strip()
         group_id = None
         if raw_group:

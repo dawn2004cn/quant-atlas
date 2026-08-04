@@ -7,6 +7,20 @@ export type PlatformFeatures = {
   feature_decision_theater: boolean;
   feature_swarm_topology: boolean;
   feature_federated_mesh: boolean;
+  nav_show_spa_shell?: boolean;
+  nav_show_ai_hedge_fund?: boolean;
+  nav_show_agent_center?: boolean;
+  nav_show_voice_briefing?: boolean;
+  nav_show_research_canvas?: boolean;
+  nav_show_alpha_factory?: boolean;
+  nav_show_data_lake_health?: boolean;
+  nav_show_user_tiers?: boolean;
+  nav_show_zen_terminal?: boolean;
+  nav_show_integration_hub?: boolean;
+  nav_show_observability?: boolean;
+  nav_show_moments?: boolean;
+  nav_show_investment_managers?: boolean;
+  nav_show_collaboration_workspace?: boolean;
 };
 
 const DEFAULT_FEATURES: PlatformFeatures = {
@@ -29,4 +43,22 @@ export function usePlatformFeatures() {
     loading: isLoading,
     error,
   };
+}
+
+export function isNavItemVisible(
+  features: Record<string, boolean | undefined>,
+  navId?: string,
+  strategicFeature?: string,
+): boolean {
+  if (strategicFeature && !features[strategicFeature]) {
+    return false;
+  }
+  if (!navId) {
+    return true;
+  }
+  const key = `nav_show_${navId}`;
+  if (key in features) {
+    return Boolean(features[key]);
+  }
+  return true;
 }

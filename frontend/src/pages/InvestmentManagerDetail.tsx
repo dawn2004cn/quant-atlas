@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import useSWR from "swr";
+import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 
@@ -68,7 +69,7 @@ export function InvestmentManagerDetailPage() {
   if (error) {
     return (
       <div className="space-y-5">
-        <Link to="/app/investment-managers" className="btn btn-ghost btn-sm">
+        <Link to="/investment-managers" className="btn btn-ghost btn-sm">
           &larr; 返回投资经理列表
         </Link>
         <div className="alert alert-error">加载失败：{error.message}</div>
@@ -79,7 +80,7 @@ export function InvestmentManagerDetailPage() {
   if (!data) {
     return (
       <div className="space-y-5">
-        <Link to="/app/investment-managers" className="btn btn-ghost btn-sm">
+        <Link to="/investment-managers" className="btn btn-ghost btn-sm">
           &larr; 返回投资经理列表
         </Link>
         <div className="alert alert-warning">未找到该投资经理信息</div>
@@ -91,8 +92,9 @@ export function InvestmentManagerDetailPage() {
 
   return (
     <div className="space-y-5">
+      <PageQuickNav items={QUICK_NAV_PRESETS.investmentManagerDetail} />
       {/* Back Link */}
-      <Link to="/app/investment-managers" className="btn btn-ghost btn-sm">
+      <Link to="/investment-managers" className="btn btn-ghost btn-sm">
         &larr; 返回投资经理列表
       </Link>
 

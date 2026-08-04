@@ -1,30 +1,31 @@
 {% extends "base.html" %}
 
 {% block title %}Alpha Marketplace - 因子市场{% endblock %}
+{% block spa_switcher %}
+<a href="/app/marketplace" class="spa-switcher-link"
+   data-spa-switcher="marketplace">
+
+
+  试试新版 →
+
+</a>
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/marketplace.css') }}">
 {% endblock %}
-{% block spa_switcher %}
-<a href="/app/marketplace" class="spa-switcher-link"
-   data-spa-switcher="marketplace">
-  试试新版 鈫?
-</a>
-{% endblock %}
-
-
 
 {% block content %}
 <div class="mp-shell">
     <div class="mp-hero">
         <h1 class="mp-hero-title">🧬 Alpha Marketplace</h1>
-        <p class="mp-hero-sub">因子贡献社区 鈥?用声誉积分贡献与获取 Alpha 信号，合规安全的量化协作生鎬?/p>
+        <p class="mp-hero-sub">因子贡献社区 — 用声誉积分贡献与获取 Alpha 信号，合规安全的量化协作生态</p>
     </div>
 
     <div class="mp-stats" id="statsRow">
         <div class="mp-stat-card">
             <div class="mp-stat-value" id="walletBalance">0</div>
-            <div class="mp-stat-label">猸?我的声誉积分</div>
+            <div class="mp-stat-label">⭐ 我的声誉积分</div>
         </div>
         <div class="mp-stat-card">
             <div class="mp-stat-value" id="myOrdersCount">0</div>
@@ -40,10 +41,10 @@
         <button class="mp-tab active" data-tab="browse">🏪 浏览市场</button>
         <button class="mp-tab" data-tab="orders">📦 我的订单</button>
         <button class="mp-tab" data-tab="list">📋 上架因子</button>
-        <button class="mp-tab" data-tab="wallet">猸?声誉</button>
-        <button class="mp-tab" data-tab="governance">🗳锔?因子治理</button>
+        <button class="mp-tab" data-tab="wallet">⭐ 声誉</button>
+        <button class="mp-tab" data-tab="governance">🗳️ 因子治理</button>
         {% if feature_alpha_marketplace %}
-        <a class="mp-tab" href="/app/marketplace#governance" class="mp-tab mp-tab-link">鈿?SPA 治理</a>
+        <a class="mp-tab" href="/app/marketplace#governance" class="mp-tab mp-tab-link">⚡ SPA 治理</a>
         {% endif %}
     </div>
 
@@ -58,16 +59,16 @@
                     <thead>
                         <tr>
                             <th>Token</th>
-                            <th>贡献鑰?/th>
+                            <th>贡献者</th>
                             <th>声誉成本</th>
                             <th>ZK</th>
-                            <th>多样鎬?/th>
-                            <th>信号鏁?/th>
+                            <th>多样性</th>
+                            <th>信号数</th>
                             <th>操作</th>
                         </tr>
                     </thead>
                     <tbody id="listingsBody">
-                        <tr><td colspan="7" class="mp-empty">加载涓?..</td></tr>
+                        <tr><td colspan="7" class="mp-empty">加载中...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -75,7 +76,7 @@
 
         <div class="mp-card">
             <div class="mp-card-header">
-                <span class="mp-card-title">📋 快速贡鐚?/span>
+                <span class="mp-card-title">📋 快速贡献</span>
             </div>
             <div class="mp-form" id="quickBuyForm">
                 <div class="mp-form-group">
@@ -87,7 +88,7 @@
                     <input type="number" id="buyQuantity" value="1" min="1" />
                 </div>
                 <button class="mp-btn mp-btn-primary" type="button" data-mp-action="contribute" class="mp-btn-block">
-                    猸?贡献获取
+                    ⭐ 贡献获取
                 </button>
             </div>
         </div>
@@ -103,14 +104,14 @@
                     <tr>
                         <th>订单 ID</th>
                         <th>Listing</th>
-                        <th>声誉消鑰?/th>
-                        <th>状鎬?/th>
+                        <th>声誉消耗</th>
+                        <th>状态</th>
                         <th>时间</th>
                         <th>操作</th>
                     </tr>
                 </thead>
                 <tbody id="ordersBody">
-                    <tr><td colspan="6" class="mp-empty">加载涓?..</td></tr>
+                    <tr><td colspan="6" class="mp-empty">加载中...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -141,7 +142,7 @@
 
     <div class="qa-is-hidden mp-card" id="tabWallet">
         <div class="mp-card-header">
-            <span class="mp-card-title">猸?声誉账户</span>
+            <span class="mp-card-title">⭐ 声誉账户</span>
         </div>
         <div class="mp-form">
             <div class="mp-stat-card mp-stat-spaced">
@@ -149,23 +150,23 @@
                 <div class="mp-stat-label">当前声誉积分</div>
             </div>
             <div class="mp-form-group">
-                <label>模拟贡献奖励（开发用锛?/label>
+                <label>模拟贡献奖励（开发用）</label>
                 <input type="number" id="creditAmount" step="10" placeholder="100" />
             </div>
             <button class="mp-btn mp-btn-primary" type="button" data-mp-action="credit" class="mp-btn-block">
-                猸?获取贡献奖励
+                ⭐ 获取贡献奖励
             </button>
         </div>
     </div>
 
     <div class="qa-is-hidden mp-card" id="tabGovernance">
         <div class="mp-card-header">
-            <span class="mp-card-title">🗳锔?因子治理（DAO 投票锛?/span>
-            <span class="text-muted" id="govStatsLabel" class="mp-count-label text-muted">鈥?/span>
+            <span class="mp-card-title">🗳️ 因子治理（DAO 投票）</span>
+            <span class="text-muted" id="govStatsLabel" class="mp-count-label text-muted">—</span>
         </div>
         <div class="mp-form">
             <div class="mp-card-header mp-header-inline">
-                <span class="mp-card-title">Auto-Alpha 挖掘 鈫?DAO</span>
+                <span class="mp-card-title">Auto-Alpha 挖掘 → DAO</span>
                 <button class="mp-btn mp-btn-outline mp-btn-sm" type="button" data-mp-action="gov-run-mining" class="mp-header-gov-end">
                     运行挖掘
                 </button>
@@ -173,10 +174,10 @@
             <div class="mp-scroll-x-mb">
                 <table class="mp-table">
                     <thead>
-                        <tr><th>Factor</th><th>表达寮?/th><th>Sharpe</th><th>操作</th></tr>
+                        <tr><th>Factor</th><th>表达式</th><th>Sharpe</th><th>操作</th></tr>
                     </thead>
                     <tbody id="govMiningBody">
-                        <tr><td colspan="4" class="mp-empty">鈥?/td></tr>
+                        <tr><td colspan="4" class="mp-empty">—</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -189,7 +190,7 @@
                         <tr><th>实验</th><th>标的</th><th>策略</th><th>Sharpe</th><th>操作</th></tr>
                     </thead>
                     <tbody id="govMlflowBody">
-                        <tr><td colspan="4" class="mp-empty">鈥?/td></tr>
+                        <tr><td colspan="4" class="mp-empty">—</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -198,11 +199,11 @@
                 <input type="text" id="govStrategyId" placeholder="mom_v1" />
             </div>
             <div class="mp-form-group">
-                <label>因子表达寮?/label>
+                <label>因子表达式</label>
                 <input type="text" id="govExpression" placeholder="close / open - 1" />
             </div>
             <div class="mp-form-group">
-                <label>Sharpe（ZK 证明输入锛?/label>
+                <label>Sharpe（ZK 证明输入）</label>
                 <input type="number" id="govSharpe" step="0.01" value="1.0" />
             </div>
             <input type="hidden" id="govMlflowRunId" value="" />
@@ -222,20 +223,20 @@
                     <tr>
                         <th>提案</th>
                         <th>策略</th>
-                        <th>表达寮?/th>
+                        <th>表达式</th>
                         <th>关联</th>
-                        <th>状鎬?/th>
+                        <th>状态</th>
                         <th>票型</th>
                         <th>操作</th>
                     </tr>
                 </thead>
                 <tbody id="govProposalsBody">
-                    <tr><td colspan="7" class="mp-empty">切换到本 Tab 后加载鈥?/td></tr>
+                    <tr><td colspan="7" class="mp-empty">切换到本 Tab 后加载…</td></tr>
                 </tbody>
             </table>
         </div>
         <div class="mp-card-header mp-header-border-top">
-            <span class="mp-card-title">投票审计（JSONL锛?/span>
+            <span class="mp-card-title">投票审计（JSONL）</span>
         </div>
         <div class="mp-scroll-x">
             <table class="mp-table">
@@ -249,7 +250,7 @@
                     </tr>
                 </thead>
                 <tbody id="govVotesBody">
-                    <tr><td colspan="5" class="mp-empty">鈥?/td></tr>
+                    <tr><td colspan="5" class="mp-empty">—</td></tr>
                 </tbody>
             </table>
         </div>
@@ -262,7 +263,7 @@
             <h3 class="mp-modal-title">提案详情</h3>
             <button class="mp-btn mp-btn-outline mp-btn-sm" type="button" data-mp-action="close-gov-detail">关闭</button>
         </div>
-        <pre id="govDetailBody" class="mp-out mp-pre-tall">鈥?/pre>
+        <pre id="govDetailBody" class="mp-out mp-pre-tall">—</pre>
     </div>
 </div>
 
@@ -272,7 +273,7 @@
             <h3 class="mp-modal-title">MLflow 实验详情</h3>
             <button class="mp-btn mp-btn-outline mp-btn-sm" type="button" data-mp-action="close-mlflow-run">关闭</button>
         </div>
-        <pre id="mlflowRunBody" class="mp-out mp-pre-tall">鈥?/pre>
+        <pre id="mlflowRunBody" class="mp-out mp-pre-tall">—</pre>
         <div class="mp-modal-actions">
             <a id="mlflowUiLink" class="qa-is-hidden mp-btn mp-btn-outline mp-btn-sm" href="#" target="_blank" rel="noreferrer" class="mp-link-plain">打开 MLflow UI</a>
             <a id="mlflowGovLink" class="mp-btn mp-btn-primary mp-btn-sm" href="#" class="mp-link-inline">打开 SPA 治理深链</a>
@@ -286,12 +287,12 @@
         <div class="mp-form-group">
             <label>披露级别</label>
             <select id="disclosureLevel">
-                <option value="low">Low 鈥?基础 Sharpe</option>
-                <option value="medium">Medium 鈥?IC 与行业暴闇?/option>
-                <option value="high">High 鈥?完整公式（需高声誉）</option>
+                <option value="low">Low — 基础 Sharpe</option>
+                <option value="medium">Medium — IC 与行业暴露</option>
+                <option value="high">High — 完整公式（需高声誉）</option>
             </select>
         </div>
-        <div class="mp-out" id="disclosureBody" class="mp-out mp-pre-med">鈥?/div>
+        <div class="mp-out" id="disclosureBody" class="mp-out mp-pre-med">—</div>
         <div class="mp-modal-actions-row">
             <button class="mp-btn mp-btn-outline" type="button" data-mp-action="close-disclosure">关闭</button>
             <button class="mp-btn mp-btn-primary" type="button" data-mp-action="load-disclosure">加载披露</button>
@@ -354,12 +355,12 @@ const marketplace = {
                 document.getElementById('listingCount').textContent = '';
                 return;
             }
-            document.getElementById('listingCount').textContent = `鍏?${items.length} 个`;
+            document.getElementById('listingCount').textContent = `共 ${items.length} 个`;
             document.getElementById('listingsCount').textContent = items.length;
             tbody.innerHTML = items.map(item => {
                 const cost = item.reputation_cost ?? item.price_tokens ?? 0;
                 const diversity = item.diversity_bonus ?? 0;
-                const zk = item.zk_proof_hash ? item.zk_proof_hash.slice(0, 6) + '鈥? : '鈥?;
+                const zk = item.zk_proof_hash ? item.zk_proof_hash.slice(0, 6) + '…' : '—';
                 const tokenId = item.token_id || '-';
                 const sellerId = item.seller_id ?? '-';
                 return `
@@ -424,14 +425,14 @@ const marketplace = {
     async contribute() {
         const listingId = document.getElementById('buyListingId').value.trim();
         const quantity = parseInt(document.getElementById('buyQuantity').value) || 1;
-        if (!listingId) { this._toast('请输鍏?Listing ID', 'error'); return; }
+        if (!listingId) { this._toast('请输入 Listing ID', 'error'); return; }
         try {
             const json = await this._fetch('/api/v1/alpha/marketplace/contribute', {
                 method: 'POST',
                 body: JSON.stringify({ listing_id: listingId, quantity }),
             });
             const orderId = json.resource?.order_id ?? json.data?.order_id ?? '';
-            this._toast(`贡献成功！订鍗? ${orderId}`);
+            this._toast(`贡献成功！订单: ${orderId}`);
             this.loadStats();
             this.loadOrders();
         } catch (e) { this._toast(e.message, 'error'); }
@@ -445,7 +446,7 @@ const marketplace = {
         const tokenId = document.getElementById('listTokenId').value.trim();
         const price = parseFloat(document.getElementById('listPrice').value);
         const signalCount = parseInt(document.getElementById('listSignalCount').value) || 100;
-        if (!tokenId || !price) { this._toast('请输鍏?Token ID 和声誉成鏈?, 'error'); return; }
+        if (!tokenId || !price) { this._toast('请输入 Token ID 和声誉成本', 'error'); return; }
         try {
             const json = await this._fetch('/api/v1/alpha/marketplace/list', {
                 method: 'POST',
@@ -461,7 +462,7 @@ const marketplace = {
         if (!confirm('确定取消此订单？')) return;
         try {
             await this._fetch(`/api/v1/alpha/marketplace/order/${orderId}/cancel?user_id=${this.userId}`, { method: 'POST' });
-            this._toast('订单已取消，声誉已退杩?);
+            this._toast('订单已取消，声誉已退还');
             this.loadOrders();
             this.loadStats();
         } catch (e) { this._toast(e.message, 'error'); }
@@ -469,7 +470,7 @@ const marketplace = {
 
     async credit() {
         const amount = parseFloat(document.getElementById('creditAmount').value);
-        if (!amount || amount <= 0) { this._toast('请输入有效金棰?, 'error'); return; }
+        if (!amount || amount <= 0) { this._toast('请输入有效金额', 'error'); return; }
         try {
             await this._fetch('/api/v1/alpha/wallet/credit', {
                 method: 'POST',
@@ -487,7 +488,7 @@ const marketplace = {
     openDisclosure(tokenId, ownerId) {
         this._disclosureToken = tokenId;
         this._disclosureOwner = ownerId;
-        document.getElementById('disclosureBody').textContent = '选择级别后点击「加载披露銆?;
+        document.getElementById('disclosureBody').textContent = '选择级别后点击「加载披露」';
         document.getElementById('disclosureModal').style.display = 'flex';
     },
 
@@ -522,7 +523,7 @@ const marketplace = {
 
     copy(text) {
         navigator.clipboard?.writeText(text);
-        this._toast('已复鍒?);
+        this._toast('已复制');
     },
 
     async loadGovernance() {
@@ -535,7 +536,7 @@ const marketplace = {
                 ? ` · 赞成率≥${Math.round(Number(thresholds.majority) * 100)}%`
                 : '';
             document.getElementById('govStatsLabel').textContent =
-                `提案 ${stats.proposals ?? 0} · 投票 ${stats.votes ?? 0} · 激娲?${stats.active_factors ?? 0}${thresholdLabel}`;
+                `提案 ${stats.proposals ?? 0} · 投票 ${stats.votes ?? 0} · 激活 ${stats.active_factors ?? 0}${thresholdLabel}`;
             const proposals = data.proposals ?? [];
             const votes = data.votes ?? [];
             const mining = data.mining_factors ?? [];
@@ -548,8 +549,8 @@ const marketplace = {
                 mBody.innerHTML = mining.map((f) => `
                     <tr>
                         <td><code>${f.factor_id || ''}</code></td>
-                        <td class="mp-td-ellipsis">${f.expression || '鈥?}</td>
-                        <td>${f.sharpe != null ? Number(f.sharpe).toFixed(2) : '鈥?}</td>
+                        <td class="mp-td-ellipsis">${f.expression || '—'}</td>
+                        <td>${f.sharpe != null ? Number(f.sharpe).toFixed(2) : '—'}</td>
                         <td>
                             <button class="mp-btn mp-btn-primary mp-btn-sm" type="button" data-mp-action="gov-mining-propose" data-factor-id="${f.factor_id}">提案</button>
                         </td>
@@ -564,9 +565,9 @@ const marketplace = {
                 mlBody.innerHTML = runs.map((run) => `
                     <tr>
                         <td><code>${run.run_name || ''}</code></td>
-                        <td>${run.params?.symbol ?? '鈥?}</td>
-                        <td>${run.params?.strategy_name ?? '鈥?}</td>
-                        <td>${run.metrics?.sharpe != null ? Number(run.metrics.sharpe).toFixed(2) : '鈥?}</td>
+                        <td>${run.params?.symbol ?? '—'}</td>
+                        <td>${run.params?.strategy_name ?? '—'}</td>
+                        <td>${run.metrics?.sharpe != null ? Number(run.metrics.sharpe).toFixed(2) : '—'}</td>
                         <td>
                             <button class="mp-btn mp-btn-ghost mp-btn-sm" type="button" data-mp-action="gov-mlflow-view" data-run-id="${run.run_id || ''}">详情</button>
                         </td>
@@ -585,16 +586,16 @@ const marketplace = {
                                 ${(item.proposal_id || '').slice(-8)}
                             </button>
                         </td>
-                        <td>${item.strategy_id || '鈥?}</td>
-                        <td class="mp-td-ellipsis-lg">${item.expression || '鈥?}</td>
+                        <td>${item.strategy_id || '—'}</td>
+                        <td class="mp-td-ellipsis-lg">${item.expression || '—'}</td>
                         <td class="mp-td-mono-sm">${
                             item.mlflow_run_id
                                 ? `mlf:${String(item.mlflow_run_id).slice(0, 6)}`
                                 : item.mining_factor_id
                                     ? `min:${String(item.mining_factor_id).slice(0, 8)}`
-                                    : '鈥?
+                                    : '—'
                         }</td>
-                        <td><span class="mp-badge mp-badge-active">${item.status || '鈥?}</span></td>
+                        <td><span class="mp-badge mp-badge-active">${item.status || '—'}</span></td>
                         <td>${item.votes_for ?? 0}/${item.votes_against ?? 0}</td>
                         <td>
                             <button class="mp-btn mp-btn-primary mp-btn-sm" type="button" data-mp-action="gov-vote-yes" data-proposal-id="${item.proposal_id}">赞成</button>
@@ -610,9 +611,9 @@ const marketplace = {
                 vBody.innerHTML = votes.map((row) => `
                     <tr>
                         <td><code>${(row.proposal_id || '').slice(-8)}</code></td>
-                        <td>${row.voter_team || '鈥?}</td>
+                        <td>${row.voter_team || '—'}</td>
                         <td>${row.approve ? '赞成' : '反对'}</td>
-                        <td class="mp-td-ellipsis-md">${row.rationale || '鈥?}</td>
+                        <td class="mp-td-ellipsis-md">${row.rationale || '—'}</td>
                         <td class="mp-td-date">${(row.voted_at || '').slice(0, 19)}</td>
                     </tr>
                 `).join('');
@@ -627,7 +628,7 @@ const marketplace = {
         const mlflow_run_id = document.getElementById('govMlflowRunId').value.trim();
         const mining_factor_id = document.getElementById('govMiningFactorId').value.trim();
         if (!strategy_id || !expression) {
-            this._toast('请填鍐?Strategy ID 与表达式', 'error');
+            this._toast('请填写 Strategy ID 与表达式', 'error');
             return;
         }
         try {
@@ -659,7 +660,7 @@ const marketplace = {
                 body: JSON.stringify({ generations: 5, population_size: 30 }),
             });
             const count = json.data?.top_factors?.length ?? 0;
-            this._toast(`挖掘完成锛?{count} 个优质因子`);
+            this._toast(`挖掘完成：${count} 个优质因子`);
             await this.loadGovernance();
         } catch (e) { /* toast in _fetch */ }
     },
@@ -685,7 +686,7 @@ const marketplace = {
         if (mlflowRunId) document.getElementById('govMlflowRunId').value = mlflowRunId;
         const linkLabel = document.getElementById('govLinkLabel');
         if (linkLabel && mlflowRunId) {
-            linkLabel.textContent = `关联 MLflow锛?{mlflowRunId.slice(0, 8)}…`;
+            linkLabel.textContent = `关联 MLflow：${mlflowRunId.slice(0, 8)}…`;
             linkLabel.style.display = '';
         }
     },
@@ -695,7 +696,7 @@ const marketplace = {
         const modal = document.getElementById('govDetailModal');
         const body = document.getElementById('govDetailBody');
         if (!modal || !body) return;
-        body.textContent = '加载中鈥?;
+        body.textContent = '加载中…';
         modal.style.display = 'flex';
         try {
             const json = await this._fetch(`/api/v1/alpha/governance/proposals/${encodeURIComponent(proposalId)}`);
@@ -717,7 +718,7 @@ const marketplace = {
         const link = document.getElementById('mlflowGovLink');
         const uiLink = document.getElementById('mlflowUiLink');
         if (!modal || !body) return;
-        body.textContent = '加载中鈥?;
+        body.textContent = '加载中…';
         modal.style.display = 'flex';
         if (link) {
             link.href = `/app/marketplace?mlflow_run_id=${encodeURIComponent(runId)}#governance`;
@@ -732,7 +733,7 @@ const marketplace = {
             body.textContent = JSON.stringify(run, null, 2);
             const linked = json.data?.linked_proposals ?? [];
             if (linked.length) {
-                body.textContent += `\n\n关联提案锛?{linked.map((p) => p.proposal_id).join(', ')}`;
+                body.textContent += `\n\n关联提案：${linked.map((p) => p.proposal_id).join(', ')}`;
             }
             if (uiLink && run.ui_url) {
                 uiLink.href = run.ui_url;
@@ -756,7 +757,7 @@ const marketplace = {
                 body: JSON.stringify({ proposal_id: proposalId, approve, rationale }),
             });
             const status = json.data?.tally?.status || '';
-            this._toast(status ? `投票成功锛?{status}` : '投票成功');
+            this._toast(status ? `投票成功：${status}` : '投票成功');
             await this.loadGovernance();
         } catch (e) { /* toast in _fetch */ }
     },
@@ -768,7 +769,7 @@ const marketplace = {
                 body: JSON.stringify({}),
             });
             const pid = json.data?.proposal_id || '';
-            this._toast(pid ? `挖掘因子已提案：${pid}` : '提案已提浜?);
+            this._toast(pid ? `挖掘因子已提案：${pid}` : '提案已提交');
             await this.loadGovernance();
         } catch (e) { /* toast in _fetch */ }
     },

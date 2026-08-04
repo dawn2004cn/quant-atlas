@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
@@ -17,6 +18,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useRealtime } from "../hooks/useRealtime";
 import { fetchDailyWorkbench } from "../lib/api";
 import { RealtimeBar } from "../components/workbench/RealtimeBar";
+import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 
 const MARKETS = ["CN", "HK", "US"] as const;
 const MARKET_LABELS: Record<string, string> = { CN: "A股", HK: "港股", US: "美股" };
@@ -44,13 +46,15 @@ export function DashboardPage() {
           </div>
         </div>
         <div className="h-12 animate-pulse rounded-xl bg-zinc-800/40" />
-        <PageSkeleton rows={4} />
+        <PageSkeleton rows={4} showProgress />
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-4">
+      <CoreWorkflowStrip />
+      <PageQuickNav items={QUICK_NAV_PRESETS.dashboard} />
       {/* ── Header Row ── */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -63,6 +67,19 @@ export function DashboardPage() {
           <p className="mt-0.5 text-sm text-zinc-500">
             {username ? `欢迎回来，${username}` : `已登录（${mode}）`}
           </p>
+          {data?.health_banner?.quotes_full_dump_warn ? (
+            <p className="mt-1 text-[11px] font-mono text-amber-500/90">
+              quotes dump={data.health_banner.quotes_full_dump_count ?? 0}/
+              thr={data.health_banner.quotes_full_dump_threshold ?? 1}{" "}
+              <Link className="link link-hover text-amber-400" to="/observability">
+                观测台
+              </Link>
+              {" · "}
+              <Link className="link link-hover text-amber-400" to="/alert-center">
+                预警中心
+              </Link>
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           {MARKETS.map((m) => (
