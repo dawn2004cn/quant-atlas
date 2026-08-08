@@ -54,3 +54,7 @@ rdagent>=0.8.0
 
 # 可选高性能计算（向量化回测 / Polars 数据湖）
 # pip install -r requirements-compute.txt
+
+# 可选 ML（Feature Pipeline LightGBM）
+# pip install lightgbm
+# 或: pip install -e ".[ml]"

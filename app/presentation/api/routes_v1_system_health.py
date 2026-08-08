@@ -193,6 +193,93 @@ def register_system_health_routes(blueprint: Blueprint, ctx: ApiV1Context) -> No
             enable_legacy_alias=legacy,
         )
 
+    @blueprint.get("/system/quote-latency-slo")
+    @login_required
+    def quote_latency_slo():
+        """SRS NFR: Redis/quote latency SLO snapshot (target default 50ms)."""
+        from app.infrastructure.realtime.quote_latency_slo import get_quote_latency_slo
+
+        tracker = get_quote_latency_slo()
+        # Refresh redis ping sample opportunistically
+        tracker.probe_and_record_redis()
+        return ok_response(
+            data=tracker.snapshot(),
+            legacy_alias_key=None,
+            enable_legacy_alias=legacy,
+        )
+
+    @blueprint.get("/system/execution-adapters")
+    @login_required
+    def execution_adapters():
+        """List QMT/CCXT/IBKR/CTP adapter readiness (contracts-aware)."""
+        from app.infrastructure.execution.adapter_registry import list_execution_adapters
+
+        return ok_response(
+            data={"adapters": list_execution_adapters()},
+            legacy_alias_key=None,
+            enable_legacy_alias=legacy,
+        )
+
+    @blueprint.get("/system/qmt-integration-probe")
+    @login_required
+    def qmt_integration_probe():
+        """Run QMT×RiskGuard simulation checklist (no live orders)."""
+        from app.modules.execution.services.qmt_integration_probe import run_qmt_integration_probe
+
+        report = run_qmt_integration_probe()
+        return ok_response(
+            data=report.as_dict(),
+            legacy_alias_key=None,
+            enable_legacy_alias=legacy,
+        )
+
+    @blueprint.post("/system/qmt-integration-probe")
+    @login_required
+    def qmt_integration_probe_run():
+        """Same as GET; POST for ops buttons."""
+        from app.modules.execution.services.qmt_integration_probe import run_qmt_integration_probe
+
+        body = request.get_json(silent=True) or {}
+        account_id = None
+        if isinstance(body, dict):
+            account_id = body.get("account_id")
+        report = run_qmt_integration_probe(account_id=str(account_id) if account_id else None)
+        return ok_response(
+            data=report.as_dict(),
+            legacy_alias_key=None,
+            enable_legacy_alias=legacy,
+        )
+
+    @blueprint.get("/system/ibkr-ctp-integration-probe")
+    @login_required
+    def ibkr_ctp_integration_probe():
+        """Run IBKR/CTP simulation + live dry-run checklist (no real broker orders)."""
+        from app.modules.execution.services.ibkr_ctp_integration_probe import (
+            run_ibkr_ctp_integration_probe,
+        )
+
+        report = run_ibkr_ctp_integration_probe()
+        return ok_response(
+            data=report.as_dict(),
+            legacy_alias_key=None,
+            enable_legacy_alias=legacy,
+        )
+
+    @blueprint.post("/system/ibkr-ctp-integration-probe")
+    @login_required
+    def ibkr_ctp_integration_probe_run():
+        """Same as GET; POST for ops buttons."""
+        from app.modules.execution.services.ibkr_ctp_integration_probe import (
+            run_ibkr_ctp_integration_probe,
+        )
+
+        report = run_ibkr_ctp_integration_probe()
+        return ok_response(
+            data=report.as_dict(),
+            legacy_alias_key=None,
+            enable_legacy_alias=legacy,
+        )
+
     @blueprint.get("/system/agent-topology")
     @login_required
     @require_role("can_manage_users")

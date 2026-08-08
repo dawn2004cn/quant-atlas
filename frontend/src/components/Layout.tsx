@@ -6,6 +6,7 @@ import { usePlatformFeatures, isNavItemVisible } from "../hooks/usePlatformFeatu
 import { useTheme } from "../hooks/useTheme";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
+import { AiAssistantDrawer } from "./AiAssistantDrawer";
 
 interface LayoutProps {
   enableBackToClassic?: boolean;
@@ -174,6 +175,7 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
   const { features } = usePlatformFeatures();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
 
   async function onLogout() {
     await logoutSession();
@@ -223,6 +225,14 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
               </Link>
             )}
             <LanguageSwitcher />
+            <button
+              type="button"
+              className="hidden sm:inline-flex h-8 items-center rounded-lg px-2 text-xs font-medium text-[var(--quant-fg)] hover:bg-[var(--quant-surface)]"
+              onClick={() => setAiOpen(true)}
+              title="AI 助手"
+            >
+              AI
+            </button>
             <button
               type="button"
               className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[var(--quant-surface)] transition-colors"
@@ -286,11 +296,23 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
         <Outlet />
       </main>
 
+      <AiAssistantDrawer open={aiOpen} onClose={() => setAiOpen(false)} />
+      {!aiOpen && (
+        <button
+          type="button"
+          onClick={() => setAiOpen(true)}
+          className="fixed bottom-4 right-4 z-50 rounded-full border border-[var(--quant-surface-border)] bg-[var(--quant-surface-strong)] px-4 py-2 text-sm font-medium text-[var(--quant-fg)] shadow-lg backdrop-blur hover:border-[var(--quant-accent)] hover:text-[var(--quant-accent)]"
+          aria-label="打开 AI 助手"
+        >
+          AI 助手
+        </button>
+      )}
+
       {/* ── Back to Classic ──────────────────────────────────────── */}
       {enableBackToClassic && (
         <a
           href={backToClassicUrl || "/daily-workbench"}
-          className="fixed bottom-4 right-4 text-xs text-[var(--quant-muted)] hover:text-[var(--quant-accent)] transition-colors z-50
+          className="fixed bottom-4 left-4 text-xs text-[var(--quant-muted)] hover:text-[var(--quant-accent)] transition-colors z-50
                      px-3 py-1.5 rounded-full bg-[var(--quant-surface-strong)] border border-[var(--quant-surface-border)] backdrop-blur"
         >
           ← 回到经典版

@@ -248,14 +248,14 @@
     align-items: center;
 }
 
-.wb-health-banner--ok { background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.25); }
-.wb-health-banner--warning { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.35); }
-.wb-health-banner--critical { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.35); }
+.wb-health-banner--ok { background: var(--tone-ok-soft); border-color: var(--tone-ok-border); }
+.wb-health-banner--warning { background: var(--tone-warn-soft); border-color: var(--tone-warn-border); }
+.wb-health-banner--critical { background: var(--tone-danger-soft); border-color: var(--tone-danger-border); }
 
 .wb-health-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-.wb-health-dot--ok { background: var(--positive); }
-.wb-health-dot--warning { background: #f59e0b; }
-.wb-health-dot--critical { background: var(--negative); }
+.wb-health-dot--ok { background: var(--tone-ok, var(--positive)); }
+.wb-health-dot--warning { background: var(--tone-warn, var(--warning)); }
+.wb-health-dot--critical { background: var(--tone-danger, var(--negative)); }
 
 .wb-morning-call {
     margin-top: var(--space-4);

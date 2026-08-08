@@ -53,7 +53,7 @@ export function TimeseriesOpsCard() {
 
   if (healthError) {
     return (
-      <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">
+      <div className="qa-tone-banner qa-tone-banner--danger">
         时序健康探针不可用：{healthError.message}
       </div>
     );
@@ -111,7 +111,7 @@ export function TimeseriesOpsCard() {
       )}
 
       {(health?.warnings?.length ?? 0) > 0 ? (
-        <p className="mt-3 text-xs text-amber-400/70">
+        <p className="mt-3 text-xs text-[var(--tone-warn)]">
           提示：{health?.warnings?.join(" · ")}
         </p>
       ) : null}

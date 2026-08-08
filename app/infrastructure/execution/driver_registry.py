@@ -23,6 +23,11 @@ def build_borderless_router(*, mode: str | None = None) -> BorderlessExecutionRo
     resolved_mode = (mode or get_runtime("EXECUTION_DEFAULT_MODE", "paper")).strip().lower()
     router = BorderlessExecutionRouter(default_mode=resolved_mode)
 
+    if get_runtime_bool("RISK_GUARD_ENABLED", True):
+        from app.modules.execution.services.risk_guard_factory import get_risk_guard_service
+
+        router.set_risk_guard(get_risk_guard_service())
+
     for market in _MARKETS:
         exchange = _EXCHANGES[market]
         router.register_driver(

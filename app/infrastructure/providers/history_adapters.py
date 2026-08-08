@@ -257,12 +257,12 @@ def _build_cn_history_adapters() -> list[tuple[str, Any]]:
             *tail[1:],
         ]
 
-    head: list[tuple[str, Any]] = []
+    # 写入侧已停 QuestDB/CH：读链优先 Timescale，再回退遗留时序库
+    head: list[tuple[str, Any]] = [("timescale", TimescaleHistoryAdapter())]
     if load_questdb_settings() is not None:
         head.append(("questdb", QuestDBHistoryAdapter()))
     if load_clickhouse_settings() is not None:
         head.append(("clickhouse", ClickHouseHistoryAdapter()))
-    head.append(("timescale", TimescaleHistoryAdapter()))
     return head + tail
 
 

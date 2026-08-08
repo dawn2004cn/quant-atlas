@@ -54,6 +54,7 @@ class ChinaAEngine(BaseEngine):
         self.stamp_tax: float = config.get("stamp_tax", 0.00025)
         self.transfer_fee: float = config.get("transfer_fee", 0.00002)
         self.slippage_rate: float = config.get("slippage", 0.001)
+        self.fee_schedule_id: str | None = config.get("fee_schedule_id")
 
     def can_execute(self, symbol: str, direction: int, bar: pd.Series) -> bool:
         """A-share execution rules.
@@ -97,8 +98,18 @@ class ChinaAEngine(BaseEngine):
         return max(int(raw_size / 100) * 100, 0)
 
     def calc_commission(self, size: float, price: float, direction: int, is_open: bool) -> float:
-        """A-share fee structure: commission + stamp tax (sell) + transfer fee."""
+        """A-share fee structure: commission + stamp tax (sell) + transfer fee.
+
+        When ``config['fee_schedule_id']`` is set, use domain ``FeeSchedule``
+        (reportable ``fee_schedule_id`` for SRS tiered fees).
+        """
         notional = size * price
+        schedule_id = getattr(self, "fee_schedule_id", None)
+        if schedule_id:
+            from app.domain.trading.fee_schedule import get_fee_schedule
+
+            side = "buy" if is_open else "sell"
+            return get_fee_schedule(str(schedule_id)).calculate(notional=notional, side=side).total
         # Commission: 万2.5, min ¥5
         comm = max(notional * self.commission_rate, self.commission_min)
         # Transfer fee: 万0.1 bilateral

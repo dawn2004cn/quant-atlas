@@ -12,9 +12,9 @@
 |------|------|
 | **本地优先** | 能读 `TDX_ROOT_PATH`、`stock_cache.db`、`basic_market_data.db`、`news_archive.db`、`instance/qlib_export` / `qlib_bin` 的，不重复拉远程。 |
 | **先全量、后增量** | 龙虎榜、财报快照、Qlib K 线等：首次部署用 **存量回填任务**（仅空库触发）做历史全量；日常用 **按交易日一次的定时任务** 做增量。**独立强制全量**（龙虎榜 ``backfill_longhu_full``、研报 ``backfill_yanbao_full``、新闻 ``backfill_news_archive_for_codes``）按需手动触发，默认不进 Beat。 |
-| **K 线 / 生产入库（A 股）** | 推荐 **`TdxDaykSyncService`**：通达信 lday → **MySQL** ``stock_history_sh/sz/bj`` → ``qlib_export`` CSV → Beat **`mysql_to_qlib_incremental_sync`** → ``qlib_bin``。详见 [HISTORY_DATA_READ_WRITE_FLOW.md](HISTORY_DATA_READ_WRITE_FLOW.md)。 |
+| **K 线 / 生产入库（A 股）** | 推荐 **`TdxDaykSyncService` / `scheduled_cn_history_daily`**：通达信 lday → **TimescaleDB** + ``qlib_export`` CSV → ``qlib_bin``。MySQL 历史分表 / QuestDB / ClickHouse **入库已下线**。详见 [HISTORY_DATA_READ_WRITE_FLOW.md](HISTORY_DATA_READ_WRITE_FLOW.md)。 |
 | **K 线 / 研究管线** | 夜间可选 **`qlib_incremental_pipeline`**：东财+TDX 合并 → CSV → bin；与上并行，注意勿重复覆盖同一标的。 |
-| **历史 K 线 API 读顺序（A 股）** | **`use_mysql=1`** 时：**①** MySQL 分表 → **②** ``qlib_bin`` → **③** TDX lday → **④** 东财 → **⑤** TCP → **⑥** SQLite 缓存（最后）。`StockApplicationService.get_history` 在 CN 下先走 Provider 再 SQLite。 |
+| **历史 K 线 API 读顺序（A 股）** | **`HISTORY_PREFER_TIMESERIES=1`（默认）**：**①** Timescale → **②** 遗留 QuestDB/CH（若仍配置）→ **③** MySQL 分表 → **④** ``qlib_bin`` → **⑤** TDX lday → …。 |
 | **通达信 TCP K 线写缓存与失败回退** | 开启 ``ALLOW_TDX_LIVE_HISTORY_READ`` 时，按 ``TDX_HISTORY_TCP_MAX_PAGES``（默认 6）× ``TDX_HISTORY_TCP_PAGE_SIZE``（默认 800，最大 800）分页调用 ``get_security_bars``，合并去重后 **一次性 ``save_stock_history``**。若连接/调用失败或返回空，则 **从 ``stock_history`` 按标的读最近 ``TDX_HISTORY_CACHE_FALLBACK_LIMIT``（默认 4000）根** 再与请求区间求交后返回（非 A 股路径同样适用）。 |
 | **页面与 API** | 列表类（龙虎榜、研报、归档新闻）**默认查 SQLite**；行情全景/列表可走缓存库；个股详情在「缓存未过期」时减少 Provider 调用。 |
 | **按频度调度** | **高**（盘中行情、核心池）：短周期（如 2 分钟级）；**中**（全市场轮询）：如 15 分钟；**低**（收盘后榜单、研报、日 K、财报同步）：**每个交易日 1 次**（固定钟点），避免与短周期任务叠网络峰值。 |
@@ -31,6 +31,7 @@ flowchart LR
   end
   subgraph local [本地优先]
     TDX[通达信 vipdoc]
+    TS[(TimescaleDB)]
     SC[(stock_cache.db)]
     BM[(basic_market_data.db)]
     NA[(news_archive.db)]
@@ -40,6 +41,7 @@ flowchart LR
   subgraph app [应用读路径]
     WEB[Web/API]
   end
+  TDX --> TS
   TDX --> SC
   TX --> SC
   AK --> BM
@@ -47,6 +49,7 @@ flowchart LR
   TDX --> CSV
   AK --> CSV
   CSV --> BIN
+  TS --> WEB
   SC --> WEB
   BM --> WEB
   NA --> WEB
@@ -57,14 +60,14 @@ flowchart LR
 
 ## 3. 分域说明
 
-### 3.1 行情与日 K（多源 → MySQL / 缓存 → 页面）
+### 3.1 行情与日 K（多源 → Timescale / CSV / qlib → 页面）
 
-- **写入（生产推荐）**：`TDX_DAYK_CELERY_BEAT=1` → **16:05** `sync_incremental_tdx`、**16:25** `mysql_to_qlib_incremental_sync`；或 API `POST /api/v1/data/tdx-dayk/incremental-sync`。
+- **写入（生产推荐）**：`TDX_DAYK_CELERY_BEAT=1` → **16:05** `scheduled_cn_history_daily`（Timescale + CSV + bin）；或 API `POST /api/v1/data/tdx-dayk/incremental-sync`。
 - **写入（兼容）**：`MultiSourceMarketProvider` 等仍将行情写入 **`stock_cache.db`**；读路径命中远程源时可能回填 SQLite。
 - **本地增强**：配置 **`TDX_ROOT_PATH`** 后，日 K 扫描 `vipdoc/*/lday`；研究侧见 Qlib ingest / `get_tdx_local_snapshot`。
-- **读取**：A 股 K 线 API 以 **MySQL** 为主（见上表）；实时行情仍走腾讯等在线源与缓存。
+- **读取**：A 股 K 线 API 以 **Timescale 优先**（见上表）；实时行情仍走腾讯等在线源与缓存。
 - **Qlib 日 K（研究）**：`POST /api/v1/qlib/ingest` → CSV → bin；元数据 **`config/qlib_pipeline_meta.json`**。
-- **定时**：**`TDX_DAYK_CELERY_BEAT`**（收盘增量）、**`QLIB_CELERY_BEAT=1`**（夜间 02:40 多源 ingest）、**`DATA_BACKFILL_BEAT`**（空库种子）。
+- **定时**：**`TDX_DAYK_CELERY_BEAT`**（收盘主链）、**`QLIB_CELERY_BEAT=1`**（夜间 02:40 多源 ingest）、**`DATA_BACKFILL_BEAT`**（空库种子）。
 
 ### 3.2 龙虎榜、研报（远程 → SQLite → 页面）
 
@@ -105,6 +108,7 @@ flowchart LR
 | 全市场轮询 | Beat：**每 15 分钟** | 同上 | 与诉求「15 分钟级」一致 |
 | 龙虎榜入库 | Beat **17:05** + 或线程调度 | 每日收盘后一次 | **每交易日 1 次**即可；勿与 2 分钟任务重复启两套路 |
 | 研报入库 | Beat **06:05** + 或线程调度 | 每日一次 | 同上 |
+| TDX 日 K 入库 | Beat **16:05**（`TDX_DAYK_CELERY_BEAT=1`） | 写 Timescale + CSV + bin | 每交易日 1 次；主链 |
 | Qlib 增量 | Beat **02:40**（需 `QLIB_CELERY_BEAT=1`） | CSV→bin，夜间带宽友好 | 保持日级；全量仅回填 |
 | 财报日更 | **07:30**（`FINANCIAL_DAILY_BEAT=1`） | 本地 stash | 每交易日 1 次 |
 | 因子 IC 巡检 | **18:35**（可选） | 读本地 bin/结果 | 日级 |
@@ -118,6 +122,9 @@ flowchart LR
 | 变量 | 作用 |
 |------|------|
 | `TDX_ROOT_PATH` | 启用通达信本地日线等，**减少 AkShare 依赖** |
+| `TDX_DAYK_CELERY_BEAT` | `1` 收盘主链：TDX → Timescale + CSV → qlib_bin |
+| `TDX_SYNC_ENABLE_TIMESCALE` / `TDX_SYNC_ENABLE_MYSQL` | 默认 `1` / `0`（不写 MySQL 历史分表） |
+| `HISTORY_PREFER_TIMESERIES` | 默认 `1`：读路径 Timescale 优先 |
 | `ENABLE_CELERY` / `CELERY_BROKER_URL` | 异步任务与 Beat |
 | `SCANNER_CELERY_BEAT` | `0` 关闭 Beat 内 2min/15min 扫描 |
 | `ENABLE_BASIC_DATA_SCHEDULER` | `0` 建议与 Celery 龙虎榜/研报并存时关闭 |

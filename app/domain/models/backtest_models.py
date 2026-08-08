@@ -18,6 +18,7 @@ class BacktestConfig:
     initial_capital: float = 100_000.0
     commission_rate: float = 0.0003
     slippage: float = 0.001
+    fee_schedule_id: str | None = None
 
 
 @dataclass
@@ -45,6 +46,7 @@ class BacktestResult:
     trades: list[Trade] = field(default_factory=list)
     max_drawdown: float = 0.0
     sharpe_ratio: float = 0.0
+    fee_schedule_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -54,6 +56,7 @@ class BacktestResult:
             "trade_count": len(self.trades),
             "max_drawdown": self.max_drawdown,
             "sharpe_ratio": self.sharpe_ratio,
+            "fee_schedule_id": self.fee_schedule_id,
             "trades": [
                 {
                     "code": t.code,
@@ -75,6 +78,11 @@ class BacktestEngine:
     def run(self, signals: list[StrategySignal], prices: dict[str, Any]) -> BacktestResult:
         equity = self.config.initial_capital
         trades: list[Trade] = []
+        schedule = None
+        if self.config.fee_schedule_id:
+            from app.domain.trading.fee_schedule import get_fee_schedule
+
+            schedule = get_fee_schedule(self.config.fee_schedule_id)
         for sig in signals:
             px_data = prices.get(sig.code) or prices.get(sig.code.upper())
             if isinstance(px_data, list) and px_data:
@@ -86,7 +94,12 @@ class BacktestEngine:
             qty = max(1, int(100 * sig.strength))
             slip = px * self.config.slippage
             fill = px + slip if sig.direction == TradeDirection.LONG else px - slip
-            comm = abs(qty * fill) * self.config.commission_rate
+            notional = abs(qty * fill)
+            if schedule is not None:
+                side = "buy" if sig.direction == TradeDirection.LONG else "sell"
+                comm = schedule.calculate(notional=notional, side=side).total
+            else:
+                comm = notional * self.config.commission_rate
             pnl = qty * (fill - px) * (1 if sig.direction == TradeDirection.LONG else -1) - comm
             trades.append(
                 Trade(
@@ -108,6 +121,7 @@ class BacktestEngine:
             trades=trades,
             max_drawdown=0.05,
             sharpe_ratio=0.5,
+            fee_schedule_id=self.config.fee_schedule_id,
         )
 
 

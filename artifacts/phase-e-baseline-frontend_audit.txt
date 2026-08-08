@@ -1,0 +1,5 @@
+﻿OK      /api/v1/strategy/wizard/templates
+OK      /api/v1/telemetry/switcher
+OK      /api/v1/trade-plan
+
+Frontend paths missing: 0/21

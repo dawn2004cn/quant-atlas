@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
@@ -9,6 +9,7 @@ import { useAnalysisStream } from "../hooks/useAnalysisStream";
 import { useAuth } from "../hooks/useAuth";
 import { fetchStock, fetchStockHistory } from "../lib/api";
 import { extractRealtime, normalizeBars, type StockDetailPayload } from "../types/stock";
+import type { ChartOverlay } from "../components/charts/PriceHistoryChart";
 
 const PriceHistoryChart = lazy(() =>
   import("../components/charts/PriceHistoryChart").then((mod) => ({
@@ -38,6 +39,11 @@ export function StockDetailPage() {
   const quote = data ? extractRealtime(data as StockDetailPayload) : null;
   const bars = normalizeBars(historyRaw);
   const { steps, loading: aiLoading, error: aiError, start: startAi } = useAnalysisStream(symbol, market);
+  const [overlays, setOverlays] = useState<ChartOverlay[]>(["ma5", "ma20", "volume"]);
+
+  const toggleOverlay = (key: ChartOverlay) => {
+    setOverlays((prev) => (prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]));
+  };
 
   if (authLoading) {
     return (
@@ -85,12 +91,36 @@ export function StockDetailPage() {
 
       {/* Chart */}
       <Panel className="p-5">
-        <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.12em] text-zinc-400">近 120 日走势</h3>
-        {historyLoading && <div className="flex items-center gap-3 text-sm text-zinc-500"><div className="h-3 w-3 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-400" />加载 K 线…</div>}
-        {historyError && <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-400">K 线加载失败: {historyError.message}</div>}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--quant-muted)]">近 120 日走势</h3>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["ma5", "MA5"],
+                ["ma20", "MA20"],
+                ["volume", "成交量"],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => toggleOverlay(key)}
+                className={
+                  overlays.includes(key)
+                    ? "rounded-md bg-[var(--quant-accent)]/20 px-2 py-1 text-[11px] text-[var(--quant-accent)] ring-1 ring-[var(--quant-accent)]/40"
+                    : "rounded-md bg-[var(--quant-surface)] px-2 py-1 text-[11px] text-[var(--quant-muted)] ring-1 ring-[var(--quant-surface-border)]"
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {historyLoading && <div className="flex items-center gap-3 text-sm text-[var(--quant-muted)]"><div className="h-3 w-3 animate-spin rounded-full border-2 border-[var(--quant-surface-border)] border-t-[var(--quant-muted)]" />加载 K 线…</div>}
+        {historyError && <div className="qa-tone-banner qa-tone-banner--warn">K 线加载失败: {historyError.message}</div>}
         {!historyLoading && !historyError && (
-          <Suspense fallback={<div className="h-80 animate-pulse rounded-xl bg-zinc-800/40" />}>
-            <PriceHistoryChart data={bars} />
+          <Suspense fallback={<div className="h-80 animate-pulse rounded-xl bg-[var(--quant-surface)]" />}>
+            <PriceHistoryChart data={bars} overlays={overlays} />
           </Suspense>
         )}
       </Panel>

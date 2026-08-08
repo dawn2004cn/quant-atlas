@@ -102,6 +102,23 @@ class QMTExecutor(ITradeExecutor):
             live_submit=self._live_submit,
         )
 
+    def execute_order_request(
+        self,
+        request: "OrderRequest",  # noqa: F821
+        *,
+        strategy_id: str = "qmt_bridge",
+        user_id: int | None = None,
+    ) -> str:
+        """Accept unified ``OrderRequest`` and execute via QMT signal path."""
+        from app.infrastructure.execution.qmt_order_bridge import trade_signal_from_order_request
+
+        signal = trade_signal_from_order_request(
+            request,
+            strategy_id=strategy_id,
+            user_id=user_id,
+        )
+        return self.execute(signal)
+
     def execute(self, signal: TradeSignalDTO) -> str:
         """
         Execute trade using QMT API with slippage tracking.
@@ -112,6 +129,15 @@ class QMTExecutor(ITradeExecutor):
         Returns:
             Order ID
         """
+        from app.modules.execution.services.risk_guard_factory import (
+            get_risk_guard_service,
+            risk_guard_enabled,
+        )
+
+        if risk_guard_enabled():
+            account_id = (self.account_id or "").strip() or "qmt_default"
+            get_risk_guard_service().ensure_order_allowed(account_id)
+
         with trace_order_execution(
             order_id="",  # Will be set after generation
             symbol=signal.symbol,
@@ -151,6 +177,14 @@ class QMTExecutor(ITradeExecutor):
                     "QMT simulation order recorded (QMT_LIVE_SUBMIT=0): %s",
                     order_id,
                 )
+                try:
+                    from app.modules.execution.services.qmt_integration_probe import (
+                        persist_qmt_order_event,
+                    )
+
+                    persist_qmt_order_event(self._pending_orders[order_id])
+                except Exception:
+                    logger.warning("qmt sim order persist skipped", exc_info=True)
                 return order_id
 
             try:

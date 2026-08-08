@@ -18,8 +18,11 @@ logger = get_logger(__name__)
 
 class CCXTExchangeAdapter(ExchangePort):
     def __init__(self, exchange_id: str, config: dict[str, Any] | None = None):
+        from app.infrastructure.security.exchange_api_key_policy import assert_no_withdraw
+
         self._exchange_id = exchange_id
         self._config = config or {}
+        assert_no_withdraw(self._config, exchange_id=exchange_id)
         exchange_class = getattr(ccxt, exchange_id)
         self._exchange = exchange_class(self._config)
         self._breaker = CircuitBreakerRegistry.get(
@@ -81,6 +84,27 @@ class CCXTExchangeAdapter(ExchangePort):
             mark_system_degraded(f"ccxt_{self._exchange_id}")
             raise
         return self._map_ccxt_order(ccxt_order)
+
+    def create_order_from_request(self, request: "OrderRequest") -> Order:  # noqa: F821
+        """Place order from unified domain ``OrderRequest`` (REQ-SRS-03)."""
+        from app.domain.trading.contracts import OrderRequest as _OR
+        from app.modules.execution.services.risk_guard_factory import (
+            get_risk_guard_service,
+            risk_guard_enabled,
+        )
+
+        if not isinstance(request, _OR):
+            raise TypeError("expected OrderRequest")
+        if risk_guard_enabled():
+            account_id = str(getattr(request, "account_id", None) or self._exchange_id or "ccxt")
+            get_risk_guard_service().ensure_order_allowed(account_id)
+        return self.create_order(
+            request.symbol,
+            request.order_type,
+            request.side,
+            float(request.quantity),
+            request.price,
+        )
 
     def get_order(self, order_id: str, symbol: str) -> Order:
         try:

@@ -1,0 +1,12 @@
+{# 子页快捷操作条 — 父模板先 {% set quick_nav_items = [...] %} #}
+{% if quick_nav_items is defined and quick_nav_items %}
+<nav class="qc-page-quick-nav" aria-label="本页快捷操作">
+    {% for item in quick_nav_items %}
+    <a href="{{ item.href }}"
+       class="qc-page-quick-nav__link{% if item.primary %} qc-page-quick-nav__link--primary{% endif %}"
+       {% if item.external %}target="_blank" rel="noopener"{% endif %}>
+        {{ item.label }}
+    </a>
+    {% endfor %}
+</nav>
+{% endif %}

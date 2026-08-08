@@ -39,12 +39,21 @@ class SmartDegradeGateway:
         self,
         *,
         redis_url: str | None = None,
-        latency_stream_max_ms: float = 80.0,
-        latency_batch_max_ms: float = 250.0,
+        latency_stream_max_ms: float | None = None,
+        latency_batch_max_ms: float | None = None,
     ) -> None:
+        from app.infrastructure.realtime.quote_latency_slo import (
+            resolve_degrade_batch_ms,
+            resolve_degrade_stream_ms,
+        )
+
         self._redis_url = redis_url
-        self._stream_max = latency_stream_max_ms
-        self._batch_max = latency_batch_max_ms
+        self._stream_max = float(
+            latency_stream_max_ms if latency_stream_max_ms is not None else resolve_degrade_stream_ms()
+        )
+        self._batch_max = float(
+            latency_batch_max_ms if latency_batch_max_ms is not None else resolve_degrade_batch_ms()
+        )
         self._topology = StreamTopology()
         self._last_probe = 0.0
         self._tick = 0
@@ -128,14 +137,23 @@ class SmartDegradeGateway:
             return 0.0
         try:
             from app.infrastructure.redis_client import RedisClientPool
+            from app.infrastructure.realtime.quote_latency_slo import get_quote_latency_slo
+
             client = RedisClientPool.get(url).client
             t0 = time.perf_counter()
             client.ping()
             ms = (time.perf_counter() - t0) * 1000
             client.close()
+            get_quote_latency_slo().record_redis_ping(ms)
             return ms
         except Exception as exc:
             logger.debug("redis latency probe failed: %s", exc)
+            try:
+                from app.infrastructure.realtime.quote_latency_slo import get_quote_latency_slo
+
+                get_quote_latency_slo().record_redis_ping(999.0)
+            except Exception:
+                pass
             return 999.0
 
     def _pick_mode(self, latency_ms: float, pulse_ctx: Any | None) -> tuple[StreamMode, str]:

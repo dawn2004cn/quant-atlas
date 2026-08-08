@@ -116,6 +116,23 @@
     </div>
 </div>
 
+<div class="obs-panel obs-section-spaced" id="execAdaptersPanel" style="margin:12px 0 20px;">
+    <div class="panel-head">
+        <div>
+            <h2 class="panel-title">执行适配器</h2>
+            <div class="panel-subtitle">QMT / CCXT / IBKR / CTP · sim_ready 与 live dry-run</div>
+        </div>
+        <div class="obs-actions">
+            <button class="btn-soft btn-sm" type="button" data-obs-action="run-qmt-probe">QMT 联调探针</button>
+            <button class="btn-brand btn-sm" type="button" data-obs-action="run-ibkr-ctp-probe">IBKR/CTP 联调探针</button>
+            <button class="btn-soft btn-sm" type="button" data-obs-action="run-rl-research">RL 离线训练</button>
+            <button class="btn-soft btn-sm" type="button" data-obs-action="reload-exec-adapters">刷新</button>
+        </div>
+    </div>
+    <div id="execAdaptersTable" class="trace-list"><div class="loading-tile">加载适配器…</div></div>
+    <div id="execProbeNote" class="panel-subtitle" style="margin-top:8px;"></div>
+</div>
+
 <div class="obs-panel obs-section-spaced" id="quotesDumpTrendPanel" style="display:none;margin:12px 0 20px;">
     <div class="panel-head">
         <div>
@@ -481,6 +498,69 @@ function renderBreakerCard(title, okish, note) {
     `;
 }
 
+async function loadExecAdapters() {
+    const box = document.getElementById("execAdaptersTable");
+    if (!box) return;
+    box.innerHTML = '<div class="loading-tile">正在读取执行适配器…</div>';
+    try {
+        const data = await QCApi.get('/system/execution-adapters');
+        const rows = (data && data.adapters) || [];
+        if (!rows.length) {
+            box.innerHTML = '<div class="loading-tile">暂无适配器数据</div>';
+            return;
+        }
+        const body = rows.map(function (a) {
+            const ready = a.ready ? 'yes' : 'no';
+            const sim = a.sim_ready == null ? '—' : (a.sim_ready ? 'yes' : 'no');
+            const sess = a.session_wired ? 'wired' : '—';
+            return '<tr><td class="mono">' + escapeHtml(a.adapter_id || '') +
+                '</td><td>' + escapeHtml(a.market || '') +
+                '</td><td>' + escapeHtml(String(a.phase || '')) +
+                '</td><td>' + ready + '</td><td>' + sim + '</td><td>' + sess + '</td></tr>';
+        }).join('');
+        box.innerHTML = '<table class="w-full text-sm"><thead><tr>' +
+            '<th>适配器</th><th>市场</th><th>阶段</th><th>ready</th><th>sim_ready</th><th>session</th>' +
+            '</tr></thead><tbody>' + body + '</tbody></table>';
+    } catch (e) {
+        box.innerHTML = '<div class="loading-tile">读取失败</div>';
+    }
+}
+
+async function runRlResearch() {
+    const note = document.getElementById("execProbeNote");
+    if (note) note.textContent = 'RL 离线训练中…';
+    try {
+        const data = await QCApi.post('/strategy/rl-research/train', { prefer_live_bars: true, episodes: 4 });
+        if (note) {
+            note.textContent = 'RL research · live=' + ((data && data.live_enabled) ? 'on' : 'off') +
+                ' · valid_ret=' + ((data && data.valid_return) != null ? Number(data.valid_return).toFixed(4) : '—') +
+                ' · synthetic=' + ((data && data.synthetic_bars) ? 'yes' : 'no');
+        }
+    } catch (e) {
+        if (note) note.textContent = 'RL 训练失败';
+    }
+}
+
+async function runExecProbe(kind) {
+    const note = document.getElementById("execProbeNote");
+    if (note) note.textContent = '探针运行中…';
+    try {
+        const path = kind === 'qmt'
+            ? '/system/qmt-integration-probe'
+            : '/system/ibkr-ctp-integration-probe';
+        const data = await QCApi.post(path, {});
+        if (note) {
+            note.textContent = (data && data.ok ? '通过' : '未通过') +
+                ' · passed=' + ((data && data.passed) || 0) +
+                ' · failed=' + ((data && data.failed) || 0) +
+                ' · mode=' + ((data && data.mode) || '—');
+        }
+        await loadExecAdapters();
+    } catch (e) {
+        if (note) note.textContent = '探针请求失败';
+    }
+}
+
 async function loadIntegrationStack() {
     const box = document.getElementById("breakerGrid");
     if (!box) return;
@@ -585,6 +665,7 @@ document.getElementById('traceIdInput').addEventListener('keydown', event => {
 loadHealth();
 loadObservabilitySnapshot();
 loadIntegrationStack();
+loadExecAdapters();
 if (window.QAUserCenter) {
     QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('obsFreshnessStrip'));
     QAUserCenter.mountActiveJobsPanel('obsActiveJobs', 6);
@@ -602,6 +683,10 @@ document.addEventListener('click', function (e) {
     else if (action === 'load-messages') loadTaskMessages();
     else if (action === 'retry-integration') loadIntegrationStack();
     else if (action === 'reload-beat-history') loadBeatSyncOps();
+    else if (action === 'reload-exec-adapters') loadExecAdapters();
+    else if (action === 'run-qmt-probe') runExecProbe('qmt');
+    else if (action === 'run-ibkr-ctp-probe') runExecProbe('ibkr');
+    else if (action === 'run-rl-research') runRlResearch();
 });
 </script>
 {% endblock %}

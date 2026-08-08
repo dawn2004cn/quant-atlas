@@ -20,3 +20,12 @@ def test_batch_mode_for_non_core_symbols() -> None:
     topo = gw.resolve(["600519", "000001", "999999"])
     assert topo.mode == StreamMode.BATCH
     assert "999999" in topo.batch_symbols
+
+
+def test_default_thresholds_align_with_slo(monkeypatch) -> None:
+    monkeypatch.setenv("QUOTE_LATENCY_SLO_MS", "50")
+    monkeypatch.delenv("QUOTE_DEGRADE_STREAM_MS", raising=False)
+    monkeypatch.delenv("QUOTE_DEGRADE_BATCH_MS", raising=False)
+    gw = SmartDegradeGateway()
+    assert gw._stream_max == 80.0  # noqa: SLF001  50 * 1.6
+    assert gw._batch_max == 250.0  # noqa: SLF001  50 * 5

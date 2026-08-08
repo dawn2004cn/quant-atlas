@@ -231,6 +231,48 @@ def _build_beat_schedule() -> dict[str, Any]:
         beat_minutes = max(5, min(get_runtime_int("FEDERATED_CLUSTER_BEAT_MINUTES", 5), 59))
         BeatRegistry.register("federated-cluster-health-scan", "federated.cluster_health_scan", crontab(minute=f"*/{beat_minutes}"), description="federated cluster health scan", queue="default")
 
+    # -- STRATEGY_TOURNAMENT_CELERY_BEAT (non-trading / evening) --
+    if get_runtime("STRATEGY_TOURNAMENT_CELERY_BEAT", "0") == "1":
+        t_hour = max(0, min(get_runtime_int("STRATEGY_TOURNAMENT_BEAT_HOUR", 20), 23))
+        t_minute = max(0, min(get_runtime_int("STRATEGY_TOURNAMENT_BEAT_MINUTE", 30), 59))
+        BeatRegistry.register(
+            "strategy-tournament-evening",
+            "app.tasks.strategy_tournament_tasks.strategy_tournament_tick",
+            crontab(hour=t_hour, minute=t_minute),
+            description="offline strategy tournament hard gates → paper pool",
+            queue="low",
+            limit=get_runtime_int("STRATEGY_TOURNAMENT_LIMIT", 200),
+        )
+
+    # -- FEATURE_PIPELINE_CELERY_BEAT (optional daily heuristic train) --
+    if get_runtime("FEATURE_PIPELINE_CELERY_BEAT", "0") == "1":
+        fp_hour = max(0, min(get_runtime_int("FEATURE_PIPELINE_BEAT_HOUR", 21), 23))
+        fp_minute = max(0, min(get_runtime_int("FEATURE_PIPELINE_BEAT_MINUTE", 0), 59))
+        BeatRegistry.register(
+            "feature-pipeline-daily",
+            "app.tasks.feature_pipeline_tasks.feature_pipeline_tick",
+            crontab(hour=fp_hour, minute=fp_minute),
+            description="Feature Pipeline train (auto→LightGBM|heuristic) → instance/feature_models",
+            queue="low",
+            spec_name=get_runtime("FEATURE_PIPELINE_SPEC_NAME", "cn_day_v0") or "cn_day_v0",
+            model_backend=get_runtime("FEATURE_PIPELINE_MODEL", "auto") or "auto",
+            symbol=get_runtime("FEATURE_PIPELINE_SYMBOL", "600519") or "600519",
+        )
+
+    # -- RL_RESEARCH_CELERY_BEAT (offline only; never live) --
+    if get_runtime("RL_RESEARCH_CELERY_BEAT", "0") == "1":
+        rl_hour = max(0, min(get_runtime_int("RL_RESEARCH_BEAT_HOUR", 22), 23))
+        rl_minute = max(0, min(get_runtime_int("RL_RESEARCH_BEAT_MINUTE", 0), 59))
+        BeatRegistry.register(
+            "rl-research-daily",
+            "app.tasks.rl_research_tasks.rl_research_tick",
+            crontab(hour=rl_hour, minute=rl_minute),
+            description="offline tabular Q research → instance/rl_research (never live)",
+            queue="low",
+            spec_name=get_runtime("RL_RESEARCH_SPEC", "cn_day_v0") or "cn_day_v0",
+            symbol=get_runtime("FEATURE_PIPELINE_SYMBOL", "600519") or "600519",
+        )
+
     return BeatRegistry.build_schedule()
 
 

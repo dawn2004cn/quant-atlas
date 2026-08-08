@@ -78,17 +78,50 @@ class LookAheadBiasDetector:
         return BiasReport(passed=len(warnings) == 0, warnings=warnings)
 
 
-def validate_backtest_data(df: pd.DataFrame, **kwargs) -> BiasReport:
-    """One-shot validation: run all bias checks on a DataFrame."""
+class BiasGateError(ValueError):
+    """Raised when look-ahead bias gate blocks tournament / paper enrollment."""
+
+    def __init__(self, report: BiasReport) -> None:
+        self.report = report
+        detail = "; ".join(report.errors or report.warnings) or "bias_gate_failed"
+        super().__init__(f"bias_gate_blocked:{detail}")
+
+
+def passes_bias_gate(report: BiasReport, *, treat_warnings_as_fail: bool = False) -> bool:
+    """Return True when the bias report is clear enough to enter Paper/Tournament."""
+    if report.errors:
+        return False
+    if treat_warnings_as_fail and report.warnings:
+        return False
+    return bool(report.passed)
+
+
+def assert_bias_cleared(report: BiasReport, *, treat_warnings_as_fail: bool = False) -> BiasReport:
+    """Raise ``BiasGateError`` unless the report passes the hard gate."""
+    if not passes_bias_gate(report, treat_warnings_as_fail=treat_warnings_as_fail):
+        raise BiasGateError(report)
+    return report
+
+
+def validate_backtest_data(df: pd.DataFrame, *, strict: bool = False, **kwargs) -> BiasReport:
+    """One-shot validation: run all bias checks on a DataFrame.
+
+    When ``strict=True``, warnings (unsorted bars, future timestamps, split jumps)
+    also fail the gate — use before Tournament / MCP enrollment.
+    """
     detector = LookAheadBiasDetector()
     reports = [
         detector.check_data_timestamps(df),
         detector.check_sorted_ascending(df),
         detector.validate_split_adjustment(df),
     ]
-    all_warnings = []
-    all_errors = []
+    all_warnings: list[str] = []
+    all_errors: list[str] = []
     for r in reports:
         all_warnings.extend(r.warnings)
         all_errors.extend(r.errors)
-    return BiasReport(passed=len(all_errors) == 0, warnings=all_warnings, errors=all_errors)
+    if strict:
+        passed = len(all_errors) == 0 and len(all_warnings) == 0
+    else:
+        passed = len(all_errors) == 0
+    return BiasReport(passed=passed, warnings=all_warnings, errors=all_errors)

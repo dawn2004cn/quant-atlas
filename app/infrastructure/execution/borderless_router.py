@@ -5,9 +5,16 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from app.domain.execution.driver_protocol import ExecutionGateway, TradeRequest, TradeResponse
+from app.domain.execution.driver_protocol import (
+    ExecutionGateway,
+    OrderStatus,
+    TradeRequest,
+    TradeResponse,
+)
 from app.domain.execution.execution_schema import ExecutionRouteDescriptor
 from app.domain.execution.market_router import resolve_execution_route
+from app.domain.trading.contracts import OrderRequest
+from app.domain.trading.contract_mapping import trade_request_from_order_request
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +22,19 @@ logger = logging.getLogger(__name__)
 class BorderlessExecutionRouter:
     """Routes orders to market-specific gateways by symbol inference."""
 
-    def __init__(self, *, default_mode: str = "paper") -> None:
+    def __init__(
+        self,
+        *,
+        default_mode: str = "paper",
+        risk_guard: Any | None = None,
+    ) -> None:
         self._default_mode = default_mode
         self._drivers: dict[str, ExecutionGateway] = {}
+        self._risk_guard = risk_guard
+
+    def set_risk_guard(self, risk_guard: Any | None) -> None:
+        """Attach or clear Risk Guard (optional; paper labs may omit)."""
+        self._risk_guard = risk_guard
 
     def register_driver(self, driver_id: str, gateway: ExecutionGateway) -> None:
         self._drivers[driver_id] = gateway
@@ -81,6 +98,18 @@ class BorderlessExecutionRouter:
         return gateway
 
     async def submit_order(self, request: TradeRequest) -> TradeResponse:
+        if self._risk_guard is not None:
+            account_id = str(request.metadata.get("account_id") or "default")
+            try:
+                self._risk_guard.ensure_order_allowed(account_id)
+            except PermissionError as exc:
+                logger.error("risk_guard blocked order account=%s: %s", account_id, exc)
+                return TradeResponse(
+                    request_id=request.request_id,
+                    status=OrderStatus.REJECTED,
+                    message=str(exc),
+                    raw_response={"risk_guard": True, "account_id": account_id},
+                )
         market_hint = str(request.metadata.get("market") or "")
         route = resolve_execution_route(
             request.symbol,
@@ -97,6 +126,17 @@ class BorderlessExecutionRouter:
             "route": route.model_dump(mode="json"),
         }
         return await gateway.submit_order(enriched)
+
+    async def submit_order_request(
+        self,
+        request: OrderRequest,
+        *,
+        account_id: str = "default",
+        exchange: str = "",
+    ) -> TradeResponse:
+        """Accept unified ``OrderRequest`` and route via ``TradeRequest`` mapping."""
+        trade = trade_request_from_order_request(request, account_id=account_id, exchange=exchange)
+        return await self.submit_order(trade)
 
     async def cancel_order(self, order_id: str, symbol: str) -> TradeResponse:
         route = resolve_execution_route(symbol, mode=self._default_mode)

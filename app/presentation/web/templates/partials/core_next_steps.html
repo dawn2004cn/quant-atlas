@@ -1,0 +1,16 @@
+{# 回测 / 诊股 / 选股结果后的「下一步」引导 — 对标 OpenTrading 结果页 CTA #}
+{% set _sym = next_symbol|default('', true)|trim %}
+{% set _mkt = next_market|default('CN', true)|trim %}
+<section class="qc-next-steps" aria-label="建议下一步">
+    <div class="qc-next-steps__title">{{ next_title|default('建议下一步') }}</div>
+    <div class="qc-next-steps__links">
+        {% if _sym %}
+        <a class="btn-brand btn-sm" href="{{ url_for('pages.ai_analysis') }}?symbol={{ _sym|urlencode }}&market={{ _mkt|urlencode }}">AI 诊股·{{ _sym }}</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.backtest') }}?symbol={{ _sym|urlencode }}">回测·{{ _sym }}</a>
+        {% endif %}
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.signal_observations') }}">写入观察单</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.self_stocks') }}">加入自选</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.optimize') }}">参数优化</a>
+        <a class="btn-soft btn-sm" href="{{ url_for('pages.strategy_wizard') }}">策略向导</a>
+    </div>
+</section>

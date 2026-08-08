@@ -81,9 +81,12 @@ def tdx_dayk_daily_sync(
         service = create_tdx_dayk_sync_service()
         # 使用增量同步替代每日同步，确保数据完整性
         result = service.incremental_sync_from_tdx_dayk(
-            start_date=None,  # 从MySQL最新日期开始
+            start_date=None,
             dump_qlib_bin=dump_qlib_bin,
             dump_max_workers=dump_max_workers,
+            enable_mysql=False,
+            enable_timescale=True,
+            enable_csv=True,
         )
         logger.info("TDX dayk daily sync (incremental) completed: %s", result.get("stats", {}))
         return result
@@ -119,6 +122,9 @@ def tdx_dayk_incremental_sync(
             start_date=start_date,
             dump_qlib_bin=dump_qlib_bin,
             dump_max_workers=dump_max_workers,
+            enable_mysql=False,
+            enable_timescale=True,
+            enable_csv=True,
         )
         logger.info("TDX dayk incremental sync completed: %s", result.get("stats", {}))
         return result

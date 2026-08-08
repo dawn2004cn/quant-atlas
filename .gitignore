@@ -92,8 +92,8 @@ static/dist/
 # Generated config
 config/config.local.cfg
 
-# Docker volumes
-data/
+# Docker volumes (repo-root only — do NOT match app/modules/data/)
+/data/
 
 # graphify
 graphify-out/

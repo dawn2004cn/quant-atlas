@@ -26,7 +26,9 @@ class NLStrategyTemplate:
     risk_rules: list[str] = field(default_factory=list)
     preview_metrics: dict[str, float] = field(default_factory=dict)
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-
+    candidate_ready: bool = False
+    sandbox_status: str = "pending"
+    bias_passed: bool = False
 
 class NLToStrategyService:
     """Convert natural language trading ideas into executable strategies."""
@@ -130,7 +132,104 @@ class NLToStrategyService:
     def parse_with_preview(self, nl_input: str, symbol: str = "000001", market: str = "CN", user_id: int = 0) -> dict:
         strategy = self.parse(nl_input, user_id=user_id)
         preview = self._run_preview(strategy, symbol=symbol, market=market)
-        return {"strategy": strategy, "preview": preview}
+        gate = self.apply_sandbox_gate(strategy, preview)
+        return {"strategy": strategy, "preview": preview, "gate": gate, "candidate_ready": gate["candidate_ready"]}
+
+    def apply_sandbox_gate(self, strategy: NLStrategyTemplate, preview: dict[str, Any]) -> dict[str, Any]:
+        """Mark tournament candidacy only after a non-estimated sandbox/preview pass.
+
+        Estimated metrics (engine unavailable) must not enter the tournament pool.
+        """
+        status = str(preview.get("status") or "").strip().lower()
+        warning = str(preview.get("warning") or "").strip()
+        if status in {"estimated", "error", "failed"} or warning:
+            strategy.candidate_ready = False
+            strategy.sandbox_status = "blocked_estimated" if status == "estimated" or warning else f"blocked_{status or 'unknown'}"
+            return {
+                "candidate_ready": False,
+                "sandbox_status": strategy.sandbox_status,
+                "bias_passed": False,
+                "reason": warning or status or "preview_not_ready",
+            }
+        bias_passed = bool(preview.get("bias_passed"))
+        bars = preview.get("bars") or preview.get("ohlcv")
+        if bars is not None and not bias_passed:
+            try:
+                import pandas as pd
+
+                from app.domain.backtest.bias_detector import validate_backtest_data
+
+                df = bars if isinstance(bars, pd.DataFrame) else pd.DataFrame(bars)
+                bias_passed = validate_backtest_data(df, strict=True).passed
+            except Exception:
+                logger.warning("nl bias gate scan failed", exc_info=True)
+                bias_passed = False
+        strategy.candidate_ready = True
+        strategy.sandbox_status = "passed"
+        strategy.bias_passed = bias_passed
+        return {
+            "candidate_ready": True,
+            "sandbox_status": "passed",
+            "bias_passed": bias_passed,
+            "reason": "preview_ok" if bias_passed else "preview_ok_bias_pending",
+            "strategy_id": strategy.strategy_id,
+        }
+
+    def render_strategy_source(self, strategy: NLStrategyTemplate) -> str:
+        """Render a minimal Python stub for STRATEGY_SANDBOX execution."""
+        conditions = ", ".join(repr(c) for c in strategy.conditions) or "'none'"
+        actions = ", ".join(repr(a) for a in strategy.actions) or "'buy'"
+        return (
+            f'# Auto-generated from NL strategy {strategy.strategy_id}\n'
+            f'# nl_input: {strategy.nl_input!r}\n'
+            f'CONDITIONS = [{conditions}]\n'
+            f'ACTIONS = [{actions}]\n'
+            f'\n'
+            f'def strategy_signal(bar: dict) -> str:\n'
+            f'    """Return buy/sell/hold for a single bar dict."""\n'
+            f'    _ = bar\n'
+            f'    return "buy" if ACTIONS else "hold"\n'
+            f'\n'
+            f'if __name__ == "__main__":\n'
+            f'    print({{"strategy_id": {strategy.strategy_id!r}, "ok": True}})\n'
+        )
+
+    def run_source_sandbox(self, strategy: NLStrategyTemplate) -> dict[str, Any]:
+        """Persist rendered source and execute via STRATEGY_SANDBOX runner."""
+        import tempfile
+        from pathlib import Path
+
+        from app.infrastructure.sandbox.strategy_docker_runner import (
+            StrategySandboxError,
+            run_strategy_sandboxed,
+        )
+
+        src = self.render_strategy_source(strategy)
+        with tempfile.TemporaryDirectory(prefix="nl_strat_") as tmp:
+            entry = Path(tmp) / "strategy_entry.py"
+            entry.write_text(src, encoding="utf-8")
+            try:
+                result = run_strategy_sandboxed(entry, workdir=Path(tmp))
+            except StrategySandboxError as exc:
+                strategy.candidate_ready = False
+                strategy.sandbox_status = "sandbox_error"
+                return {"ok": False, "error": str(exc), "candidate_ready": False}
+            if not result.success:
+                strategy.candidate_ready = False
+                strategy.sandbox_status = "sandbox_failed"
+                return {
+                    "ok": False,
+                    "exit_code": result.exit_code,
+                    "stderr": result.stderr,
+                    "candidate_ready": False,
+                }
+            # Source sandbox alone is not enough for tournament; preview gate still required.
+            return {
+                "ok": True,
+                "mode": result.mode,
+                "stdout": result.stdout,
+                "candidate_ready": strategy.candidate_ready,
+            }
 
     def _run_preview(self, strategy: NLStrategyTemplate, symbol: str = "000001", market: str = "CN") -> dict:
         try:
@@ -269,6 +368,9 @@ class NLToStrategyService:
                     "risk_rules": strategy.risk_rules,
                     "preview_metrics": strategy.preview_metrics,
                     "created_at": strategy.created_at,
+                    "candidate_ready": strategy.candidate_ready,
+                    "sandbox_status": strategy.sandbox_status,
+                    "bias_passed": strategy.bias_passed,
                 }, ensure_ascii=False) + "\n")
         except Exception as exc:
             logger.warning("Failed to persist strategy: %s", exc)

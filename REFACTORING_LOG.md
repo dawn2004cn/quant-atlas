@@ -4829,3 +4829,70 @@ SPA 版、分析师天团、Agent 中心、语音简报、Research Canvas、Alph
 
 
 ---
+
+## 2026-08-06 — DIF 借鉴优化 + SRS Trading OS（近中期）
+
+| 变更 | 要点 |
+|------|------|
+| Bias 门禁 | `LookAheadBiasDetector` 硬串 Tournament / MCP 回测；未过偏不可入 Paper |
+| Tournament | Paper 池回写 + 可选 Beat；Sharpe/MDD 门槛 |
+| Risk Guard | Redis 快照 + factory 单例；QMT/Borderless `ensure_order_allowed` |
+| Feature Pipeline | FeatureSpec + LightGBM/启发式 + CN 日K；Celery 训练任务 |
+| QMT 探针 | `qmt_integration_probe` + `/system` 健康接口；观测台按钮 |
+| Quote SLO | `quote_latency_slo` ↔ SmartDegrade |
+| 契约 / 风控 | OrderRequest/合约映射/阶梯费率；沙箱、API Key 策略、Telegram |
+| 文档 | `01_dif.md` / SRS 计划 / `TRACEABILITY` / ops checklist |
+
+**边界**：TradeMaster 全套与 RL live 延期；A 股现货主路径仍为 QMT。
+
+## 2026-08-07 — IBKR/CTP 真对接最小里程碑 + 观测增强
+
+| 变更 | 要点 |
+|------|------|
+| `broker_connection.py` | TCP 探针 + `ib_insync` / CTP SDK 探测 |
+| `ibkr_adapter.py` | live dry-run 落盘 `instance/ibkr_orders`；`ready` 含连接；真单 `*_ALLOW_REAL_ORDERS` 仍闸门 |
+| `ibkr_ctp_integration_probe.py` | 仿真/live dry-run/Risk Guard/registry 自动清单 |
+| `routes_v1_system_health.py` | `GET/POST /system/ibkr-ctp-integration-probe` |
+| 观测台 SPA + Jinja | 执行适配器表 + QMT/IBKR·CTP 探针按钮；修复空/乱码 `Observability.tsx` |
+| `docs/ops/IBKR_CTP_CHECKLIST.md` | 运维清单 |
+| `.env.example` / `pyproject.toml` | host/front/real 开关；optional `brokers` extra |
+
+**边界**：TWS/CTP 真会话报单仍 `*_real_placement_not_wired`；A 股现货继续 QMT。
+
+
+## 2026-08-08 — IBKR/CTP 真会话报单接线
+
+| 变更 | 要点 |
+|------|------|
+| `broker_session.py` | `FakeBrokerSession` / `IbInsyncSession.placeOrder` / `CtpTraderSession.ReqOrderInsert` |
+| `ibkr_adapter.py` | paper 端口默认可真单；7496/4001 需 `IBKR_CONFIRM_LIVE_ACCOUNT`；落盘 `mode=live_real` + Telegram 通知 |
+| `CTPAdapter` | 真单需 `CTP_CONFIRM_LIVE_ACCOUNT` + 注入 session/trader |
+| 探针 | 注入会话 placeOrder + live 端口确认闸门 |
+| `.env.example` / `IBKR_CTP_CHECKLIST.md` | CONFIRM_LIVE 开关 |
+
+**安全**：默认仍 `ALLOW_REAL_ORDERS=0`；单元测试不连接 TWS。
+
+
+## 2026-08-08 — RL 研究旁路（默认不进 live）
+
+| 变更 | 要点 |
+|------|------|
+| `rl_research.py` | FeatureSpec 日K 上 tabular Q；时序切分评估；产物 `instance/rl_research/` |
+| `rl_research_service.py` | 优先真实 CN 日K，失败 synthetic；`RL_LIVE_ENABLED` 忽略，live 钩子恒拒绝 |
+| `routes_v1_rl_research.py` | `/strategy/rl-research/{status,latest,train,infer,live}` |
+| Celery | `RL_RESEARCH_CELERY_BEAT` 默认关 |
+| 观测台 | SPA/Jinja「RL 离线训练」 |
+
+**边界**：非 TradeMaster 全套；不提交券商单；`RL_ENROLL_TOURNAMENT` 默认关。
+
+
+## 2026-08-08 — SRS D6 分钟回测向量化基准
+
+| 变更 | 要点 |
+|------|------|
+| `minute_engine.py` | 日/分钟 long-flat：`vectorized`（默认）与 `loop`；阶梯手续费 |
+| `test_backtest_minute_perf.py` | 2 万 bar 对齐；**60 万 bar（合成 10y）** 向量化计时 |
+| 产物 | `instance/backtest_minute_baseline.json`、`backtest_minute_10y_vectorized.json` |
+| TRACEABILITY | REQ-SRS-07 更新；新增 09–12（Bias / Feature / RL / D6） |
+
+**边界**：合成分钟规模达标 ≠ 真实行情 10y 分钟 ≤10s。

@@ -266,7 +266,7 @@ export function AlertCenterPage() {
             预警 <span className="badge badge-warning ml-1">{warningCount}</span>
           </span>
           {dumpCount > 0 ? (
-            <span className="btn btn-ghost btn-sm text-amber-500">
+            <span className="btn btn-ghost btn-sm" style={{ color: "var(--tone-warn)" }}>
               dump <span className="badge badge-warning ml-1">{dumpCount}</span>
             </span>
           ) : null}
@@ -310,9 +310,9 @@ export function AlertCenterPage() {
           <option value="consensus">共识</option>
           <option value="execution">执行</option>
         </select>
-        <span className="mx-1 h-4 w-px bg-zinc-700/60" aria-hidden />
+        <span className="mx-1 h-4 w-px bg-[var(--quant-surface-border)]" aria-hidden />
         {DISPATCH_CHANNELS.map((ch) => (
-          <label key={ch.id} className="flex cursor-pointer items-center gap-1.5 text-xs text-slate-400">
+          <label key={ch.id} className="flex cursor-pointer items-center gap-1.5 text-xs text-[var(--quant-muted)]">
             <input
               type="checkbox"
               className="checkbox checkbox-xs"
@@ -323,15 +323,15 @@ export function AlertCenterPage() {
             <span
               className={
                 channelConfigured.get(ch.id)
-                  ? "text-emerald-500/80"
-                  : "text-zinc-600"
+                  ? "text-[var(--tone-ok)]"
+                  : "text-[var(--quant-muted)]"
               }
             >
               {channelConfigured.get(ch.id) ? "·已配置" : "·未配置"}
             </span>
           </label>
         ))}
-        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-slate-400">
+        <label className="flex cursor-pointer items-center gap-1.5 text-xs text-[var(--quant-muted)]">
           <input
             type="checkbox"
             className="checkbox checkbox-xs"
@@ -367,14 +367,14 @@ export function AlertCenterPage() {
                 </td>
                 <td className="max-w-xs truncate">
                   <div className="font-medium">{a.title}</div>
-                  <div className="text-xs text-slate-500 truncate">{a.message}</div>
+                  <div className="text-xs text-[var(--quant-muted)] truncate">{a.message}</div>
                 </td>
-                <td className="text-xs text-slate-500">{a.category || "--"}</td>
-                <td className="text-xs text-slate-500">{a.source}</td>
+                <td className="text-xs text-[var(--quant-muted)]">{a.category || "--"}</td>
+                <td className="text-xs text-[var(--quant-muted)]">{a.source}</td>
                 <td>
-                  {a.symbol ? <code>{a.symbol}</code> : <span className="text-slate-400">--</span>}
+                  {a.symbol ? <code>{a.symbol}</code> : <span className="text-[var(--quant-muted)]">--</span>}
                 </td>
-                <td className="text-xs text-slate-500 whitespace-nowrap">
+                <td className="text-xs text-[var(--quant-muted)] whitespace-nowrap">
                   {fmtDate(a.created_at)}
                 </td>
                 <td>
@@ -394,14 +394,14 @@ export function AlertCenterPage() {
                       </a>
                     )
                   ) : (
-                    <span className="text-slate-400 text-xs">--</span>
+                    <span className="text-[var(--quant-muted)] text-xs">--</span>
                   )}
                 </td>
               </tr>
             ))}
             {!filtered.length && (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-slate-500">
+                <td colSpan={7} className="py-12 text-center text-[var(--quant-muted)]">
                   暂无预警
                 </td>
               </tr>

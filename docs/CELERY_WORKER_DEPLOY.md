@@ -64,12 +64,17 @@ Worker 进程需能读到与业务一致的环境（ systemd `EnvironmentFile`�
 
 | 变量 | 说明 |
 |------|------|
-| `TDX_DAYK_CELERY_BEAT=1` | 启用收盘后链路：**16:05** `sync_incremental_tdx`（`dump_qlib_bin=false`）→ **16:25** `mysql_to_qlib_incremental_sync`。 |
-| `TDX_DAYK_BEAT_HOUR` / `TDX_DAYK_BEAT_MINUTE` | 默认 `16` / `5`，可调增量时刻。 |
-| `TDX_DAYK_QLIB_BIN_BEAT_MINUTE` | 默认 `25`，MySQL→bin 时刻（应晚于增量）。 |
-| `QLIB_MYSQL_BIN_DAYS_LOOKBACK` | 默认 `10`，bin 仅重导近 N 日有行情更新的标的。 |
+| `TDX_DAYK_CELERY_BEAT=1` | 启用收盘后主链：默认 **16:05** `scheduled_cn_history_daily`（TDX → **Timescale + CSV → qlib_bin**）。 |
+| `TDX_USE_SCHEDULED_DAILY_CHAIN` | 默认 `1`：一键日更；`0` 时拆成增量 + `csv_to_qlib_incremental_sync`。 |
+| `TDX_DAYK_BEAT_HOUR` / `TDX_DAYK_BEAT_MINUTE` | 默认 `16` / `5`。 |
+| `TDX_DAYK_QLIB_BIN_BEAT_MINUTE` | 默认 `25`（仅拆分链：CSV→bin 时刻，应晚于增量）。 |
+| `TDX_SYNC_ENABLE_MYSQL` | 默认 `0`：历史入库不写 MySQL。 |
+| `TDX_SYNC_ENABLE_TIMESCALE` | 默认 `1`：写 Timescale。 |
+| `TIMESCALE_TDX_SYNC_BEAT` | 仅当 **未** 开 `TDX_DAYK_CELERY_BEAT` 时注册独立 Timescale Beat。 |
 
-与 `QLIB_CELERY_BEAT=1` 同时开启时，Beat **不再**注册 16:10 的重复 `mysql_to_qlib_incremental_sync`（由 TDX beat 的 16:25 任务承担）。
+与 `QLIB_CELERY_BEAT=1` 同时开启时：若已开 TDX 日更，Beat **不再**注册 16:10 的重复 CSV→bin（由日更主链承担）；夜间仍有 `qlib-tdx-incremental-nightly`（02:40）。
+
+QuestDB / ClickHouse **入库 Beat 已下线**（`QUESTDB_SYNC_BEAT` 无效）。
 
 ---
 
@@ -124,13 +129,15 @@ celery -A app.celery_app:celery beat -l info
 
 | 任务名 | 模块 | 作用 |
 |--------|------|------|
-| `app.tasks.data_backfill_tasks.sync_incremental_tdx` | `data_backfill_tasks` | **【推荐日更】** TDX lday → MySQL + CSV；Beat 16:05。 |
-| `app.tasks.data_backfill_tasks.scheduled_cn_history_daily` | `data_backfill_tasks` | 一键：上项 + `mysql_to_qlib_incremental_sync`。 |
-| `app.tasks.data_backfill_tasks.backfill_all_history_tdx` | `data_backfill_tasks` | 全量 TDX → MySQL/CSV/可选 bin。 |
-| `app.tasks.qlib_data_update.mysql_to_qlib_incremental_sync` | `qlib_data_update` | MySQL → qlib_bin；Beat 16:25（`TDX_DAYK_CELERY_BEAT`）。 |
+| `app.tasks.data_backfill_tasks.scheduled_cn_history_daily` | `data_backfill_tasks` | **【推荐日更】** TDX → Timescale + CSV → qlib_bin。 |
+| `app.tasks.data_backfill_tasks.sync_incremental_tdx` | `data_backfill_tasks` | 增量 TDX → Timescale/CSV（可选 dump bin）。 |
+| `app.tasks.data_backfill_tasks.backfill_all_history_tdx` | `data_backfill_tasks` | 全量 TDX → Timescale/CSV/bin。 |
+| `app.tasks.qlib_data_update.csv_to_qlib_incremental_sync` | `qlib_data_update` | CSV → qlib_bin；拆分链 Beat 使用。 |
+| `app.tasks.qlib_data_update.mysql_to_qlib_incremental_sync` | `qlib_data_update` | **兼容 shim** → 同上 CSV→bin（勿再当 MySQL 路径）。 |
 | `app.tasks.qlib_data_update.qlib_incremental_pipeline` | `qlib_data_update` | **ingest（merge）+ `dump_to_qlib_bin`**，多源；夜间 02:40。 |
 | `app.tasks.qlib_data_update.qlib_full_backfill_if_empty` | `qlib_data_update` | 无 CSV 时全量种子 K 线 + bin；已有 CSV 则跳过。 |
 | `app.tasks.data_backfill_tasks.backfill_qlib_kline_if_empty` | `data_backfill_tasks` | 与上类似链路的一部分（见 `DATA_BACKFILL_BEAT`）。 |
+| `app.tasks.tdx_timescale_sync_tasks.tdx_timescale_sync_tick` | `tdx_timescale_sync_tasks` | 仅 Timescale（无 TDX 日更主链时）。 |
 | `app.tasks.tdx_dayk_tasks.tdx_dayk_*` | `tdx_dayk_tasks` | **兼容别名**；新调度请用上表 `data_backfill_tasks`。 |
 
 读写全流程见 **[HISTORY_DATA_READ_WRITE_FLOW.md](HISTORY_DATA_READ_WRITE_FLOW.md)**。
