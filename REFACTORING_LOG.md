@@ -4896,3 +4896,11 @@ SPA 版、分析师天团、Agent 中心、语音简报、Research Canvas、Alph
 | TRACEABILITY | REQ-SRS-07 更新；新增 09–12（Bias / Feature / RL / D6） |
 
 **边界**：合成分钟规模达标 ≠ 真实行情 10y 分钟 ≤10s。
+
+
+## 2026-08-08 — 暂不跟踪 secrets.py
+
+| 变更 | 要点 |
+|------|------|
+| `.gitignore` + `git rm --cached` | `app/core/secrets.py` 暂不入库，避免 GitHub Push Protection（历史明文 Key 黑名单） |
+
