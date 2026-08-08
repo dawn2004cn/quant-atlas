@@ -52,6 +52,7 @@ Thumbs.db
 .env.*
 !.env.example
 config/secret.cfg
+app/core/secrets.py
 
 # Instance data (SQLite, dumps, logs, pytest scratch)
 # NOTE: ignore the whole directory — it is per-environment runtime state.
