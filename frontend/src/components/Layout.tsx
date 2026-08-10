@@ -1,12 +1,15 @@
 ﻿import { Link, Outlet, useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
+import { lazy, Suspense, useState, useRef, useEffect } from "react";
 import { logoutSession } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 import { usePlatformFeatures, isNavItemVisible } from "../hooks/usePlatformFeatures";
 import { useTheme } from "../hooks/useTheme";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
-import { AiAssistantDrawer } from "./AiAssistantDrawer";
+
+const AiAssistantDrawer = lazy(() =>
+  import("./AiAssistantDrawer").then((m) => ({ default: m.AiAssistantDrawer })),
+);
 
 interface LayoutProps {
   enableBackToClassic?: boolean;
@@ -296,7 +299,11 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
         <Outlet />
       </main>
 
-      <AiAssistantDrawer open={aiOpen} onClose={() => setAiOpen(false)} />
+      {aiOpen ? (
+        <Suspense fallback={null}>
+          <AiAssistantDrawer open={aiOpen} onClose={() => setAiOpen(false)} />
+        </Suspense>
+      ) : null}
       {!aiOpen && (
         <button
           type="button"

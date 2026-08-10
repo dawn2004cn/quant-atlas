@@ -4,6 +4,27 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-11 (性能快赢：SPA 首屏 + 热路径 API)
+
+### 目标
+双轨快赢：页面加载更轻、热 API 响应更快；不做大重构。
+
+### 交付
+| 项 | 要点 |
+|----|------|
+| `response_optimizer.py` | `/api/` 默认不再打 `public, max-age=300` |
+| `routes_v1_platform.py` | strategic-features：进程缓存 600s + `private, max-age=600` |
+| `daily_workbench_service.py` | MemoryCache 短 TTL（≤45s），`_cache` hit/miss |
+| `vite.config.ts` | charts 拆为 chart-lw / chart-echarts / chart-recharts |
+| `App.tsx` | StockDetail lazy |
+| `Dashboard.tsx` | 默认关 WS，手动「连接实时」；SWR dedupe |
+| `Layout.tsx` | AiAssistantDrawer 打开时再挂载 |
+
+### 验证
+- `pytest tests/infrastructure/test_response_optimizer_cache.py tests/modules/strategy/test_daily_workbench_cache.py -q`
+
+---
+
 ## 2026-06-24 (阶段 A：页面数据加载路由修复)
 
 ### 问题
