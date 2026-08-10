@@ -4,6 +4,18 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-11 (对外技术文档门户)
+
+### 目标
+建立 `docs/public/` 对外可承诺文档集，分离内部 plan/审计导航。
+
+### 交付
+- `docs/public/`：README + 01–07（概览/架构/启动/API/SDK/部署/贡献）
+- 根 `README.md`、`docs/README.md` 区分对外与内部
+- Spec/Plan：`docs/superpowers/specs|plans/2026-08-11-external-tech-docs*`
+
+---
+
 ## 2026-06-24 (阶段 A：页面数据加载路由修复)
 
 ### 问题
