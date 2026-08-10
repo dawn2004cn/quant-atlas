@@ -7,7 +7,10 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { DashboardPage } from "./pages/Dashboard";
 import { LoginPage } from "./pages/Login";
 import { NotFoundPage } from "./pages/NotFound";
-import { StockDetailPage } from "./pages/StockDetail";
+
+const StockDetailPage = lazy(() =>
+  import("./pages/StockDetail").then((m) => ({ default: m.StockDetailPage })),
+);
 
 const AlphaFactoryPage = lazy(() => import("./pages/AlphaFactory").then((m) => ({ default: m.AlphaFactoryPage })));
 const BacktestPage = lazy(() => import("./pages/Backtest").then((m) => ({ default: m.BacktestPage })));
@@ -133,7 +136,7 @@ export default function App() {
                   </FeatureGate>
                 }
               />
-              <Route path="stock/:symbol" element={<ErrorBoundary label="StockDetail"><StockDetailPage /></ErrorBoundary>} />
+              <Route path="stock/:symbol" element={<LazyRoute label="StockDetail"><StockDetailPage /></LazyRoute>} />
               <Route path="alpha-factory" element={<LazyRoute label="AlphaFactory"><AlphaFactoryPage /></LazyRoute>} />
               <Route path="signal-flag" element={<LazyRoute label="SignalFlag"><SignalFlagPage /></LazyRoute>} />
 
