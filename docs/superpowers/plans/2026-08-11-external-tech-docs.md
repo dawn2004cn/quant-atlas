@@ -23,8 +23,8 @@
 - Modify: `README.md`, `docs/README.md`
 - Update: design spec 验收勾选；`REFACTORING_LOG.md` 短条目
 
-- [ ] Write all public docs from codebase facts
-- [ ] Update READMEs
-- [ ] Commit + push + update PR
+- [x] Write all public docs from codebase facts
+- [x] Update READMEs
+- [x] Commit + push + update PR
 
 **验证：** 人工检查链接；`ls docs/public | wc -l` ≥ 8
