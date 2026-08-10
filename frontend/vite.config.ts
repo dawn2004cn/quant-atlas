@@ -29,7 +29,9 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ["react", "react-dom", "react-router-dom"],
-          charts: ["lightweight-charts", "echarts", "recharts"],
+          "chart-lw": ["lightweight-charts"],
+          "chart-echarts": ["echarts"],
+          "chart-recharts": ["recharts"],
           i18n: ["i18next", "react-i18next"],
           swr: ["swr"],
           socketio: ["socket.io-client"],

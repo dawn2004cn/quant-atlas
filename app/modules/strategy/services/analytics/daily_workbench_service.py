@@ -64,7 +64,9 @@ class DailyWorkbenchService:
         trade_plan_service: Any | None = None,
         headline_signal_enrichment_service: Any | None = None,
         health_banner_service: Any | None = None,
-          market_regime_service: Any | None = None,
+        market_regime_service: Any | None = None,
+        snapshot_cache: Any | None = None,
+        snapshot_cache_ttl: int = 45,
     ) -> None:
         self._market_service = market_service
         self._watchlist_service = watchlist_service
@@ -82,6 +84,8 @@ class DailyWorkbenchService:
         self._health_banner_service = health_banner_service
         self._market_regime_service = market_regime_service or MarketRegimeService()
         self._recommendation_service_alias: Any = None
+        self._snapshot_cache = snapshot_cache
+        self._snapshot_cache_ttl = max(1, min(60, int(snapshot_cache_ttl)))
 
     def set_recommendation_service(self, service: object) -> None:
         self._recommendation_service_alias = service
@@ -95,6 +99,40 @@ class DailyWorkbenchService:
         signal_limit: int = 12,
         focus_symbol: str | None = None,
     ) -> DailyWorkbenchSnapshotDTO:
+        cache_key = (
+            f"workbench:{market.value}:{user_id}:{watchlist_limit}:{signal_limit}:{focus_symbol or ''}"
+        )
+        if self._snapshot_cache is not None:
+            cached = self._snapshot_cache.get(cache_key)
+            if isinstance(cached, dict):
+                hit = dict(cached)
+                hit["_cache"] = "hit"
+                return hit  # type: ignore[return-value]
+
+        payload = self._build_snapshot_uncached(
+            user_id,
+            market=market,
+            watchlist_limit=watchlist_limit,
+            signal_limit=signal_limit,
+            focus_symbol=focus_symbol,
+        )
+        payload["_cache"] = "miss"
+        if self._snapshot_cache is not None:
+            # Store without mutating the returned miss marker for callers that
+            # compare identity; keep a shallow copy for the cache entry.
+            to_store = {k: v for k, v in payload.items() if k != "_cache"}
+            self._snapshot_cache.set(cache_key, to_store, ttl=self._snapshot_cache_ttl)
+        return payload  # type: ignore[return-value]
+
+    def _build_snapshot_uncached(
+        self,
+        user_id: int = 1,
+        *,
+        market: MarketCode = MarketCode.CN,
+        watchlist_limit: int = 12,
+        signal_limit: int = 12,
+        focus_symbol: str | None = None,
+    ) -> dict[str, Any]:
         panorama = self._safe_panorama(market)
         sentiment = self._safe_sentiment(market)
         panorama = self._merge_panorama_breadth(panorama, sentiment)

@@ -26,12 +26,13 @@ const MARKET_LABELS: Record<string, string> = { CN: "A股", HK: "港股", US: "�
 export function DashboardPage() {
   const { mode, username } = useAuth();
   const [market, setMarket] = useState<(typeof MARKETS)[number]>("CN");
-  const { connected, lastQuote, lastAiChunk, error: realtimeError } = useRealtime(true);
+  const [realtimeEnabled, setRealtimeEnabled] = useState(false);
+  const { connected, lastQuote, lastAiChunk, error: realtimeError } = useRealtime(realtimeEnabled);
 
   const { data, error, isLoading, mutate } = useSWR(
     ["workbench", market],
     () => fetchDailyWorkbench(market, 12),
-    { refreshInterval: 60_000 },
+    { refreshInterval: 60_000, revalidateOnFocus: false, dedupingInterval: 10_000 },
   );
 
   if (isLoading && !data) {
@@ -98,6 +99,17 @@ export function DashboardPage() {
             </button>
           ))}
           <div className="mx-1 h-5 w-px bg-zinc-700/60" />
+          <button
+            type="button"
+            onClick={() => setRealtimeEnabled((v) => !v)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              realtimeEnabled
+                ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30"
+                : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
+            }`}
+          >
+            {realtimeEnabled ? "实时已开" : "连接实时"}
+          </button>
           <button
             type="button"
             onClick={() => mutate()}

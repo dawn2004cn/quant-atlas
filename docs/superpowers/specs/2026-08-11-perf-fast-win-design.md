@@ -1,7 +1,7 @@
 # 性能快赢设计：SPA 首屏 + 热路径 API
 
 > 日期：2026-08-11  
-> 状态：待用户审阅 spec  
+> 状态：已审阅并通过，实现进行中/已落地  
 > 范围：双轨快赢（前端加载 + API 响应），不做大重构
 
 ## 1. 背景与目标
@@ -131,8 +131,8 @@ charts: ["lightweight-charts", "echarts", "recharts"]
 
 ## 8. 验收清单
 
-- [ ] 设计已获用户确认（本文件）
-- [ ] 实现计划已写并按 TDD 执行
-- [ ] 前端构建证明 charts 分家 + StockDetail lazy
-- [ ] workbench / cache-control 单测通过
-- [ ] `REFACTORING_LOG.md` 已更新
+- [x] 设计已获用户确认（本文件）
+- [x] 实现计划已写并按 TDD 执行
+- [x] 前端：Vite 图表分 chunk + StockDetail lazy + Dashboard/Layout 改动已合入
+- [x] workbench / cache-control 单测通过
+- [x] `REFACTORING_LOG.md` 已更新
