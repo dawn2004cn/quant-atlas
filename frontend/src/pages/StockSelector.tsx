@@ -2,7 +2,10 @@ import { useRef, useState } from "react";
 import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
+import { DEMO_SELECTOR } from "../lib/demoCatalog";
 import { apiFetchV1 } from "../lib/api";
+import { Link } from "react-router-dom";
 
 type StockRow = {
   code: string;
@@ -62,7 +65,9 @@ export function StockSelectorPage() {
     },
   );
 
-  const items = data?.results ?? data?.candidates ?? [];
+  const liveItems = data?.results ?? data?.candidates ?? [];
+  const isDemo = !liveItems.length;
+  const items = isDemo ? DEMO_SELECTOR : liveItems;
 
   return (
     <div className="space-y-5">
@@ -72,6 +77,7 @@ export function StockSelectorPage() {
         <div>
           <h1 className="text-2xl font-bold">智能选股中心</h1>
           <p className="text-sm text-slate-500">短 / 中 / 长线多维度筛选</p>
+          <DemoBanner show={isDemo} />
         </div>
       </div>
 
@@ -112,9 +118,6 @@ export function StockSelectorPage() {
         </div>
       </div>
 
-      {error && <div className="alert alert-error">{error.message}</div>}
-      {isLoading && <PageSkeleton rows={3} />}
-
       {items.length > 0 && (
         <section className="glass-card overflow-x-auto p-4">
           <table className="table w-full">
@@ -125,7 +128,11 @@ export function StockSelectorPage() {
               {items.map((r: StockRow, i: number) => (
                 <tr key={r.code}>
                   <td className="text-slate-400">{i + 1}</td>
-                  <td><code>{r.code}</code></td>
+                  <td>
+                    <Link className="link" to={`/stock/${encodeURIComponent(r.code)}`}>
+                      <code>{r.code}</code>
+                    </Link>
+                  </td>
                   <td className="font-medium">{r.name}</td>
                   <td>{r.price != null ? `¥${r.price.toFixed(2)}` : "--"}</td>
                   <td className={pctClass(r.change_pct)}>{r.change_pct != null ? `${r.change_pct >= 0 ? "+" : ""}${r.change_pct.toFixed(2)}%` : "--"}</td>

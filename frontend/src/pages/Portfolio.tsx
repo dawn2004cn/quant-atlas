@@ -2,6 +2,8 @@ import { useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
+import { DemoBanner } from "../components/DemoBanner";
+import { DEMO_PORTFOLIO } from "../lib/demoCatalog";
 import type {
   PortfolioPosition,
   OptimizationResult,
@@ -148,13 +150,16 @@ export function PortfolioPage() {
 
   if (snapLoading && !snapshot) return <PageSkeleton rows={4} />;
 
-  const positions = snapshot?.portfolio?.positions ?? [];
-  const returns = snapshot?.portfolio?.returns;
+  const livePositions = snapshot?.portfolio?.positions ?? [];
+  const isDemo = Boolean(snapErr) || livePositions.length === 0;
+  const display = isDemo ? DEMO_PORTFOLIO : snapshot;
+  const positions = display?.portfolio?.positions ?? [];
+  const returns = display?.portfolio?.returns;
   const embeddedOpt = snapshot?.optimize_summary ?? null;
   const optimization =
     (needsCustomOptimize ? optimizeData?.optimization : null) ??
     (tab === "optimize" ? embeddedOpt : null);
-  const riskBudget = snapshot?.risk_budget ?? [];
+  const riskBudget = (isDemo ? DEMO_PORTFOLIO.risk_budget : snapshot?.risk_budget) ?? [];
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
@@ -165,6 +170,7 @@ export function PortfolioPage() {
           Portfolio Management
         </div>
         <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100">组合管理</h1>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Symbol input */}
@@ -190,9 +196,9 @@ export function PortfolioPage() {
       )}
 
       {/* Metric cards */}
-      {snapshot && (
+      {display && (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <MetricCard label="组合总值" value={`¥${(snapshot.portfolio.total_value ?? 0).toLocaleString()}`} note="持仓 + 现金" />
+          <MetricCard label="组合总值" value={`¥${(display.portfolio.total_value ?? 0).toLocaleString()}`} note="持仓 + 现金" />
           <MetricCard label="持仓收益" value={fmtPct(returns?.total_return_pct, true)} note={`¥${(returns?.total_pnl ?? 0).toLocaleString()}`} positive={(returns?.total_return_pct ?? 0) >= 0} negative={(returns?.total_return_pct ?? 0) < 0} />
           <MetricCard label="基准收益" value={fmtPct(returns?.benchmark_return_pct)} note="沪深300 YTD" />
           <MetricCard label="阿尔法" value={fmtPct(returns?.alpha_pct, true)} note="超额收益" positive={(returns?.alpha_pct ?? 0) >= 0} negative={(returns?.alpha_pct ?? 0) < 0} />
