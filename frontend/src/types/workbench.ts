@@ -1,6 +1,8 @@
 export type WorkbenchSnapshot = {
   generated_at?: string;
   market?: string;
+  data_mode?: "live" | "demo" | "mixed";
+  demo_parts?: string[];
   health_banner?: {
     level?: string;
     headline?: string;

@@ -17,6 +17,7 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { useRealtime } from "../hooks/useRealtime";
 import { fetchDailyWorkbench } from "../lib/api";
+import { DEMO_WORKBENCH } from "../lib/demoWorkbench";
 import { RealtimeBar } from "../components/workbench/RealtimeBar";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 
@@ -35,7 +36,10 @@ export function DashboardPage() {
     { refreshInterval: 60_000, revalidateOnFocus: false, dedupingInterval: 10_000 },
   );
 
-  if (isLoading && !data) {
+  const snapshot = data ?? (error ? DEMO_WORKBENCH : undefined);
+  const isDemo = snapshot?.data_mode === "demo" || snapshot?.data_mode === "mixed" || Boolean(error && snapshot);
+
+  if (isLoading && !snapshot) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -68,6 +72,11 @@ export function DashboardPage() {
           <p className="mt-0.5 text-sm text-zinc-500">
             {username ? `欢迎回来，${username}` : `已登录（${mode}）`}
           </p>
+          {isDemo ? (
+            <p className="mt-1 text-[11px] font-mono text-amber-400/90">
+              演示数据 · 行情源未就绪或仅部分可用
+            </p>
+          ) : null}
           {data?.health_banner?.quotes_full_dump_warn ? (
             <p className="mt-1 text-[11px] font-mono text-amber-500/90">
               quotes dump={data.health_banner.quotes_full_dump_count ?? 0}/
@@ -154,29 +163,29 @@ export function DashboardPage() {
       ) : null}
 
       {/* ── Main Content ── */}
-      {data ? (
+      {snapshot ? (
         <>
-          {data.health_banner ? <HealthBanner data={data} /> : null}
+          {snapshot.health_banner ? <HealthBanner data={snapshot} /> : null}
 
           {/* Market Sentiment Hero */}
-          <SentimentHero data={data} />
+          <SentimentHero data={snapshot} />
 
           {/* Macro Indices */}
-          <MacroRow data={data} />
+          <MacroRow data={snapshot} />
 
           {/* Three-column decision + watchlist layout */}
           <div className="grid gap-4 lg:grid-cols-5">
             <div className="lg:col-span-2">
-              <DecisionPanel data={data} />
+              <DecisionPanel data={snapshot} />
             </div>
             <div className="space-y-4 lg:col-span-3">
               <WatchlistPanel
-                items={data.watchlist_health?.items ?? []}
+                items={snapshot.watchlist_health?.items ?? []}
                 market={market}
               />
               <div className="grid gap-4 md:grid-cols-2">
-                <RecommendPanel data={data} market={market} />
-                <ReviewPanel data={data} />
+                <RecommendPanel data={snapshot} market={market} />
+                <ReviewPanel data={snapshot} />
               </div>
             </div>
           </div>

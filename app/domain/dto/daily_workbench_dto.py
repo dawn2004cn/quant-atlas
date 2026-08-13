@@ -140,3 +140,5 @@ class DailyWorkbenchSnapshotDTO(TypedDict, total=False):
     headlines: list[WorkbenchHeadlineDTO]
     trade_plan_strip: WorkbenchTradePlanStripDTO
     fingpt_available: bool
+    data_mode: str
+    demo_parts: list[str]

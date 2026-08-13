@@ -4,6 +4,23 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-13 (SPA 体验：有数据 / 快 / 局部刷新)
+
+### 目标
+操盘台在行情源空时仍有可展示样本；页面切换只刷新内容区。
+
+### 交付
+- `workbench_display_fallback.py`：空面板补演示数据，`data_mode=demo|mixed|live`
+- 恢复 `CoreWorkflowStrip.tsx`（此前空文件导致全站 import 崩溃）
+- `KeepAliveOutlet` + 全局 `SWRConfig(keepPreviousData)`
+- 登录 `toSpaPath` 避免 `/app/app`
+- Vite 分包去掉未安装的 echarts / lightweight-charts
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py tests/modules/strategy/test_daily_workbench_display_fallback.py`
+
+---
+
 ## 2026-08-11 (性能快赢：SPA 首屏 + 热路径 API)
 
 ### 目标

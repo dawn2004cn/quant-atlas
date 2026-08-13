@@ -19,6 +19,9 @@ from app.domain.services.market_regime_service import MarketRegimeService
 from app.modules.strategy.services.analytics.headline_signal_enrichment_service import (
     HeadlineSignalEnrichmentService,
 )
+from app.modules.strategy.services.analytics.workbench_display_fallback import (
+    apply_display_fallback,
+)
 
 logger = get_logger(__name__)
 
@@ -190,7 +193,7 @@ class DailyWorkbenchService:
             "fingpt_available": self._fingpt_application_service is not None,
             "decision_review_summary": self._decision_review_summary(),
         }
-        return payload
+        return apply_display_fallback(payload, market.value)
 
     def _compute_decision(
         self,
