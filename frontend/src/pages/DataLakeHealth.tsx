@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_DATA_LAKE } from "../lib/demoCatalog";
 
 type LakeHealth = {
   engine?: string;
@@ -94,13 +96,26 @@ export default function DataLakeHealth() {
   const [rt, setRt] = useState<RealtimeStatus | null>(null);
   const [migrating, setMigrating] = useState(false);
   const [migrateLog, setMigrateLog] = useState<string[]>([]);
+  const [isDemo, setIsDemo] = useState(false);
+
+  const applyDemo = () => {
+    setLake(DEMO_DATA_LAKE.lake);
+    setTs(DEMO_DATA_LAKE.timeseries);
+    setRt(DEMO_DATA_LAKE.realtime);
+    setIsDemo(true);
+  };
 
   const load = useCallback(async () => {
     try {
       const dash = await apiFetchV1<DashboardSnapshot>("/data-lake/dashboard");
-      if (dash.lake) setLake(dash.lake);
-      if (dash.timeseries) setTs(dash.timeseries);
-      if (dash.realtime) setRt(dash.realtime);
+      if (dash.lake || dash.timeseries || dash.realtime) {
+        if (dash.lake) setLake(dash.lake);
+        if (dash.timeseries) setTs(dash.timeseries);
+        if (dash.realtime) setRt(dash.realtime);
+        setIsDemo(false);
+        return;
+      }
+      applyDemo();
     } catch {
       try {
         const [l, t, r] = await Promise.all([
@@ -108,11 +123,16 @@ export default function DataLakeHealth() {
           apiFetchV1<TimeseriesHealth>("/data/timeseries-health"),
           apiFetchV1<RealtimeStatus>("/realtime/status"),
         ]);
+        if (!l && !t && !r) {
+          applyDemo();
+          return;
+        }
         setLake(l);
         setTs(t);
         setRt(r);
+        setIsDemo(false);
       } catch {
-        // keep previous state
+        applyDemo();
       }
     }
   }, []);
@@ -156,6 +176,7 @@ export default function DataLakeHealth() {
       <div>
         <h1 className="page-title">数据湖健康</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">统一数据湖、QuestDB、WebSocket、迁移状态监控</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Warnings */}

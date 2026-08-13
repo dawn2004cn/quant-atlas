@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { fetchFactorDetail } from "../lib/api";
+import { DEMO_FACTOR_DETAIL } from "../lib/demoCatalog";
 
 type FactorDetail = {
   factor_id: string;
@@ -62,19 +64,13 @@ export default function FactorDetail() {
     );
   }
 
-  if (!factor) {
-    return (
-      <div className="text-center py-16">
-        <div className="text-lg text-[var(--quant-muted)]">因子未找到</div>
-        <Link to="/factor-repository" className="text-[var(--quant-accent)] hover:underline mt-2 inline-block">
-          返回因子库
-        </Link>
-      </div>
-    );
-  }
+  const isDemo = !factor;
+  const view: FactorDetail = isDemo
+    ? { ...DEMO_FACTOR_DETAIL, factor_id: factorId || DEMO_FACTOR_DETAIL.factor_id }
+    : factor;
 
-  const bt = factor.backtest_result;
-  const icData = factor.ic_series ?? [];
+  const bt = view.backtest_result;
+  const icData = view.ic_series ?? [];
   const maxIc = Math.max(...icData.map((d) => Math.abs(d.ic)), 0.01);
 
   return (
@@ -86,23 +82,24 @@ export default function FactorDetail() {
         <span>/</span>
         <Link to="/alpha-factory" className="hover:text-[var(--quant-accent)]">Alpha Factory</Link>
         <span>/</span>
-        <span className="text-[var(--quant-fg)]">{factor.factor_id}</span>
+        <span className="text-[var(--quant-fg)]">{view.factor_id}</span>
       </div>
+      <DemoBanner show={isDemo} />
 
       {/* Header */}
       <div className="quant-card">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-bold">{factor.factor_id}</h1>
-            <div className="mono text-sm text-[var(--quant-muted)] mt-1 break-all">{factor.formula}</div>
+            <h1 className="text-xl font-bold">{view.factor_id}</h1>
+            <div className="mono text-sm text-[var(--quant-muted)] mt-1 break-all">{view.formula}</div>
           </div>
-          {factor.regime && <span className="badge-soft">{factor.regime}</span>}
+          {view.regime && <span className="badge-soft">{view.regime}</span>}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
-          <MetricCard label="Sharpe" value={factor.sharpe_ratio?.toFixed(2) ?? "—"} color={factor.sharpe_ratio != null && factor.sharpe_ratio >= 1 ? "text-up" : ""} />
-          <MetricCard label="最大回撤" value={factor.max_drawdown != null ? `${(factor.max_drawdown * 100).toFixed(1)}%` : "—"} color="text-down" />
-          <MetricCard label="IC 均值" value={factor.ic_mean != null ? factor.ic_mean.toFixed(4) : "—"} />
-          <MetricCard label="数据源" value={factor.source ?? "RD-Agent"} />
+          <MetricCard label="Sharpe" value={view.sharpe_ratio?.toFixed(2) ?? "—"} color={view.sharpe_ratio != null && view.sharpe_ratio >= 1 ? "text-up" : ""} />
+          <MetricCard label="最大回撤" value={view.max_drawdown != null ? `${(view.max_drawdown * 100).toFixed(1)}%` : "—"} color="text-down" />
+          <MetricCard label="IC 均值" value={view.ic_mean != null ? view.ic_mean.toFixed(4) : "—"} />
+          <MetricCard label="数据源" value={view.source ?? "RD-Agent"} />
         </div>
       </div>
 
@@ -169,11 +166,11 @@ export default function FactorDetail() {
       )}
 
       {/* Correlations */}
-      {factor.correlations && factor.correlations.length > 0 && (
+      {view.correlations && view.correlations.length > 0 && (
         <div className="quant-card">
           <div className="text-sm font-bold mb-3">相关因子</div>
           <div className="space-y-2">
-            {factor.correlations.map((c) => (
+            {view.correlations.map((c) => (
               <div key={c.factor_id} className="flex items-center justify-between py-1.5 border-b border-[var(--quant-line-soft)] last:border-0">
                 <Link to={`/factor/${c.factor_id}`} className="text-sm text-[var(--quant-accent)] hover:underline">
                   {c.name || c.factor_id}
@@ -193,22 +190,22 @@ export default function FactorDetail() {
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div>
             <span className="text-[var(--quant-muted)]">创建时间</span>
-            <div className="mt-1">{factor.created_at ?? "—"}</div>
+            <div className="mt-1">{view.created_at ?? "—"}</div>
           </div>
           <div>
             <span className="text-[var(--quant-muted)]">数据范围</span>
-            <div className="mt-1">{factor.data_range ?? "—"}</div>
+            <div className="mt-1">{view.data_range ?? "—"}</div>
           </div>
           <div>
             <span className="text-[var(--quant-muted)]">数据源</span>
-            <div className="mt-1">{factor.source ?? "RD-Agent"}</div>
+            <div className="mt-1">{view.source ?? "RD-Agent"}</div>
           </div>
         </div>
       </div>
 
       {/* Actions */}
       <div className="flex gap-3">
-        <Link to={`/backtest?factor=${factor.factor_id}`} className="btn-brand">
+        <Link to={`/backtest?factor=${view.factor_id}`} className="btn-brand">
           回测此因子
         </Link>
         <Link to="/alpha-factory" className="btn btn-ghost">

@@ -1,7 +1,9 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_PROFESSIONAL_WORKBENCH } from "../lib/demoCatalog";
 
 type WorkbenchData = {
   portfolio_optimization?: { allocations?: Array<{ symbol: string; target: number; current: number }>; status?: string };
@@ -21,6 +23,14 @@ export default function ProfessionalWorkbench() {
   const [tab, setTab] = useState("optimization");
   const { data, error, isLoading, mutate } = useSWR<WorkbenchData>("/workbench/professional", apiFetchV1, { refreshInterval: 30000 });
 
+  const isDemo =
+    Boolean(error) ||
+    !data ||
+    (!(data.portfolio_optimization?.allocations ?? []).length &&
+      !(data.brinson_attribution?.sectors ?? []).length &&
+      !(data.execution_algorithms?.algorithms ?? []).length);
+  const view = isDemo ? DEMO_PROFESSIONAL_WORKBENCH : data!;
+
   return (
     <div className="space-y-5">
       <PageQuickNav items={QUICK_NAV_PRESETS.professionalWorkbench} />
@@ -28,6 +38,7 @@ export default function ProfessionalWorkbench() {
         <div>
           <h1 className="page-title">专业工作台</h1>
           <p className="text-[var(--quant-muted)] text-sm">机构级组合管理与分析</p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn-brand btn-sm" onClick={() => mutate()}>刷新</button>
       </div>
@@ -38,17 +49,16 @@ export default function ProfessionalWorkbench() {
         ))}
       </div>
 
-      {isLoading && !data ? <div className="quant-card p-6 text-center text-[var(--quant-muted)]">加载工作台数据...</div> : null}
-      {error ? <div className="quant-card p-6 text-red-500">加载失败: {error.message}</div> : null}
+      {isLoading && !data && !error ? <div className="quant-card p-6 text-center text-[var(--quant-muted)]">加载工作台数据...</div> : null}
 
-      {data && tab === "optimization" ? (
+      {tab === "optimization" ? (
         <div className="quant-card p-5 space-y-4">
           <h2 className="text-lg font-semibold">组合优化</h2>
-          <div className="badge-soft">{data.portfolio_optimization?.status || "就绪"}</div>
+          <div className="badge-soft">{view.portfolio_optimization?.status || "就绪"}</div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead><tr className="text-[var(--quant-muted)] border-b border-[var(--quant-border)]"><th className="text-left py-2">标的</th><th className="text-right py-2">目标权重</th><th className="text-right py-2">当前权重</th><th className="text-right py-2">偏差</th></tr></thead>
-              <tbody>{(data.portfolio_optimization?.allocations ?? []).map((a, i) => (
+              <tbody>{(view.portfolio_optimization?.allocations ?? []).map((a, i) => (
                 <tr key={i} className="border-b border-[var(--quant-border)]/50"><td className="py-2 mono">{a.symbol}</td><td className="py-2 text-right">{(a.target * 100).toFixed(1)}%</td><td className="py-2 text-right">{(a.current * 100).toFixed(1)}%</td><td className={`py-2 text-right ${Math.abs(a.target - a.current) > 0.02 ? "text-orange-500" : "text-green-500"}`}>{(a.target - a.current) > 0 ? "+" : ""}{((a.target - a.current) * 100).toFixed(1)}%</td></tr>
               ))}</tbody>
             </table>
@@ -56,18 +66,18 @@ export default function ProfessionalWorkbench() {
         </div>
       ) : null}
 
-      {data && tab === "brinson" ? (
+      {tab === "brinson" ? (
         <div className="quant-card p-5 space-y-4">
           <h2 className="text-lg font-semibold">Brinson 绩效归因</h2>
           <div className="grid grid-cols-3 gap-4">
-            <div className="quant-card p-4 text-center"><div className="text-xs text-[var(--quant-muted)]">总效应</div><div className="text-2xl font-bold mono">{(data.brinson_attribution?.total_effect ?? 0).toFixed(2)}%</div></div>
-            <div className="quant-card p-4 text-center"><div className="text-xs text-[var(--quant-muted)]">配置效应</div><div className="text-2xl font-bold mono">{(data.brinson_attribution?.allocation_effect ?? 0).toFixed(2)}%</div></div>
-            <div className="quant-card p-4 text-center"><div className="text-xs text-[var(--quant-muted)]">选股效应</div><div className="text-2xl font-bold mono">{(data.brinson_attribution?.selection_effect ?? 0).toFixed(2)}%</div></div>
+            <div className="quant-card p-4 text-center"><div className="text-xs text-[var(--quant-muted)]">总效应</div><div className="text-2xl font-bold mono">{(view.brinson_attribution?.total_effect ?? 0).toFixed(2)}%</div></div>
+            <div className="quant-card p-4 text-center"><div className="text-xs text-[var(--quant-muted)]">配置效应</div><div className="text-2xl font-bold mono">{(view.brinson_attribution?.allocation_effect ?? 0).toFixed(2)}%</div></div>
+            <div className="quant-card p-4 text-center"><div className="text-xs text-[var(--quant-muted)]">选股效应</div><div className="text-2xl font-bold mono">{(view.brinson_attribution?.selection_effect ?? 0).toFixed(2)}%</div></div>
           </div>
           <div className="overflow-x-auto mt-4">
             <table className="w-full text-sm">
               <thead><tr className="text-[var(--quant-muted)] border-b border-[var(--quant-border)]"><th className="text-left py-2">板块</th><th className="text-right py-2">配置效应</th><th className="text-right py-2">选股效应</th><th className="text-right py-2">总效应</th></tr></thead>
-              <tbody>{(data.brinson_attribution?.sectors ?? []).map((s, i) => (
+              <tbody>{(view.brinson_attribution?.sectors ?? []).map((s, i) => (
                 <tr key={i} className="border-b border-[var(--quant-border)]/50"><td className="py-2">{s.name}</td><td className="py-2 text-right mono">{s.allocation.toFixed(2)}%</td><td className="py-2 text-right mono">{s.selection.toFixed(2)}%</td><td className="py-2 text-right mono font-semibold">{s.total.toFixed(2)}%</td></tr>
               ))}</tbody>
             </table>
@@ -75,16 +85,16 @@ export default function ProfessionalWorkbench() {
         </div>
       ) : null}
 
-      {data && tab === "compliance" ? (
+      {tab === "compliance" ? (
         <div className="quant-card p-5 space-y-4">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold">合规预检</h2>
-            {data.compliance_check?.passed ? <span className="badge-soft text-green-600">通过</span> : <span className="badge-soft text-red-500">未通过</span>}
+            {view.compliance_check?.passed ? <span className="badge-soft text-green-600">通过</span> : <span className="badge-soft text-red-500">未通过</span>}
           </div>
           <div className="space-y-3">
-            {(data.compliance_check?.violations ?? []).length === 0 ? (
+            {(view.compliance_check?.violations ?? []).length === 0 ? (
               <p className="text-[var(--quant-muted)] text-sm">无违规项</p>
-            ) : (data.compliance_check?.violations ?? []).map((v, i) => (
+            ) : (view.compliance_check?.violations ?? []).map((v, i) => (
               <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-[var(--quant-surface)] border border-[var(--quant-border)]">
                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${v.severity === "high" ? "bg-red-100 text-red-700" : v.severity === "medium" ? "bg-orange-100 text-orange-700" : "bg-yellow-100 text-yellow-700"}`}>{v.severity}</span>
                 <div><div className="text-sm font-medium">{v.rule}</div><div className="text-xs text-[var(--quant-muted)]">{v.detail}</div></div>
@@ -94,10 +104,10 @@ export default function ProfessionalWorkbench() {
         </div>
       ) : null}
 
-      {data && tab === "execution" ? (
+      {tab === "execution" ? (
         <div className="quant-card p-5 space-y-4">
           <h2 className="text-lg font-semibold">执行算法监控</h2>
-          <div className="grid gap-3 md:grid-cols-2">{(data.execution_algorithms?.algorithms ?? []).map((a, i) => (
+          <div className="grid gap-3 md:grid-cols-2">{(view.execution_algorithms?.algorithms ?? []).map((a, i) => (
             <div key={i} className="quant-card p-4 flex items-center justify-between">
               <div><div className="font-medium">{a.name}</div><div className="text-xs text-[var(--quant-muted)]">{a.status}</div></div>
               <div className={`mono text-lg font-bold ${(a.pnl ?? 0) >= 0 ? "text-green-500" : "text-red-500"}`}>{a.pnl ? `${a.pnl >= 0 ? "+" : ""}${a.pnl.toFixed(2)}%` : "—"}</div>

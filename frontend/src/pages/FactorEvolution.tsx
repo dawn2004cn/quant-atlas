@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { fetchFactorLineage, evolveFactor, submitFactorToVault } from "../lib/api";
+import { DEMO_FACTOR_EVOLUTION } from "../lib/demoCatalog";
 
 type Node = {
   id: string;
@@ -39,6 +41,7 @@ export default function FactorEvolution() {
   const [links, setLinks] = useState<LinkEdge[]>([]);
   const [selected, setSelected] = useState<Node | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDemo, setIsDemo] = useState(false);
   const [symbol, setSymbol] = useState("000001");
   const nodesRef = useRef<Node[]>([]);
   const animRef = useRef<number>(0);
@@ -50,17 +53,29 @@ export default function FactorEvolution() {
     setLoading(true);
     try {
       const data = await fetchFactorLineage({ limit: 150 });
-      const ns = (data.nodes ?? []).map((n, i) => ({
+      const raw = data.nodes ?? [];
+      const useDemo = !raw.length;
+      const sourceNodes = useDemo ? DEMO_FACTOR_EVOLUTION.nodes : raw;
+      const sourceLinks = useDemo ? DEMO_FACTOR_EVOLUTION.links : (data.links ?? []);
+      const ns = sourceNodes.map((n, i) => ({
         ...n,
         x: 400 + Math.cos(i * 2.39996) * (100 + i * 3),
         y: 300 + Math.sin(i * 2.39996) * (80 + i * 2.5),
       }));
       setNodes(ns);
-      setLinks(data.links ?? []);
+      setLinks(sourceLinks);
+      setIsDemo(useDemo);
       nodesRef.current = ns;
     } catch {
-      setNodes([]);
-      setLinks([]);
+      const ns = DEMO_FACTOR_EVOLUTION.nodes.map((n, i) => ({
+        ...n,
+        x: 400 + Math.cos(i * 2.39996) * (100 + i * 3),
+        y: 300 + Math.sin(i * 2.39996) * (80 + i * 2.5),
+      }));
+      setNodes(ns);
+      setLinks(DEMO_FACTOR_EVOLUTION.links);
+      setIsDemo(true);
+      nodesRef.current = ns;
     } finally {
       setLoading(false);
     }
@@ -244,6 +259,7 @@ export default function FactorEvolution() {
       <div>
         <h1 className="page-title">因子演化拓扑</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">可视化因子的演化关系和继承链</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       <div className="flex gap-4">

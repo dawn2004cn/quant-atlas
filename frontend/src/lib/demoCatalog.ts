@@ -921,3 +921,210 @@ export const DEMO_PORTFOLIO_RESONANCE = {
     [0.05, 0.02, 0.08, 1],
   ],
 };
+
+export const DEMO_ATTRIBUTION = {
+  total_return: 8.42,
+  allocation_effect: 2.15,
+  selection_effect: 5.61,
+  interaction_effect: 0.66,
+  sectors: [
+    { name: "白酒", weight: 0.28, return: 12.4 },
+    { name: "半导体", weight: 0.22, return: 6.1 },
+    { name: "银行", weight: 0.18, return: 3.2 },
+    { name: "新能源", weight: 0.15, return: -2.8 },
+  ],
+};
+
+export const DEMO_EXPERIMENTS = [
+  { id: "exp-demo-1", name: "动量 20D 演示实验", status: "completed", created_at: "2026-08-10T12:00:00+08:00", metrics: { total_return: 14.2, sharpe: 1.35 } },
+  { id: "exp-demo-2", name: "均值回归演示实验", status: "completed", created_at: "2026-08-08T09:30:00+08:00", metrics: { total_return: 6.8, sharpe: 0.92 } },
+];
+
+export const DEMO_EXPERIMENT_DETAIL = {
+  id: "exp-demo-1",
+  name: "动量 20D 演示实验",
+  description: "演示报告：截面动量因子在白酒与半导体上的样本回测。",
+  status: "completed",
+  created_at: "2026-08-10T12:00:00+08:00",
+  preset_name: "momentum_20d",
+  metrics: { total_return: 14.2, sharpe_ratio: 1.35, ic_mean: 0.046, max_drawdown: -9.8 },
+  equity_curve: [
+    { date: "2025-01", value: 1.0 },
+    { date: "2025-03", value: 1.04 },
+    { date: "2025-06", value: 1.09 },
+    { date: "2025-09", value: 1.07 },
+    { date: "2025-12", value: 1.142 },
+  ],
+  findings: ["IC 在趋势市更稳", "拥挤度升高时需降权", "与 DEMO_FACTORS.mom_20 同源"],
+};
+
+export const DEMO_FACTOR_DETAIL = {
+  factor_id: "mom_20",
+  formula: "Rank(Close / Delay(Close, 20) - 1)",
+  sharpe_ratio: 1.42,
+  max_drawdown: 0.12,
+  ic_mean: 0.046,
+  regime: "trending_up",
+  source: "demo",
+  data_range: "2024-01 ~ 2025-12",
+  created_at: "2026-08-01",
+  backtest_result: {
+    annual_return: 0.168,
+    sharpe_ratio: 1.42,
+    win_rate: 0.56,
+    profit_loss_ratio: 1.8,
+    max_drawdown: 0.12,
+    trade_count: 128,
+  },
+  ic_series: [
+    { date: "2025-01", ic: 0.03 },
+    { date: "2025-02", ic: 0.05 },
+    { date: "2025-03", ic: 0.04 },
+    { date: "2025-04", ic: 0.06 },
+    { date: "2025-05", ic: 0.02 },
+    { date: "2025-06", ic: 0.05 },
+  ],
+  correlations: [
+    { factor_id: "rev_5", name: "短反转", value: -0.32 },
+    { factor_id: "vol_shrink", name: "波动收缩", value: 0.18 },
+  ],
+};
+
+export const DEMO_FACTOR_EVOLUTION = {
+  nodes: [
+    { id: "n1", factor_id: "mom_20", name: "动量20", type: "primitive", ic: 0.046, status: "active" },
+    { id: "n2", factor_id: "mom_20_v2", name: "动量20·衰减", type: "derived", ic: 0.051, status: "active" },
+    { id: "n3", factor_id: "mom_vol", name: "动量×波动", type: "composite", ic: 0.038, status: "candidate" },
+  ],
+  links: [
+    { source: "n1", target: "n2" },
+    { source: "n1", target: "n3" },
+    { source: "n2", target: "n3" },
+  ],
+};
+
+export const DEMO_INTEGRATION_HUB = {
+  stack: {
+    layers: {
+      mysql_enabled: { ok: true, enabled: true },
+      timeseries_ohlcv: { ok: true, enabled: true, detail: { data_freshness: 92, async_throughput: 88 } },
+      quantml_factors: { ok: true, enabled: true },
+      openbb_global: { ok: false, enabled: false, reason: "demo offline" },
+      celery_tasks: { ok: true, enabled: true },
+      execution_gateway: { ok: false, enabled: false },
+      realtime_ws: { ok: true, enabled: true },
+      kronos: { ok: true, enabled: true },
+      fingpt: { ok: false, enabled: false },
+      quantml_agent: { ok: true, enabled: true },
+    },
+    mysql_integration_row_counts: { quotes: 4200, factors: 128, experiments: 12 },
+  },
+  realtime: {
+    socketio_enabled: true,
+    quote_broadcast: true,
+    tick_stream: false,
+    rooms: { market: 3, alerts: 1 },
+  },
+  tasks: [
+    { ts: "2026-08-13T14:00:00+08:00", label: "ohlcv_sync", detail: "演示同步完成" },
+    { ts: "2026-08-13T13:50:00+08:00", label: "factor_ic", detail: "演示 IC 计算" },
+  ],
+  jobs: [
+    { task_name: "demo.quotes_dump", status: "SUCCESS" },
+    { task_name: "demo.alert_dispatch", status: "STARTED" },
+  ],
+};
+
+export const DEMO_DECISION_SNAPSHOT = {
+  snapshot_id: "snap-demo-600519",
+  created_at: "2026-08-13T10:15:00+08:00",
+  symbol: "600519",
+  market: "CN",
+  decision_type: "加仓建议",
+  score: 78,
+  stance: "偏多",
+  evidence: [
+    { source: "研报", content: "渠道库存健康，批价稳中有升（演示）。", confidence: 0.82 },
+    { source: "技术面", content: "20 日均线上方运行（演示）。", confidence: 0.71 },
+  ],
+  alternative_views: [
+    { title: "估值谨慎", content: "相对历史分位偏高，演示反向观点。" },
+  ],
+  signals: [
+    { name: "动量", value: 0.64, impact: "positive" },
+    { name: "波动", value: 0.22, impact: "neutral" },
+    { name: "拥挤度", value: 0.71, impact: "negative" },
+  ],
+};
+
+export const DEMO_DATA_LAKE = {
+  lake: {
+    engine: "sqlite",
+    status: "healthy",
+    migration: { status: "idle" },
+    metrics: { p95_latency_ms: 42 },
+    store: { type: "sqlite", status: "healthy" },
+  },
+  timeseries: {
+    questdb: { enabled: true, connected: true },
+    ohlcv_tables: { questdb_rows: 128000 },
+    last_sync: {
+      recorded_at: "2026-08-13T14:00:00+08:00",
+      ok: true,
+      source: "demo",
+      mode: "incremental",
+      questdb_rows_written: 1280,
+    },
+    sync_progress: { status: "idle", percent: 100, symbols_done: 50, symbols_total: 50 },
+    celery_beat: {
+      enabled: true,
+      schedule_label: "*/15 * * * *",
+      sync_in_progress: false,
+      last_beat_run_at: "2026-08-13T14:00:00+08:00",
+      last_beat_run_ok: true,
+      recent_beat_runs: [{ source: "demo", ok: true, recorded_at: "2026-08-13T14:00:00+08:00" }],
+    },
+    execution: { qmt: { execution_mode: "paper" } },
+    warnings: [],
+    backfill: { target_rows: 200000, coverage_pct: 64, meets_target: false, questdb_rows: 128000 },
+  },
+  realtime: {
+    socketio_enabled: true,
+    origins_configured: true,
+    quote_broadcast: true,
+    tick_stream: false,
+    rooms: { market: 2, alerts: 1 },
+    tick: { status: "idle" },
+  },
+};
+
+export const DEMO_PROFESSIONAL_WORKBENCH = {
+  portfolio_optimization: {
+    status: "就绪",
+    allocations: [
+      { symbol: "600519", target: 0.08, current: 0.05 },
+      { symbol: "000858", target: 0.06, current: 0.07 },
+      { symbol: "300750", target: 0.05, current: 0.04 },
+    ],
+  },
+  brinson_attribution: {
+    total_effect: 1.85,
+    allocation_effect: 0.62,
+    selection_effect: 1.12,
+    sectors: [
+      { name: "白酒", allocation: 0.4, selection: 0.8, total: 1.2 },
+      { name: "半导体", allocation: 0.15, selection: 0.25, total: 0.4 },
+      { name: "银行", allocation: 0.07, selection: 0.07, total: 0.25 },
+    ],
+  },
+  compliance_check: {
+    passed: true,
+    violations: [{ rule: "单票上限 10%", severity: "low", detail: "演示提示：600519 目标仓位 8%，合规。" }],
+  },
+  execution_algorithms: {
+    algorithms: [
+      { name: "TWAP", status: "running", pnl: 0.12 },
+      { name: "VWAP", status: "idle", pnl: -0.03 },
+    ],
+  },
+};

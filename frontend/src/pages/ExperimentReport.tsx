@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { fetchExperiment, fetchExperiments } from "../lib/api";
+import { DEMO_EXPERIMENT_DETAIL, DEMO_EXPERIMENTS } from "../lib/demoCatalog";
 import type { ExperimentDetail } from "../types/experiment";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -53,11 +55,22 @@ export function ExperimentReportPage() {
     () => fetchExperiment(selectedId),
   );
 
-  const experiments = listData?.experiments ?? [];
-  const metrics = detail?.metrics ?? {};
-  const icValue = metrics.ic ?? metrics.ic_mean ?? metrics.IC ?? metrics.rank_ic;
+  const liveExperiments = listData?.experiments ?? [];
+  const listDemo = Boolean(listError) || !liveExperiments.length;
+  const experiments = listDemo ? DEMO_EXPERIMENTS : liveExperiments;
 
-  const findings = useMemo(() => detail?.findings ?? [], [detail?.findings]);
+  const effectiveId = selectedId || (listDemo ? DEMO_EXPERIMENT_DETAIL.id : "");
+  const detailDemo = Boolean(detailError) || (Boolean(effectiveId) && !detail && !detailLoading);
+  const viewDetail: ExperimentDetail | null = effectiveId
+    ? detailDemo
+      ? (DEMO_EXPERIMENT_DETAIL as ExperimentDetail)
+      : (detail as ExperimentDetail)
+    : null;
+
+  const metrics = viewDetail?.metrics ?? {};
+  const icValue = metrics.ic ?? metrics.ic_mean ?? metrics.IC ?? metrics.rank_ic;
+  const findings = useMemo(() => viewDetail?.findings ?? [], [viewDetail?.findings]);
+  const isDemo = listDemo || (Boolean(effectiveId) && detailDemo);
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
@@ -66,45 +79,36 @@ export function ExperimentReportPage() {
       <div>
         <h1 className="text-2xl font-bold">实验报告</h1>
         <p className="text-sm text-zinc-500">投研实验列表与权益曲线 · `/api/v1/experiments`</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <select
           className="rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-1.5 font-mono text-xs text-zinc-200 max-w-xs"
-          value={selectedId}
+          value={selectedId || (listDemo ? DEMO_EXPERIMENT_DETAIL.id : "")}
           onChange={(e) => setSelectedId(e.target.value)}
         >
-          <option value="">选择实验…</option>
+          {!listDemo ? <option value="">选择实验…</option> : null}
           {experiments.map((exp) => (
             <option key={exp.id} value={exp.id}>
               {exp.name} · {exp.created_at?.slice(0, 10) ?? exp.status}
             </option>
           ))}
         </select>
-        <a className="link text-sm" href="/experiment-reporter">
-          经典版报告页
-        </a>
       </div>
 
-      {listLoading ? <p className="text-zinc-500">加载实验列表…</p> : null}
-      {listError ? (
-        <p className="text-error">列表加载失败：{listError instanceof Error ? listError.message : "unknown"}</p>
-      ) : null}
+      {listLoading && !listDemo ? <p className="text-zinc-500">加载实验列表…</p> : null}
+      {selectedId && detailLoading && !detailDemo ? <p className="text-zinc-500">加载报告…</p> : null}
 
-      {selectedId && detailLoading ? <p className="text-zinc-500">加载报告…</p> : null}
-      {detailError ? (
-        <p className="text-error">报告加载失败：{detailError instanceof Error ? detailError.message : "unknown"}</p>
-      ) : null}
-
-      {detail ? (
+      {viewDetail ? (
         <Panel className="space-y-6 p-6">
           <div>
-            <h2 className="text-xl font-semibold">{detail.name || "投研实验报告"}</h2>
+            <h2 className="text-xl font-semibold">{viewDetail.name || "投研实验报告"}</h2>
             <p className="text-sm text-zinc-500">
-              ID {detail.id.slice(0, 8)}
-              {detail.preset_name ? ` · 预设 ${detail.preset_name}` : ""}
+              ID {viewDetail.id.slice(0, 8)}
+              {viewDetail.preset_name ? ` · 预设 ${viewDetail.preset_name}` : ""}
               {" · "}
-              {detail.created_at?.slice(0, 19) ?? "—"} · {detail.status}
+              {viewDetail.created_at?.slice(0, 19) ?? "—"} · {viewDetail.status}
             </p>
           </div>
 
@@ -127,16 +131,16 @@ export function ExperimentReportPage() {
             </div>
           </div>
 
-          {detail.description ? (
+          {viewDetail.description ? (
             <section>
               <h3 className="mb-2 font-semibold">策略描述</h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-300">{detail.description}</p>
+              <p className="text-sm text-zinc-600 dark:text-zinc-300">{viewDetail.description}</p>
             </section>
           ) : null}
 
           <section>
             <h3 className="mb-2 font-semibold">收益曲线</h3>
-            {buildEquitySvg(detail.equity_curve)}
+            {buildEquitySvg(viewDetail.equity_curve)}
           </section>
 
           {findings.length > 0 ? (
