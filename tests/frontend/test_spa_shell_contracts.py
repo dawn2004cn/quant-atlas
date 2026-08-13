@@ -38,3 +38,9 @@ def test_swr_provider_keeps_previous_page_data() -> None:
     assert "SWRConfig" in text
     assert "keepPreviousData" in text
     assert "revalidateOnFocus" in text
+
+
+def test_spa_shell_registers_trailing_slash() -> None:
+    text = (ROOT / "app" / "presentation" / "web" / "pages_spa.py").read_text(encoding="utf-8")
+    assert '@blueprint.route("/app/")' in text
+    assert '@blueprint.route("/app")' in text

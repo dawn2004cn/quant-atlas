@@ -16,6 +16,7 @@ def register_spa_pages(blueprint: Blueprint) -> None:
     """Mount production build at /app/*; assets under /app/assets/."""
 
     @blueprint.route("/app")
+    @blueprint.route("/app/")
     @blueprint.route("/app/<path:asset_path>")
     def spa_shell(asset_path: str = "") -> Response:
         if not _SPA_DIST.is_dir():

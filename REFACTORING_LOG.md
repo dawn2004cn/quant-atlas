@@ -4,6 +4,28 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-13 (SPA 自测阻塞修复：SQLite DDL + /app/ + i18n LFS)
+
+### 问题
+- 本地 SQLite 启动失败：`stock_history_{quote_identifier(market)}` 生成 MySQL 反引号，DDL 语法错误
+- `/app/`（尾斜杠）404，而 `/app` 正常
+- `locales/*.json` 若仍为 Git LFS pointer，登录页 `t()` 直接 JSONDecodeError → 500
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `app/infrastructure/database/adapters.py` | SQLite history 表后缀用 allowlist 校验后的裸标识符 |
+| `app/presentation/web/pages_spa.py` | 注册 `/app/` |
+| `app/core/i18n.py` | LFS pointer / 坏 JSON 时降级为空字典，避免登录 500 |
+| `tests/frontend/test_spa_shell_contracts.py` | 契约覆盖 `/app/` |
+| `tests/infrastructure/test_sqlite_adapter_schema.py` | 新建：history 表可建 |
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py tests/frontend/test_core_pages_demo_fallback.py tests/infrastructure/test_sqlite_adapter_schema.py`
+- 手工：`GET /login` 200、`GET /app/` 200
+
+---
+
 ## 2026-08-13 (SPA 体验：有数据 / 快 / 局部刷新)
 
 ### 目标
@@ -15,7 +37,7 @@ This file is a consolidated chronological log of all major architecture refactor
 - `KeepAliveOutlet` + 全局 `SWRConfig(keepPreviousData)`
 - 登录 `toSpaPath` 避免 `/app/app`
 - Vite 分包去掉未安装的 echarts / lightweight-charts
-- 核心流程页空列表改演示样本 + `DemoBanner`：自选 / 热点 / 组合 / 选股 / 全景 / 全球雷达 / 龙虎榜 / 通达信板块 / 因子库 / 研报 / 信号旗 / 回测历史 / 策略向导 / 策略快照 / 信号观测 / 预警中心 / 禅意看板 / 选股结果 / 组合详情 / Marketplace / 股票管理 / AI 对冲基金 / 委员会选股 / 投资经理 / 专家团队 / 动态 / 消息中心 / 作战室 / 委员会仪表盘 / 任务中心 / Swarm / 研究管线 / 研究画板 / Agent 中心 / 系统能力 / 语音简报 / Alpha 工厂 / 决策回放 / 协作工作区 / 观测台 / AI 投资委员会 / 架构路线图 / 散户助手 / 组合共鸣 / 归因分析 / 实验报告 / 因子详情 / 因子演化 / 集成中枢 / 决策快照 / 数据湖健康 / 专业工作台 / 用户管理 / 用户光谱 / 四档会员 / 影子账户 / 个人中心 / 任务详情 / 量化实验室
+- 核心流程页空列表改演示样本 + `DemoBanner`：自选 / 热点 / 组合 / 选股 / 全景 / 全球雷达 / 龙虎榜 / 通达信板块 / 因子库 / 研报 / 信号旗 / 回测历史 / 策略向导 / 策略快照 / 信号观测 / 预警中心 / 禅意看板 / 选股结果 / 组合详情 / Marketplace / 股票管理 / AI 对冲基金 / 委员会选股 / 投资经理 / 专家团队 / 动态 / 消息中心 / 作战室 / 委员会仪表盘 / 任务中心 / Swarm / 研究管线 / 研究画板 / Agent 中心 / 系统能力 / 语音简报 / Alpha 工厂 / 决策回放 / 协作工作区 / 观测台 / AI 投资委员会 / 架构路线图 / 散户助手 / 组合共鸣 / 归因分析 / 实验报告 / 因子详情 / 因子演化 / 集成中枢 / 决策快照 / 数据湖健康 / 专业工作台 / 用户管理 / 用户光谱 / 四档会员 / 影子账户 / 个人中心 / 任务详情 / 量化实验室 / AI 诊股 / AI 聊天 / AI 研报 / 回测 / 中长线选股 / NL 策略 / 组合优化 / 个股详情 / 策略对比 / 禅终端
 
 ### 验证
 - `pytest tests/frontend/test_spa_shell_contracts.py tests/frontend/test_core_pages_demo_fallback.py tests/modules/strategy/test_daily_workbench_display_fallback.py`
