@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_OBSERVABILITY } from "../lib/demoCatalog";
 
 type Snapshot = {
   overall_status?: string;
@@ -102,12 +104,15 @@ export default function Observability() {
     policy?: { metrics?: Record<string, number>; ts?: string };
   } | null>(null);
 
+  const [snapFailed, setSnapFailed] = useState(false);
+
   const load = useCallback(async () => {
     try {
       const s = await apiFetchV1<Snapshot>("/system/observability/snapshot");
       setSnap(s);
+      setSnapFailed(false);
     } catch {
-      /* keep state */
+      setSnapFailed(true);
     }
   }, []);
 
@@ -166,13 +171,15 @@ export default function Observability() {
     }
   }
 
-  const sla = snap?.sla;
-  const cs = snap?.critical_services;
-  const tasks = snap?.task_messages ?? [];
-  const beatRuns = snap?.timeseries_beat_runs ?? [];
-  const quotesApi = snap?.quotes_api;
+  const isDemo = snapFailed || !snap;
+  const viewSnap = isDemo ? (DEMO_OBSERVABILITY as Snapshot) : snap;
+  const sla = viewSnap?.sla;
+  const cs = viewSnap?.critical_services;
+  const tasks = viewSnap?.task_messages ?? [];
+  const beatRuns = viewSnap?.timeseries_beat_runs ?? [];
+  const quotesApi = viewSnap?.quotes_api;
   const fullDumpCount = quotesApi?.full_dump_count ?? 0;
-  const alertOps = snap?.alert_ops;
+  const alertOps = viewSnap?.alert_ops;
 
   return (
     <div className="space-y-6">
@@ -180,13 +187,14 @@ export default function Observability() {
       <div>
         <h1 className="page-title">观测台</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">系统可观测性、追踪、任务事件与执行适配器</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       <div className="grid grid-cols-3 lg:grid-cols-7 gap-3">
         <StatCard
           label="系统状态"
-          value={snap?.overall_status ?? "—"}
-          ok={snap?.overall_status === "healthy" || snap?.overall_status === "ok"}
+          value={viewSnap?.overall_status ?? "—"}
+          ok={viewSnap?.overall_status === "healthy" || viewSnap?.overall_status === "ok"}
         />
         <StatCard label="SLA 目标" value={sla?.uptime_target_pct != null ? `${sla.uptime_target_pct}%` : "—"} />
         <StatCard label="API P95" value={sla?.api_p95_ms != null ? `${sla.api_p95_ms}ms` : "—"} />
@@ -242,13 +250,13 @@ export default function Observability() {
         </div>
       )}
 
-      {snap?.health_banner?.message && (
+      {viewSnap?.health_banner?.message && (
         <div className="quant-card qa-tone-banner--warn text-sm">
-          {snap.health_banner.message}
-          {snap.health_banner.quotes_full_dump_warn ? (
+          {viewSnap.health_banner.message}
+          {viewSnap.health_banner.quotes_full_dump_warn ? (
             <span className="ml-2 text-[10px] font-mono text-[var(--quant-muted)]">
-              dump={snap.health_banner.quotes_full_dump_count ?? 0}/thr=
-              {snap.health_banner.quotes_full_dump_threshold ?? 1}
+              dump={viewSnap.health_banner.quotes_full_dump_count ?? 0}/thr=
+              {viewSnap.health_banner.quotes_full_dump_threshold ?? 1}
             </span>
           ) : null}
         </div>

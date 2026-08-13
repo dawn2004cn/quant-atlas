@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import type { AlphaFactorItem } from "../types/alpha";
 import {
   fetchAlphaFactoryStatus,
@@ -13,6 +14,7 @@ import {
   fetchPaperTradingStatus,
   submitPaperTrading,
 } from "../lib/api";
+import { DEMO_ALPHA_FACTORY } from "../lib/demoCatalog";
 
 const GOAL_LABELS: Record<string, string> = {
   alpha_discovery: "Alpha 发现",
@@ -35,9 +37,18 @@ type Tab = "experiment" | "knowledge" | "validate" | "model" | "weekly" | "paper
 
 export function AlphaFactoryPage() {
   const [tab, setTab] = useState<Tab>("experiment");
-  const { data: status } = useSWR("alpha-status", () => fetchAlphaFactoryStatus(), { refreshInterval: 30000 });
-  const { data: knowledge } = useSWR("alpha-knowledge", () => fetchAlphaKnowledge());
-  const { data: factors, mutate: reloadFactors } = useSWR("alpha-factors", () => fetchAlphaFactors());
+  const { data: status, error: statusError } = useSWR("alpha-status", () => fetchAlphaFactoryStatus(), { refreshInterval: 30000 });
+  const { data: knowledge, error: knowledgeError } = useSWR("alpha-knowledge", () => fetchAlphaKnowledge());
+  const { data: factors, error: factorsError, mutate: reloadFactors } = useSWR("alpha-factors", () => fetchAlphaFactors());
+
+  const liveFactors = factors?.items ?? [];
+  const isDemo =
+    Boolean(statusError || knowledgeError || factorsError) ||
+    !status ||
+    !liveFactors.length;
+  const viewStatus = isDemo ? DEMO_ALPHA_FACTORY.status : status;
+  const viewKnowledge = isDemo ? DEMO_ALPHA_FACTORY.knowledge : knowledge;
+  const viewFactors = isDemo ? DEMO_ALPHA_FACTORY.factors : liveFactors;
 
   return (
     <div className="space-y-6">
@@ -48,12 +59,13 @@ export function AlphaFactoryPage() {
         <p className="text-sm text-slate-500 mt-1">
           整合 RD-Agent 因子生成 + Qlib 回测 + 因子仓库，自动化从因子发现到模型部署闭环
         </p>
+        <DemoBanner show={isDemo} />
         <div className="flex flex-wrap gap-3 mt-4">
-          <StatCard label="因子总数" value={status?.total_factors} />
-          <StatCard label="平均 Sharpe" value={status?.avg_sharpe?.toFixed(2)} />
-          <StatCard label="活跃因子" value={status?.active_count} />
-          <StatCard label="失败次数" value={status?.failed_count} />
-          <StatCard label="投研周会" value={status?.is_weekly_enabled ? "已启用" : "未启用"} />
+          <StatCard label="因子总数" value={viewStatus?.total_factors} />
+          <StatCard label="平均 Sharpe" value={viewStatus?.avg_sharpe?.toFixed(2)} />
+          <StatCard label="活跃因子" value={viewStatus?.active_count} />
+          <StatCard label="失败次数" value={viewStatus?.failed_count} />
+          <StatCard label="投研周会" value={viewStatus?.is_weekly_enabled ? "已启用" : "未启用"} />
         </div>
       </section>
 
@@ -75,11 +87,11 @@ export function AlphaFactoryPage() {
 
       {tab === "experiment" && (
         <ExperimentTab
-          factors={factors?.items}
+          factors={viewFactors}
           onSubmitted={reloadFactors}
         />
       )}
-      {tab === "knowledge" && <KnowledgeTab knowledge={knowledge} />}
+      {tab === "knowledge" && <KnowledgeTab knowledge={viewKnowledge} />}
       {tab === "validate" && <ValidateTab />}
       {tab === "model" && <ModelTab />}
       {tab === "weekly" && <WeeklyTab />}

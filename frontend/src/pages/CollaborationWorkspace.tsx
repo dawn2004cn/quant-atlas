@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_COLLABORATION } from "../lib/demoCatalog";
 
 type TeamMember = {
   user_id: number;
@@ -43,13 +45,17 @@ export function CollaborationWorkspacePage() {
 
   const [activeTab, setActiveTab] = useState<"members" | "notes" | "activity">("members");
 
-  if (isLoading && !data) return <PageSkeleton rows={4} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无协作工作区数据</div>;
+  const liveMembers = data?.team_members ?? [];
+  const isDemo =
+    Boolean(error) ||
+    !data ||
+    (!liveMembers.length && !(data.shared_notes ?? []).length && !(data.activity_feed ?? []).length);
+  const view = isDemo ? DEMO_COLLABORATION : data!;
+  const members = view.team_members ?? [];
+  const notes = view.shared_notes ?? [];
+  const activity = view.activity_feed ?? [];
 
-  const members = data.team_members ?? [];
-  const notes = data.shared_notes ?? [];
-  const activity = data.activity_feed ?? [];
+  if (isLoading && !data && !error) return <PageSkeleton rows={4} />;
 
   return (
     <div className="space-y-5">
@@ -58,6 +64,7 @@ export function CollaborationWorkspacePage() {
         <div>
           <h1 className="text-2xl font-bold">协作工作区</h1>
           <p className="text-sm text-slate-500">团队成员、共享笔记与活动动态</p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void mutate()}>
           刷新

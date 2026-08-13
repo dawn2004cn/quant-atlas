@@ -24,4 +24,4 @@
 - `CoreWorkflowStrip.tsx` 非空，导出 `Link` 导航
 - Layout 使用 KeepAliveOutlet，切换路径不整页 `window.location`
 - 登录成功跳转 SPA 相对路径 `/`，而不是 `/app/app`
-- 空列表页展示带「演示」标注的样本行（自选…委员会仪表盘/任务中心/Swarm/研究管线/研究画板/Agent 中心/系统能力/语音简报）
+- 空列表页展示带「演示」标注的样本行（自选…语音简报 / Alpha 工厂 / 决策回放 / 协作工作区 / 观测台 / AI 投资委员会 / 架构路线图 / 散户助手 / 组合共鸣）

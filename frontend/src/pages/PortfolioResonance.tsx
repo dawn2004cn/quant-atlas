@@ -1,6 +1,8 @@
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_PORTFOLIO_RESONANCE } from "../lib/demoCatalog";
 
 type ResonanceData = {
   resonance_score?: number;
@@ -12,10 +14,12 @@ type ResonanceData = {
 export default function PortfolioResonance() {
   const { data, error, isLoading, mutate } = useSWR<ResonanceData>("/portfolio/resonance", apiFetchV1, { refreshInterval: 30000 });
 
-  const score = data?.resonance_score ?? 0;
-  const alignment = data?.alignment ?? 0;
-  const sectors = data?.sectors ?? [];
-  const correlations = data?.correlations ?? [];
+  const isDemo = Boolean(error) || !data || (!(data.sectors ?? []).length && data.resonance_score == null);
+  const view = isDemo ? DEMO_PORTFOLIO_RESONANCE : data!;
+  const score = view.resonance_score ?? 0;
+  const alignment = view.alignment ?? 0;
+  const sectors = view.sectors ?? [];
+  const correlations = view.correlations ?? [];
 
   const scoreColor = score >= 70 ? "text-green-500" : score >= 40 ? "text-yellow-500" : "text-red-500";
   const alignColor = alignment >= 70 ? "stroke-green-500" : alignment >= 40 ? "stroke-yellow-500" : "stroke-red-500";
@@ -27,15 +31,14 @@ export default function PortfolioResonance() {
         <div>
           <h1 className="page-title">组合共鸣</h1>
           <p className="text-[var(--quant-muted)] text-sm">组合谐波分析与共振检测</p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn-brand btn-sm" onClick={() => mutate()}>刷新</button>
       </div>
 
-      {isLoading && !data ? <div className="quant-card p-6 text-center text-[var(--quant-muted)]">加载中...</div> : null}
-      {error ? <div className="quant-card p-6 text-red-500">加载失败: {error.message}</div> : null}
+      {isLoading && !data && !error ? <div className="quant-card p-6 text-center text-[var(--quant-muted)]">加载中...</div> : null}
 
-      {data ? (
-        <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2">
           <div className="quant-card p-6 flex flex-col items-center justify-center">
             <h2 className="text-sm font-semibold text-[var(--quant-muted)] uppercase tracking-wider mb-4">共振指数</h2>
             <div className="relative w-40 h-40">
@@ -95,7 +98,6 @@ export default function PortfolioResonance() {
             ) : <p className="text-[var(--quant-muted)] text-sm">暂无数据</p>}
           </div>
         </div>
-      ) : null}
     </div>
   );
 }

@@ -700,3 +700,224 @@ export const DEMO_VOICE_BRIEFING = {
     { id: "vb2", title: "持仓风险", summary: "组合回撤可控，注意拥挤度。", duration_seconds: 32, category: "风控", created_at: "2026-08-12 18:00", is_played: true },
   ],
 };
+
+export const DEMO_ALPHA_FACTORY = {
+  status: {
+    total_factors: 4,
+    avg_sharpe: 0.99,
+    active_count: 3,
+    failed_count: 1,
+    is_weekly_enabled: true,
+  },
+  knowledge: {
+    alphas: [
+      { name: "Alpha#001", formula: "rank(Ts_ArgMax(SUMS(returns_0_1, 20), 2))", description: "动量峰值演示因子" },
+      { name: "Alpha#006", formula: "rank(correlation(close, volume, 15))", description: "价量相关演示因子" },
+    ],
+    operators: {
+      rank: { description: "截面排序" },
+      Ts_Mean: { description: "时序均值" },
+      Std: { description: "标准差" },
+    },
+  },
+  factors: DEMO_FACTORS,
+};
+
+export const DEMO_DECISION_REPLAYS = [
+  {
+    replay_id: "demo-replay-1",
+    title: "茅台研报 → 调仓建议",
+    description: "从研报证据到仓位建议的演示回放。",
+    session_id: "sess-demo-600519",
+    started_at: "2026-08-13T09:15:00+08:00",
+    completed_at: "2026-08-13T09:18:22+08:00",
+    total_steps: 3,
+    summary: "维持超配，止损 -6%。",
+    steps: [
+      {
+        step_id: "s1",
+        sequence: 1,
+        description: "拉取 600519 行情与研报证据",
+        timestamp: "2026-08-13T09:15:05+08:00",
+        duration_ms: 820,
+        status: "success" as const,
+        input_summary: "symbol=600519",
+        output_summary: "3 条证据",
+      },
+      {
+        step_id: "s2",
+        sequence: 2,
+        description: "多智能体辩论",
+        timestamp: "2026-08-13T09:16:10+08:00",
+        duration_ms: 4100,
+        status: "success" as const,
+        output_summary: "看多 2 / 中性 1",
+      },
+      {
+        step_id: "s3",
+        sequence: 3,
+        description: "生成仓位建议",
+        timestamp: "2026-08-13T09:18:00+08:00",
+        duration_ms: 650,
+        status: "success" as const,
+        output_summary: "目标仓位 8%",
+      },
+    ],
+  },
+];
+
+export const DEMO_COLLABORATION = {
+  team_members: [
+    { user_id: 1, username: "alice", role: "投研负责人", last_active: "2026-08-13 14:20" },
+    { user_id: 2, username: "bob", role: "量化研究员", last_active: "2026-08-13 13:55" },
+    { user_id: 3, username: "carol", role: "风控", last_active: "2026-08-12 18:40" },
+  ],
+  shared_notes: [
+    {
+      id: "note-1",
+      title: "白酒拥挤度观察",
+      content: "演示笔记：关注渠道库存与批价背离。",
+      author: "alice",
+      updated_at: "2026-08-13 10:00",
+    },
+    {
+      id: "note-2",
+      title: "半导体事件驱动清单",
+      content: "演示笔记：财报窗口与出口管制跟踪。",
+      author: "bob",
+      updated_at: "2026-08-12 16:30",
+    },
+  ],
+  activity_feed: [
+    {
+      id: "act-1",
+      type: "note",
+      description: "更新了共享笔记「白酒拥挤度观察」",
+      actor: "alice",
+      timestamp: "2026-08-13 10:00",
+    },
+    {
+      id: "act-2",
+      type: "decision",
+      description: "提交决策回放「茅台研报 → 调仓建议」",
+      actor: "bob",
+      timestamp: "2026-08-13 09:18",
+    },
+  ],
+};
+
+export const DEMO_OBSERVABILITY = {
+  overall_status: "healthy",
+  health_banner: { message: "演示观测快照 · 服务可用", level: "info" },
+  sla: { uptime_target_pct: 99.5, api_p95_ms: 180, decision_review_sla_hours: 24 },
+  critical_services: { ok: true, critical_missing: [], required_missing: [] },
+  task_messages: [
+    { ts: "2026-08-13 14:00", label: "quotes_dump", detail: "演示全量 dump 完成", event: "ok", task_name: "quotes_full_dump" },
+    { ts: "2026-08-13 13:55", label: "alert_dispatch", detail: "演示预警分发", event: "ok", task_name: "alert_dispatch" },
+  ],
+  timeseries_beat_runs: [{ recorded_at: "2026-08-13 14:00", ok: true, mode: "demo", questdb_rows_written: 1280 }],
+  quotes_api: {
+    full_dump_count: 2,
+    symbol_batch_count: 12,
+    last_full_dump_at: "2026-08-13T14:00:00+08:00",
+    last_full_dump_rows: 4200,
+    backend: "demo",
+    recent_dumps: [{ at: "2026-08-13 14:00", market: "CN", rows: 4200 }],
+    trend_rows: [3800, 4000, 4100, 4200],
+  },
+  alert_ops: {
+    alert_dispatch_beat: true,
+    alert_dispatch_beat_minutes: 5,
+    quotes_dump_monitor_beat: true,
+    quotes_dump_monitor_beat_minutes: 15,
+    quotes_dump_auto_dispatch: true,
+    quotes_full_dump_warn: false,
+    quotes_full_dump_count: 2,
+    quotes_full_dump_threshold: 10,
+    preferred_endpoint: "/api/v1/system/observability/snapshot",
+  },
+};
+
+export const DEMO_INVESTMENT_COMMITTEE = {
+  active_members: 4,
+  updated_at: "2026-08-13T10:30:00+08:00",
+  debates: [
+    {
+      topic: "是否加仓 600519",
+      moderator: "主席 Agent",
+      started_at: "2026-08-13T10:00:00+08:00",
+      turns: [
+        { speaker: "多头研究员", role: "bull", argument: "批价稳、渠道健康，演示看多论点。", sentiment: "bullish" as const },
+        { speaker: "空头研究员", role: "bear", argument: "估值偏贵，演示谨慎论点。", sentiment: "bearish" as const },
+        { speaker: "风控官", role: "risk", argument: "单票仓位上限 8%。", sentiment: "neutral" as const },
+      ],
+    },
+  ],
+  proposals: [
+    {
+      id: "prop-demo-1",
+      title: "白酒板块超配提案",
+      description: "演示提案：目标行业权重 +3%。",
+      proposed_by: "策略 Agent",
+      status: "open" as const,
+      votes_for: 2,
+      votes_against: 1,
+      total_votes: 3,
+      deadline: "2026-08-14T18:00:00+08:00",
+    },
+  ],
+};
+
+export const DEMO_ARCHITECTURE_ROADMAP = {
+  phases: [
+    {
+      phase: "阶段 E · 体验与数据",
+      items: [
+        { name: "SPA 局部刷新", status: "completed", description: "KeepAliveOutlet + SWR keepPreviousData" },
+        { name: "演示数据兜底", status: "in_progress", description: "空列表页 DemoBanner + catalog" },
+        { name: "DIF 门禁闭环", status: "planned", description: "Bias / Risk Guard 验收" },
+      ],
+    },
+    {
+      phase: "阶段 F · 观测与协作",
+      items: [
+        { name: "观测台快照", status: "in_progress", description: "SLA / Beat / 适配器探针" },
+        { name: "协作工作区", status: "planned", description: "笔记与活动流" },
+      ],
+    },
+  ],
+};
+
+export const DEMO_RETAIL_ASSISTANT = {
+  health_score: 78,
+  tips: [
+    { title: "先定仓位再选股", description: "演示技巧：单票风险预算不超过总资金 2%。" },
+    { title: "避免追涨杀跌", description: "演示技巧：用计划价位分批，而不是盘中冲动。" },
+  ],
+  resources: [
+    { title: "平台手册（演示）", url: "/docs/public/" },
+    { title: "风险须知（演示）", url: "/docs/public/" },
+  ],
+  portfolio_health: {
+    diversification: 0.62,
+    risk_level: "中等",
+    recommendation: "演示建议：适度分散至非相关板块。",
+  },
+};
+
+export const DEMO_PORTFOLIO_RESONANCE = {
+  resonance_score: 72,
+  alignment: 68,
+  sectors: [
+    { name: "白酒", weight: 0.35 },
+    { name: "半导体", weight: 0.25 },
+    { name: "银行", weight: 0.2 },
+    { name: "现金", weight: 0.2 },
+  ],
+  correlations: [
+    [1, 0.42, 0.18, 0.05],
+    [0.42, 1, 0.11, 0.02],
+    [0.18, 0.11, 1, 0.08],
+    [0.05, 0.02, 0.08, 1],
+  ],
+};
