@@ -216,12 +216,17 @@ Week 3
 
 ## 完成定义（阶段 E 整体）
 
-- [ ] `app/services/`、`application/facades/` 不存在
-- [ ] `domain/` 无 infrastructure 依赖（架构测试 enforced）
+- [x] `app/services/`、`application/facades/` 不存在（canonical：`app.application.facade`）
+- [x] `domain/` 无 infrastructure 依赖（`test_layer_dependency_gate` enforced）
 - [x] 无 >800 行的 presentation 路由文件（`test_phase_e_presentation_route_size`）
-- [ ] `boot_gate` + 双 audit + 契约 pytest CI 全绿
-- [ ] `REFACTORING_LOG.md` 含 E0–E5 记录
-- [ ] 登录后 P0 五页无控制台 404（与 A 阶段标准一致）
+- [x] `boot_gate` + 双 audit + 契约 pytest CI 全绿（见 CI / 既有 E5 回归）
+- [x] `REFACTORING_LOG.md` 含 E0–E5 记录
+- [ ] 登录后 P0 五页无控制台 404（与 A 阶段标准一致；由 SPA UX / 演示数据线持续验收）
+
+### 收尾补充（2026-08-13）
+
+- [x] 任务注册对可选依赖稳健：`moments_tasks` matplotlib 懒加载；`scanner`/`signal_flag` 去掉顶层 `celery` 硬导入；`registry` 按模块 best-effort 注册
+- [ ] `entities.py` 继续瘦身 / `modules/system` helpers 分批下沉 / wiring→`wire()`（长期，不阻塞阶段 E 关闭）
 
 ---
 

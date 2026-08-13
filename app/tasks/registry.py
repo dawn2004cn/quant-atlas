@@ -2,15 +2,19 @@ from __future__ import annotations
 
 """Task registry - Centralized task definitions and metadata."""
 
+import importlib
 from collections.abc import Callable
 from typing import Any
 
+from app.core.logger import get_logger
+
 TASK_REGISTRY: dict[str, dict[str, Any]] = {}
+logger = get_logger(__name__)
 
 
 def register_task(
     task_name: str,
-    task_func: Callable,
+    task_func: Callable | None,
     description: str,
     category: str = "general",
     params: dict[str, Any] | None = None,
@@ -18,6 +22,8 @@ def register_task(
     estimated_steps: list[str] | None = None,
 ) -> None:
     """Register a task with its metadata."""
+    if not callable(task_func):
+        return
     TASK_REGISTRY[task_name] = {
         "func": task_func,
         "description": description,
@@ -58,25 +64,37 @@ def get_tasks_by_category() -> dict[str, list[dict[str, Any]]]:
     return result
 
 
+def _load_task_module(name: str) -> Any | None:
+    try:
+        return importlib.import_module(f"app.tasks.{name}")
+    except ImportError as exc:
+        logger.warning("task module skipped (%s): %s", name, exc)
+        return None
+
+
+def _attr(module: Any | None, name: str) -> Any:
+    if module is None:
+        return None
+    return getattr(module, name, None)
+
+
 def _register_all_tasks() -> None:
-    """Auto-register all tasks."""
-    from app.tasks import (
-        data_backfill_tasks,
-        investment_manager_tasks,
-        market_history_tasks,
-        market_tasks,
-        moments_tasks,
-        news_backfill_tasks,
-        qlib_data_update,
-        questdb_sync_tasks,
-        scanner_tasks,
-        signal_flag_tasks,
-        tdx_dayk_tasks,
-    )
+    """Auto-register all tasks (best-effort when optional deps are missing)."""
+    data_backfill_tasks = _load_task_module("data_backfill_tasks")
+    investment_manager_tasks = _load_task_module("investment_manager_tasks")
+    market_history_tasks = _load_task_module("market_history_tasks")
+    market_tasks = _load_task_module("market_tasks")
+    moments_tasks = _load_task_module("moments_tasks")
+    news_backfill_tasks = _load_task_module("news_backfill_tasks")
+    qlib_data_update = _load_task_module("qlib_data_update")
+    questdb_sync_tasks = _load_task_module("questdb_sync_tasks")
+    scanner_tasks = _load_task_module("scanner_tasks")
+    signal_flag_tasks = _load_task_module("signal_flag_tasks")
+    tdx_dayk_tasks = _load_task_module("tdx_dayk_tasks")
 
     register_task(
         "app.tasks.data_backfill_tasks.backfill_all_history_tdx",
-        data_backfill_tasks.backfill_all_history_tdx,
+        _attr(data_backfill_tasks, "backfill_all_history_tdx"),
         "全量TDX日K同步：TDX日K目录 → MySQL + CSV",
         category="数据同步",
         default_params={"limit": None},
@@ -84,7 +102,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.data_backfill_tasks.sync_today_history_tdx",
-        data_backfill_tasks.sync_today_history_tdx,
+        _attr(data_backfill_tasks, "sync_today_history_tdx"),
         "当日TDX日K同步：当日新增bar同步到MySQL/CSV",
         category="数据同步",
         default_params={"trade_date": None, "limit": None},
@@ -92,7 +110,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.data_backfill_tasks.sync_incremental_tdx",
-        data_backfill_tasks.sync_incremental_tdx,
+        _attr(data_backfill_tasks, "sync_incremental_tdx"),
         "【推荐】增量 TDX 日 K：MySQL 最新日 → TDX → MySQL/CSV（可选 qlib_bin）",
         category="数据同步",
         default_params={"limit": None, "dump_qlib_bin": False},
@@ -100,7 +118,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.data_backfill_tasks.scheduled_cn_history_daily",
-        data_backfill_tasks.scheduled_cn_history_daily,
+        _attr(data_backfill_tasks, "scheduled_cn_history_daily"),
         "【推荐】收盘日更：TDX 增量 + MySQL → qlib_bin",
         category="数据同步",
         default_params={"limit": None, "dump_max_workers": 8},
@@ -109,7 +127,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.data_backfill_tasks.backfill_longhu_if_empty",
-        data_backfill_tasks.backfill_longhu_if_empty,
+        _attr(data_backfill_tasks, "backfill_longhu_if_empty"),
         "龙虎榜数据回填：仅空时执行",
         category="数据同步",
         default_params={"max_rows": 1000},
@@ -118,7 +136,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.data_backfill_tasks.backfill_yanbao_full",
-        data_backfill_tasks.backfill_yanbao_full,
+        _attr(data_backfill_tasks, "backfill_yanbao_full"),
         "研报全量回填：从东方财富抓取研报",
         category="数据同步",
         default_params={"max_rows_per_category": 200},
@@ -126,7 +144,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.data_backfill_tasks.backfill_financial_stash_if_empty",
-        data_backfill_tasks.backfill_financial_stash_if_empty,
+        _attr(data_backfill_tasks, "backfill_financial_stash_if_empty"),
         "财务快照回填：仅空时执行",
         category="数据同步",
         default_params={},
@@ -134,7 +152,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.qlib_data_update.qlib_full_backfill_if_empty",
-        qlib_data_update.qlib_full_backfill_if_empty,
+        _attr(qlib_data_update, "qlib_full_backfill_if_empty"),
         "Qlib全量导出：CSV → qlib_bin，仅空时执行",
         category="数据同步",
         default_params={"period": "5y", "max_workers": 8},
@@ -142,7 +160,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.qlib_data_update.qlib_incremental_pipeline",
-        qlib_data_update.qlib_incremental_pipeline,
+        _attr(qlib_data_update, "qlib_incremental_pipeline"),
         "Qlib增量管道：MultiSourceMarketProvider + dump_to_qlib_bin",
         category="数据同步",
         default_params={"period": "2y", "max_workers": 8, "dump_incremental": True},
@@ -151,7 +169,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.qlib_data_update.csv_to_qlib_incremental_sync",
-        qlib_data_update.csv_to_qlib_incremental_sync,
+        _attr(qlib_data_update, "csv_to_qlib_incremental_sync"),
         "CSV→qlib_bin（历史入库推荐，替代 mysql_to_qlib）",
         category="数据同步",
         default_params={"max_workers": 8, "dump_incremental": True},
@@ -159,7 +177,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.tdx_dayk_tasks.tdx_dayk_full_sync",
-        tdx_dayk_tasks.tdx_dayk_full_sync,
+        _attr(tdx_dayk_tasks, "tdx_dayk_full_sync"),
         "[别名] TDX 日 K 全量 → 请优先 backfill_all_history_tdx",
         category="数据同步",
         default_params={"limit": None, "dump_qlib_bin": True, "dump_max_workers": 8},
@@ -167,7 +185,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.tdx_dayk_tasks.tdx_dayk_incremental_sync",
-        tdx_dayk_tasks.tdx_dayk_incremental_sync,
+        _attr(tdx_dayk_tasks, "tdx_dayk_incremental_sync"),
         "[别名] TDX 日 K 增量 → 请优先 sync_incremental_tdx",
         category="数据同步",
         default_params={"start_date": None, "dump_qlib_bin": True, "dump_max_workers": 8},
@@ -175,7 +193,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.market_tasks.refresh_basic_market_data",
-        market_tasks.refresh_basic_market_data,
+        _attr(market_tasks, "refresh_basic_market_data"),
         "刷新基础市场数据：龙虎榜与研报",
         category="市场数据",
         default_params={"kind": "all"},
@@ -184,7 +202,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.market_tasks.scheduled_longhu",
-        market_tasks.scheduled_longhu,
+        _attr(market_tasks, "scheduled_longhu"),
         "定时龙虎榜数据更新",
         category="市场数据",
         default_params={},
@@ -192,7 +210,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.market_history_tasks.fetch_all_market_history",
-        market_history_tasks.fetch_all_market_history,
+        _attr(market_history_tasks, "fetch_all_market_history"),
         "全市场历史数据拉取：港股/美股/加密",
         category="市场数据",
         default_params={},
@@ -200,7 +218,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.news_backfill_tasks.scheduled_news_daily",
-        news_backfill_tasks.scheduled_news_daily,
+        _attr(news_backfill_tasks, "scheduled_news_daily"),
         "每日新闻归档更新",
         category="新闻",
         default_params={},
@@ -208,7 +226,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.scanner_tasks.scanner_core_tick",
-        scanner_tasks.scanner_core_tick,
+        _attr(scanner_tasks, "scanner_core_tick"),
         "选股扫描核心 ticking",
         category="信号",
         default_params={"force": False},
@@ -216,14 +234,14 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.questdb_sync_tasks.questdb_ohlcv_sync_tick",
-        questdb_sync_tasks.questdb_ohlcv_sync_tick,
+        _attr(questdb_sync_tasks, "questdb_ohlcv_sync_tick"),
         "QuestDB·收盘后增量日K同步",
         category="数据同步",
         default_params={},
     )
     register_task(
         "app.tasks.questdb_sync_tasks.timeseries_ohlcv_full_backfill",
-        questdb_sync_tasks.timeseries_ohlcv_full_backfill,
+        _attr(questdb_sync_tasks, "timeseries_ohlcv_full_backfill"),
         "QuestDB·全市场 OHLCV Backfill（TDX→时序库）",
         category="数据同步",
         default_params={
@@ -236,7 +254,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.signal_flag_tasks.signal_flag_pool_scan",
-        signal_flag_tasks.signal_flag_pool_scan,
+        _attr(signal_flag_tasks, "signal_flag_pool_scan"),
         "信号Flag股票池扫描",
         category="信号",
         default_params={"force": False},
@@ -244,7 +262,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.investment_manager_tasks.investment_managers_backfill",
-        investment_manager_tasks.investment_managers_backfill,
+        _attr(investment_manager_tasks, "investment_managers_backfill"),
         "投资经理历史数据回填",
         category="投资经理",
         default_params={},
@@ -252,7 +270,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.investment_manager_tasks.investment_managers_simulate_day",
-        investment_manager_tasks.investment_managers_simulate_day,
+        _attr(investment_manager_tasks, "investment_managers_simulate_day"),
         "投资经理每日模拟交易",
         category="投资经理",
         default_params={"trade_date": None},
@@ -260,7 +278,7 @@ def _register_all_tasks() -> None:
 
     register_task(
         "app.tasks.moments_tasks.moments_after_close",
-        moments_tasks.moments_after_close,
+        _attr(moments_tasks, "moments_after_close"),
         "收盘后moments生成",
         category="社交",
         default_params={},

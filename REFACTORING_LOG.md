@@ -4,6 +4,27 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-13 (阶段 E 收尾：tasks 可选依赖 + facades shim 清理)
+
+### 问题
+- `tests/architecture/test_phase_e_tasks_boundary` 在精简环境失败：`moments_tasks` 顶层 `import matplotlib`、`scanner_tasks`/`signal_flag_tasks` 顶层 `from celery import …` 导致整表任务注册中断
+- 完成定义中的废弃包 `app/application/facades/` 仍为 deprecation shim（无业务引用）
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `app/tasks/moments_tasks.py` | matplotlib / pyplot 移入 `_plot_equity` 懒加载 |
+| `app/tasks/scanner_tasks.py` | 始终暴露可调用入口；`celery.group` 函数内导入；无 Celery 时同步降级 |
+| `app/tasks/signal_flag_tasks.py` | `celery.chord` 改为函数内导入 |
+| `app/tasks/registry.py` | 按模块 best-effort `importlib`；跳过不可调用入口 |
+| `app/application/facades/` | 删除废弃 shim（canonical：`app.application.facade`） |
+| `docs/superpowers/plans/2026-06-24-phase-e-architecture-refactor.md` | 更新完成定义勾选与收尾补充 |
+
+### 验证
+- `pytest tests/architecture/test_phase_e_*.py tests/architecture/test_layer_dependency_gate.py` 全绿
+
+---
+
 ## 2026-06-24 (阶段 A：页面数据加载路由修复)
 
 ### 问题
