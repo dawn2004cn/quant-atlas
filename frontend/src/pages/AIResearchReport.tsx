@@ -2,7 +2,9 @@ import { useState } from "react";
 import useSWR from "swr";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_AI_RESEARCH_REPORT } from "../lib/demoCatalog";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
@@ -26,7 +28,7 @@ type ResearchReport = {
 };
 
 export function AIResearchReportPage() {
-  const [symbol, setSymbol] = useState("");
+  const [symbol, setSymbol] = useState("600519");
   const [market, setMarket] = useState("CN");
   const [depth, setDepth] = useState("standard");
   const [submitted, setSubmitted] = useState(false);
@@ -115,44 +117,40 @@ export function AIResearchReportPage() {
         </button>
       </Panel>
 
-      {error && <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">{error.message}</div>}
       {isLoading && <PageSkeleton rows={5} />}
 
-      {!submitted && !isLoading && (
-        <Panel className="flex flex-col items-center gap-3 p-8 text-center">
-          <div className="text-4xl">📄</div>
-          <p className="text-sm text-zinc-400">
-            输入标的代码并选择分析深度，生成专业研究报告
-          </p>
-        </Panel>
-      )}
-
-      {data && !isLoading && (
+      {(() => {
+        const isDemo = !isLoading && (Boolean(error) || !data);
+        const view = (!isLoading && data) ? data : DEMO_AI_RESEARCH_REPORT;
+        if (isLoading) return null;
+        return (
         <Panel className="space-y-4 p-4">
+          <DemoBanner show={isDemo || !submitted} />
           <div className="border-b pb-3 dark:border-zinc-700">
-            <h2 className="text-xl font-bold">{data.title}</h2>
+            <h2 className="text-xl font-bold">{view.title}</h2>
             <div className="mt-1 flex flex-wrap gap-2 text-xs text-zinc-400">
-              <span>{data.symbol}</span>
-              <span>{data.market}</span>
-              <span className="rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold bg-zinc-800/60 text-zinc-400">{data.depth}</span>
-              <span>{new Date(data.generated_at).toLocaleString("zh-CN")}</span>
+              <span>{view.symbol}</span>
+              <span>{view.market}</span>
+              <span className="rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold bg-zinc-800/60 text-zinc-400">{view.depth}</span>
+              <span>{new Date(view.generated_at).toLocaleString("zh-CN")}</span>
             </div>
           </div>
 
-          {data.sections.map((section, idx) => (
+          {view.sections.map((section, idx) => (
             <div key={idx}>
               <h3 className="mb-2 text-sm font-bold text-brand">{section.heading}</h3>
               <p className="text-sm leading-relaxed whitespace-pre-wrap">{section.content}</p>
             </div>
           ))}
 
-          {data.disclaimer && (
+          {view.disclaimer && (
             <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
-              {data.disclaimer}
+              {view.disclaimer}
             </div>
           )}
         </Panel>
-      )}
+        );
+      })()}
     </div>
   );
 }

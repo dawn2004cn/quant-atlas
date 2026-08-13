@@ -1251,3 +1251,125 @@ export const DEMO_QUANT_LAB = {
   stats: { mean: 0.012, std: 0.04 },
   meta: { demo: true, disclaimer: "演示曲线，非实盘模拟" },
 };
+
+export const DEMO_AI_ANALYSIS = {
+  symbol: "600519",
+  market: "CN",
+  summary: "演示诊股：茅台短期偏强，估值处历史中枢偏上，注意拥挤度。",
+  technical: "价格位于 20 日均线上方，MACD 金叉维持（演示）。",
+  fundamental: "ROE 与毛利率仍处行业前列（演示）。",
+  sentiment: "研报与资金面偏多，散户情绪偏热（演示）。",
+  risk: "估值回撤与政策预期差是主要风险（演示）。",
+  recommendation: "谨慎超配",
+  generated_at: "2026-08-13T10:00:00+08:00",
+};
+
+export const DEMO_AI_CHAT = [
+  { role: "user" as const, content: "请分析当前 A 股市场整体走势" },
+  { role: "assistant" as const, content: "演示回复：白酒与银行相对稳健，成长板块分化；建议关注拥挤度与风险预算。" },
+];
+
+export const DEMO_AI_RESEARCH_REPORT = {
+  symbol: "600519",
+  market: "CN",
+  depth: "standard",
+  title: "贵州茅台 · 演示研究报告",
+  sections: [
+    { heading: "投资要点", content: "渠道库存健康，批价稳中有升（演示）。" },
+    { heading: "估值与建议", content: "目标价区间演示数据，维持超配但控制仓位。" },
+  ],
+  disclaimer: "演示报告，不构成投资建议。",
+  generated_at: "2026-08-13T10:00:00+08:00",
+};
+
+export const DEMO_BACKTEST = {
+  total_return: 0.142,
+  sharpe: 1.35,
+  max_drawdown: 0.098,
+  win_rate: 0.56,
+  equity_curve: [
+    { date: "2025-01-01", value: 100000 },
+    { date: "2025-04-01", value: 104500 },
+    { date: "2025-07-01", value: 109200 },
+    { date: "2025-10-01", value: 107800 },
+    { date: "2025-12-31", value: 114200 },
+  ],
+  trades: [
+    { date: "2025-02-10", side: "buy", price: 1650, quantity: 100 },
+    { date: "2025-06-20", side: "sell", price: 1720, quantity: 100 },
+  ],
+  mlflow_run_id: "demo-run-ma",
+};
+
+export const DEMO_LONG_TERM_SELECT = {
+  strategy: "classic",
+  market: "CN",
+  candidates: [
+    { code: "600519", name: "贵州茅台", score: 92.4, reason: "质量+动量共振（演示）", industry: "白酒", price: 1688, change_pct: 1.2 },
+    { code: "000858", name: "五粮液", score: 88.1, reason: "估值修复（演示）", industry: "白酒", price: 128.6, change_pct: -0.4 },
+    { code: "300750", name: "宁德时代", score: 84.6, reason: "成长景气（演示）", industry: "电池", price: 186.2, change_pct: 0.8 },
+  ],
+};
+
+export const DEMO_NL_STRATEGY = {
+  status: "completed",
+  symbol: "600519",
+  strategy_name: "双均线演示策略",
+  strategy_description: "当 5 日均线上穿 20 日均线买入，跌破卖出（演示）。",
+  params: { fast: 5, slow: 20, size: 1000 },
+  backtest_metrics: {
+    total_return_pct: 12.4,
+    annual_return_pct: 11.2,
+    sharpe: 1.18,
+    max_drawdown_pct: -8.6,
+  },
+};
+
+export const DEMO_OPTIMIZE = {
+  status: "ok",
+  expected_return: 0.15,
+  expected_risk: 0.12,
+  sharpe_ratio: 1.05,
+  weights: { "600519": 0.28, "000858": 0.22, "300750": 0.2, CASH: 0.3 },
+};
+
+export const DEMO_STOCK_DETAIL = {
+  quote: {
+    code: "600519",
+    name: "贵州茅台",
+    price: 1688,
+    change_amount: 20.5,
+    change_pct: 1.23,
+    volume: 1280000,
+    amount: 2.1e9,
+    open_price: 1670,
+    high_price: 1695,
+    low_price: 1662,
+    prev_close: 1667.5,
+    industry: "白酒",
+  },
+  bars: [
+    { date: "2025-12-01", open: 1650, high: 1668, low: 1645, close: 1660, volume: 1.1e6 },
+    { date: "2025-12-08", open: 1660, high: 1675, low: 1655, close: 1672, volume: 1.2e6 },
+    { date: "2025-12-15", open: 1672, high: 1688, low: 1668, close: 1680, volume: 1.3e6 },
+    { date: "2025-12-22", open: 1680, high: 1695, low: 1675, close: 1688, volume: 1.28e6 },
+  ],
+};
+
+export const DEMO_STRATEGY_COMPARE = {
+  comparisons: [
+    { strategy_name: "双均线策略", status: "ok" as const, total_return: 0.142, annual_return: 0.12, sharpe: 1.35, max_drawdown: 0.09, win_rate: 0.55, trade_count: 24 },
+    { strategy_name: "MACD金叉", status: "ok" as const, total_return: 0.118, annual_return: 0.1, sharpe: 1.12, max_drawdown: 0.11, win_rate: 0.52, trade_count: 18 },
+    { strategy_name: "RSI超卖反转", status: "ok" as const, total_return: 0.086, annual_return: 0.07, sharpe: 0.88, max_drawdown: 0.08, win_rate: 0.58, trade_count: 32 },
+  ],
+  winner: "双均线策略",
+};
+
+export const DEMO_ZEN_TERMINAL = {
+  results: [
+    { symbol: "600519", name: "贵州茅台", price: 1688 },
+    { symbol: "000858", name: "五粮液", price: 128.6 },
+    { symbol: "300750", name: "宁德时代", price: 186.2 },
+  ],
+  log: ["[演示] 终端就绪，可搜索标的并模拟下单"],
+};

@@ -7,7 +7,9 @@ import { AiInsightPanel } from "../components/stock/AiInsightPanel";
 import { TradePlanPanel } from "../components/stock/TradePlanPanel";
 import { useAnalysisStream } from "../hooks/useAnalysisStream";
 import { useAuth } from "../hooks/useAuth";
+import { DemoBanner } from "../components/DemoBanner";
 import { fetchStock, fetchStockHistory } from "../lib/api";
+import { DEMO_STOCK_DETAIL } from "../lib/demoCatalog";
 import { extractRealtime, normalizeBars, type StockDetailPayload } from "../types/stock";
 import type { ChartOverlay } from "../components/charts/PriceHistoryChart";
 
@@ -36,8 +38,11 @@ export function StockDetailPage() {
     () => fetchStockHistory(symbol, market, 120),
   );
 
-  const quote = data ? extractRealtime(data as StockDetailPayload) : null;
-  const bars = normalizeBars(historyRaw);
+  const liveQuote = data ? extractRealtime(data as StockDetailPayload) : null;
+  const liveBars = normalizeBars(historyRaw);
+  const isDemo = Boolean(error) || Boolean(historyError) || (!isLoading && !liveQuote?.price) || (!historyLoading && !liveBars.length);
+  const quote = (!error && liveQuote?.price != null) ? liveQuote : DEMO_STOCK_DETAIL.quote;
+  const bars = (!historyError && liveBars.length) ? liveBars : DEMO_STOCK_DETAIL.bars;
   const { steps, loading: aiLoading, error: aiError, start: startAi } = useAnalysisStream(symbol, market);
   const [overlays, setOverlays] = useState<ChartOverlay[]>(["ma5", "ma20", "volume"]);
 
@@ -72,17 +77,17 @@ export function StockDetailPage() {
       <PageQuickNav items={QUICK_NAV_PRESETS.stockDetail} />
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link className="rounded-lg bg-zinc-800/40 px-3 py-1.5 text-xs font-medium text-zinc-400 ring-1 ring-zinc-700/40 transition-colors hover:bg-zinc-800 hover:text-zinc-200" to="/app">← 操盘台</Link>
+        <Link className="rounded-lg bg-zinc-800/40 px-3 py-1.5 text-xs font-medium text-zinc-400 ring-1 ring-zinc-700/40 transition-colors hover:bg-zinc-800 hover:text-zinc-200" to="/">← 操盘台</Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
-            {symbol}
+            {symbol || quote.code}
             <span className="ml-2 text-base font-normal text-zinc-500">({market})</span>
           </h1>
+          <DemoBanner show={isDemo} />
         </div>
       </div>
 
-      {isLoading && <Panel className="flex items-center gap-3 p-5"><div className="h-4 w-4 animate-ping rounded-full bg-emerald-500/40" /><p className="text-sm text-zinc-500">加载行情…</p></Panel>}
-      {error && <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">加载失败: {error.message}</div>}
+      {isLoading && !quote && <Panel className="flex items-center gap-3 p-5"><div className="h-4 w-4 animate-ping rounded-full bg-emerald-500/40" /><p className="text-sm text-zinc-500">加载行情…</p></Panel>}
 
       {quote && <StockQuoteCard quote={quote} />}
       {symbol && <TradePlanPanel symbol={symbol} market={market} />}
@@ -116,9 +121,8 @@ export function StockDetailPage() {
             ))}
           </div>
         </div>
-        {historyLoading && <div className="flex items-center gap-3 text-sm text-[var(--quant-muted)]"><div className="h-3 w-3 animate-spin rounded-full border-2 border-[var(--quant-surface-border)] border-t-[var(--quant-muted)]" />加载 K 线…</div>}
-        {historyError && <div className="qa-tone-banner qa-tone-banner--warn">K 线加载失败: {historyError.message}</div>}
-        {!historyLoading && !historyError && (
+        {historyLoading && !bars.length && <div className="flex items-center gap-3 text-sm text-[var(--quant-muted)]"><div className="h-3 w-3 animate-spin rounded-full border-2 border-[var(--quant-surface-border)] border-t-[var(--quant-muted)]" />加载 K 线…</div>}
+        {bars.length > 0 && (
           <Suspense fallback={<div className="h-80 animate-pulse rounded-xl bg-[var(--quant-surface)]" />}>
             <PriceHistoryChart data={bars} overlays={overlays} />
           </Suspense>

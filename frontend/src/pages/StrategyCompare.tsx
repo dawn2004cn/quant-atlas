@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
 import useSWR from "swr";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_STRATEGY_COMPARE } from "../lib/demoCatalog";
 import type { BacktestCompareRow } from "../types/backtest";
 
 /* ── API ── */
@@ -43,8 +45,10 @@ export function StrategyComparePage() {
     },
   );
 
-  const rows = data?.comparisons ?? [];
-  const winner = data?.winner;
+  const liveRows = data?.comparisons ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !liveRows.length);
+  const rows = isDemo ? (DEMO_STRATEGY_COMPARE.comparisons as BacktestCompareRow[]) : liveRows;
+  const winner = isDemo ? DEMO_STRATEGY_COMPARE.winner : data?.winner;
 
   return (
     <div className="space-y-5">
@@ -54,6 +58,7 @@ export function StrategyComparePage() {
         <div>
           <h1 className="text-2xl font-bold">策略对比</h1>
           <p className="text-sm text-slate-500">多策略同标的回测对比</p>
+          <DemoBanner show={isDemo} />
         </div>
       </div>
 
@@ -83,7 +88,6 @@ export function StrategyComparePage() {
         <textarea className="textarea textarea-bordered mt-1 w-full text-sm" rows={4} value={strategies} onChange={(e) => setStrategies(e.target.value)} />
       </div>
 
-      {error && <div className="alert alert-error">{error.message}</div>}
       {isLoading && <div className="text-sm text-slate-500">对比计算中...</div>}
 
       {/* Results */}

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_NL_STRATEGY } from "../lib/demoCatalog";
 
 type NLStrategyResult = {
   task_id?: string;
@@ -22,8 +24,8 @@ type NLStrategyResult = {
 
 export function NLStrategyPage() {
   const [mode, setMode] = useState<"v1" | "v2">("v1");
-  const [symbol, setSymbol] = useState("");
-  const [prompt, setPrompt] = useState("");
+  const [symbol, setSymbol] = useState("600519");
+  const [prompt, setPrompt] = useState("当 5 日均线上穿 20 日均线时买入，跌破时卖出");
   const [submitted, setSubmitted] = useState(false);
 
   const { data, error, isLoading, mutate } = useSWR(
@@ -40,6 +42,9 @@ export function NLStrategyPage() {
     mutate();
   };
 
+  const isDemo = !submitted || Boolean(error) || (!isLoading && !data);
+  const view = (!isLoading && data) ? data : DEMO_NL_STRATEGY;
+
   return (
     <div className="space-y-5">
       <PageQuickNav items={QUICK_NAV_PRESETS.nlStrategy} />
@@ -47,6 +52,7 @@ export function NLStrategyPage() {
         <div>
           <h1 className="text-2xl font-bold">自然语言策略</h1>
           <p className="text-sm text-slate-500">用中文描述交易策略，AI 自动生成并回测</p>
+          <DemoBanner show={isDemo} />
         </div>
         <div className="tabs tabs-box">
           <button type="button" className={`tab ${mode === "v1" ? "tab-active" : ""}`} onClick={() => setMode("v1")}>V1</button>
@@ -74,42 +80,35 @@ export function NLStrategyPage() {
         </button>
       </div>
 
-      {error && <div className="alert alert-error">{error.message}</div>}
       {isLoading && <PageSkeleton rows={3} />}
 
-      {data && !isLoading && (
+      {!isLoading && (
         <section className="glass-card space-y-4 p-4">
           <div className="rounded-xl bg-emerald-50 p-3 dark:bg-emerald-950/30">
-            <div className="text-sm font-bold">{data.strategy_name}</div>
-            <p className="mt-1 text-xs text-slate-600">{data.strategy_description}</p>
+            <div className="text-sm font-bold">{view.strategy_name}</div>
+            <p className="mt-1 text-xs text-slate-600">{view.strategy_description}</p>
           </div>
 
-          {data.backtest_metrics && (
+          {view.backtest_metrics && (
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <div className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800">
                 <div className="text-xs text-slate-500">总收益</div>
-                <div className={`text-lg font-bold ${data.backtest_metrics.total_return_pct >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                  {data.backtest_metrics.total_return_pct.toFixed(2)}%
+                <div className={`text-lg font-bold ${view.backtest_metrics.total_return_pct >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                  {view.backtest_metrics.total_return_pct.toFixed(2)}%
                 </div>
               </div>
               <div className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800">
                 <div className="text-xs text-slate-500">年化收益</div>
-                <div className="text-lg font-bold">{data.backtest_metrics.annual_return_pct.toFixed(2)}%</div>
+                <div className="text-lg font-bold">{view.backtest_metrics.annual_return_pct.toFixed(2)}%</div>
               </div>
               <div className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800">
                 <div className="text-xs text-slate-500">夏普比</div>
-                <div className="text-lg font-bold text-brand">{data.backtest_metrics.sharpe.toFixed(3)}</div>
+                <div className="text-lg font-bold">{view.backtest_metrics.sharpe.toFixed(2)}</div>
               </div>
               <div className="rounded-lg bg-slate-100 p-3 dark:bg-slate-800">
                 <div className="text-xs text-slate-500">最大回撤</div>
-                <div className="text-lg font-bold text-rose-600">{Math.abs(data.backtest_metrics.max_drawdown_pct).toFixed(2)}%</div>
+                <div className="text-lg font-bold text-rose-600">{view.backtest_metrics.max_drawdown_pct.toFixed(2)}%</div>
               </div>
-            </div>
-          )}
-
-          {data.errors?.length && (
-            <div className="rounded-xl bg-rose-50 p-3 dark:bg-rose-950/30">
-              {data.errors.map((e) => <p key={e} className="text-xs text-rose-600">{e}</p>)}
             </div>
           )}
         </section>

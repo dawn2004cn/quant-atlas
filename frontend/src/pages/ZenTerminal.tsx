@@ -1,18 +1,21 @@
 import { useState, useCallback, useRef } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_ZEN_TERMINAL } from "../lib/demoCatalog";
 
 type StockResult = { symbol: string; name?: string; price?: number };
 
 export default function ZenTerminal() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<StockResult[]>([]);
+  const [results, setResults] = useState<StockResult[]>(DEMO_ZEN_TERMINAL.results);
+  const [isDemo, setIsDemo] = useState(true);
   const [orderSymbol, setOrderSymbol] = useState("");
   const [side, setSide] = useState<"buy" | "sell">("buy");
   const [quantity, setQuantity] = useState("");
   const [orderType, setOrderType] = useState<"market" | "limit">("market");
   const [price, setPrice] = useState("");
-  const [log, setLog] = useState<string[]>([]);
+  const [log, setLog] = useState<string[]>([...DEMO_ZEN_TERMINAL.log]);
   const [searching, setSearching] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -22,13 +25,22 @@ export default function ZenTerminal() {
   const handleSearch = useCallback((q: string) => {
     setQuery(q);
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
-    if (!q.trim()) { setResults([]); return; }
+    if (!q.trim()) { setResults(DEMO_ZEN_TERMINAL.results); setIsDemo(true); return; }
     debounceRef.current = window.setTimeout(async () => {
       setSearching(true);
       try {
         const data = await apiFetchV1<StockResult[]>(`/stocks/search?q=${encodeURIComponent(q.trim())}`);
-        setResults(Array.isArray(data) ? data : []);
-      } catch { setResults([]); }
+        if (Array.isArray(data) && data.length) {
+          setResults(data);
+          setIsDemo(false);
+        } else {
+          setResults(DEMO_ZEN_TERMINAL.results);
+          setIsDemo(true);
+        }
+      } catch {
+        setResults(DEMO_ZEN_TERMINAL.results);
+        setIsDemo(true);
+      }
       setSearching(false);
     }, 300);
   }, []);
@@ -60,7 +72,10 @@ export default function ZenTerminal() {
   return (
     <div className="space-y-5">
       <PageQuickNav items={QUICK_NAV_PRESETS.zenTerminal} />
-      <h1 className="page-title">禅终端</h1>
+      <div>
+        <h1 className="page-title">禅终端</h1>
+        <DemoBanner show={isDemo} />
+      </div>
       <div className="grid gap-5 md:grid-cols-2">
         <div className="quant-card p-5 space-y-4">
           <h2 className="text-sm font-semibold text-[var(--quant-muted)] uppercase tracking-wider">快速查询</h2>
