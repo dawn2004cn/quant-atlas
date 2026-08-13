@@ -6,8 +6,6 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from celery import chord
-
 from ..application.services.strategy.signal_flag_service import SignalFlagScannerService
 from ..celery_app import celery as _celery
 from ..config import get_settings
@@ -154,7 +152,8 @@ if _celery is not None:
         batch_size: int = 80
     ) -> dict[str, Any]:
         """分布式编排：获取 Universe -> 分片 -> 分发Worker -> 回调聚合"""
-        from celery import current_task
+        from celery import chord, current_task
+
         req = getattr(current_task, "request", None)
         task_id = str(getattr(req, "id", "") or "signal-flag-scan")
 

@@ -6,11 +6,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import matplotlib
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
 from app.core.logger import get_logger
 
 from ..application.services.research.moments_service import MomentsService
@@ -74,10 +69,15 @@ def _return_pct(nav: list[dict[str, Any]], lookback: int) -> float:
 
 
 def _plot_equity(nav: list[dict[str, Any]], *, out_path: Path) -> None:
+    """Render equity curve PNG. Matplotlib is optional and loaded lazily."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
     ser = _equity_series(nav)
     if len(ser) < 2:
         raise ValueError("nav_too_short")
-    [x for x, _ in ser]
     ys = [y for _, y in ser]
     plt.figure(figsize=(10, 3.2), dpi=160)
     plt.plot(range(len(ys)), ys, linewidth=2.2)
