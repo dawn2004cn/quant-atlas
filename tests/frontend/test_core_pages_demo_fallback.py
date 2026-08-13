@@ -27,6 +27,12 @@ def test_demo_catalog_exports_core_lists() -> None:
         "DEMO_OBSERVATIONS",
         "DEMO_ALERTS",
         "DEMO_ZEN",
+        "DEMO_SELECTION_RESULT",
+        "DEMO_PORTFOLIO_DETAIL",
+        "DEMO_LISTINGS",
+        "DEMO_MANAGED_STOCKS",
+        "DEMO_HEDGE_FUND",
+        "DEMO_COMMITTEE_SELECTION",
     ):
         assert token in text, token
     assert "600519" in text
@@ -51,6 +57,12 @@ def test_core_pages_use_demo_fallback() -> None:
         "SignalObservations.tsx",
         "AlertCenter.tsx",
         "ZenDashboard.tsx",
+        "SelectionResult.tsx",
+        "PortfolioDetail.tsx",
+        "Marketplace.tsx",
+        "StocksManage.tsx",
+        "AIHedgeFund.tsx",
+        "AICommitteeSelection.tsx",
     )
     for name in pages:
         text = (FE / "pages" / name).read_text(encoding="utf-8")

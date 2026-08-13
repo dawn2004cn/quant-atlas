@@ -1,4 +1,5 @@
 import type { AlphaFactorItem } from "../types/alpha";
+import type { MarketplaceListing } from "../types/backtest";
 import type { HotSector, HotSectorMember } from "../types/hotSector";
 import type { PanoramaStockRow } from "../types/market";
 import type { MlflowRun } from "../types/mlflow";
@@ -393,4 +394,92 @@ export const DEMO_ZEN = {
     { symbol: "000333", side: "buy", quantity: 200, price: 71.6, time: "2026-08-11 13:08" },
     { symbol: "000858", side: "sell", quantity: 100, price: 130.2, time: "2026-08-12 14:41" },
   ],
+};
+
+export const DEMO_SELECTION_RESULT = {
+  task_id: "demo-select",
+  status: "completed",
+  created_at: "2026-08-12T09:00:00Z",
+  completed_at: "2026-08-12T09:01:20Z",
+  strategy_name: "演示多因子",
+  total_candidates: 4,
+  candidates: [
+    { symbol: "600519", name: "贵州茅台", score: 88.2, rank: 1, reason: "景气与资金共振", expected_return_pct: 6.4, risk_level: "中", indicators: { pe: 28.4, mom: 1.24 } },
+    { symbol: "300750", name: "宁德时代", score: 84.1, rank: 2, reason: "景气回暖", expected_return_pct: 8.1, risk_level: "中", indicators: { pe: 22.1, mom: 2.15 } },
+    { symbol: "601318", name: "中国平安", score: 81.0, rank: 3, reason: "估值修复", expected_return_pct: 4.2, risk_level: "低", indicators: { pe: 8.6, mom: 0.85 } },
+    { symbol: "000333", name: "美的集团", score: 79.4, rank: 4, reason: "份额稳固", expected_return_pct: 3.1, risk_level: "低", indicators: { pe: 14.2, mom: 0.31 } },
+  ],
+};
+
+export const DEMO_PORTFOLIO_DETAIL = {
+  id: "demo",
+  name: "演示组合",
+  description: "空行情时的样本持仓",
+  created_at: "2026-08-01T00:00:00Z",
+  total_value: 120500,
+  cash: 42000,
+  positions: DEMO_PORTFOLIO_POSITIONS,
+  metrics: { sharpe: 1.21, volatility: 12.4, max_drawdown: -8.6, alpha: 1.3 },
+};
+
+export const DEMO_LISTINGS: MarketplaceListing[] = [
+  { listing_id: "demo-l1", token_id: "mom_20", seller_id: 1, reputation_cost: 12, price_tokens: 12, signal_count: 48 },
+  { listing_id: "demo-l2", token_id: "rev_5", seller_id: 2, reputation_cost: 8, price_tokens: 8, signal_count: 32 },
+  { listing_id: "demo-l3", token_id: "vol_shrink", seller_id: 3, reputation_cost: 15, price_tokens: 15, signal_count: 21 },
+];
+
+export const DEMO_MANAGED_STOCKS = DEMO_STOCKS.map((s) => ({
+  code: s.symbol,
+  name: s.name,
+  market: "CN",
+  status: "active",
+}));
+
+export const DEMO_HEDGE_FUND = {
+  nav: { current: 1.0418, daily_change_pct: 0.62, inception_return_pct: 4.18 },
+  returns: { daily: 0.62, weekly: 1.14, monthly: 2.41, yearly: 8.6 },
+  positions: [
+    { symbol: "600519", market: "CN", weight_pct: 28, pnl_pct: 4.2, direction: "long" as const },
+    { symbol: "601318", market: "CN", weight_pct: 16, pnl_pct: 1.1, direction: "long" as const },
+    { symbol: "000333", market: "CN", weight_pct: 12, pnl_pct: 0.6, direction: "long" as const },
+  ],
+  metrics: { sharpe: 1.21, max_drawdown_pct: -8.6, win_rate: 0.58, total_trades: 24 },
+  updated_at: "演示",
+};
+
+export const DEMO_COMMITTEE_SELECTION = {
+  selected_stocks: [
+    {
+      symbol: "600519",
+      market: "CN",
+      confidence: 0.86,
+      votes_for: 4,
+      votes_against: 1,
+      total_votes: 5,
+      consensus: 0.8,
+      summary: "基本面与动量共振，委员会多数赞成。",
+      vote_breakdown: [
+        { member: "基本面", approve: true, rationale: "估值仍可接受" },
+        { member: "动量", approve: true, rationale: "趋势未破" },
+        { member: "风控", approve: false, rationale: "持仓已偏白酒" },
+      ],
+    },
+    {
+      symbol: "300750",
+      market: "CN",
+      confidence: 0.78,
+      votes_for: 3,
+      votes_against: 1,
+      total_votes: 4,
+      consensus: 0.75,
+      summary: "景气回暖，共识过线。",
+      vote_breakdown: [
+        { member: "行业", approve: true, rationale: "出货改善" },
+        { member: "估值", approve: true, rationale: "分位不高" },
+      ],
+    },
+  ],
+  total_candidates: 12,
+  threshold: 0.6,
+  updated_at: "演示",
 };

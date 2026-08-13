@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_MANAGED_STOCKS } from "../lib/demoCatalog";
 
 type Stock = {
   code: string;
@@ -58,12 +61,16 @@ export default function StocksManagePage() {
     }
   };
 
+  const isDemo = Boolean(error) || (!loading && !stocks.length);
+  const rows = isDemo ? DEMO_MANAGED_STOCKS : stocks;
+
   return (
     <div className="space-y-5">
       <PageQuickNav items={QUICK_NAV_PRESETS.stocksManage} />
       <div>
         <h1 className="page-title">股票管理</h1>
         <p className="text-sm text-slate-500 mt-1">管理员 - 股票池维护</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {error && <div className="alert alert-error text-sm">{error}<button type="button" className="btn btn-sm ml-2" onClick={() => setError(null)}>关闭</button></div>}
@@ -100,16 +107,20 @@ export default function StocksManagePage() {
                 <tr><th>代码</th><th>名称</th><th>市场</th><th>状态</th><th></th></tr>
               </thead>
               <tbody>
-                {stocks.map((s, i) => (
+                {rows.map((s, i) => (
                   <tr key={s.code ?? i}>
-                    <td><code>{s.code}</code></td>
+                    <td>
+                      <Link className="link font-mono text-sm" to={`/stock/${encodeURIComponent(s.code)}?m=CN`}>
+                        {s.code}
+                      </Link>
+                    </td>
                     <td className="font-semibold">{s.name}</td>
                     <td><span className="badge badge-ghost">{s.market}</span></td>
                     <td><span className={`badge ${s.status === "active" ? "badge-success" : "badge-ghost"}`}>{s.status === "active" ? "启用" : "停用"}</span></td>
                     <td><button type="button" className="btn btn-ghost btn-xs" onClick={() => toggleStatus(s)}>{s.status === "active" ? "停用" : "启用"}</button></td>
                   </tr>
                 ))}
-                {stocks.length === 0 && <tr><td colSpan={5} className="text-center py-8 text-slate-500">暂无股票</td></tr>}
+                {rows.length === 0 && <tr><td colSpan={5} className="text-center py-8 text-slate-500">暂无股票</td></tr>}
               </tbody>
             </table>
           </div>

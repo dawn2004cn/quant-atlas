@@ -1,7 +1,8 @@
 import { FormEvent, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { GovernanceProposalModal } from "../components/governance/GovernanceProposalModal";
 import { MlflowRunModal } from "../components/mlflow/MlflowRunModal";
 import { MarketplaceHeader } from "../components/marketplace/MarketplaceHeader";
@@ -27,13 +28,14 @@ import {
   submitGovernanceProposal,
 } from "../lib/api";
 import type { MiningFactor } from "../lib/api";
-import type { } from "../types/backtest";
+import { DEMO_LISTINGS } from "../lib/demoCatalog";
 import type { MlflowRun } from "../types/mlflow";
 
 export type MpTab = "browse" | "orders" | "list" | "wallet" | "runs" | "governance";
 
 export function MarketplacePage() {
   const [searchParams] = useSearchParams();
+  const { hash } = useLocation();
   const [tab, setTab] = useState<MpTab>("browse");
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -53,10 +55,10 @@ export function MarketplacePage() {
   const [detailRunId, setDetailRunId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (window.location.hash === "#governance") {
+    if (hash === "#governance") {
       setTab("governance");
     }
-    if (window.location.hash === "#runs") {
+    if (hash === "#runs") {
       setTab("runs");
     }
     const proposalId = searchParams.get("proposal_id");
@@ -85,13 +87,13 @@ export function MarketplacePage() {
       if (sharpe) setGovSharpe(Number(sharpe));
       if (mlflowRunId) setGovMlflowRunId(mlflowRunId);
     }
-  }, [searchParams]);
+  }, [searchParams, hash]);
 
   const { data: balance, mutate: refreshBalance } = useSWR(
     "reputation-balance",
     fetchReputationBalance,
   );
-  const { data: listings = [], mutate: refreshListings } = useSWR(
+  const { data: liveListings, error: listingsError, isLoading: listingsLoading, mutate: refreshListings } = useSWR(
     "mp-listings",
     () => fetchMarketplaceListings(true),
   );
@@ -285,11 +287,16 @@ export function MarketplacePage() {
     }
   }
 
+  const liveListingsRows = liveListings ?? [];
+  const isDemo = Boolean(listingsError) || (!listingsLoading && !liveListingsRows.length);
+  const listings = isDemo ? DEMO_LISTINGS : liveListingsRows;
+
   const score = balance?.reputation_score ?? 0;
 
   return (
     <div className="space-y-5">
       <PageQuickNav items={QUICK_NAV_PRESETS.marketplace} />
+      <DemoBanner show={isDemo} />
       <MarketplaceHeader
         score={score}
         orderCount={orders.length}

@@ -1,7 +1,10 @@
+import { Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_COMMITTEE_SELECTION } from "../lib/demoCatalog";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
@@ -40,8 +43,9 @@ export function AICommitteeSelectionPage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={3} />;
-  if (error) return <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">加载失败：{error.message}</div>;
-  if (!data) return <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-400">暂无选股数据</div>;
+
+  const isDemo = Boolean(error) || !data || !(data.selected_stocks ?? []).length;
+  const view = isDemo ? DEMO_COMMITTEE_SELECTION : data;
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
@@ -49,37 +53,40 @@ export function AICommitteeSelectionPage() {
       <div>
         <h1 className="text-2xl font-bold">AI 委员会选股</h1>
         <p className="text-sm text-zinc-500">
-          基于委员会投票共识的精选标的，共识阈值：{(data.threshold * 100).toFixed(0)}%
+          基于委员会投票共识的精选标的，共识阈值：{(view.threshold * 100).toFixed(0)}%
         </p>
-        {data.updated_at && (
+        <DemoBanner show={isDemo} />
+        {view.updated_at && (
           <p className="mt-1 text-xs text-zinc-400">
-            更新于：{new Date(data.updated_at).toLocaleString("zh-CN")}
+            更新于：{view.updated_at === "演示" ? "演示" : new Date(view.updated_at).toLocaleString("zh-CN")}
           </p>
         )}
       </div>
 
       <Panel className="p-3 text-sm">
         <span className="font-semibold">候选总数：</span>
-        <span>{data.total_candidates}</span>
+        <span>{view.total_candidates}</span>
         <span className="ml-4 font-semibold">选中：</span>
-        <span>{data.selected_stocks.length}</span>
+        <span>{view.selected_stocks.length}</span>
       </Panel>
 
-      {data.selected_stocks.length === 0 ? (
+      {view.selected_stocks.length === 0 ? (
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-400">当前无满足共识阈值的选股结果</div>
       ) : (
-        data.selected_stocks.map((stock) => (
+        view.selected_stocks.map((stock) => (
           <Panel key={stock.symbol} className="space-y-3 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h2 className="text-lg font-bold">
-                  {stock.symbol}
+                  <Link className="link" to={`/stock/${encodeURIComponent(stock.symbol)}?m=CN`}>
+                    {stock.symbol}
+                  </Link>
                   <span className="ml-2 text-xs font-normal text-zinc-500">{stock.market}</span>
                 </h2>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-zinc-500">共识</span>
-                <span className={`text-lg font-bold ${stock.consensus >= data.threshold ? "text-emerald-400" : "text-amber-400"}`}>
+                <span className={`text-lg font-bold ${stock.consensus >= view.threshold ? "text-emerald-400" : "text-amber-400"}`}>
                   {(stock.consensus * 100).toFixed(0)}%
                 </span>
               </div>
