@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_QUANT_LAB } from "../lib/demoCatalog";
 import {
   ResponsiveContainer,
   XAxis,
@@ -38,7 +40,8 @@ export default function QuantLab() {
   const [formula, setFormula] = useState("Mean($close, 5) / $close");
   const [symbol, setSymbol] = useState("600519");
   const [running, setRunning] = useState(false);
-  const [result, setResult] = useState<SimResult | null>(null);
+  const [result, setResult] = useState<SimResult | null>(DEMO_QUANT_LAB);
+  const [isDemo, setIsDemo] = useState(true);
   const [error, setError] = useState("");
   const editorRef = useRef<HTMLTextAreaElement>(null);
 
@@ -60,15 +63,17 @@ export default function QuantLab() {
     if (!formula.trim()) return;
     setRunning(true);
     setError("");
-    setResult(null);
     try {
       const data = await apiFetchV1<SimResult>(
         `/alpha-factory/simulate?formula=${encodeURIComponent(formula)}&symbol=${encodeURIComponent(symbol)}`
       );
       if (!data.series || !data.stats) throw new Error("模拟结果格式异常");
       setResult(data);
+      setIsDemo(Boolean(data.meta?.demo));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "模拟失败");
+      setResult({ ...DEMO_QUANT_LAB, symbol });
+      setIsDemo(true);
     } finally {
       setRunning(false);
     }
@@ -87,6 +92,7 @@ export default function QuantLab() {
         <p className="text-[var(--quant-muted)] text-sm mt-1">
           手动编写 Qlib 表达式并实时模拟因子走势
         </p>
+        <DemoBanner show={isDemo} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">

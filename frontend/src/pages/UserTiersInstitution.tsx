@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_TIER_INSTITUTION } from "../lib/demoCatalog";
 
 type InstitutionTier = {
   tier?: string;
@@ -18,16 +20,22 @@ type InstitutionTier = {
 export default function UserTiersInstitution() {
   const [tier, setTier] = useState<InstitutionTier | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [isDemo, setIsDemo] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError("");
     try {
       const data = await apiFetchV1<InstitutionTier>("/user/tiers/institution");
-      setTier(data);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "加载失败");
+      if (!data || (!data.tier && !(data.benefits ?? []).length)) {
+        setTier(DEMO_TIER_INSTITUTION);
+        setIsDemo(true);
+      } else {
+        setTier(data);
+        setIsDemo(false);
+      }
+    } catch {
+      setTier(DEMO_TIER_INSTITUTION);
+      setIsDemo(true);
     } finally {
       setLoading(false);
     }
@@ -37,7 +45,7 @@ export default function UserTiersInstitution() {
     load();
   }, [load]);
 
-  if (loading) {
+  if (loading && !tier) {
     return (
       <div className="space-y-6">
         <div>
@@ -58,28 +66,8 @@ export default function UserTiersInstitution() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="page-title">机构版</h1>
-          <p className="text-[var(--quant-muted)] text-sm mt-1">机构级功能与权益概览</p>
-        </div>
-        <div className="quant-card border-[var(--quant-danger)]/30 bg-[var(--quant-danger)]/5 text-sm text-[var(--quant-danger)]">
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  const benefits = tier?.benefits ?? [
-    "无限制 API 调用（每日上限更高）",
-    "专属技术支持通道（SLA 保障）",
-    "自定义工作流与策略部署",
-    "独立数据湖实例与隔离存储",
-    "Alpha 因子库优先访问权",
-    "专属量化研究员咨询额度",
-  ];
+  const view = tier ?? DEMO_TIER_INSTITUTION;
+  const benefits = view.benefits ?? DEMO_TIER_INSTITUTION.benefits;
 
   return (
     <div className="space-y-6">
@@ -87,53 +75,54 @@ export default function UserTiersInstitution() {
       <div>
         <h1 className="page-title">机构版</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">机构级功能与权益概览</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       <div className="quant-card">
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold">{tier?.name ?? "Institution"}</span>
-              <span className={`badge-soft ${tier?.active ? "bg-[var(--quant-accent)]/10 text-[var(--quant-accent)]" : "bg-[var(--quant-muted)]/10 text-[var(--quant-muted)]"}`}>
-                {tier?.active ? "激活" : "未激活"}
+              <span className="text-2xl font-bold">{view.name ?? "Institution"}</span>
+              <span className={`badge-soft ${view.active ? "bg-[var(--quant-accent)]/10 text-[var(--quant-accent)]" : "bg-[var(--quant-muted)]/10 text-[var(--quant-muted)]"}`}>
+                {view.active ? "激活" : "未激活"}
               </span>
             </div>
-            <div className="text-xs text-[var(--quant-muted)] mt-1">当前方案: {tier?.tier ?? "institution"}</div>
+            <div className="text-xs text-[var(--quant-muted)] mt-1">当前方案: {view.tier ?? "institution"}</div>
           </div>
-          {tier?.monthly_fee && (
+          {view.monthly_fee != null && (
             <div className="text-right">
-              <div className="text-2xl font-bold mono text-[var(--quant-accent)]">¥{tier.monthly_fee.toLocaleString()}</div>
+              <div className="text-2xl font-bold mono text-[var(--quant-accent)]">¥{view.monthly_fee.toLocaleString()}</div>
               <div className="text-xs text-[var(--quant-muted)]">/ 月</div>
             </div>
           )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className={`p-3 rounded-xl ${tier?.api_access ? "bg-[var(--quant-accent)]/10 border border-[var(--quant-accent)]/20" : "bg-[var(--quant-surface)] border border-[var(--quant-surface-border)]"}`}>
+          <div className={`p-3 rounded-xl ${view.api_access ? "bg-[var(--quant-accent)]/10 border border-[var(--quant-accent)]/20" : "bg-[var(--quant-surface)] border border-[var(--quant-surface-border)]"}`}>
             <div className="flex items-center gap-2 mb-1">
-              <span className={tier?.api_access ? "text-[var(--quant-accent)]" : "text-[var(--quant-muted)]"}>●</span>
+              <span className={view.api_access ? "text-[var(--quant-accent)]" : "text-[var(--quant-muted)]"}>●</span>
               <span className="font-medium">API 访问</span>
             </div>
             <div className="text-xs text-[var(--quant-muted)]">
-              {tier?.api_access ? `每日 {tier.api_limits?.daily?.toLocaleString() ?? "无限"} 次，并发 {tier.api_limits?.concurrent ?? "无限"}` : "基础版限额"}
+              {view.api_access ? `每日 ${view.api_limits?.daily?.toLocaleString() ?? "无限"} 次，并发 ${view.api_limits?.concurrent ?? "无限"}` : "基础版限额"}
             </div>
           </div>
-          <div className={`p-3 rounded-xl ${tier?.dedicated_support ? "bg-[var(--quant-accent)]/10 border border-[var(--quant-accent)]/20" : "bg-[var(--quant-surface)] border border-[var(--quant-surface-border)]"}`}>
+          <div className={`p-3 rounded-xl ${view.dedicated_support ? "bg-[var(--quant-accent)]/10 border border-[var(--quant-accent)]/20" : "bg-[var(--quant-surface)] border border-[var(--quant-surface-border)]"}`}>
             <div className="flex items-center gap-2 mb-1">
-              <span className={tier?.dedicated_support ? "text-[var(--quant-accent)]" : "text-[var(--quant-muted)]"}>●</span>
+              <span className={view.dedicated_support ? "text-[var(--quant-accent)]" : "text-[var(--quant-muted)]"}>●</span>
               <span className="font-medium">专属支持</span>
             </div>
             <div className="text-xs text-[var(--quant-muted)]">
-              {tier?.dedicated_support ? "SLA 响应 < 4h" : "工单支持（24h）"}
+              {view.dedicated_support ? "SLA 响应 < 4h" : "工单支持（24h）"}
             </div>
           </div>
-          <div className={`p-3 rounded-xl ${tier?.custom_workflows ? "bg-[var(--quant-accent)]/10 border border-[var(--quant-accent)]/20" : "bg-[var(--quant-surface)] border border-[var(--quant-surface-border)]"}`}>
+          <div className={`p-3 rounded-xl ${view.custom_workflows ? "bg-[var(--quant-accent)]/10 border border-[var(--quant-accent)]/20" : "bg-[var(--quant-surface)] border border-[var(--quant-surface-border)]"}`}>
             <div className="flex items-center gap-2 mb-1">
-              <span className={tier?.custom_workflows ? "text-[var(--quant-accent)]" : "text-[var(--quant-muted)]"}>●</span>
+              <span className={view.custom_workflows ? "text-[var(--quant-accent)]" : "text-[var(--quant-muted)]"}>●</span>
               <span className="font-medium">自定义工作流</span>
             </div>
             <div className="text-xs text-[var(--quant-muted)]">
-              {tier?.custom_workflows ? "完全自定义部署" : "预设模板"}
+              {view.custom_workflows ? "完全自定义部署" : "预设模板"}
             </div>
           </div>
         </div>
@@ -150,10 +139,10 @@ export default function UserTiersInstitution() {
           </ul>
         </div>
 
-        {tier?.upgrade_path && (
+        {view.upgrade_path && (
           <div className="border-t border-[var(--quant-surface-border)] pt-4 mt-4">
             <div className="text-sm font-bold mb-2 text-[var(--quant-accent)]">升级路径</div>
-            <div className="text-sm text-[var(--quant-muted)]">{tier.upgrade_path}</div>
+            <div className="text-sm text-[var(--quant-muted)]">{view.upgrade_path}</div>
           </div>
         )}
       </div>

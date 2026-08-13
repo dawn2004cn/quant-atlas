@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_USER_MANAGEMENT } from "../lib/demoCatalog";
 
 type UserItem = {
   username?: string;
@@ -18,6 +20,8 @@ export default function UserManagement() {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ username: "", password: "", role: "viewer" });
 
+  const [isDemo, setIsDemo] = useState(false);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -25,9 +29,22 @@ export default function UserManagement() {
         apiFetchV1<{ items?: UserItem[] }>("/users"),
         apiFetchV1<{ items?: RoleItem[] }>("/roles"),
       ]);
-      setUsers(u.items ?? []);
-      setRoles(r.items ?? []);
-    } catch { /* keep state */ }
+      const liveUsers = u.items ?? [];
+      const liveRoles = r.items ?? [];
+      if (!liveUsers.length) {
+        setUsers(DEMO_USER_MANAGEMENT.users);
+        setRoles(DEMO_USER_MANAGEMENT.roles);
+        setIsDemo(true);
+      } else {
+        setUsers(liveUsers);
+        setRoles(liveRoles.length ? liveRoles : DEMO_USER_MANAGEMENT.roles);
+        setIsDemo(false);
+      }
+    } catch {
+      setUsers(DEMO_USER_MANAGEMENT.users);
+      setRoles(DEMO_USER_MANAGEMENT.roles);
+      setIsDemo(true);
+    }
     setLoading(false);
   }, []);
 
@@ -82,6 +99,7 @@ export default function UserManagement() {
         <div className="text-xs text-[var(--quant-accent)] font-medium mb-1">User Management</div>
         <h1 className="page-title">用户管理</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">创建和管理系统用户</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Create Form */}

@@ -1128,3 +1128,126 @@ export const DEMO_PROFESSIONAL_WORKBENCH = {
     ],
   },
 };
+
+export const DEMO_USER_MANAGEMENT = {
+  users: [
+    { username: "demo_admin", role: "admin", role_name: "管理员", protected: true },
+    { username: "demo_analyst", role: "analyst", role_name: "分析师", protected: false },
+    { username: "demo_viewer", role: "viewer", role_name: "只读", protected: false },
+  ],
+  roles: [
+    { code: "admin", label: "管理员" },
+    { code: "analyst", label: "分析师" },
+    { code: "viewer", label: "只读" },
+  ],
+};
+
+export const DEMO_USER_SPECTRUM = {
+  stats: { total_users: 128, active_traders: 46, researchers: 22 },
+  tiers: [
+    { name: "Boutique", count: 48 },
+    { name: "Investment", count: 36 },
+    { name: "Fund", count: 28 },
+    { name: "Institution", count: 16 },
+  ],
+  recent: [
+    { username: "alice", action: "research: 提交实验", time: "10 分钟前" },
+    { username: "bob", action: "trade: 调整仓位", time: "25 分钟前" },
+    { username: "carol", action: "social: 发布动态", time: "1 小时前" },
+  ],
+};
+
+export const DEMO_TIER_BOUTIQUE = {
+  tier: "Boutique",
+  is_active: true,
+  benefits: ["演示：精选策略模板", "演示：早盘语音简报", "演示：自选股预警"],
+};
+
+export const DEMO_TIER_FUND = {
+  tier: "Fund",
+  is_active: true,
+  benefits: ["演示：组合归因", "演示：多账户影子盘", "演示：专属研究员额度"],
+};
+
+export const DEMO_TIER_INVESTMENT = {
+  tier: "Investment",
+  is_active: true,
+  benefits: ["演示：回测加速", "演示：因子库高级筛选", "演示：委员会投票"],
+};
+
+export const DEMO_TIER_INSTITUTION = {
+  tier: "institution",
+  name: "Institution",
+  active: true,
+  benefits: [
+    "演示：更高 API 限额",
+    "演示：专属支持通道",
+    "演示：自定义工作流",
+  ],
+  api_access: true,
+  dedicated_support: true,
+  custom_workflows: true,
+  upgrade_path: "演示：联系客户成功经理开通私有化",
+  monthly_fee: 19999,
+  api_limits: { daily: 100000, concurrent: 50 },
+};
+
+export const DEMO_SHADOW_ACCOUNT = {
+  total_trades: 86,
+  win_rate: 0.58,
+  total_return: 0.124,
+  summary: "演示分析：样本成交记录偏动量风格，回撤可控。",
+};
+
+export const DEMO_PROFILE = {
+  prefs: { font_size: "md" },
+  policy: {
+    tier_label: "Investment",
+    features: [
+      { name: "回测", enabled: true },
+      { name: "Alpha Marketplace", enabled: true },
+      { name: "机构 API", enabled: false },
+    ],
+  },
+  audit: [
+    { action: "login", target_id: "session", created_at: "2026-08-13 09:00" },
+    { action: "update_prefs", target_id: "font_size", created_at: "2026-08-12 18:20" },
+  ],
+  notifs: {
+    site_message: true,
+    price_alerts: true,
+    risk_alerts: true,
+    psychology_alerts: false,
+    weekly_review: true,
+    wechat: false,
+    sms: false,
+  },
+  invest: { risk_level: "balanced", horizon: "中期" },
+};
+
+export const DEMO_TASK_DETAIL = {
+  id: "task-demo-1",
+  name: "演示任务 · OHLCV 同步",
+  description: "接口空时展示的演示任务详情。",
+  status: "completed" as const,
+  progress: 100,
+  created_at: "2026-08-13 13:50",
+  updated_at: "2026-08-13 14:00",
+  type: "timeseries",
+  result: { rows_written: 1280, mode: "demo" },
+  logs: ["开始同步", "写入 QuestDB", "完成"],
+  source: "registry" as const,
+};
+
+export const DEMO_QUANT_LAB = {
+  symbol: "600519",
+  series: [
+    { date: "2025-01", value: 1.0 },
+    { date: "2025-03", value: 1.02 },
+    { date: "2025-06", value: 0.98 },
+    { date: "2025-09", value: 1.05 },
+    { date: "2025-12", value: 1.08 },
+  ],
+  stats: { mean: 0.012, std: 0.04 },
+  meta: { demo: true, disclaimer: "演示曲线，非实盘模拟" },
+};

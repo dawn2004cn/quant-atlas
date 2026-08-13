@@ -64,6 +64,16 @@ def test_demo_catalog_exports_core_lists() -> None:
         "DEMO_DECISION_SNAPSHOT",
         "DEMO_DATA_LAKE",
         "DEMO_PROFESSIONAL_WORKBENCH",
+        "DEMO_USER_MANAGEMENT",
+        "DEMO_USER_SPECTRUM",
+        "DEMO_TIER_BOUTIQUE",
+        "DEMO_TIER_FUND",
+        "DEMO_TIER_INVESTMENT",
+        "DEMO_TIER_INSTITUTION",
+        "DEMO_SHADOW_ACCOUNT",
+        "DEMO_PROFILE",
+        "DEMO_TASK_DETAIL",
+        "DEMO_QUANT_LAB",
     ):
         assert token in text, token
     assert "600519" in text
@@ -125,6 +135,16 @@ def test_core_pages_use_demo_fallback() -> None:
         "DecisionSnapshot.tsx",
         "DataLakeHealth.tsx",
         "ProfessionalWorkbench.tsx",
+        "UserManagement.tsx",
+        "UserSpectrumHub.tsx",
+        "UserTiersBoutique.tsx",
+        "UserTiersFund.tsx",
+        "UserTiersInvestment.tsx",
+        "UserTiersInstitution.tsx",
+        "ShadowAccount.tsx",
+        "Profile.tsx",
+        "TaskDetail.tsx",
+        "QuantLab.tsx",
     )
     for name in pages:
         text = (FE / "pages" / name).read_text(encoding="utf-8")
