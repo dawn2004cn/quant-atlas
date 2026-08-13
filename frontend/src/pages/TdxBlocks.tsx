@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_TDX_BLOCKS, DEMO_TDX_MEMBERS } from "../lib/demoCatalog";
 
 type TdxBlock = {
   block_code: string;
@@ -47,8 +50,17 @@ export function TdxBlocksPage() {
     () => apiFetchV1<{ data: { items: TdxBlockMember[] } }>(`/tdx/blocks/${encodeURIComponent(activeBlock!.code)}/members?limit=60`),
   );
 
-  const blocks = blocksData?.data?.items ?? [];
-  const members = membersData?.data?.items ?? [];
+  const liveBlocks = blocksData?.data?.items ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !liveBlocks.length);
+  const blocks = isDemo ? DEMO_TDX_BLOCKS : liveBlocks;
+  const liveMembers = membersData?.data?.items ?? [];
+  const members = (!membersLoading && activeBlock && !liveMembers.length) ? DEMO_TDX_MEMBERS : liveMembers;
+
+  useEffect(() => {
+    if (!activeBlock && blocks.length) {
+      setActiveBlock({ code: blocks[0].block_code, name: blocks[0].block_name });
+    }
+  }, [blocks, activeBlock]);
 
   return (
     <div className="space-y-5">
@@ -57,6 +69,7 @@ export function TdxBlocksPage() {
         <div>
           <h1 className="text-2xl font-bold">通达信板块</h1>
           <p className="text-sm text-slate-500">通达信概念/行业/地区板块监控</p>
+          <DemoBanner show={isDemo} />
         </div>
         <select className="select select-bordered select-sm" value={blockType} onChange={(e) => setBlockType(e.target.value)}>
           <option value="concept">概念板块</option>
@@ -115,7 +128,11 @@ export function TdxBlocksPage() {
                   <tbody>
                     {members.map((m: TdxBlockMember) => (
                       <tr key={m.symbol}>
-                        <td><code>{m.symbol}</code></td>
+                        <td>
+                          <Link className="font-mono text-sm link" to={`/stock/${encodeURIComponent(m.symbol)}?m=CN`}>
+                            {m.symbol}
+                          </Link>
+                        </td>
                         <td className="font-medium">{m.name ?? "--"}</td>
                         <td>{m.price != null ? `¥${m.price.toFixed(2)}` : "--"}</td>
                         <td className={pctClass(m.change_pct)}>{fmtPct(m.change_pct)}</td>

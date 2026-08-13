@@ -2,8 +2,10 @@ import { useState } from "react";
 import useSWR from "swr";
 import { useNavigate } from "react-router-dom";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { fetchLonghuPage } from "../lib/api";
+import { DEMO_LONGHU } from "../lib/demoCatalog";
 
 type LonghuItem = {
   code?: string;
@@ -26,11 +28,13 @@ export function LonghuBangPage() {
     { refreshInterval: 120_000, revalidateOnFocus: false },
   );
 
-  const items = data?.items ?? [];
-  const total = data?.total ?? 0;
+  const liveItems = data?.items ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !liveItems.length);
+  const items = isDemo ? DEMO_LONGHU : liveItems;
+  const total = isDemo ? items.length : (data?.total ?? 0);
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
-  if (isLoading && !items.length) return <PageSkeleton rows={5} />;
+  if (isLoading && !liveItems.length) return <PageSkeleton rows={5} />;
 
   return (
     <div className="space-y-5">
@@ -38,6 +42,7 @@ export function LonghuBangPage() {
       <div>
         <h1 className="text-2xl font-bold">龙虎榜</h1>
         <p className="text-sm text-slate-500">机构席位大额交易披露，追踪主力资金动向</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       <div className="glass-card flex flex-wrap items-center gap-3 p-4">

@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_GLOBAL_RADAR } from "../lib/demoCatalog";
 
 type GlobalRadarData = {
   total_assets: number;
@@ -59,7 +61,9 @@ export function GlobalRadarPage() {
 
   if (isLoading && !data) return <PageSkeleton rows={4} />;
 
-  const radar = data?.data;
+  const live = data?.data;
+  const isDemo = Boolean(error) || !live?.markets?.length;
+  const radar = isDemo ? DEMO_GLOBAL_RADAR : live;
 
   return (
     <div className="space-y-5">
@@ -69,6 +73,7 @@ export function GlobalRadarPage() {
         <div>
           <h1 className="text-2xl font-bold">全球资产透视塔</h1>
           <p className="text-sm text-slate-500">一站式监控 A股 / 港股 / 美股 / 加密货币</p>
+          <DemoBanner show={isDemo} />
         </div>
       </div>
 
