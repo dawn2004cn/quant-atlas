@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_AGENTS } from "../lib/demoCatalog";
 
 /* ── Types ── */
 type AgentStatus = "idle" | "running" | "error" | "completed";
@@ -74,7 +76,9 @@ export function AgentCenterPage() {
     { refreshInterval: 30_000 },
   );
 
-  const agents = data?.items ?? [];
+  const live = data?.items ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !live.length);
+  const agents = isDemo ? DEMO_AGENTS : live;
 
   const types = [...new Set(agents.map((a: Agent) => a.type))];
 
@@ -95,6 +99,7 @@ export function AgentCenterPage() {
         <p className="text-sm text-slate-500">
           多智能体策略研究与执行管理
         </p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Filter Bar */}

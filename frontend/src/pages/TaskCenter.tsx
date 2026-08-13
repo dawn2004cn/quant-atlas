@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { AsyncProgressBar, PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1, fetchCeleryTaskStatus } from "../lib/api";
+import { DEMO_TASKS } from "../lib/demoCatalog";
 
 type TaskItem = {
   id: string;
@@ -62,10 +64,13 @@ export function TaskCenterPage() {
     { refreshInterval: 2000, revalidateOnFocus: false },
   );
 
+  const liveTasks = data?.tasks ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !liveTasks.length);
+  const sourceTasks = isDemo ? DEMO_TASKS : liveTasks;
+
   const tasks = useMemo(() => {
-    const rows = data?.tasks ?? [];
-    return rows.filter((t) => filter === "all" || t.status === filter);
-  }, [data?.tasks, filter]);
+    return sourceTasks.filter((t) => filter === "all" || t.status === filter);
+  }, [sourceTasks, filter]);
 
   const focusedInList = useMemo(
     () => tasks.find((t) => normalizeId(t.id) === normalizeId(focusTaskId)),
@@ -79,8 +84,6 @@ export function TaskCenterPage() {
   }, [focusedInList?.id, focusTaskId]);
 
   if (isLoading && !data) return <PageSkeleton rows={4} showProgress />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无任务数据</div>;
 
   return (
     <div className="space-y-5">
@@ -89,6 +92,7 @@ export function TaskCenterPage() {
         <div>
           <h1 className="text-2xl font-bold">任务中心</h1>
           <p className="text-sm text-slate-500">异步任务管理与状态追踪</p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void mutate()}>
           刷新

@@ -39,6 +39,14 @@ def test_demo_catalog_exports_core_lists() -> None:
         "DEMO_MESSAGES",
         "DEMO_WAR_ROOM",
         "DEMO_COMMITTEE_DASHBOARD",
+        "DEMO_TASKS",
+        "DEMO_SWARM_DASHBOARD",
+        "DEMO_SWARM_DESIGNER",
+        "DEMO_RESEARCH_PIPELINE",
+        "DEMO_RESEARCH_CANVAS",
+        "DEMO_AGENTS",
+        "DEMO_CAPABILITIES",
+        "DEMO_VOICE_BRIEFING",
     ):
         assert token in text, token
     assert "600519" in text
@@ -76,6 +84,14 @@ def test_core_pages_use_demo_fallback() -> None:
         "MessageCenter.tsx",
         "WarRoom.tsx",
         "AICommitteeDashboard.tsx",
+        "TaskCenter.tsx",
+        "SwarmDashboard.tsx",
+        "SwarmDesigner.tsx",
+        "ResearchPipeline.tsx",
+        "ResearchCanvas.tsx",
+        "AgentCenter.tsx",
+        "Capabilities.tsx",
+        "VoiceBriefing.tsx",
     )
     for name in pages:
         text = (FE / "pages" / name).read_text(encoding="utf-8")

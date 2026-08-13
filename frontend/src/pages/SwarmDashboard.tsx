@@ -1,7 +1,9 @@
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_SWARM_DASHBOARD } from "../lib/demoCatalog";
 
 type AgentMetric = {
   agent_name: string;
@@ -45,10 +47,10 @@ export function SwarmDashboardPage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={5} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无 Swarm 数据</div>;
 
-  const agents = data.agents ?? [];
+  const isDemo = Boolean(error) || !data || !(data.agents ?? []).length;
+  const view = isDemo ? DEMO_SWARM_DASHBOARD : data;
+  const agents = view.agents ?? [];
 
   return (
     <div className="space-y-5">
@@ -57,6 +59,7 @@ export function SwarmDashboardPage() {
         <div>
           <h1 className="text-2xl font-bold">Swarm 仪表盘</h1>
           <p className="text-sm text-slate-500">多智能体集群状态监控</p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void mutate()}>
           刷新
@@ -65,20 +68,20 @@ export function SwarmDashboardPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="glass-card p-4">
-          <div className="text-2xl font-bold text-brand">{data.active_agents}/{data.total_agents}</div>
+          <div className="text-2xl font-bold text-brand">{view.active_agents}/{view.total_agents}</div>
           <div className="text-xs text-slate-500">活跃 Agent</div>
         </div>
         <div className="glass-card p-4">
-          <div className="text-2xl font-bold">{data.tasks_processed}</div>
+          <div className="text-2xl font-bold">{view.tasks_processed}</div>
           <div className="text-xs text-slate-500">处理任务数</div>
         </div>
         <div className="glass-card p-4">
-          <div className="text-2xl font-bold">{data.uptime_hours.toFixed(1)}h</div>
+          <div className="text-2xl font-bold">{view.uptime_hours.toFixed(1)}h</div>
           <div className="text-xs text-slate-500">运行时长</div>
         </div>
         <div className="glass-card p-4">
-          <div className={`text-2xl font-bold ${data.overall_status === "healthy" ? "text-emerald-600" : "text-amber-600"}`}>
-            {data.overall_status === "healthy" ? "健康" : data.overall_status}
+          <div className={`text-2xl font-bold ${view.overall_status === "healthy" ? "text-emerald-600" : "text-amber-600"}`}>
+            {view.overall_status === "healthy" ? "健康" : view.overall_status}
           </div>
           <div className="text-xs text-slate-500">整体状态</div>
         </div>

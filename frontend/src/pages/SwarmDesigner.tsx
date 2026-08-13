@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_SWARM_DESIGNER } from "../lib/demoCatalog";
 
 type AgentNode = {
   id: string;
@@ -33,11 +35,11 @@ export function SwarmDesignerPage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={4} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无 Designer 数据</div>;
 
-  const agents = data.agents ?? [];
-  const workspace = data.workspace;
+  const isDemo = Boolean(error) || !data || !(data.agents ?? []).length;
+  const view = isDemo ? DEMO_SWARM_DESIGNER : data;
+  const agents = view.agents ?? [];
+  const workspace = view.workspace;
 
   return (
     <div className="space-y-5">
@@ -48,6 +50,7 @@ export function SwarmDesignerPage() {
           <p className="text-sm text-slate-500">
             {workspace ? `${workspace.name} — ${workspace.description}` : "智能体集群流程设计器"}
           </p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void mutate()}>
           刷新

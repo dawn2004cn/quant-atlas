@@ -595,3 +595,108 @@ export const DEMO_COMMITTEE_DASHBOARD = {
     { name: "宏观", role: "宏观", score: 74, accuracy: 0.58, total_votes: 31 },
   ],
 };
+
+export const DEMO_TASKS = [
+  {
+    id: "demo-task-1",
+    name: "MA / 600519 回测",
+    description: "演示异步回测任务",
+    status: "completed" as const,
+    progress: 100,
+    created_at: "2026-08-12 10:00",
+    updated_at: "2026-08-12 10:08",
+    type: "backtest",
+  },
+  {
+    id: "demo-task-2",
+    name: "选股扫描",
+    description: "演示多因子选股",
+    status: "running" as const,
+    progress: 62,
+    created_at: "2026-08-13 09:20",
+    updated_at: "2026-08-13 09:31",
+    type: "selection",
+  },
+  {
+    id: "demo-task-3",
+    name: "行情同步",
+    description: "演示数据同步",
+    status: "pending" as const,
+    progress: 0,
+    created_at: "2026-08-13 09:35",
+    updated_at: "2026-08-13 09:35",
+    type: "data",
+  },
+];
+
+export const DEMO_SWARM_DASHBOARD = {
+  overall_status: "healthy",
+  active_agents: 3,
+  total_agents: 4,
+  tasks_processed: 128,
+  uptime_hours: 42.5,
+  agents: [
+    { agent_name: "研究员", status: "running" as const, tasks_completed: 48, tasks_failed: 2, avg_response_time_ms: 1200, last_active: "2026-08-13 09:30", memory_usage_mb: 512, model: "gpt-demo" },
+    { agent_name: "风控官", status: "idle" as const, tasks_completed: 36, tasks_failed: 1, avg_response_time_ms: 800, last_active: "2026-08-13 09:10", memory_usage_mb: 256, model: "gpt-demo" },
+    { agent_name: "交易员", status: "running" as const, tasks_completed: 40, tasks_failed: 0, avg_response_time_ms: 950, last_active: "2026-08-13 09:31", memory_usage_mb: 384, model: "gpt-demo" },
+    { agent_name: "书记员", status: "stopped" as const, tasks_completed: 4, tasks_failed: 0, avg_response_time_ms: 600, last_active: "2026-08-12 18:00", memory_usage_mb: 128, model: "gpt-demo" },
+  ],
+};
+
+export const DEMO_SWARM_DESIGNER = {
+  workspace: { id: "demo-ws", name: "演示工作区", description: "多智能体流程样例" },
+  agents: [
+    { id: "a1", name: "研究员", type: "research", model: "gpt-demo", role: "收集证据", status: "active" as const, connections: ["a2"], config: { tools: ["bars", "news"] } },
+    { id: "a2", name: "风控官", type: "risk", model: "gpt-demo", role: "审查风险", status: "active" as const, connections: ["a3"], config: { max_dd: 0.1 } },
+    { id: "a3", name: "交易员", type: "execution", model: "gpt-demo", role: "生成计划", status: "draft" as const, connections: [], config: {} },
+  ],
+};
+
+export const DEMO_RESEARCH_PIPELINE = {
+  pipeline_id: "demo-pipe",
+  name: "演示研究管线",
+  description: "从取数到报告的样例阶段",
+  status: "running" as const,
+  started_at: "2026-08-13 09:00",
+  updated_at: "2026-08-13 09:31",
+  stages: [
+    { id: "s1", name: "取数", description: "拉取行情与基本面", status: "completed" as const, progress: 100, started_at: "09:00", completed_at: "09:05", output: "bars=240" },
+    { id: "s2", name: "因子", description: "计算演示因子", status: "completed" as const, progress: 100, started_at: "09:05", completed_at: "09:12" },
+    { id: "s3", name: "回测", description: "快速预览回测", status: "running" as const, progress: 55, started_at: "09:12" },
+    { id: "s4", name: "报告", description: "生成研究摘要", status: "pending" as const, progress: 0 },
+  ],
+};
+
+export const DEMO_RESEARCH_CANVAS = [
+  { id: "c1", type: "note" as const, title: "白酒景气", content: "渠道库存健康，批价稳中有升。", tags: ["消费"], created_at: "2026-08-12", updated_at: "2026-08-13" },
+  { id: "c2", type: "chart" as const, title: "600519 净值预览", content: "演示曲线占位", tags: ["回测"], created_at: "2026-08-12", updated_at: "2026-08-12", preview_url: "/app/backtest" },
+  { id: "c3", type: "link" as const, title: "研报 Hub", content: "跳转演示研报列表", tags: ["研报"], created_at: "2026-08-11", updated_at: "2026-08-11", preview_url: "/app/yanbao-hub" },
+];
+
+export const DEMO_AGENTS = [
+  { agent_id: "demo-agent-1", name: "诊股 Agent", description: "个股多维分析", status: "idle" as const, type: "analysis", last_run_at: "2026-08-12T18:00:00Z", last_run_summary: "完成 600519 演示诊股", run_count: 12, success_rate_pct: 92, tags: ["诊股"] },
+  { agent_id: "demo-agent-2", name: "选股 Agent", description: "多因子扫描", status: "running" as const, type: "selection", last_run_at: "2026-08-13T09:20:00Z", last_run_summary: "扫描进行中", run_count: 8, success_rate_pct: 88, tags: ["选股"] },
+  { agent_id: "demo-agent-3", name: "风控 Agent", description: "持仓与回撤检查", status: "completed" as const, type: "risk", last_run_at: "2026-08-13T08:50:00Z", last_run_summary: "无硬阻断", run_count: 20, success_rate_pct: 97, tags: ["风控"] },
+];
+
+export const DEMO_CAPABILITIES = {
+  qlib: true,
+  celery: true,
+  rd_agent: false,
+  websocket: true,
+  capabilities: [
+    { name: "市场行情", enabled: true, description: "K 线与报价", category: "data" },
+    { name: "回测引擎", enabled: true, description: "策略历史回测", category: "strategy" },
+    { name: "Agent Swarm", enabled: true, description: "多智能体编排", category: "ai" },
+    { name: "RD-Agent", enabled: false, description: "可选研究代理", category: "ai" },
+  ],
+};
+
+export const DEMO_VOICE_BRIEFING = {
+  last_generated: "2026-08-13 08:30",
+  schedule: "工作日 08:30",
+  items: [
+    { id: "vb1", title: "早盘要点", summary: "白酒走强，半导体分化；演示语音条目。", duration_seconds: 45, category: "早报", created_at: "2026-08-13 08:30", is_played: false },
+    { id: "vb2", title: "持仓风险", summary: "组合回撤可控，注意拥挤度。", duration_seconds: 32, category: "风控", created_at: "2026-08-12 18:00", is_played: true },
+  ],
+};
