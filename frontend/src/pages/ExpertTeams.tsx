@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_EXPERT_TEAMS } from "../lib/demoCatalog";
 
 /* ── Types ── */
 type ExpertTeam = {
@@ -39,7 +41,9 @@ export function ExpertTeamsPage() {
     { refreshInterval: 120_000 },
   );
 
-  const teams = data?.items ?? [];
+  const live = data?.items ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !live.length);
+  const teams = isDemo ? DEMO_EXPERT_TEAMS : live;
 
   const filtered = searchQuery
     ? teams.filter(
@@ -63,6 +67,7 @@ export function ExpertTeamsPage() {
           <p className="text-sm text-slate-500">
             各领域专家团队协作，覆盖多标的覆盖与策略研究
           </p>
+          <DemoBanner show={isDemo} />
         </div>
         <input
           type="search"

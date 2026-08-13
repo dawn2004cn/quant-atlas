@@ -483,3 +483,115 @@ export const DEMO_COMMITTEE_SELECTION = {
   threshold: 0.6,
   updated_at: "演示",
 };
+
+export const DEMO_INVESTMENT_MANAGERS = [
+  {
+    manager_id: "demo-mgr-1",
+    name: "林衡",
+    title: "权益策略",
+    managed_assets: 3.2e8,
+    total_return_pct: 18.4,
+    annual_return_pct: 12.1,
+    sharpe_ratio: 1.42,
+    max_drawdown_pct: -8.6,
+    strategy_count: 4,
+    win_rate_pct: 58,
+    description: "偏成长与景气轮动。",
+    tags: ["成长", "消费"],
+    strategies: [
+      { strategy_id: "ma", name: "均线趋势", symbol: "600519", return_pct: 12.4, sharpe: 1.42, status: "active" },
+      { strategy_id: "rsi", name: "RSI 回归", symbol: "000333", return_pct: 4.1, sharpe: 0.88, status: "active" },
+    ],
+    recent_performance: [
+      { date: "2026-08-10", return_pct: 0.4 },
+      { date: "2026-08-11", return_pct: -0.1 },
+      { date: "2026-08-12", return_pct: 0.6 },
+    ],
+  },
+  {
+    manager_id: "demo-mgr-2",
+    name: "周宁",
+    title: "价值与红利",
+    managed_assets: 2.1e8,
+    total_return_pct: 9.6,
+    annual_return_pct: 7.2,
+    sharpe_ratio: 1.05,
+    max_drawdown_pct: -5.2,
+    strategy_count: 3,
+    win_rate_pct: 61,
+    description: "银行保险与高股息。",
+    tags: ["价值", "红利"],
+    strategies: [
+      { strategy_id: "div", name: "高股息", symbol: "601318", return_pct: 6.8, sharpe: 1.05, status: "active" },
+    ],
+    recent_performance: [
+      { date: "2026-08-10", return_pct: 0.2 },
+      { date: "2026-08-11", return_pct: 0.1 },
+      { date: "2026-08-12", return_pct: -0.05 },
+    ],
+  },
+];
+
+export const DEMO_EXPERT_TEAMS = [
+  { team_id: "demo-team-1", name: "消费研究组", description: "白酒与家电景气跟踪", member_count: 5, specialty: ["白酒", "家电"], leader_name: "林衡", total_return_pct: 14.2, active_projects: 3, tags: ["基本面"] },
+  { team_id: "demo-team-2", name: "制造研究组", description: "新能源与半导体", member_count: 6, specialty: ["新能源", "半导体"], leader_name: "周宁", total_return_pct: 11.8, active_projects: 4, tags: ["景气"] },
+];
+
+export const DEMO_MOMENTS = [
+  { id: "demo-m1", type: "ai", content: "贵州茅台资金与景气共振，演示样本仅供界面预览。", created_at: "2026-08-13T09:31:00Z" },
+  { id: "demo-m2", type: "system", content: "操盘台已切换演示数据模式。", created_at: "2026-08-13T09:00:00Z" },
+  { id: "demo-m3", type: "post", content: "宁德时代出货回暖，关注储能对冲。", created_at: "2026-08-12T16:20:00Z" },
+];
+
+export const DEMO_MESSAGES = [
+  {
+    id: "demo-msg-1",
+    sender_id: 0,
+    sender_name: "系统",
+    subject: "信号观测提醒",
+    preview: "贵州茅台均线金叉已触发",
+    content: "演示消息：600519 均线金叉已触发，可到信号观测页查看。",
+    is_read: false,
+    created_at: "2026-08-13 09:31",
+    conversation_id: "demo-c1",
+  },
+  {
+    id: "demo-msg-2",
+    sender_id: 0,
+    sender_name: "系统",
+    subject: "回测完成",
+    preview: "MA / 600519 演示回测已写入历史",
+    content: "演示消息：可到回测历史页查看样本记录。",
+    is_read: true,
+    created_at: "2026-08-12 18:04",
+    conversation_id: "demo-c2",
+  },
+];
+
+export const DEMO_WAR_ROOM = {
+  room_name: "演示作战室",
+  last_updated: "演示",
+  perspectives: [
+    { label: "基本面", summary: "白酒与保险景气分化。", score: 0.72, color: "#34d399" },
+    { label: "资金", summary: "主力净流入集中在龙头。", score: 0.64, color: "#60a5fa" },
+    { label: "风险", summary: "波动可控，注意拥挤度。", score: 0.41, color: "#fbbf24" },
+  ],
+  data_grid: [
+    { symbol: "600519", market: "CN", price: 1688, change_pct: 1.24, volume: 8.2e7, signal: "buy" as const, confidence: 0.78 },
+    { symbol: "601318", market: "CN", price: 48.2, change_pct: 0.85, volume: 4.1e8, signal: "hold" as const, confidence: 0.61 },
+    { symbol: "000858", market: "CN", price: 128.6, change_pct: -0.62, volume: 3.1e8, signal: "sell" as const, confidence: 0.54 },
+  ],
+};
+
+export const DEMO_COMMITTEE_DASHBOARD = {
+  consensus_meter: 0.72,
+  total_members: 4,
+  active_proposals: 2,
+  updated_at: "演示",
+  members: [
+    { name: "基本面", role: "分析师", score: 86, accuracy: 0.71, total_votes: 42 },
+    { name: "动量", role: "量化", score: 81, accuracy: 0.64, total_votes: 38 },
+    { name: "风控", role: "风控", score: 79, accuracy: 0.82, total_votes: 40 },
+    { name: "宏观", role: "宏观", score: 74, accuracy: 0.58, total_votes: 31 },
+  ],
+};

@@ -33,6 +33,12 @@ def test_demo_catalog_exports_core_lists() -> None:
         "DEMO_MANAGED_STOCKS",
         "DEMO_HEDGE_FUND",
         "DEMO_COMMITTEE_SELECTION",
+        "DEMO_INVESTMENT_MANAGERS",
+        "DEMO_EXPERT_TEAMS",
+        "DEMO_MOMENTS",
+        "DEMO_MESSAGES",
+        "DEMO_WAR_ROOM",
+        "DEMO_COMMITTEE_DASHBOARD",
     ):
         assert token in text, token
     assert "600519" in text
@@ -63,9 +69,19 @@ def test_core_pages_use_demo_fallback() -> None:
         "StocksManage.tsx",
         "AIHedgeFund.tsx",
         "AICommitteeSelection.tsx",
+        "InvestmentManagers.tsx",
+        "InvestmentManagerDetail.tsx",
+        "ExpertTeams.tsx",
+        "Moments.tsx",
+        "MessageCenter.tsx",
+        "WarRoom.tsx",
+        "AICommitteeDashboard.tsx",
     )
     for name in pages:
         text = (FE / "pages" / name).read_text(encoding="utf-8")
         assert "DemoBanner" in text, name
         assert "demoCatalog" in text or "DEMO_" in text, name
         assert "window.location" not in text, name
+    managers = (FE / "pages" / "InvestmentManagers.tsx").read_text(encoding="utf-8")
+    assert "/app/investment-managers" not in managers
+    assert "/investment-managers/" in managers

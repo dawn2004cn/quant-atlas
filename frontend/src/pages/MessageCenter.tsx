@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_MESSAGES } from "../lib/demoCatalog";
 
 type Message = {
   id: string;
@@ -30,10 +32,10 @@ export function MessageCenterPage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={4} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无消息数据</div>;
 
-  const conversations = data.conversations ?? [];
+  const live = data?.conversations ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !live.length);
+  const conversations = isDemo ? DEMO_MESSAGES : live;
   const selected = conversations.find((m) => m.id === selectedId) ?? null;
 
   return (
@@ -43,6 +45,7 @@ export function MessageCenterPage() {
         <div>
           <h1 className="text-2xl font-bold">消息中心</h1>
           <p className="text-sm text-slate-500">系统消息与协作通知</p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void mutate()}>
           刷新

@@ -15,7 +15,7 @@ This file is a consolidated chronological log of all major architecture refactor
 - `KeepAliveOutlet` + 全局 `SWRConfig(keepPreviousData)`
 - 登录 `toSpaPath` 避免 `/app/app`
 - Vite 分包去掉未安装的 echarts / lightweight-charts
-- 核心流程页空列表改演示样本 + `DemoBanner`：自选 / 热点 / 组合 / 选股 / 全景 / 全球雷达 / 龙虎榜 / 通达信板块 / 因子库 / 研报 / 信号旗 / 回测历史 / 策略向导 / 策略快照 / 信号观测 / 预警中心 / 禅意看板 / 选股结果 / 组合详情 / Marketplace / 股票管理 / AI 对冲基金 / 委员会选股
+- 核心流程页空列表改演示样本 + `DemoBanner`：自选 / 热点 / 组合 / 选股 / 全景 / 全球雷达 / 龙虎榜 / 通达信板块 / 因子库 / 研报 / 信号旗 / 回测历史 / 策略向导 / 策略快照 / 信号观测 / 预警中心 / 禅意看板 / 选股结果 / 组合详情 / Marketplace / 股票管理 / AI 对冲基金 / 委员会选股 / 投资经理 / 专家团队 / 动态 / 消息中心 / 作战室 / 委员会仪表盘
 
 ### 验证
 - `pytest tests/frontend/test_spa_shell_contracts.py tests/frontend/test_core_pages_demo_fallback.py tests/modules/strategy/test_daily_workbench_display_fallback.py`
