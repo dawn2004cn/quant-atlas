@@ -1,6 +1,7 @@
 import type { AlphaFactorItem } from "../types/alpha";
 import type { HotSector, HotSectorMember } from "../types/hotSector";
 import type { PanoramaStockRow } from "../types/market";
+import type { MlflowRun } from "../types/mlflow";
 import type { PortfolioPosition } from "../types/portfolio";
 import type { SignalFlagItem } from "../types/signalflag";
 import type { WatchlistStock } from "../types/watchlist";
@@ -241,3 +242,155 @@ export const DEMO_SIGNAL_FLAGS: SignalFlagItem[] = [
     pb: 2.4,
   },
 ];
+
+export const DEMO_WIZARD_TEMPLATES = [
+  { id: "ma_cross", name: "均线金叉", description: "快慢均线交叉", is_recommended: true },
+  { id: "rsi_reversion", name: "RSI 回归", description: "超买超卖回归", is_recommended: false },
+  { id: "macd_trend", name: "MACD 趋势", description: "MACD 柱翻红跟趋势", is_recommended: true },
+];
+
+export const DEMO_STRATEGY_SNAPSHOTS = [
+  {
+    run_id: "demo-snap-1",
+    strategy_name: "MA",
+    symbol: "600519",
+    created_at: "2026-08-12T10:00:00Z",
+    metrics: { total_return_pct: 12.4, annual_return_pct: 18.2, sharpe: 1.42, max_drawdown_pct: -8.6 },
+    status: "completed",
+  },
+  {
+    run_id: "demo-snap-2",
+    strategy_name: "RSI",
+    symbol: "601318",
+    created_at: "2026-08-11T09:30:00Z",
+    metrics: { total_return_pct: 4.1, annual_return_pct: 6.8, sharpe: 0.88, max_drawdown_pct: -5.2 },
+    status: "completed",
+  },
+  {
+    run_id: "demo-snap-3",
+    strategy_name: "MACD",
+    symbol: "000333",
+    created_at: "2026-08-10T14:20:00Z",
+    metrics: { total_return_pct: -1.6, annual_return_pct: -2.1, sharpe: 0.21, max_drawdown_pct: -11.4 },
+    status: "completed",
+  },
+];
+
+export const DEMO_MLFLOW_RUNS: MlflowRun[] = [
+  {
+    run_id: "demo-run-1",
+    run_name: "MA - 600519",
+    start_time: Date.parse("2026-08-12T10:00:00Z"),
+    metrics: { total_return: 0.124, sharpe: 1.42, max_drawdown: -0.086 },
+    params: { strategy_name: "MA", symbol: "600519" },
+  },
+  {
+    run_id: "demo-run-2",
+    run_name: "RSI - 600519",
+    start_time: Date.parse("2026-08-11T09:30:00Z"),
+    metrics: { total_return: 0.041, sharpe: 0.88, max_drawdown: -0.052 },
+    params: { strategy_name: "RSI", symbol: "600519" },
+  },
+  {
+    run_id: "demo-run-3",
+    run_name: "MACD - 000333",
+    start_time: Date.parse("2026-08-10T14:20:00Z"),
+    metrics: { total_return: -0.016, sharpe: 0.21, max_drawdown: -0.114 },
+    params: { strategy_name: "MACD", symbol: "000333" },
+  },
+];
+
+export const DEMO_OBSERVATIONS = [
+  {
+    id: "demo-obs-1",
+    symbol: "600519",
+    name: "贵州茅台",
+    signal_type: "均线金叉",
+    trigger_status: "triggered" as const,
+    entry_price: 1620,
+    current_price: 1688,
+    target_price: 1850,
+    stop_loss: 1550,
+    pnl_pct: 4.2,
+    created_at: "2026-08-10 10:22",
+    updated_at: "2026-08-13 09:31",
+  },
+  {
+    id: "demo-obs-2",
+    symbol: "601318",
+    name: "中国平安",
+    signal_type: "RSI 回升",
+    trigger_status: "pending" as const,
+    entry_price: 47.8,
+    current_price: 48.2,
+    target_price: 52.0,
+    stop_loss: 45.5,
+    pnl_pct: 0.84,
+    created_at: "2026-08-12 14:05",
+    updated_at: "2026-08-13 09:31",
+  },
+  {
+    id: "demo-obs-3",
+    symbol: "000858",
+    name: "五粮液",
+    signal_type: "突破回踩",
+    trigger_status: "expired" as const,
+    entry_price: 130.0,
+    current_price: 128.6,
+    target_price: 142.0,
+    stop_loss: 124.0,
+    pnl_pct: -1.08,
+    created_at: "2026-08-08 11:18",
+    updated_at: "2026-08-12 15:00",
+  },
+];
+
+export const DEMO_ALERTS = [
+  {
+    id: "demo-alert-1",
+    title: "自选股异动",
+    message: "贵州茅台涨幅超过 1%",
+    severity: "warning" as const,
+    source: "demo",
+    category: "data",
+    symbol: "600519",
+    created_at: "2026-08-13T09:31:00Z",
+    action_url: "/stock/600519",
+  },
+  {
+    id: "demo-alert-2",
+    title: "信号触发",
+    message: "中国平安 RSI 回升待确认",
+    severity: "info" as const,
+    source: "demo",
+    category: "factor",
+    symbol: "601318",
+    created_at: "2026-08-13T09:20:00Z",
+    action_url: "/signal-observations",
+  },
+  {
+    id: "demo-alert-3",
+    title: "回测任务失败",
+    message: "MACD / 000333 回测因数据缺口中止",
+    severity: "critical" as const,
+    source: "demo",
+    category: "task",
+    symbol: "000333",
+    created_at: "2026-08-12T16:40:00Z",
+    action_url: "/run-history",
+  },
+];
+
+export const DEMO_ZEN = {
+  pnl: { daily: 0.62, total: 4.18 },
+  holdings: [
+    { symbol: "600519", shares: 20, value: 33760, change_pct: 1.24 },
+    { symbol: "601318", shares: 400, value: 19280, change_pct: 0.85 },
+    { symbol: "000333", shares: 200, value: 14420, change_pct: 0.31 },
+  ],
+  recent_trades: [
+    { symbol: "600519", side: "buy", quantity: 20, price: 1620, time: "2026-08-10 10:22" },
+    { symbol: "000333", side: "buy", quantity: 200, price: 71.6, time: "2026-08-11 13:08" },
+    { symbol: "000858", side: "sell", quantity: 100, price: 130.2, time: "2026-08-12 14:41" },
+  ],
+};

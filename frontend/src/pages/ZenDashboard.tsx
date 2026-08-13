@@ -1,6 +1,9 @@
+import { Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_ZEN } from "../lib/demoCatalog";
 
 type ZenData = {
   pnl?: { daily?: number; total?: number };
@@ -11,9 +14,12 @@ type ZenData = {
 export default function ZenDashboard() {
   const { data, error, isLoading, mutate } = useSWR<ZenData>("/zen/dashboard", apiFetchV1, { refreshInterval: 15000 });
 
-  const pnl = data?.pnl;
-  const holdings = data?.holdings ?? [];
-  const trades = data?.recent_trades ?? [];
+  const liveHoldings = data?.holdings ?? [];
+  const isDemo = Boolean(error) || (!isLoading && (!data || !liveHoldings.length));
+  const view = isDemo ? DEMO_ZEN : data;
+  const pnl = view?.pnl;
+  const holdings = view?.holdings ?? [];
+  const trades = view?.recent_trades ?? [];
 
   return (
     <div className="space-y-5">
@@ -22,14 +28,14 @@ export default function ZenDashboard() {
         <div>
           <h1 className="page-title">禅意看板</h1>
           <p className="text-[var(--quant-muted)] text-sm">极简持仓概览</p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn-brand btn-sm" onClick={() => mutate()}>刷新</button>
       </div>
 
-      {isLoading && !data ? <div className="quant-card p-6 text-center text-[var(--quant-muted)]">加载中...</div> : null}
-      {error ? <div className="quant-card p-6 text-red-500">加载失败: {error.message}</div> : null}
+      {isLoading && !data && !isDemo ? <div className="quant-card p-6 text-center text-[var(--quant-muted)]">加载中...</div> : null}
 
-      {data ? (
+      {(view && (!isLoading || isDemo)) ? (
         <>
           <div className="grid grid-cols-2 gap-4">
             <div className="quant-card p-5">
@@ -53,7 +59,7 @@ export default function ZenDashboard() {
                 <table className="w-full text-sm">
                   <thead><tr className="text-[var(--quant-muted)] border-b border-[var(--quant-border)]"><th className="text-left py-2">标的</th><th className="text-right py-2">持仓</th><th className="text-right py-2">市值</th><th className="text-right py-2">涨跌幅</th></tr></thead>
                   <tbody>{holdings.map((h, i) => (
-                    <tr key={i} className="border-b border-[var(--quant-border)]/50"><td className="py-2 mono">{h.symbol}</td><td className="py-2 text-right">{h.shares}</td><td className="py-2 text-right mono">¥{h.value.toLocaleString()}</td><td className={`py-2 text-right mono ${h.change_pct >= 0 ? "text-green-500" : "text-red-500"}`}>{h.change_pct >= 0 ? "+" : ""}{h.change_pct.toFixed(2)}%</td></tr>
+                    <tr key={i} className="border-b border-[var(--quant-border)]/50"><td className="py-2 mono"><Link className="link" to={`/stock/${encodeURIComponent(h.symbol)}?m=CN`}>{h.symbol}</Link></td><td className="py-2 text-right">{h.shares}</td><td className="py-2 text-right mono">¥{h.value.toLocaleString()}</td><td className={`py-2 text-right mono ${h.change_pct >= 0 ? "text-green-500" : "text-red-500"}`}>{h.change_pct >= 0 ? "+" : ""}{h.change_pct.toFixed(2)}%</td></tr>
                   ))}</tbody>
                 </table>
               </div>

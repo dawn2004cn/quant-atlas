@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { fetchMlflowRuns } from "../lib/api";
+import { DEMO_MLFLOW_RUNS } from "../lib/demoCatalog";
 import type { MlflowRun } from "../types/mlflow";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -51,10 +53,12 @@ export function RunHistoryPage() {
     fetchMlflowRuns(50),
   );
 
-  const runs = useMemo(
+  const liveRuns = useMemo(
     () => (data?.runs ?? []).map(mapRun),
     [data?.runs],
   );
+  const isDemo = Boolean(error) || (!isLoading && (!data?.available || !liveRuns.length));
+  const runs = isDemo ? DEMO_MLFLOW_RUNS.map(mapRun) : liveRuns;
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -90,6 +94,7 @@ export function RunHistoryPage() {
           <p className="text-sm text-zinc-500">
             MLflow 实验记录 · <code>/api/v1/mlflow/runs</code>
           </p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="rounded-lg px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800/60 hover:text-zinc-200" onClick={() => void mutate()}>
           刷新
@@ -99,16 +104,6 @@ export function RunHistoryPage() {
       {isLoading ? <p className="text-zinc-500">加载中…</p> : null}
       {error ? (
         <p className="text-error">加载失败：{error instanceof Error ? error.message : "unknown"}</p>
-      ) : null}
-      {!isLoading && data && !data.available ? (
-        <Panel className="p-6 text-sm text-zinc-500">
-          MLflow 未配置。请设置 <code>MLFLOW_TRACKING_URI</code> 并完成一次回测后重试。
-          也可使用<a className="link mx-1" href="/run-history">经典版历史页</a>。
-        </Panel>
-      ) : null}
-
-      {data?.available && runs.length === 0 ? (
-        <Panel className="p-6 text-sm text-zinc-500">暂无回测记录。</Panel>
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
