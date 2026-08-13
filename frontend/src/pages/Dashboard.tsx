@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import useSWR from "swr";
-import { PageSkeleton } from "../components/PageSkeleton";
 import {
   DecisionPanel,
   HealthBanner,
@@ -36,25 +35,14 @@ export function DashboardPage() {
     { refreshInterval: 60_000, revalidateOnFocus: false, dedupingInterval: 10_000 },
   );
 
-  const snapshot = data ?? (error ? DEMO_WORKBENCH : undefined);
-  const isDemo = snapshot?.data_mode === "demo" || snapshot?.data_mode === "mixed" || Boolean(error && snapshot);
-
-  if (isLoading && !snapshot) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="h-8 w-48 animate-pulse rounded bg-zinc-800/60" />
-          <div className="flex gap-2">
-            {MARKETS.map((m) => (
-              <div key={m} className="h-8 w-14 animate-pulse rounded-lg bg-zinc-800/40" />
-            ))}
-          </div>
-        </div>
-        <div className="h-12 animate-pulse rounded-xl bg-zinc-800/40" />
-        <PageSkeleton rows={4} showProgress />
-      </div>
-    );
-  }
+  // Instant first paint: show labeled demo while the live snapshot is still loading.
+  const snapshot = data ?? DEMO_WORKBENCH;
+  const awaitingLive = Boolean(isLoading && !data);
+  const isDemo =
+    awaitingLive ||
+    snapshot?.data_mode === "demo" ||
+    snapshot?.data_mode === "mixed" ||
+    Boolean(error);
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-4">
@@ -74,7 +62,9 @@ export function DashboardPage() {
           </p>
           {isDemo ? (
             <p className="mt-1 text-[11px] font-mono text-amber-400/90">
-              演示数据 · 行情源未就绪或仅部分可用
+              {awaitingLive
+                ? "演示占位 · 正在拉取实盘操盘台…"
+                : "演示数据 · 行情源未就绪或仅部分可用"}
             </p>
           ) : null}
           {data?.health_banner?.quotes_full_dump_warn ? (

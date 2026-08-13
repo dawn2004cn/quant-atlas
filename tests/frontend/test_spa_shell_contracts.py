@@ -40,7 +40,15 @@ def test_swr_provider_keeps_previous_page_data() -> None:
     assert "revalidateOnFocus" in text
 
 
-def test_spa_shell_registers_trailing_slash() -> None:
-    text = (ROOT / "app" / "presentation" / "web" / "pages_spa.py").read_text(encoding="utf-8")
-    assert '@blueprint.route("/app/")' in text
-    assert '@blueprint.route("/app")' in text
+def test_portfolio_page_falls_back_when_live_positions_unusable() -> None:
+    text = (FE / "pages" / "Portfolio.tsx").read_text(encoding="utf-8")
+    assert "liveUsable" in text
+    assert "DEMO_PORTFOLIO" in text
+    assert "DemoBanner" in text
+
+
+def test_dashboard_shows_demo_while_workbench_loads() -> None:
+    text = (FE / "pages" / "Dashboard.tsx").read_text(encoding="utf-8")
+    assert "DEMO_WORKBENCH" in text
+    assert "awaitingLive" in text
+    assert "演示占位" in text

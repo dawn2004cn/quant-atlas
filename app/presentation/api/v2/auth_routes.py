@@ -5,7 +5,6 @@ from __future__ import annotations
 from flask import Blueprint, current_app, jsonify, request
 
 from app.application.errors import AuthorizationError, ValidationError
-from app.core.runtime_config import get_runtime_bool
 from app.infrastructure.auth.jwt_token_service import (
     create_access_token,
     create_refresh_token,
@@ -46,10 +45,8 @@ def create_auth_blueprint(ctx) -> Blueprint:
     bp = Blueprint("v2_auth", __name__)
 
     def _cookie_secure() -> bool:
-        try:
-            return get_runtime_bool("SESSION_COOKIE_SECURE", not current_app.debug)
-        except Exception:
-            return False
+        # Follow Flask session cookie policy (dev HTTP must stay non-Secure).
+        return bool(current_app.config.get("SESSION_COOKIE_SECURE", False))
 
     def _set_token_cookie(resp, token: str, max_age: int):
         resp.set_cookie(

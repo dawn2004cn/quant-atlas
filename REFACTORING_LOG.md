@@ -4,7 +4,27 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
-## 2026-08-13 (SPA 自测阻塞修复：SQLite DDL + /app/ + i18n LFS)
+## 2026-08-13 (SPA 自测：HTTP Session 登录 + 组合演示可用性)
+
+### 问题
+- `SESSION_COOKIE_SECURE` 默认 `not debug`：`FLASK_ENV=development` 且未开 `FLASK_DEBUG` 时 Secure cookie 在 HTTP 下不发送 → Session 登录 CSRF 必失败
+- 组合页 API 返回无报价/权重的占位持仓时仍当实盘渲染 → `NaN%`、名称/价格为空且不显示 DemoBanner
+- 操盘台首屏等待 live snapshot（可达 ~30s）空白骨架过久
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `app/bootstrap.py` | Secure cookie 默认仅 production |
+| `app/presentation/api/v2/auth_routes.py` | JWT cookie 跟随 `SESSION_COOKIE_SECURE` |
+| `frontend/src/pages/Portfolio.tsx` | 无可用价/权重时回退 `DEMO_PORTFOLIO` |
+| `frontend/src/pages/Dashboard.tsx` | 加载中即时演示占位 |
+| `tests/bootstrap/test_session_cookie_secure.py` | 新增默认策略测试 |
+
+### 验证
+- `pytest tests/bootstrap/test_session_cookie_secure.py tests/frontend/test_spa_shell_contracts.py`
+- 手工：HTTP Session 登录 admin；P0 五页有数据；组合页 DemoBanner
+
+---
 
 ### 问题
 - 本地 SQLite 启动失败：`stock_history_{quote_identifier(market)}` 生成 MySQL 反引号，DDL 语法错误

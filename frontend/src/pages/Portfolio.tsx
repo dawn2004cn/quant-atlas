@@ -151,11 +151,14 @@ export function PortfolioPage() {
   if (snapLoading && !snapshot) return <PageSkeleton rows={4} />;
 
   const livePositions = snapshot?.portfolio?.positions ?? [];
-  const isDemo = Boolean(snapErr) || livePositions.length === 0;
+  const liveUsable = livePositions.some(
+    (p) => (Number(p.price) || 0) > 0 && Number.isFinite(Number(p.weight)),
+  );
+  const isDemo = Boolean(snapErr) || !liveUsable;
   const display = isDemo ? DEMO_PORTFOLIO : snapshot;
   const positions = display?.portfolio?.positions ?? [];
   const returns = display?.portfolio?.returns;
-  const embeddedOpt = snapshot?.optimize_summary ?? null;
+  const embeddedOpt = isDemo ? null : (snapshot?.optimize_summary ?? null);
   const optimization =
     (needsCustomOptimize ? optimizeData?.optimization : null) ??
     (tab === "optimize" ? embeddedOpt : null);
