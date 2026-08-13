@@ -2,8 +2,10 @@ import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_ALERTS } from "../lib/demoCatalog";
 
 /* ── Types (aligned with AlertEventDTO /system/alerts) ── */
 type AlertSeverity = "info" | "warning" | "critical";
@@ -186,9 +188,15 @@ export function AlertCenterPage() {
     setChannelsHydrated(true);
   }, [channelsData, channelsHydrated]);
 
-  const alerts = useMemo(() => (data?.items ?? []).map(mapAlert), [data?.items]);
-  const warningCount = data?.counts_by_level?.warning ?? 0;
-  const criticalCount = data?.counts_by_level?.critical ?? 0;
+  const liveAlerts = useMemo(() => (data?.items ?? []).map(mapAlert), [data?.items]);
+  const isDemo = Boolean(error) || (!isLoading && !liveAlerts.length);
+  const alerts = isDemo ? DEMO_ALERTS : liveAlerts;
+  const warningCount = isDemo
+    ? alerts.filter((a) => a.severity === "warning").length
+    : (data?.counts_by_level?.warning ?? 0);
+  const criticalCount = isDemo
+    ? alerts.filter((a) => a.severity === "critical").length
+    : (data?.counts_by_level?.critical ?? 0);
   const dumpCount = alerts.filter((a) => a.id === "data:quotes:full_dump").length;
   const configuredCount = channelsData?.configured_count ?? 0;
 
@@ -257,6 +265,7 @@ export function AlertCenterPage() {
           <p className="text-sm text-[var(--quant-muted)]">
             任务失败、数据新鲜度、quotes dump 与系统探针统一聚合（/api/v1/system/alerts）
           </p>
+          <DemoBanner show={isDemo} />
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="btn btn-ghost btn-sm">
@@ -372,7 +381,13 @@ export function AlertCenterPage() {
                 <td className="text-xs text-[var(--quant-muted)]">{a.category || "--"}</td>
                 <td className="text-xs text-[var(--quant-muted)]">{a.source}</td>
                 <td>
-                  {a.symbol ? <code>{a.symbol}</code> : <span className="text-[var(--quant-muted)]">--</span>}
+                  {a.symbol ? (
+                    <Link className="link font-mono text-sm" to={`/stock/${encodeURIComponent(a.symbol)}?m=CN`}>
+                      {a.symbol}
+                    </Link>
+                  ) : (
+                    <span className="text-[var(--quant-muted)]">--</span>
+                  )}
                 </td>
                 <td className="text-xs text-[var(--quant-muted)] whitespace-nowrap">
                   {fmtDate(a.created_at)}

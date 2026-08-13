@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import useSWR from "swr";
 import { VirtualSignalTable } from "../components/virtual/VirtualSignalTable";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { fetchSignalFlagPool, runSignalFlagScan } from "../lib/api";
+import { DEMO_SIGNAL_FLAGS } from "../lib/demoCatalog";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
@@ -22,7 +24,9 @@ export function SignalFlagPage() {
     { revalidateOnFocus: false },
   );
 
-  const items = data?.items ?? [];
+  const liveItems = data?.items ?? [];
+  const isDemo = Boolean(error) || Boolean(data && !liveItems.length);
+  const items = isDemo ? DEMO_SIGNAL_FLAGS : liveItems;
 
   const handleScan = useCallback(async () => {
     setScanning(true);
@@ -48,6 +52,7 @@ export function SignalFlagPage() {
         <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">Signal Flag</div>
         <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100">信号旗</h1>
         <p className="mt-1 text-sm text-zinc-500">全市场多策略信号扫描 — 最新 K 线上出现买/卖信号的策略均入池</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Controls */}

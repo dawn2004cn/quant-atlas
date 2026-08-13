@@ -57,7 +57,13 @@ def _is_cacheable(response: Response) -> bool:
     content_type = response.content_type or ""
     if not content_type.startswith(("application/json", "text/", "application/javascript")):
         return False
-    if response.headers.get("Cache-Control") in ("no-cache", "no-store", "private"):
+    # Dynamic API JSON must not inherit a blanket public max-age (行情/工作台等).
+    # Routes that are safe to cache set Cache-Control explicitly (e.g. strategic-features).
+    path = request.path or ""
+    if path.startswith("/api/"):
+        return False
+    existing = response.headers.get("Cache-Control", "")
+    if existing.startswith("no-cache") or existing.startswith("no-store") or existing.startswith("private"):
         return False
     if request.method not in ("GET", "HEAD"):
         return False

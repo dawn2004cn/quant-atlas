@@ -1,8 +1,10 @@
 import { useParams, Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_INVESTMENT_MANAGERS } from "../lib/demoCatalog";
 
 /* ── Types ── */
 type ManagerDetail = {
@@ -64,31 +66,12 @@ export function InvestmentManagerDetailPage() {
     () => apiFetchV1<ManagerDetail>(`/investment-managers/${encodeURIComponent(managerId)}`),
   );
 
-  if (isLoading) return <PageSkeleton rows={5} />;
+  if (isLoading && !data && !error) return <PageSkeleton rows={5} />;
 
-  if (error) {
-    return (
-      <div className="space-y-5">
-        <Link to="/investment-managers" className="btn btn-ghost btn-sm">
-          &larr; 返回投资经理列表
-        </Link>
-        <div className="alert alert-error">加载失败：{error.message}</div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="space-y-5">
-        <Link to="/investment-managers" className="btn btn-ghost btn-sm">
-          &larr; 返回投资经理列表
-        </Link>
-        <div className="alert alert-warning">未找到该投资经理信息</div>
-      </div>
-    );
-  }
-
-  const m = data;
+  const isDemo = Boolean(error) || !data;
+  const m = isDemo
+    ? (DEMO_INVESTMENT_MANAGERS.find((row) => row.manager_id === managerId) ?? DEMO_INVESTMENT_MANAGERS[0])
+    : data;
 
   return (
     <div className="space-y-5">
@@ -97,6 +80,7 @@ export function InvestmentManagerDetailPage() {
       <Link to="/investment-managers" className="btn btn-ghost btn-sm">
         &larr; 返回投资经理列表
       </Link>
+      <DemoBanner show={isDemo} />
 
       {/* Profile Card */}
       <div className="glass-card rounded-2xl p-6 space-y-5">
@@ -209,7 +193,11 @@ export function InvestmentManagerDetailPage() {
                   <tr key={s.strategy_id} className="hover">
                     <td className="font-medium">{s.name}</td>
                     <td>
-                      {s.symbol ? <code>{s.symbol}</code> : "--"}
+                      {s.symbol ? (
+                        <Link className="link font-mono text-sm" to={`/stock/${encodeURIComponent(s.symbol)}?m=CN`}>
+                          {s.symbol}
+                        </Link>
+                      ) : "--"}
                     </td>
                     <td
                       className={

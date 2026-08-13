@@ -1,7 +1,10 @@
+import { Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_WAR_ROOM } from "../lib/demoCatalog";
 
 type PerspectivePanel = {
   label: string;
@@ -41,26 +44,28 @@ export function WarRoomPage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={5} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无作战室数据</div>;
+
+  const isDemo = Boolean(error) || !data || !(data.data_grid ?? []).length;
+  const view = isDemo ? DEMO_WAR_ROOM : data;
 
   return (
     <div className="space-y-5">
       <PageQuickNav items={QUICK_NAV_PRESETS.warRoom} />
       <div>
-        <h1 className="text-2xl font-bold">{data.room_name || "作战室"}</h1>
+        <h1 className="text-2xl font-bold">{view.room_name || "作战室"}</h1>
         <p className="text-sm text-slate-500">多视角市场分析与数据面板</p>
-        {data.last_updated && (
+        <DemoBanner show={isDemo} />
+        {view.last_updated && (
           <p className="mt-1 text-xs text-slate-400">
-            更新于：{new Date(data.last_updated).toLocaleString("zh-CN")}
+            更新于：{view.last_updated === "演示" ? "演示" : new Date(view.last_updated).toLocaleString("zh-CN")}
           </p>
         )}
       </div>
 
       {/* Perspectives */}
-      {data.perspectives.length > 0 && (
+      {view.perspectives.length > 0 && (
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {data.perspectives.map((p) => (
+          {view.perspectives.map((p) => (
             <div
               key={p.label}
               className="glass-card p-4"
@@ -84,7 +89,7 @@ export function WarRoomPage() {
       {/* Data grid */}
       <div className="glass-card p-4">
         <h2 className="mb-3 text-sm font-bold text-slate-500">数据面板</h2>
-        {data.data_grid.length === 0 ? (
+        {view.data_grid.length === 0 ? (
           <p className="text-sm text-slate-400">暂无数据</p>
         ) : (
           <div className="overflow-x-auto">
@@ -101,11 +106,15 @@ export function WarRoomPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.data_grid.map((row) => {
+                {view.data_grid.map((row) => {
                   const signal = SIGNAL_MAP[row.signal];
                   return (
                     <tr key={row.symbol}>
-                      <td className="font-medium">{row.symbol}</td>
+                      <td className="font-medium">
+                        <Link className="link" to={`/stock/${encodeURIComponent(row.symbol)}?m=CN`}>
+                          {row.symbol}
+                        </Link>
+                      </td>
                       <td>{row.market}</td>
                       <td className="text-right font-mono">{row.price.toFixed(2)}</td>
                       <td

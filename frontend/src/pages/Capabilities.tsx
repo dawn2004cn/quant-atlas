@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_CAPABILITIES } from "../lib/demoCatalog";
 
 type Capability = {
   name: string;
@@ -48,14 +50,17 @@ export default function CapabilitiesPage() {
     );
   }
 
+  const isDemo = Boolean(error) || (!loading && (!data || !(data.capabilities ?? []).length));
+  const view = isDemo ? DEMO_CAPABILITIES : data;
+
   const stats = [
-    { label: "Qlib", value: data?.qlib ? "已连接" : "未连接", status: data?.qlib },
-    { label: "Celery", value: data?.celery ? "运行中" : "停止", status: data?.celery },
-    { label: "RD Agent", value: data?.rd_agent ? "就绪" : "不可用", status: data?.rd_agent },
-    { label: "WebSocket", value: data?.websocket ? "连接中" : "断开", status: data?.websocket },
+    { label: "Qlib", value: view?.qlib ? "已连接" : "未连接", status: view?.qlib },
+    { label: "Celery", value: view?.celery ? "运行中" : "停止", status: view?.celery },
+    { label: "RD Agent", value: view?.rd_agent ? "就绪" : "不可用", status: view?.rd_agent },
+    { label: "WebSocket", value: view?.websocket ? "连接中" : "断开", status: view?.websocket },
   ];
 
-  const caps = data?.capabilities ?? [];
+  const caps = view?.capabilities ?? [];
 
   return (
     <div className="space-y-5">
@@ -63,6 +68,7 @@ export default function CapabilitiesPage() {
       <div>
         <h1 className="page-title">系统能力</h1>
         <p className="text-sm text-slate-500 mt-1">查看系统核心组件与能力注册表状态</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {error && (

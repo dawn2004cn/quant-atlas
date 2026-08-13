@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_DECISION_REPLAYS } from "../lib/demoCatalog";
 
 /* ── Types ── */
 type ReplayStep = {
@@ -91,9 +93,11 @@ export function DecisionReplaySpacePage() {
     { refreshInterval: 30_000 },
   );
 
-  const replays = data?.items ?? [];
+  const liveReplays = data?.items ?? [];
+  const isDemo = Boolean(error) || !liveReplays.length;
+  const replays = isDemo ? (DEMO_DECISION_REPLAYS as DecisionReplay[]) : liveReplays;
 
-  if (isLoading && !replays.length) return <PageSkeleton rows={4} />;
+  if (isLoading && !liveReplays.length && !error) return <PageSkeleton rows={4} />;
 
   return (
     <div className="space-y-5">
@@ -104,10 +108,8 @@ export function DecisionReplaySpacePage() {
         <p className="text-sm text-slate-500">
           逐步骤回放研究与投决过程，溯源每个决策节点
         </p>
+        <DemoBanner show={isDemo} />
       </div>
-
-      {/* Error */}
-      {error && <div className="alert alert-error">加载失败：{error.message}</div>}
 
       {/* Replay list */}
       <div className="space-y-4">
@@ -285,12 +287,6 @@ export function DecisionReplaySpacePage() {
         })}
       </div>
 
-      {/* Empty */}
-      {!replays.length && (
-        <div className="py-12 text-center text-slate-500">
-          暂无决策回放记录
-        </div>
-      )}
     </div>
   );
 }

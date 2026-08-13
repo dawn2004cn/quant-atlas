@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
+import { DemoBanner } from "../components/DemoBanner";
+import { DEMO_STOCKS } from "../lib/demoCatalog";
 import { apiFetchV1 } from "../lib/api";
+import { Link } from "react-router-dom";
 import type { WatchlistData, WatchlistGroup, WatchlistStock } from "../types/watchlist";
 
 type ExperiencePayload = WatchlistData & {
@@ -70,8 +73,10 @@ export function SelfStocksPage() {
     { refreshInterval: 60_000, revalidateOnFocus: false },
   );
 
-  const stocks = (wlData?.items ?? []).map((s) => normalizeStock(s as WatchlistStock & { code?: string }));
+  const liveStocks = (wlData?.items ?? []).map((s) => normalizeStock(s as WatchlistStock & { code?: string }));
   const summary = wlData?.summary;
+  const isDemo = Boolean(error) || (!isLoading && !liveStocks.length);
+  const stocks = isDemo ? DEMO_STOCKS : liveStocks;
 
   const filtered = searchQuery
     ? stocks.filter(
@@ -90,6 +95,7 @@ export function SelfStocksPage() {
         <div>
           <h1 className="text-2xl font-bold">自选股中心</h1>
           <p className="text-sm text-slate-500">分组管理 · 健康评分 · 异动监控 · 风险提示</p>
+          <DemoBanner show={isDemo} />
         </div>
         <div className="flex gap-2">
           <button type="button" className="btn btn-primary btn-sm">新增标的</button>
@@ -98,7 +104,7 @@ export function SelfStocksPage() {
         </div>
       </div>
 
-      {!stocks.length && !isLoading && (
+      {!stocks.length && !isLoading && !isDemo && (
         <div className="grid gap-4 md:grid-cols-3">
           <div className="glass-card rounded-2xl p-4 text-center">
             <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">1</span>
@@ -163,7 +169,11 @@ export function SelfStocksPage() {
           <tbody>
             {filtered.map((s) => (
               <tr key={s.symbol}>
-                <td><code>{s.symbol}</code></td>
+                <td>
+                  <Link className="link" to={`/stock/${encodeURIComponent(s.symbol)}`}>
+                    <code>{s.symbol}</code>
+                  </Link>
+                </td>
                 <td className="font-medium">{s.name ?? "--"}</td>
                 <td>{s.price != null ? `¥${s.price.toFixed(2)}` : "--"}</td>
                 <td className={pctClass(s.change_pct)}>{fmtPct(s.change_pct)}</td>

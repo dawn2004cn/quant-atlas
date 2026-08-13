@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_INTEGRATION_HUB } from "../lib/demoCatalog";
 
 type StackLayer = {
   ok?: boolean;
@@ -59,6 +61,7 @@ export default function IntegrationHub() {
   const [tasks, setTasks] = useState<TaskEvent[]>([]);
   const [jobs, setJobs] = useState<ActiveJob[]>([]);
   const [syncing, setSyncing] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -68,11 +71,27 @@ export default function IntegrationHub() {
         apiFetchV1<{ items?: TaskEvent[] }>("/system/task-messages?limit=50"),
         apiFetchV1<{ items?: ActiveJob[] }>("/system/active-jobs"),
       ]);
-      setStack(s);
-      setRt(r);
-      setTasks(t.items ?? []);
-      setJobs(j.items ?? []);
-    } catch { /* keep state */ }
+      const empty = !s?.layers || !Object.keys(s.layers).length;
+      if (empty) {
+        setStack(DEMO_INTEGRATION_HUB.stack);
+        setRt(DEMO_INTEGRATION_HUB.realtime);
+        setTasks(DEMO_INTEGRATION_HUB.tasks);
+        setJobs(DEMO_INTEGRATION_HUB.jobs);
+        setIsDemo(true);
+      } else {
+        setStack(s);
+        setRt(r);
+        setTasks(t.items ?? []);
+        setJobs(j.items ?? []);
+        setIsDemo(false);
+      }
+    } catch {
+      setStack(DEMO_INTEGRATION_HUB.stack);
+      setRt(DEMO_INTEGRATION_HUB.realtime);
+      setTasks(DEMO_INTEGRATION_HUB.tasks);
+      setJobs(DEMO_INTEGRATION_HUB.jobs);
+      setIsDemo(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -98,6 +117,7 @@ export default function IntegrationHub() {
       <div>
         <h1 className="page-title">集成中枢</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">系统组件状态、数据层、任务监控</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Status Grid */}

@@ -1,8 +1,10 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { AsyncProgressBar, PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1, fetchCeleryTaskStatus } from "../lib/api";
+import { DEMO_TASK_DETAIL } from "../lib/demoCatalog";
 
 type TaskDetailData = {
   id: string;
@@ -111,28 +113,15 @@ export function TaskDetailPage() {
 
   const celeryTask =
     needCelery && celeryRaw && taskId ? mapCeleryToTask(taskId, celeryRaw) : null;
-  const data = registryData ?? celeryTask ?? null;
+  const live = registryData ?? celeryTask ?? null;
+  const isDemo = !live;
+  const data = live ?? {
+    ...DEMO_TASK_DETAIL,
+    id: taskId || DEMO_TASK_DETAIL.id,
+  };
 
-  if ((registryLoading && !registryData) || (needCelery && celeryLoading && !celeryTask)) {
+  if ((registryLoading && !registryData) || (needCelery && celeryLoading && !celeryTask && !registryError && !celeryError)) {
     return <PageSkeleton rows={5} showProgress />;
-  }
-
-  if (!data) {
-    const msg =
-      (celeryError instanceof Error && celeryError.message) ||
-      (registryError instanceof Error && registryError.message) ||
-      "任务未找到";
-    return (
-      <div className="space-y-4">
-        <button type="button" className="link link-primary text-sm" onClick={() => navigate(-1)}>
-          &larr; 返回
-        </button>
-        <div className="alert alert-warning">{msg}</div>
-        {taskId ? (
-          <p className="text-xs text-slate-500 font-mono">task_id: {taskId}</p>
-        ) : null}
-      </div>
-    );
   }
 
   const task = data;
@@ -152,6 +141,7 @@ export function TaskDetailPage() {
           </button>
           <h1 className="text-2xl font-bold">{task.name}</h1>
           <p className="text-sm text-slate-500">{task.description || "无描述"}</p>
+          <DemoBanner show={isDemo} />
           {task.source === "celery" ? (
             <p className="mt-1 text-xs text-sky-500/80">
               注册表无此任务，已回退 Celery 状态 ·{" "}

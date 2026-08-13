@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from typing import Any
 
 from app.core.logger import get_logger
-from app.core.utils.sql_utils import quote_identifier, validate_identifier
+from app.core.utils.sql_utils import validate_identifier
 
 from ...config import INSTANCE_DIR, AppSettings, get_settings
 from .mysql_client import mysql_get_connection
@@ -113,8 +113,11 @@ class SqliteAdapter(DatabaseAdapter):
             """)
             markets = ['sh', 'sz', 'bj', 'hk', 'us', 'btc']
             for market in markets:
+                # Allowlisted suffix only — do not MySQL-backtick (breaks SQLite DDL).
+                if not validate_identifier(market):
+                    raise ValueError(f"unsafe market table suffix: {market!r}")
                 cur.execute(f"""
-                    CREATE TABLE IF NOT EXISTS stock_history_{quote_identifier(market)} (
+                    CREATE TABLE IF NOT EXISTS stock_history_{market} (
                         stock_code TEXT,
                         date TEXT,
                         open REAL,
@@ -196,7 +199,8 @@ class SqliteAdapter(DatabaseAdapter):
                     if not validate_identifier(col):
                         logger.warning("Skipping invalid column name in migration: %s", col)
                         continue
-                    cur.execute(f"ALTER TABLE stocks ADD COLUMN {quote_identifier(col)} {decl}")
+                    # Validated allowlisted column names; avoid MySQL backticks on SQLite.
+                    cur.execute(f"ALTER TABLE stocks ADD COLUMN {col} {decl}")
             conn.commit()
         finally:
             conn.close()

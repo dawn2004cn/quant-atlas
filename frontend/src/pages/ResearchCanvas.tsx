@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_RESEARCH_CANVAS } from "../lib/demoCatalog";
 
 type CanvasItem = {
   id: string;
@@ -37,10 +39,10 @@ export function ResearchCanvasPage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={4} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无研究画板数据</div>;
 
-  const items = (data.items ?? []).filter(
+  const live = data?.items ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !live.length);
+  const items = (isDemo ? DEMO_RESEARCH_CANVAS : live).filter(
     (item) => filter === "all" || item.type === filter,
   );
 
@@ -51,6 +53,7 @@ export function ResearchCanvasPage() {
         <div>
           <h1 className="text-2xl font-bold">研究画板</h1>
           <p className="text-sm text-slate-500">研究笔记、图表与资料集合</p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void mutate()}>
           刷新

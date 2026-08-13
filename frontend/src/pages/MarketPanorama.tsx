@@ -4,6 +4,8 @@ import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { fetchMarketPanorama, fetchMarketQuotesPage, fetchMarketSentiment } from "../lib/api";
 import { PageSkeleton } from "../components/PageSkeleton";
+import { DemoBanner } from "../components/DemoBanner";
+import { DEMO_PANORAMA_ROWS, DEMO_SECTORS } from "../lib/demoCatalog";
 
 /* ── Helpers ── */
 function fmtPct(v: number | undefined | null): string {
@@ -103,9 +105,24 @@ export function MarketPanoramaPage() {
   );
 
   const rankings = panorama?.data?.rankings;
-  const sectors = panorama?.data?.sectors ?? [];
+  const liveSectors = panorama?.data?.sectors ?? [];
   const marketStats = quotesPage?.stats;
-  const listItems = quotesPage?.items ?? [];
+  const liveItems = quotesPage?.items ?? [];
+  const liveGainers = rankings?.gainers ?? [];
+  const isDemo =
+    Boolean(error) ||
+    (!isLoading && !quotesLoading && liveItems.length === 0 && liveGainers.length === 0);
+  const listItems = isDemo ? DEMO_PANORAMA_ROWS : liveItems;
+  const sectors = liveSectors.length ? liveSectors : isDemo
+    ? DEMO_SECTORS.map((s) => ({ name: s.name, change_pct: s.change_pct }))
+    : [];
+  const demoRankings = {
+    gainers: DEMO_PANORAMA_ROWS,
+    losers: [...DEMO_PANORAMA_ROWS].reverse(),
+    amounts: DEMO_PANORAMA_ROWS,
+    turnovers: DEMO_PANORAMA_ROWS,
+  };
+  const displayRankings = liveGainers.length ? rankings : isDemo ? demoRankings : rankings;
   const listTotal = quotesPage?.total ?? 0;
   const listPageSize = quotesPage?.page_size ?? 40;
   const listPageCount = Math.max(1, Math.ceil(listTotal / listPageSize));
@@ -122,6 +139,7 @@ export function MarketPanoramaPage() {
         </div>
         <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100">全市场纵览</h1>
         <p className="mt-1 text-sm text-zinc-500">监控全量标的实时异动，内置高性能排序与多维过滤器</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {error ? (
@@ -131,38 +149,38 @@ export function MarketPanoramaPage() {
       ) : null}
 
       {/* Sentiment Summary */}
-      {sentiment?.data ? (
+      {(sentiment?.data || isDemo) ? (
         <Panel className="p-5">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">市场情绪</p>
-              <div className="mt-1 text-3xl font-bold tracking-tight text-zinc-100">{sentiment.data.level ?? "--"}</div>
-              <p className="mt-1 text-sm text-zinc-500">{sentiment.data.description ?? ""}</p>
-              {sentiment.data.score != null && (
+              <div className="mt-1 text-3xl font-bold tracking-tight text-zinc-100">{sentiment?.data?.level ?? (isDemo ? "中性偏多" : "--")}</div>
+              <p className="mt-1 text-sm text-zinc-500">{sentiment?.data?.description ?? (isDemo ? "演示市场宽度" : "")}</p>
+              {(sentiment?.data?.score != null || isDemo) && (
                 <div className="mt-2 flex items-center gap-2">
                   <div className="h-1.5 w-24 overflow-hidden rounded-full bg-zinc-800">
-                    <div className="h-full rounded-full bg-emerald-500/60" style={{ width: `${sentiment.data.score}%` }} />
+                    <div className="h-full rounded-full bg-emerald-500/60" style={{ width: `${sentiment?.data?.score ?? 56}%` }} />
                   </div>
-                  <span className="font-mono text-[10px] text-zinc-500">{sentiment.data.score}</span>
+                  <span className="font-mono text-[10px] text-zinc-500">{sentiment?.data?.score ?? 56}</span>
                 </div>
               )}
             </div>
             <div className="flex gap-3">
               <div className="min-w-[72px] rounded-lg bg-emerald-500/8 px-4 py-2.5 text-center ring-1 ring-emerald-500/10">
                 <div className="text-lg font-bold font-mono tabular-nums text-emerald-400">
-                  {marketStats?.up ?? panorama?.data?.summary?.gainers ?? "--"}
+                  {marketStats?.up ?? panorama?.data?.summary?.gainers ?? (isDemo ? 1842 : "--")}
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.1em] text-emerald-400/60">上涨</div>
               </div>
               <div className="min-w-[72px] rounded-lg bg-zinc-800/50 px-4 py-2.5 text-center">
                 <div className="text-lg font-bold font-mono tabular-nums text-zinc-300">
-                  {marketStats?.flat ?? panorama?.data?.summary?.flat ?? "--"}
+                  {marketStats?.flat ?? panorama?.data?.summary?.flat ?? (isDemo ? 418 : "--")}
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.1em] text-zinc-500">平盘</div>
               </div>
               <div className="min-w-[72px] rounded-lg bg-rose-500/8 px-4 py-2.5 text-center ring-1 ring-rose-500/10">
                 <div className="text-lg font-bold font-mono tabular-nums text-rose-400">
-                  {marketStats?.down ?? panorama?.data?.summary?.losers ?? "--"}
+                  {marketStats?.down ?? panorama?.data?.summary?.losers ?? (isDemo ? 1260 : "--")}
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.1em] text-rose-400/60">下跌</div>
               </div>
@@ -262,7 +280,7 @@ export function MarketPanoramaPage() {
       </Panel>
 
       {/* Rankings */}
-      {rankings ? (
+      {displayRankings ? (
         <Panel className="p-5">
           <div className="mb-4 flex gap-px rounded-lg bg-zinc-800/60 p-0.5 w-fit">
             {TABS.map((t) => (
@@ -274,10 +292,10 @@ export function MarketPanoramaPage() {
             ))}
           </div>
 
-          {tab === "涨幅榜" ? <RankingTable rows={rankings.gainers ?? []} label="代码" /> :
-           tab === "跌幅榜" ? <RankingTable rows={rankings.losers ?? []} label="代码" /> :
-           tab === "成交额" ? <RankingTable rows={rankings.amounts ?? []} label="代码" /> :
-           tab === "换手率" ? <RankingTable rows={rankings.turnovers ?? []} label="代码" /> : null}
+          {tab === "涨幅榜" ? <RankingTable rows={displayRankings.gainers ?? []} label="代码" /> :
+           tab === "跌幅榜" ? <RankingTable rows={displayRankings.losers ?? []} label="代码" /> :
+           tab === "成交额" ? <RankingTable rows={displayRankings.amounts ?? []} label="代码" /> :
+           tab === "换手率" ? <RankingTable rows={displayRankings.turnovers ?? []} label="代码" /> : null}
         </Panel>
       ) : null}
     </div>

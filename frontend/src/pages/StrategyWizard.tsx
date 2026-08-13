@@ -1,7 +1,9 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_WIZARD_TEMPLATES } from "../lib/demoCatalog";
 
 type WizardTemplate = {
   id: string;
@@ -29,12 +31,14 @@ export function StrategyWizardPage() {
   const [previewResult, setPreviewResult] = useState<WizardPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
-  const { data: templatesData, error: tmplErr } = useSWR(
+  const { data: templatesData, error: tmplErr, isLoading } = useSWR(
     "strategy-wizard/templates",
     () => apiFetchV1<{ templates?: WizardTemplate[] }>("/strategy/wizard/templates"),
   );
 
-  const templates = templatesData?.templates ?? [];
+  const liveTemplates = templatesData?.templates ?? [];
+  const isDemo = Boolean(tmplErr) || (!isLoading && !liveTemplates.length);
+  const templates = isDemo ? DEMO_WIZARD_TEMPLATES : liveTemplates;
 
   const handlePreview = async () => {
     if (!selectedTemplate) return;
@@ -62,6 +66,7 @@ export function StrategyWizardPage() {
         <div>
           <h1 className="text-2xl font-bold">策略向导</h1>
           <p className="text-sm text-slate-500">从模板快速创建量化策略</p>
+          <DemoBanner show={isDemo} />
         </div>
       </div>
 

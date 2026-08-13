@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_SELECTION_RESULT } from "../lib/demoCatalog";
 
 /* ── Types ── */
 type SelectionCandidate = {
@@ -72,27 +74,12 @@ export function SelectionResultPage() {
     { refreshInterval: taskId ? 10_000 : undefined },
   );
 
-  if (isLoading) return <PageSkeleton rows={4} />;
+  if (isLoading && !data && !error) return <PageSkeleton rows={4} />;
 
-  if (error) {
-    return (
-      <div className="space-y-5">
-        <h1 className="text-2xl font-bold">选股结果</h1>
-        <div className="alert alert-error">加载失败：{error.message}</div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="space-y-5">
-        <h1 className="text-2xl font-bold">选股结果</h1>
-        <div className="alert alert-warning">未找到该选股任务数据</div>
-      </div>
-    );
-  }
-
-  const candidates = [...(data.candidates ?? [])].sort((a, b) => {
+  const liveCandidates = data?.candidates ?? [];
+  const isDemo = Boolean(error) || !data || !liveCandidates.length;
+  const result = isDemo ? DEMO_SELECTION_RESULT : data;
+  const candidates = [...(result.candidates ?? [])].sort((a, b) => {
     switch (sortBy) {
       case "expected_return":
         return (b.expected_return_pct ?? 0) - (a.expected_return_pct ?? 0);
@@ -112,27 +99,28 @@ export function SelectionResultPage() {
         <div>
           <h1 className="text-2xl font-bold">选股结果</h1>
           <p className="text-sm text-slate-500">
-            {data.strategy_name ? `策略：${data.strategy_name} | ` : ""}
-            共 {data.total_candidates ?? candidates.length} 只候选标的
+            {result.strategy_name ? `策略：${result.strategy_name} | ` : ""}
+            共 {result.total_candidates ?? candidates.length} 只候选标的
           </p>
+          <DemoBanner show={isDemo} />
         </div>
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <span>任务状态：</span>
           <span
             className={`badge ${
-              data.status === "completed" ? "badge-success" : "badge-ghost"
+              result.status === "completed" ? "badge-success" : "badge-ghost"
             }`}
           >
-            {data.status}
+            {result.status}
           </span>
-          <span>创建于 {fmtDate(data.created_at)}</span>
+          <span>创建于 {fmtDate(result.created_at)}</span>
         </div>
       </div>
 
       {/* Status info for in-progress tasks */}
-      {data.status !== "completed" && (
+      {result.status !== "completed" && (
         <div className="alert alert-info">
-          任务正在执行中（{data.status}），结果将自动刷新…
+          任务正在执行中（{result.status}），结果将自动刷新…
         </div>
       )}
 
@@ -166,7 +154,9 @@ export function SelectionResultPage() {
                   <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-brand/10 text-xs font-bold text-brand">
                     {c.rank}
                   </span>
-                  <code className="text-sm">{c.symbol}</code>
+                  <Link className="link font-mono text-sm" to={`/stock/${encodeURIComponent(c.symbol)}?m=CN`}>
+                    {c.symbol}
+                  </Link>
                 </div>
                 <div className="mt-1 text-sm font-medium">{c.name ?? "--"}</div>
               </div>

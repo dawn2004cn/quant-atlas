@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_RETAIL_ASSISTANT } from "../lib/demoCatalog";
 
 type AssistantData = {
   health_score?: number;
@@ -12,7 +14,7 @@ type AssistantData = {
 export default function RetailAssistantPage() {
   const [data, setData] = useState<AssistantData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -20,8 +22,9 @@ export default function RetailAssistantPage() {
         setLoading(true);
         const res = await apiFetchV1<AssistantData>("/user/retail-assistant");
         setData(res);
-      } catch (e: any) {
-        setError(e.message);
+        setFailed(false);
+      } catch {
+        setFailed(true);
       } finally {
         setLoading(false);
       }
@@ -29,13 +32,20 @@ export default function RetailAssistantPage() {
     load();
   }, []);
 
-  if (loading && !data) {
+  if (loading && !data && !failed) {
     return <div className="space-y-4"><div className="skeleton skeleton-card"></div><div className="skeleton skeleton-card"></div></div>;
   }
 
-  const tips = data?.tips ?? [];
-  const resources = data?.resources ?? [];
-  const ph = data?.portfolio_health;
+  const tipsLive = data?.tips ?? [];
+  const resourcesLive = data?.resources ?? [];
+  const isDemo =
+    failed ||
+    !data ||
+    (data.health_score == null && tipsLive.length === 0 && resourcesLive.length === 0);
+  const view = isDemo ? DEMO_RETAIL_ASSISTANT : data!;
+  const tips = view.tips ?? [];
+  const resources = view.resources ?? [];
+  const ph = view.portfolio_health;
 
   return (
     <div className="space-y-5">
@@ -43,14 +53,13 @@ export default function RetailAssistantPage() {
       <div>
         <h1 className="page-title">散户助手</h1>
         <p className="text-sm text-slate-500 mt-1">投资学习与组合健康检查</p>
+        <DemoBanner show={isDemo} />
       </div>
 
-      {error && <div className="alert alert-error text-sm">加载失败: {error}</div>}
-
-      {data?.health_score != null && (
+      {view.health_score != null && (
         <div className="quant-card">
           <div className="hero-caption">组合健康分</div>
-          <div className="text-4xl font-bold">{data.health_score}</div>
+          <div className="text-4xl font-bold">{view.health_score}</div>
         </div>
       )}
 
@@ -90,10 +99,6 @@ export default function RetailAssistantPage() {
             ))}
           </div>
         </section>
-      )}
-
-      {!error && !data?.health_score && tips.length === 0 && resources.length === 0 && (
-        <div className="quant-card text-center py-8 text-slate-500">暂无助手数据</div>
       )}
     </div>
   );

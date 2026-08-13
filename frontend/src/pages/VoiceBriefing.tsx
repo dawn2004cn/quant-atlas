@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_VOICE_BRIEFING } from "../lib/demoCatalog";
 
 type BriefingItem = {
   id: string;
@@ -31,10 +33,10 @@ export function VoiceBriefingPage() {
   const [playingId, setPlayingId] = useState<string | null>(null);
 
   if (isLoading && !data) return <PageSkeleton rows={4} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无语音简报数据</div>;
 
-  const items = data.items ?? [];
+  const isDemo = Boolean(error) || !data || !(data.items ?? []).length;
+  const view = isDemo ? DEMO_VOICE_BRIEFING : data;
+  const items = view.items ?? [];
 
   const handlePlay = (item: BriefingItem) => {
     if (playingId === item.id) {
@@ -56,18 +58,19 @@ export function VoiceBriefingPage() {
         <div>
           <h1 className="text-2xl font-bold">语音简报</h1>
           <p className="text-sm text-slate-500">
-            {data.schedule
-              ? `生成计划：${data.schedule}`
+            {view.schedule
+              ? `生成计划：${view.schedule}`
               : "AI 语音市场简报与策略分析"}
           </p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void mutate()}>
           刷新
         </button>
       </div>
 
-      {data.last_generated && (
-        <div className="text-xs text-slate-500">最近生成：{data.last_generated}</div>
+      {view.last_generated && (
+        <div className="text-xs text-slate-500">最近生成：{view.last_generated}</div>
       )}
 
       {items.length === 0 ? (

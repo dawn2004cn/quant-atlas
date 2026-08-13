@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_INVESTMENT_MANAGERS } from "../lib/demoCatalog";
 
 /* ── Types ── */
 type InvestmentManager = {
@@ -47,9 +49,11 @@ export function InvestmentManagersPage() {
     { refreshInterval: 120_000 },
   );
 
-  const managers = data?.items ?? [];
+  const live = data?.items ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !live.length);
+  const managers = isDemo ? DEMO_INVESTMENT_MANAGERS : live;
 
-  if (isLoading && !managers.length) return <PageSkeleton rows={4} />;
+  if (isLoading && !live.length) return <PageSkeleton rows={4} />;
 
   return (
     <div className="space-y-5">
@@ -60,6 +64,7 @@ export function InvestmentManagersPage() {
         <p className="text-sm text-slate-500">
           策略管理与绩效追踪，覆盖所有投资经理档案
         </p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Error */}
@@ -70,7 +75,7 @@ export function InvestmentManagersPage() {
         {managers.map((m: InvestmentManager) => (
           <Link
             key={m.manager_id}
-            to={`/app/investment-managers/${m.manager_id}`}
+            to={`/investment-managers/${m.manager_id}`}
             className="glass-card rounded-2xl p-5 space-y-4 hover:shadow-md transition-shadow"
           >
             {/* Avatar & Name */}

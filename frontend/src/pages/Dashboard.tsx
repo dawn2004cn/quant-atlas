@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import useSWR from "swr";
-import { PageSkeleton } from "../components/PageSkeleton";
 import {
   DecisionPanel,
   HealthBanner,
@@ -17,6 +16,7 @@ import {
 import { useAuth } from "../hooks/useAuth";
 import { useRealtime } from "../hooks/useRealtime";
 import { fetchDailyWorkbench } from "../lib/api";
+import { DEMO_WORKBENCH } from "../lib/demoWorkbench";
 import { RealtimeBar } from "../components/workbench/RealtimeBar";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 
@@ -26,30 +26,23 @@ const MARKET_LABELS: Record<string, string> = { CN: "A股", HK: "港股", US: "�
 export function DashboardPage() {
   const { mode, username } = useAuth();
   const [market, setMarket] = useState<(typeof MARKETS)[number]>("CN");
-  const { connected, lastQuote, lastAiChunk, error: realtimeError } = useRealtime(true);
+  const [realtimeEnabled, setRealtimeEnabled] = useState(false);
+  const { connected, lastQuote, lastAiChunk, error: realtimeError } = useRealtime(realtimeEnabled);
 
   const { data, error, isLoading, mutate } = useSWR(
     ["workbench", market],
     () => fetchDailyWorkbench(market, 12),
-    { refreshInterval: 60_000 },
+    { refreshInterval: 60_000, revalidateOnFocus: false, dedupingInterval: 10_000 },
   );
 
-  if (isLoading && !data) {
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="h-8 w-48 animate-pulse rounded bg-zinc-800/60" />
-          <div className="flex gap-2">
-            {MARKETS.map((m) => (
-              <div key={m} className="h-8 w-14 animate-pulse rounded-lg bg-zinc-800/40" />
-            ))}
-          </div>
-        </div>
-        <div className="h-12 animate-pulse rounded-xl bg-zinc-800/40" />
-        <PageSkeleton rows={4} showProgress />
-      </div>
-    );
-  }
+  // Instant first paint: show labeled demo while the live snapshot is still loading.
+  const snapshot = data ?? DEMO_WORKBENCH;
+  const awaitingLive = Boolean(isLoading && !data);
+  const isDemo =
+    awaitingLive ||
+    snapshot?.data_mode === "demo" ||
+    snapshot?.data_mode === "mixed" ||
+    Boolean(error);
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-4">
@@ -67,6 +60,13 @@ export function DashboardPage() {
           <p className="mt-0.5 text-sm text-zinc-500">
             {username ? `欢迎回来，${username}` : `已登录（${mode}）`}
           </p>
+          {isDemo ? (
+            <p className="mt-1 text-[11px] font-mono text-amber-400/90">
+              {awaitingLive
+                ? "演示占位 · 正在拉取实盘操盘台…"
+                : "演示数据 · 行情源未就绪或仅部分可用"}
+            </p>
+          ) : null}
           {data?.health_banner?.quotes_full_dump_warn ? (
             <p className="mt-1 text-[11px] font-mono text-amber-500/90">
               quotes dump={data.health_banner.quotes_full_dump_count ?? 0}/
@@ -98,6 +98,17 @@ export function DashboardPage() {
             </button>
           ))}
           <div className="mx-1 h-5 w-px bg-zinc-700/60" />
+          <button
+            type="button"
+            onClick={() => setRealtimeEnabled((v) => !v)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              realtimeEnabled
+                ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30"
+                : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
+            }`}
+          >
+            {realtimeEnabled ? "实时已开" : "连接实时"}
+          </button>
           <button
             type="button"
             onClick={() => mutate()}
@@ -142,29 +153,29 @@ export function DashboardPage() {
       ) : null}
 
       {/* ── Main Content ── */}
-      {data ? (
+      {snapshot ? (
         <>
-          {data.health_banner ? <HealthBanner data={data} /> : null}
+          {snapshot.health_banner ? <HealthBanner data={snapshot} /> : null}
 
           {/* Market Sentiment Hero */}
-          <SentimentHero data={data} />
+          <SentimentHero data={snapshot} />
 
           {/* Macro Indices */}
-          <MacroRow data={data} />
+          <MacroRow data={snapshot} />
 
           {/* Three-column decision + watchlist layout */}
           <div className="grid gap-4 lg:grid-cols-5">
             <div className="lg:col-span-2">
-              <DecisionPanel data={data} />
+              <DecisionPanel data={snapshot} />
             </div>
             <div className="space-y-4 lg:col-span-3">
               <WatchlistPanel
-                items={data.watchlist_health?.items ?? []}
+                items={snapshot.watchlist_health?.items ?? []}
                 market={market}
               />
               <div className="grid gap-4 md:grid-cols-2">
-                <RecommendPanel data={data} market={market} />
-                <ReviewPanel data={data} />
+                <RecommendPanel data={snapshot} market={market} />
+                <ReviewPanel data={snapshot} />
               </div>
             </div>
           </div>

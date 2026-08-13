@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_OPTIMIZE } from "../lib/demoCatalog";
 
 type OptimizationResult = {
   status?: string;
@@ -11,17 +13,17 @@ type OptimizationResult = {
 };
 
 export default function OptimizePage() {
-  const [targetReturn, setTargetReturn] = useState("");
-  const [maxRisk, setMaxRisk] = useState("");
-  const [constraints, setConstraints] = useState("");
+  const [targetReturn, setTargetReturn] = useState("0.15");
+  const [maxRisk, setMaxRisk] = useState("0.20");
+  const [constraints, setConstraints] = useState("long_only");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<OptimizationResult | null>(null);
+  const [result, setResult] = useState<OptimizationResult | null>(DEMO_OPTIMIZE);
+  const [isDemo, setIsDemo] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const run = async () => {
     setLoading(true);
     setError(null);
-    setResult(null);
     try {
       const body: Record<string, unknown> = {};
       if (targetReturn) body.target_return = parseFloat(targetReturn);
@@ -32,12 +34,17 @@ export default function OptimizePage() {
         body: JSON.stringify(body),
       });
       setResult(res);
+      setIsDemo(false);
     } catch (e: any) {
       setError(e.message);
+      setResult(DEMO_OPTIMIZE);
+      setIsDemo(true);
     } finally {
       setLoading(false);
     }
   };
+
+  const view = result ?? DEMO_OPTIMIZE;
 
   return (
     <div className="space-y-5">
@@ -46,6 +53,7 @@ export default function OptimizePage() {
       <div>
         <h1 className="page-title">组合优化</h1>
         <p className="text-sm text-slate-500 mt-1">均值-方差优化器</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {error && <div className="alert alert-error text-sm">{error}</div>}
@@ -70,28 +78,26 @@ export default function OptimizePage() {
         </button>
       </section>
 
-      {result && (
-        <section className="quant-card space-y-4">
-          <h2 className="text-lg font-bold">优化结果</h2>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div><div className="hero-caption">预期收益</div><div className="text-xl font-bold text-emerald-600">{result.expected_return != null ? `${(result.expected_return * 100).toFixed(2)}%` : "--"}</div></div>
-            <div><div className="hero-caption">预期风险</div><div className="text-xl font-bold text-rose-600">{result.expected_risk != null ? `${(result.expected_risk * 100).toFixed(2)}%` : "--"}</div></div>
-            <div><div className="hero-caption">夏普比</div><div className="text-xl font-bold">{result.sharpe_ratio?.toFixed(3) ?? "--"}</div></div>
+      <section className="quant-card space-y-4">
+        <h2 className="text-lg font-bold">优化结果</h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div><div className="hero-caption">预期收益</div><div className="text-xl font-bold text-emerald-600">{view.expected_return != null ? `${(view.expected_return * 100).toFixed(2)}%` : "--"}</div></div>
+          <div><div className="hero-caption">预期风险</div><div className="text-xl font-bold text-rose-600">{view.expected_risk != null ? `${(view.expected_risk * 100).toFixed(2)}%` : "--"}</div></div>
+          <div><div className="hero-caption">夏普比</div><div className="text-xl font-bold">{view.sharpe_ratio?.toFixed(3) ?? "--"}</div></div>
+        </div>
+        {view.weights && Object.keys(view.weights).length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="table w-full text-sm">
+              <thead><tr><th>标的</th><th className="text-right">权重</th></tr></thead>
+              <tbody>
+                {Object.entries(view.weights).map(([k, v]) => (
+                  <tr key={k}><td className="font-semibold">{k}</td><td className="text-right mono">{(v * 100).toFixed(2)}%</td></tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          {result.weights && Object.keys(result.weights).length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="table w-full text-sm">
-                <thead><tr><th>标的</th><th className="text-right">权重</th></tr></thead>
-                <tbody>
-                  {Object.entries(result.weights).map(([k, v]) => (
-                    <tr key={k}><td className="font-semibold">{k}</td><td className="text-right mono">{(v * 100).toFixed(2)}%</td></tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      )}
+        )}
+      </section>
     </div>
   );
 }

@@ -1,12 +1,16 @@
-﻿import { Link, Outlet, useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
+﻿import { Link, NavLink, useNavigate } from "react-router-dom";
+import { KeepAliveOutlet } from "./KeepAliveOutlet";
+import { lazy, Suspense, useState, useRef, useEffect } from "react";
 import { logoutSession } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 import { usePlatformFeatures, isNavItemVisible } from "../hooks/usePlatformFeatures";
 import { useTheme } from "../hooks/useTheme";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
-import { AiAssistantDrawer } from "./AiAssistantDrawer";
+
+const AiAssistantDrawer = lazy(() =>
+  import("./AiAssistantDrawer").then((m) => ({ default: m.AiAssistantDrawer })),
+);
 
 interface LayoutProps {
   enableBackToClassic?: boolean;
@@ -153,14 +157,20 @@ function DropdownGroup({
                         bg-[var(--quant-surface-strong)] border border-[var(--quant-surface-border)]
                         shadow-[var(--quant-shadow)] backdrop-blur-xl">
           {visibleItems.map((item) => (
-            <Link
+            <NavLink
               key={item.label}
               to={item.to ?? item.href!}
               onClick={onClose}
-              className="block px-4 py-2 text-sm text-[var(--quant-fg)] hover:bg-[var(--quant-surface)] hover:text-[var(--quant-accent)] transition-colors"
+              className={({ isActive }) =>
+                `block px-4 py-2 text-sm transition-colors ${
+                  isActive
+                    ? "bg-[var(--quant-accent)]/12 text-[var(--quant-accent)]"
+                    : "text-[var(--quant-fg)] hover:bg-[var(--quant-surface)] hover:text-[var(--quant-accent)]"
+                }`
+              }
             >
               {item.label}
-            </Link>
+            </NavLink>
           ))}
         </div>
       )}
@@ -292,11 +302,15 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
       </header>
 
       {/* ── Main Content ─────────────────────────────────────────── */}
-      <main className="mx-auto max-w-7xl px-4 py-6">
-        <Outlet />
+      <main className="mx-auto max-w-[1400px] px-4 py-6">
+        <KeepAliveOutlet />
       </main>
 
-      <AiAssistantDrawer open={aiOpen} onClose={() => setAiOpen(false)} />
+      {aiOpen ? (
+        <Suspense fallback={null}>
+          <AiAssistantDrawer open={aiOpen} onClose={() => setAiOpen(false)} />
+        </Suspense>
+      ) : null}
       {!aiOpen && (
         <button
           type="button"

@@ -1,12 +1,12 @@
 import { FormEvent, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { loginWithPassword, loginWithSession } from "../lib/api";
+import { toSpaPath } from "../lib/spaPath";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo =
-    (location.state as { from?: string } | null)?.from ?? "/app";
+  const redirectTo = toSpaPath((location.state as { from?: string } | null)?.from ?? "/");
   const [mode, setMode] = useState<"jwt" | "session">("jwt");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");

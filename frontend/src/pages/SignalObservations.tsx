@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_OBSERVATIONS } from "../lib/demoCatalog";
 
 type Observation = {
   id: string;
@@ -45,10 +48,10 @@ export function SignalObservationsPage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={5} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无信号观测数据</div>;
 
-  const observations = (data.observations ?? []).filter(
+  const live = data?.observations ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !live.length);
+  const observations = (isDemo ? DEMO_OBSERVATIONS : live).filter(
     (o) => filter === "all" || o.trigger_status === filter,
   );
 
@@ -60,11 +63,14 @@ export function SignalObservationsPage() {
         <div>
           <h1 className="text-2xl font-bold">信号观测</h1>
           <p className="text-sm text-slate-500">信号触发状态与入场价格追踪</p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void mutate()}>
           刷新
         </button>
       </div>
+
+      {error ? <div className="alert alert-error">加载失败：{error.message}</div> : null}
 
       <div className="flex flex-wrap gap-2">
         {(["all", "pending", "triggered", "expired"] as const).map((s) => (
@@ -108,8 +114,10 @@ export function SignalObservationsPage() {
               {observations.map((o) => (
                 <tr key={o.id}>
                   <td>
-                    <div className="font-medium">{o.symbol}</div>
-                    <div className="text-xs text-slate-500">{o.name}</div>
+                    <Link className="link" to={`/stock/${encodeURIComponent(o.symbol)}?m=CN`}>
+                      <div className="font-medium">{o.symbol}</div>
+                      <div className="text-xs text-slate-500">{o.name}</div>
+                    </Link>
                   </td>
                   <td><span className="badge badge-ghost badge-sm">{o.signal_type}</span></td>
                   <td>

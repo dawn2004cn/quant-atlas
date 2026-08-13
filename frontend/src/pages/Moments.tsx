@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_MOMENTS } from "../lib/demoCatalog";
 
 type Moment = { id: string; content: string; created_at: string; type: string };
 
@@ -24,6 +26,9 @@ export default function MomentsPage() {
     load();
   }, []);
 
+  const isDemo = Boolean(error) || (!loading && !items.length);
+  const rows = isDemo ? DEMO_MOMENTS : items;
+
   const typeLabel: Record<string, string> = { ai: "AI 分析", post: "用户动态", system: "系统通知" };
 
   return (
@@ -32,6 +37,7 @@ export default function MomentsPage() {
       <div>
         <h1 className="page-title">投资动态</h1>
         <p className="text-sm text-slate-500 mt-1">AI 投资笔记与社区动态</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {error && <div className="alert alert-error text-sm">加载失败: {error}</div>}
@@ -42,7 +48,7 @@ export default function MomentsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map((m) => (
+          {rows.map((m) => (
             <div key={m.id} className="quant-card">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <span className="badge-soft text-xs">{typeLabel[m.type] || m.type}</span>
@@ -51,7 +57,7 @@ export default function MomentsPage() {
               <p className="text-sm whitespace-pre-wrap">{m.content}</p>
             </div>
           ))}
-          {items.length === 0 && <div className="quant-card text-center py-8 text-slate-500">暂无动态</div>}
+          {rows.length === 0 && <div className="quant-card text-center py-8 text-slate-500">暂无动态</div>}
         </div>
       )}
     </div>

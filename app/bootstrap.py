@@ -83,11 +83,15 @@ def _build_flask_app(settings):
         template_folder=settings.template_folder,
         static_folder=settings.static_folder,
     )
+    _env = getattr(settings.environment, "value", str(settings.environment)).lower()
+    _default_cookie_secure = _env == "production" and not settings.debug
     app.config.update(
         SECRET_KEY=settings.secret_key,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
-        SESSION_COOKIE_SECURE=get_runtime_bool("SESSION_COOKIE_SECURE", not settings.debug),
+        # Secure cookies break HTTP localhost / FLASK_ENV=development session login
+        # (browser will not send the cookie → CSRF always fails). Opt-in for prod.
+        SESSION_COOKIE_SECURE=get_runtime_bool("SESSION_COOKIE_SECURE", _default_cookie_secure),
         PERMANENT_SESSION_LIFETIME=timedelta(hours=8),
         WTF_CSRF_ENABLED=False,
     )

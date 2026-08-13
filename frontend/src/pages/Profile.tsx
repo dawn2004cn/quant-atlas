@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_PROFILE } from "../lib/demoCatalog";
 
 type PagePrefs = { font_size?: string };
 type AccessPolicy = { tier_label?: string; features?: Array<{ name: string; enabled: boolean }> };
@@ -41,6 +43,7 @@ export default function Profile() {
   const [notifs, setNotifs] = useState<NotificationPrefs>({});
   const [invest, setInvest] = useState<InvestmentProfile>({});
   const [saving, setSaving] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -51,12 +54,31 @@ export default function Profile() {
         apiFetchV1<NotificationPrefs>("/user/lifecycle"),
         apiFetchV1<InvestmentProfile>("/user/investment-profile"),
       ]);
-      setPrefs(p);
-      setPolicy(a);
-      setAudit(au.items ?? []);
-      setNotifs(n);
-      setInvest(i);
-    } catch { /* keep defaults */ }
+      const auditItems = au.items ?? [];
+      const empty = !a?.tier_label && !auditItems.length && !i?.risk_level;
+      if (empty) {
+        setPrefs(DEMO_PROFILE.prefs);
+        setPolicy(DEMO_PROFILE.policy);
+        setAudit(DEMO_PROFILE.audit);
+        setNotifs(DEMO_PROFILE.notifs);
+        setInvest(DEMO_PROFILE.invest);
+        setIsDemo(true);
+      } else {
+        setPrefs(p ?? DEMO_PROFILE.prefs);
+        setPolicy(a ?? DEMO_PROFILE.policy);
+        setAudit(auditItems.length ? auditItems : DEMO_PROFILE.audit);
+        setNotifs(n ?? DEMO_PROFILE.notifs);
+        setInvest(i ?? DEMO_PROFILE.invest);
+        setIsDemo(!auditItems.length);
+      }
+    } catch {
+      setPrefs(DEMO_PROFILE.prefs);
+      setPolicy(DEMO_PROFILE.policy);
+      setAudit(DEMO_PROFILE.audit);
+      setNotifs(DEMO_PROFILE.notifs);
+      setInvest(DEMO_PROFILE.invest);
+      setIsDemo(true);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -97,7 +119,10 @@ export default function Profile() {
   return (
     <div className="space-y-6">
       <PageQuickNav items={QUICK_NAV_PRESETS.profile} />
-      <h1 className="page-title">个人中心</h1>
+      <div>
+        <h1 className="page-title">个人中心</h1>
+        <DemoBanner show={isDemo} />
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[var(--quant-line-soft)] pb-0">

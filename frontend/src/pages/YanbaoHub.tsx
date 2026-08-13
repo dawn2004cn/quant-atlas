@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_YANBAO } from "../lib/demoCatalog";
 
 /* ── Types ── */
 type Yanbao = {
@@ -64,9 +67,11 @@ export function YanbaoHubPage() {
     { refreshInterval: 120_000 },
   );
 
-  const items = data?.items ?? [];
+  const liveItems = data?.items ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !liveItems.length);
+  const items = isDemo ? DEMO_YANBAO : liveItems;
 
-  if (isLoading && !items.length) return <PageSkeleton rows={5} />;
+  if (isLoading && !liveItems.length) return <PageSkeleton rows={5} />;
 
   return (
     <div className="space-y-5">
@@ -77,6 +82,7 @@ export function YanbaoHubPage() {
         <p className="text-sm text-slate-500">
           券商研究报告聚合，覆盖评级变动与目标价
         </p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Filter Bar */}
@@ -134,14 +140,14 @@ export function YanbaoHubPage() {
                 </td>
                 <td>
                   {r.stock_code ? (
-                    <span>
+                    <Link className="link" to={`/stock/${encodeURIComponent(r.stock_code)}?m=CN`}>
                       <code>{r.stock_code}</code>
                       {r.stock_name ? (
                         <span className="ml-1 text-xs text-slate-500">
                           {r.stock_name}
                         </span>
                       ) : null}
-                    </span>
+                    </Link>
                   ) : (
                     <span className="text-slate-400">--</span>
                   )}

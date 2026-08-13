@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_ARCHITECTURE_ROADMAP } from "../lib/demoCatalog";
 
 type RoadmapItem = { name: string; status: string; description: string };
 type Phase = { phase: string; items: RoadmapItem[] };
@@ -9,7 +11,7 @@ type RoadmapData = { phases?: Phase[] };
 export default function ArchitectureRoadmapPage() {
   const [data, setData] = useState<RoadmapData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -17,8 +19,9 @@ export default function ArchitectureRoadmapPage() {
         setLoading(true);
         const res = await apiFetchV1<RoadmapData>("/system/architecture-roadmap");
         setData(res);
-      } catch (e: any) {
-        setError(e.message);
+        setFailed(false);
+      } catch {
+        setFailed(true);
       } finally {
         setLoading(false);
       }
@@ -26,7 +29,7 @@ export default function ArchitectureRoadmapPage() {
     load();
   }, []);
 
-  if (loading && !data) {
+  if (loading && !data && !failed) {
     return (
       <div className="space-y-4">
         <div className="skeleton skeleton-card"></div>
@@ -35,7 +38,9 @@ export default function ArchitectureRoadmapPage() {
     );
   }
 
-  const phases = data?.phases ?? [];
+  const livePhases = data?.phases ?? [];
+  const isDemo = failed || !livePhases.length;
+  const phases = isDemo ? DEMO_ARCHITECTURE_ROADMAP.phases : livePhases;
 
   return (
     <div className="space-y-5">
@@ -43,15 +48,8 @@ export default function ArchitectureRoadmapPage() {
       <div>
         <h1 className="page-title">架构路线图</h1>
         <p className="text-sm text-slate-500 mt-1">系统架构阶段与里程碑进展</p>
+        <DemoBanner show={isDemo} />
       </div>
-
-      {error && <div className="alert alert-error text-sm">加载失败: {error}</div>}
-
-      {phases.length === 0 && !error && (
-        <div className="quant-card text-center py-8">
-          <p className="text-slate-500">暂无路线图数据</p>
-        </div>
-      )}
 
       <div className="space-y-4">
         {phases.map((phase, pi) => (

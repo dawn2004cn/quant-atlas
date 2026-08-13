@@ -2,7 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_AI_CHAT } from "../lib/demoCatalog";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
@@ -25,7 +27,8 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
 ];
 
 export function AIChatPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([...DEMO_AI_CHAT]);
+  const [isDemo, setIsDemo] = useState(true);
   const [input, setInput] = useState("");
   const [sessionId, setSessionId] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
@@ -77,6 +80,7 @@ export function AIChatPage() {
       if (!reader) throw new Error("无法读取响应流");
 
       const assistantMsg: ChatMessage = { role: "assistant", content: "" };
+      setIsDemo(false);
       setMessages((prev) => [...prev, assistantMsg]);
 
       const decoder = new TextDecoder();
@@ -114,6 +118,11 @@ export function AIChatPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "发送失败");
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: DEMO_AI_CHAT[1].content },
+      ]);
+      setIsDemo(true);
     } finally {
       setSubmitting(false);
     }
@@ -128,6 +137,7 @@ export function AIChatPage() {
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
       <PageQuickNav items={QUICK_NAV_PRESETS.aiChat} />
+      <DemoBanner show={isDemo} />
       <div>
         <h1 className="text-2xl font-bold">AI 对话</h1>
         <p className="text-sm text-zinc-500">与投资研究助手自然语言交流</p>

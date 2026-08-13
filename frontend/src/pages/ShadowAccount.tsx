@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_SHADOW_ACCOUNT } from "../lib/demoCatalog";
 
 type AnalysisResult = {
   total_trades?: number;
@@ -15,12 +17,24 @@ export default function ShadowAccountPage() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDemo, setIsDemo] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     apiFetchV1<AnalysisResult>("/shadow-account/status")
-      .then(setResult)
-      .catch(() => {})
+      .then((res) => {
+        if (res && res.total_trades != null) {
+          setResult(res);
+          setIsDemo(false);
+        } else {
+          setResult(DEMO_SHADOW_ACCOUNT);
+          setIsDemo(true);
+        }
+      })
+      .catch(() => {
+        setResult(DEMO_SHADOW_ACCOUNT);
+        setIsDemo(true);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -39,9 +53,12 @@ export default function ShadowAccountPage() {
       if (!res.ok) throw new Error(`上传失败 (${res.status})`);
       const json = await res.json();
       setResult(json?.data ?? json);
+      setIsDemo(false);
       setFile(null);
     } catch (e: any) {
       setError(e.message);
+      setResult(DEMO_SHADOW_ACCOUNT);
+      setIsDemo(true);
     } finally {
       setUploading(false);
     }
@@ -57,6 +74,7 @@ export default function ShadowAccountPage() {
       <div>
         <h1 className="page-title">影子账户</h1>
         <p className="text-sm text-slate-500 mt-1">导入 CSV/Excel 成交记录，模拟账户分析</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {error && <div className="alert alert-error text-sm">{error}</div>}

@@ -2,7 +2,9 @@ import { useState } from "react";
 import useSWR from "swr";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { CoreNextSteps, CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_AI_ANALYSIS } from "../lib/demoCatalog";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
@@ -23,7 +25,7 @@ type AnalysisResult = {
 };
 
 export function AIAnalysisPage() {
-  const [symbol, setSymbol] = useState("");
+  const [symbol, setSymbol] = useState("600519");
   const [market, setMarket] = useState<string>("CN");
   const [submitted, setSubmitted] = useState(false);
 
@@ -95,72 +97,68 @@ export function AIAnalysisPage() {
         </button>
       </Panel>
 
-      {error && <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">{error.message}</div>}
       {isLoading && <PageSkeleton rows={4} />}
 
-      {!submitted && !isLoading && (
-        <Panel className="flex flex-col items-center gap-3 p-8 text-center">
-          <div className="text-4xl">📊</div>
-          <p className="text-sm text-zinc-400">
-            输入标的代码并选择市场，开始 AI 分析
-          </p>
-        </Panel>
-      )}
-
-      {data && !isLoading && (
+      {(() => {
+        const isDemo = !isLoading && (Boolean(error) || !data);
+        const view = (!isLoading && data) ? data : DEMO_AI_ANALYSIS;
+        if (isLoading) return null;
+        return (
         <Panel className="space-y-4 p-4">
+          <DemoBanner show={isDemo || !submitted} />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-bold">
-                {data.symbol}
-                <span className="ml-2 text-xs font-normal text-zinc-500">{data.market}</span>
+                {view.symbol}
+                <span className="ml-2 text-xs font-normal text-zinc-500">{view.market}</span>
               </h2>
               <p className="text-xs text-zinc-400">
-                分析时间：{new Date(data.generated_at).toLocaleString("zh-CN")}
+                分析时间：{new Date(view.generated_at).toLocaleString("zh-CN")}
               </p>
             </div>
-            {data.recommendation && (
-              <span className="rounded px-3 py-1.5 font-mono text-xs font-semibold bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30">{data.recommendation}</span>
+            {view.recommendation && (
+              <span className="rounded px-3 py-1.5 font-mono text-xs font-semibold bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30">{view.recommendation}</span>
             )}
           </div>
 
-          {data.summary && (
+          {view.summary && (
             <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
               <h3 className="mb-1 text-xs font-bold text-zinc-500">摘要</h3>
-              <p className="text-sm">{data.summary}</p>
+              <p className="text-sm">{view.summary}</p>
             </div>
           )}
 
-          <CoreNextSteps symbol={data.symbol} />
+          <CoreNextSteps symbol={view.symbol} />
 
           <div className="grid gap-3 md:grid-cols-2">
-            {data.technical && (
+            {view.technical && (
               <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
                 <h3 className="mb-1 text-xs font-bold text-zinc-500">技术分析</h3>
-                <p className="text-sm whitespace-pre-wrap">{data.technical}</p>
+                <p className="text-sm whitespace-pre-wrap">{view.technical}</p>
               </div>
             )}
-            {data.fundamental && (
+            {view.fundamental && (
               <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
                 <h3 className="mb-1 text-xs font-bold text-zinc-500">基本面</h3>
-                <p className="text-sm whitespace-pre-wrap">{data.fundamental}</p>
+                <p className="text-sm whitespace-pre-wrap">{view.fundamental}</p>
               </div>
             )}
-            {data.sentiment && (
+            {view.sentiment && (
               <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
                 <h3 className="mb-1 text-xs font-bold text-zinc-500">市场情绪</h3>
-                <p className="text-sm whitespace-pre-wrap">{data.sentiment}</p>
+                <p className="text-sm whitespace-pre-wrap">{view.sentiment}</p>
               </div>
             )}
-            {data.risk && (
+            {view.risk && (
               <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
                 <h3 className="mb-1 text-xs font-bold text-zinc-500">风险提示</h3>
-                <p className="text-sm whitespace-pre-wrap">{data.risk}</p>
+                <p className="text-sm whitespace-pre-wrap">{view.risk}</p>
               </div>
             )}
           </div>
         </Panel>
-      )}
+        );
+      })()}
     </div>
   );
 }

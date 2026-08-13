@@ -70,16 +70,13 @@ class MemoryCache:
 
     def set(self, key: str, value: Any, ttl: int | None = None):
         effective_ttl = ttl or self._default_ttl
-        if hasattr(self._store, 'update'):
-            # cachetools TTLCache path
+        if hasattr(self._store, "get") and not isinstance(self._store, dict):
             self._store[key] = value
-        else:
-            # Fallback dict path
-            if len(self._store) >= self._maxsize:
-                # Evict oldest entry
-                oldest_key = min(self._store, key=lambda k: self._store[k].created_at)
-                del self._store[oldest_key]
-            self._store[key] = CacheEntry(value, effective_ttl)
+            return
+        if len(self._store) >= self._maxsize:
+            oldest_key = min(self._store, key=lambda k: self._store[k].created_at)
+            del self._store[oldest_key]
+        self._store[key] = CacheEntry(value, effective_ttl)
 
     def delete(self, key: str):
         self._store.pop(key, None)

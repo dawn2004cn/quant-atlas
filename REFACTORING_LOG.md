@@ -4,6 +4,87 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-13 (SPA 自测：HTTP Session 登录 + 组合演示可用性)
+
+### 问题
+- `SESSION_COOKIE_SECURE` 默认 `not debug`：`FLASK_ENV=development` 且未开 `FLASK_DEBUG` 时 Secure cookie 在 HTTP 下不发送 → Session 登录 CSRF 必失败
+- 组合页 API 返回无报价/权重的占位持仓时仍当实盘渲染 → `NaN%`、名称/价格为空且不显示 DemoBanner
+- 操盘台首屏等待 live snapshot（可达 ~30s）空白骨架过久
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `app/bootstrap.py` | Secure cookie 默认仅 production |
+| `app/presentation/api/v2/auth_routes.py` | JWT cookie 跟随 `SESSION_COOKIE_SECURE` |
+| `frontend/src/pages/Portfolio.tsx` | 无可用价/权重时回退 `DEMO_PORTFOLIO` |
+| `frontend/src/pages/Dashboard.tsx` | 加载中即时演示占位 |
+| `tests/bootstrap/test_session_cookie_secure.py` | 新增默认策略测试 |
+
+### 验证
+- `pytest tests/bootstrap/test_session_cookie_secure.py tests/frontend/test_spa_shell_contracts.py`
+- 手工：HTTP Session 登录 admin；P0 五页有数据；组合页 DemoBanner
+
+---
+
+### 问题
+- 本地 SQLite 启动失败：`stock_history_{quote_identifier(market)}` 生成 MySQL 反引号，DDL 语法错误
+- `/app/`（尾斜杠）404，而 `/app` 正常
+- `locales/*.json` 若仍为 Git LFS pointer，登录页 `t()` 直接 JSONDecodeError → 500
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `app/infrastructure/database/adapters.py` | SQLite history 表后缀用 allowlist 校验后的裸标识符 |
+| `app/presentation/web/pages_spa.py` | 注册 `/app/` |
+| `app/core/i18n.py` | LFS pointer / 坏 JSON 时降级为空字典，避免登录 500 |
+| `tests/frontend/test_spa_shell_contracts.py` | 契约覆盖 `/app/` |
+| `tests/infrastructure/test_sqlite_adapter_schema.py` | 新建：history 表可建 |
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py tests/frontend/test_core_pages_demo_fallback.py tests/infrastructure/test_sqlite_adapter_schema.py`
+- 手工：`GET /login` 200、`GET /app/` 200
+
+---
+
+## 2026-08-13 (SPA 体验：有数据 / 快 / 局部刷新)
+
+### 目标
+操盘台在行情源空时仍有可展示样本；页面切换只刷新内容区。
+
+### 交付
+- `workbench_display_fallback.py`：空面板补演示数据，`data_mode=demo|mixed|live`
+- 恢复 `CoreWorkflowStrip.tsx`（此前空文件导致全站 import 崩溃）
+- `KeepAliveOutlet` + 全局 `SWRConfig(keepPreviousData)`
+- 登录 `toSpaPath` 避免 `/app/app`
+- Vite 分包去掉未安装的 echarts / lightweight-charts
+- 核心流程页空列表改演示样本 + `DemoBanner`：自选 / 热点 / 组合 / 选股 / 全景 / 全球雷达 / 龙虎榜 / 通达信板块 / 因子库 / 研报 / 信号旗 / 回测历史 / 策略向导 / 策略快照 / 信号观测 / 预警中心 / 禅意看板 / 选股结果 / 组合详情 / Marketplace / 股票管理 / AI 对冲基金 / 委员会选股 / 投资经理 / 专家团队 / 动态 / 消息中心 / 作战室 / 委员会仪表盘 / 任务中心 / Swarm / 研究管线 / 研究画板 / Agent 中心 / 系统能力 / 语音简报 / Alpha 工厂 / 决策回放 / 协作工作区 / 观测台 / AI 投资委员会 / 架构路线图 / 散户助手 / 组合共鸣 / 归因分析 / 实验报告 / 因子详情 / 因子演化 / 集成中枢 / 决策快照 / 数据湖健康 / 专业工作台 / 用户管理 / 用户光谱 / 四档会员 / 影子账户 / 个人中心 / 任务详情 / 量化实验室 / AI 诊股 / AI 聊天 / AI 研报 / 回测 / 中长线选股 / NL 策略 / 组合优化 / 个股详情 / 策略对比 / 禅终端
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py tests/frontend/test_core_pages_demo_fallback.py tests/modules/strategy/test_daily_workbench_display_fallback.py`
+
+---
+
+## 2026-08-11 (性能快赢：SPA 首屏 + 热路径 API)
+
+### 目标
+双轨快赢：页面加载更轻、热 API 响应更快；不做大重构。
+
+### 交付
+| 项 | 要点 |
+|----|------|
+| `response_optimizer.py` | `/api/` 默认不再打 `public, max-age=300` |
+| `routes_v1_platform.py` | strategic-features：进程缓存 600s + `private, max-age=600` |
+| `daily_workbench_service.py` | MemoryCache 短 TTL（≤45s），`_cache` hit/miss |
+| `vite.config.ts` | charts 拆为 chart-lw / chart-echarts / chart-recharts |
+| `App.tsx` | StockDetail lazy |
+| `Dashboard.tsx` | 默认关 WS，手动「连接实时」；SWR dedupe |
+| `Layout.tsx` | AiAssistantDrawer 打开时再挂载 |
+
+### 验证
+- `pytest tests/infrastructure/test_response_optimizer_cache.py tests/modules/strategy/test_daily_workbench_cache.py -q`
+
+---
+
 ## 2026-06-24 (阶段 A：页面数据加载路由修复)
 
 ### 问题

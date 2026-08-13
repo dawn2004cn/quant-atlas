@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { PageSkeleton } from "../components/PageSkeleton";
+import { DemoBanner } from "../components/DemoBanner";
+import { DEMO_MEMBERS, DEMO_SECTORS } from "../lib/demoCatalog";
 import { apiFetchV1, fetchMarketQuotesPage } from "../lib/api";
 import type { HotSector, HotSectorMember, HotSectorSnapshot } from "../types/hotSector";
 
@@ -87,7 +89,9 @@ export function HotSectorsPage() {
   );
   const { data: snapshotsResp } = useSWR("hot-sectors/snapshots", fetchSnapshots, { refreshInterval: 600_000 });
 
-  const sectors = sectorsResp?.data?.sectors ?? [];
+  const liveSectors = sectorsResp?.data?.sectors ?? [];
+  const isDemo = Boolean(error) || (!isLoading && liveSectors.length === 0);
+  const sectors = isDemo ? DEMO_SECTORS : liveSectors;
   const warnings = sectorsResp?.data?.warnings ?? [];
   const csAt = sectorsResp?.data?.snapshot_at ?? "";
   const sourceMode = sectorsResp?.data?.source_mode ?? source;
@@ -97,6 +101,11 @@ export function HotSectorsPage() {
     setActiveSector(sector);
     setMembersLoading(true);
     setMembersData(null);
+    if (isDemo) {
+      setMembersData(DEMO_MEMBERS);
+      setMembersLoading(false);
+      return;
+    }
     try {
       const resp = await fetchMembers(sector.code, sector.kind, sector.name, sector.provider, csAt);
       const items = resp?.data?.items ?? [];
@@ -111,7 +120,7 @@ export function HotSectorsPage() {
       }));
     } catch { setMembersData([]); }
     finally { setMembersLoading(false); }
-  }, [csAt]);
+  }, [csAt, isDemo]);
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
@@ -121,6 +130,7 @@ export function HotSectorsPage() {
         <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">Hot Sectors Monitor</div>
         <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100">热点板块</h1>
         <p className="mt-1 text-sm text-zinc-500">多源板块监控: 东方财富, 同花顺, 开盘啦, 选股通</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Filter Bar */}

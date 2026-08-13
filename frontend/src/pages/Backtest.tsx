@@ -16,6 +16,8 @@ import {
   previewStrategy,
   runBacktest,
 } from "../lib/api";
+import { DemoBanner } from "../components/DemoBanner";
+import { DEMO_BACKTEST } from "../lib/demoCatalog";
 import type { BacktestCompareResult, BacktestResult } from "../types/backtest";
 
 const EquityCurveChart = lazy(() =>
@@ -91,7 +93,8 @@ export function BacktestPage() {
   const [loadingHint, setLoadingHint] = useState<string | null>(null);
   const [asyncTaskId, setAsyncTaskId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<BacktestResult | null>(null);
+  const [result, setResult] = useState<BacktestResult | null>(DEMO_BACKTEST as BacktestResult);
+  const [isDemo, setIsDemo] = useState(true);
   const [lastRun, setLastRun] = useState<{ strategy: string; symbol: string } | null>(null);
   const [duelLoading, setDuelLoading] = useState(false);
   const [duelError, setDuelError] = useState<string | null>(null);
@@ -113,7 +116,6 @@ export function BacktestPage() {
     setAsyncTaskId(null);
     setLoadingHint(asyncMode ? "已提交异步任务，轮询结果中…" : null);
     setError(null);
-    setResult(null);
     try {
       const data = await runBacktest(
         { symbol, strategy_name: strategy, start, end, initial_capital: capital },
@@ -129,9 +131,12 @@ export function BacktestPage() {
         },
       );
       setResult(data);
+      setIsDemo(false);
       setLastRun({ strategy, symbol });
     } catch (err) {
       setError(err instanceof Error ? err.message : "回测失败");
+      setResult(DEMO_BACKTEST as BacktestResult);
+      setIsDemo(true);
     } finally {
       setLoading(false);
       setLoadingHint(null);
@@ -145,13 +150,15 @@ export function BacktestPage() {
     setLoading(true);
     setLoadingHint(null);
     setError(null);
-    setResult(null);
     try {
       const data = await previewStrategy(templateId, {}, previewSymbol);
       setResult(data as BacktestResult);
+      setIsDemo(false);
       setLastRun({ strategy: templateId, symbol: previewSymbol });
     } catch (err) {
       setError(err instanceof Error ? err.message : "预览失败");
+      setResult(DEMO_BACKTEST as BacktestResult);
+      setIsDemo(true);
     } finally {
       setLoading(false);
       setLoadingHint(null);
@@ -185,6 +192,7 @@ export function BacktestPage() {
         <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">Backtest Hub</div>
         <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100">策略回测中心</h1>
         <p className="mt-1 text-sm text-zinc-500">历史回测、绩效指标与净值曲线</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Tab switch */}

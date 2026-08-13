@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_ATTRIBUTION } from "../lib/demoCatalog";
 
 type Sector = { name: string; weight: number; return: number };
 type AttributionData = {
@@ -14,7 +16,7 @@ type AttributionData = {
 export default function AttributionDashboardPage() {
   const [data, setData] = useState<AttributionData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -22,8 +24,9 @@ export default function AttributionDashboardPage() {
         setLoading(true);
         const res = await apiFetchV1<AttributionData>("/analytics/attribution");
         setData(res);
-      } catch (e: any) {
-        setError(e.message);
+        setFailed(false);
+      } catch {
+        setFailed(true);
       } finally {
         setLoading(false);
       }
@@ -31,7 +34,7 @@ export default function AttributionDashboardPage() {
     load();
   }, []);
 
-  if (loading && !data) {
+  if (loading && !data && !failed) {
     return (
       <div className="space-y-4">
         <div className="skeleton skeleton-card"></div>
@@ -40,17 +43,20 @@ export default function AttributionDashboardPage() {
     );
   }
 
+  const isDemo = failed || !data || data.total_return == null;
+  const view = isDemo ? DEMO_ATTRIBUTION : data!;
+
   const statCards = [
-    { label: "总收益", value: data?.total_return, fmt: "pct" },
-    { label: "配置效应", value: data?.allocation_effect, fmt: "pct" },
-    { label: "选股效应", value: data?.selection_effect, fmt: "pct" },
-    { label: "交互效应", value: data?.interaction_effect, fmt: "pct" },
+    { label: "总收益", value: view.total_return, fmt: "pct" },
+    { label: "配置效应", value: view.allocation_effect, fmt: "pct" },
+    { label: "选股效应", value: view.selection_effect, fmt: "pct" },
+    { label: "交互效应", value: view.interaction_effect, fmt: "pct" },
   ];
 
   const fmtPct = (v?: number) => v != null ? `${(v >= 0 ? "+" : "")}${v.toFixed(2)}%` : "--";
   const pctClass = (v?: number) => v != null ? (v >= 0 ? "text-emerald-600" : "text-rose-600") : "";
 
-  const sectors = data?.sectors ?? [];
+  const sectors = view.sectors ?? [];
 
   return (
     <div className="space-y-5">
@@ -59,9 +65,8 @@ export default function AttributionDashboardPage() {
       <div>
         <h1 className="page-title">归因分析</h1>
         <p className="text-sm text-slate-500 mt-1">Brinson 绩效归因分解</p>
+        <DemoBanner show={isDemo} />
       </div>
-
-      {error && <div className="alert alert-error text-sm">加载失败: {error}</div>}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((s, i) => (

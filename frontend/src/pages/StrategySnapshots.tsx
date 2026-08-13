@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_STRATEGY_SNAPSHOTS } from "../lib/demoCatalog";
 
 type SnapshotRun = {
   run_id: string;
@@ -32,9 +35,11 @@ export function StrategySnapshotsPage() {
     { refreshInterval: 60_000 },
   );
 
-  const items = data?.items ?? [];
+  const liveItems = data?.items ?? [];
+  const isDemo = Boolean(error) || (!isLoading && !liveItems.length);
+  const items = isDemo ? DEMO_STRATEGY_SNAPSHOTS : liveItems;
 
-  if (isLoading && !items.length) return <PageSkeleton rows={4} />;
+  if (isLoading && !liveItems.length) return <PageSkeleton rows={4} />;
 
   return (
     <div className="space-y-5">
@@ -43,6 +48,7 @@ export function StrategySnapshotsPage() {
         <div>
           <h1 className="text-2xl font-bold">策略快照</h1>
           <p className="text-sm text-slate-500">历史回测快照记录</p>
+          <DemoBanner show={isDemo} />
         </div>
         <select className="select select-bordered select-sm" value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
           <option value={20}>20条</option>
@@ -62,7 +68,11 @@ export function StrategySnapshotsPage() {
             {items.map((r: SnapshotRun) => (
               <tr key={r.run_id}>
                 <td className="font-semibold">{r.strategy_name}</td>
-                <td><code>{r.symbol}</code></td>
+                <td>
+                  <Link className="link font-mono text-sm" to={`/stock/${encodeURIComponent(r.symbol)}?m=CN`}>
+                    {r.symbol}
+                  </Link>
+                </td>
                 <td className={r.metrics.total_return_pct != null && r.metrics.total_return_pct >= 0 ? "text-emerald-600" : "text-rose-600"}>{fmtPct(r.metrics.total_return_pct)}</td>
                 <td>{fmtPct(r.metrics.annual_return_pct)}</td>
                 <td>{r.metrics.sharpe?.toFixed(2) ?? "--"}</td>

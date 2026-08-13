@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { fetchFactorRepository } from "../lib/api";
+import { DEMO_FACTORS } from "../lib/demoCatalog";
 import type { AlphaFactorItem } from "../types/alpha";
 
 const REGIMES = [
@@ -62,6 +64,20 @@ export default function FactorRepository() {
   }, [searchInput]);
 
   const totalPages = Math.max(1, Math.ceil(total / 12));
+  const isDemo = !loading && factors.length === 0;
+  const rows = isDemo
+    ? DEMO_FACTORS.filter((f) => {
+        if (regime && f.regime !== regime) return false;
+        if (!search) return true;
+        const q = search.toLowerCase();
+        return (f.factor_id ?? "").toLowerCase().includes(q) || (f.formula ?? "").toLowerCase().includes(q);
+      })
+    : factors;
+  const displayTotal = isDemo ? rows.length : total;
+  const displaySharpe = isDemo
+    ? rows.reduce((s, f) => s + (f.sharpe_ratio ?? 0), 0) / Math.max(rows.length, 1)
+    : avgSharpe;
+  const displayActive = isDemo ? rows.length : activeCount;
 
   return (
     <div className="space-y-6">
@@ -71,13 +87,14 @@ export default function FactorRepository() {
       <div>
         <h1 className="page-title">因子库</h1>
         <p className="text-[var(--quant-muted)] text-sm mt-1">浏览和搜索已有的 Alpha 因子</p>
+        <DemoBanner show={isDemo} />
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 max-w-lg">
-        <StatCard label="因子总数" value={total} />
-        <StatCard label="平均 Sharpe" value={avgSharpe.toFixed(2)} />
-        <StatCard label="活跃因子" value={activeCount} />
+        <StatCard label="因子总数" value={displayTotal} />
+        <StatCard label="平均 Sharpe" value={displaySharpe.toFixed(2)} />
+        <StatCard label="活跃因子" value={displayActive} />
       </div>
 
       {/* Filter Bar */}
@@ -114,11 +131,11 @@ export default function FactorRepository() {
             <div key={i} className="skeleton skeleton-card" />
           ))}
         </div>
-      ) : factors.length === 0 ? (
+      ) : rows.length === 0 ? (
         <div className="text-center py-16 text-[var(--quant-muted)]">暂无因子数据</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {factors.map((f) => (
+          {rows.map((f) => (
             <Link
               key={f.factor_id}
               to={`/factor/${f.factor_id}`}

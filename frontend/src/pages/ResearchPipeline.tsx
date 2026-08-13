@@ -1,7 +1,9 @@
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_RESEARCH_PIPELINE } from "../lib/demoCatalog";
 
 type PipelineStage = {
   id: string;
@@ -63,10 +65,10 @@ export function ResearchPipelinePage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={5} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无研究管线数据</div>;
 
-  const stages = data.stages ?? [];
+  const isDemo = Boolean(error) || !data || !(data.stages ?? []).length;
+  const view = isDemo ? DEMO_RESEARCH_PIPELINE : data;
+  const stages = view.stages ?? [];
   const completedStages = stages.filter((s) => s.status === "completed").length;
 
   return (
@@ -76,8 +78,9 @@ export function ResearchPipelinePage() {
         <div>
           <h1 className="text-2xl font-bold">研究管线</h1>
           <p className="text-sm text-slate-500">
-            {data.name} — {data.description}
+            {view.name} — {view.description}
           </p>
+          <DemoBanner show={isDemo} />
         </div>
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => void mutate()}>
           刷新
@@ -85,16 +88,16 @@ export function ResearchPipelinePage() {
       </div>
 
       <div className="flex items-center gap-4 flex-wrap">
-        <span className={`badge ${PIPELINE_STATUS_CLASS[data.status] ?? "badge-ghost"}`}>
-          {PIPELINE_STATUS_LABEL[data.status] ?? data.status}
+        <span className={`badge ${PIPELINE_STATUS_CLASS[view.status] ?? "badge-ghost"}`}>
+          {PIPELINE_STATUS_LABEL[view.status] ?? view.status}
         </span>
         <span className="text-sm text-slate-500">
           阶段进度：{completedStages}/{stages.length}
         </span>
-        {data.started_at && (
-          <span className="text-xs text-slate-400">开始于 {data.started_at}</span>
+        {view.started_at && (
+          <span className="text-xs text-slate-400">开始于 {view.started_at}</span>
         )}
-        <span className="text-xs text-slate-400">更新于 {data.updated_at}</span>
+        <span className="text-xs text-slate-400">更新于 {view.updated_at}</span>
       </div>
 
       {stages.length === 0 ? (

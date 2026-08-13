@@ -1,9 +1,11 @@
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_PORTFOLIO_DETAIL } from "../lib/demoCatalog";
 import type { PortfolioPosition, OptimizationResult, RebalanceAlert } from "../types/portfolio";
 
 type PortfolioDetailData = {
@@ -64,12 +66,12 @@ export function PortfolioDetailPage() {
     () => apiFetchV1<{ actions: RebalanceAlert[] }>(`/portfolio/rebalance?symbols=${encodeURIComponent(symbolsList.join(","))}&cash=${data?.cash ?? 100000}&threshold=0.05`),
   );
 
-  if (isLoading) return <PageSkeleton rows={4} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">组合不存在</div>;
+  if (isLoading && !data && !error) return <PageSkeleton rows={4} />;
 
-  const positions = data.positions ?? [];
-  const metrics = data.metrics;
+  const isDemo = Boolean(error) || (!isLoading && (!data || !(data.positions ?? []).length));
+  const view = isDemo ? { ...DEMO_PORTFOLIO_DETAIL, id: id ?? "demo" } : data!;
+  const positions = view.positions ?? [];
+  const metrics = view.metrics;
 
   return (
     <div className="space-y-5">
@@ -77,18 +79,19 @@ export function PortfolioDetailPage() {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{data.name ?? `组合 #${id}`}</h1>
-          <p className="text-sm text-slate-500">{data.description ?? ""} · 创建于 {data.created_at ? new Date(data.created_at).toLocaleDateString("zh-CN") : "--"}</p>
+          <h1 className="text-2xl font-bold">{view.name ?? `组合 #${id}`}</h1>
+          <p className="text-sm text-slate-500">{view.description ?? ""} · 创建于 {view.created_at ? new Date(view.created_at).toLocaleDateString("zh-CN") : "--"}</p>
+          <DemoBanner show={isDemo} />
         </div>
         <div className="text-right">
-          <div className="text-2xl font-black">¥{(data.total_value ?? 0).toLocaleString()}</div>
+          <div className="text-2xl font-black">¥{(view.total_value ?? 0).toLocaleString()}</div>
           <div className="text-xs text-slate-500">总价值</div>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="glass-card rounded-2xl p-3"><div className="text-xs text-slate-500">现金</div><div className="text-lg font-bold">¥{(data.cash ?? 0).toLocaleString()}</div></div>
+        <div className="glass-card rounded-2xl p-3"><div className="text-xs text-slate-500">现金</div><div className="text-lg font-bold">¥{(view.cash ?? 0).toLocaleString()}</div></div>
         <div className="glass-card rounded-2xl p-3"><div className="text-xs text-slate-500">夏普比</div><div className="text-lg font-bold">{metrics?.sharpe?.toFixed(2) ?? "--"}</div></div>
         <div className="glass-card rounded-2xl p-3"><div className="text-xs text-slate-500">波动率</div><div className="text-lg font-bold">{metrics?.volatility != null ? `${metrics.volatility.toFixed(2)}%` : "--"}</div></div>
         <div className="glass-card rounded-2xl p-3"><div className="text-xs text-slate-500">最大回撤</div><div className="text-lg font-bold text-rose-600">{metrics?.max_drawdown != null ? `${Math.abs(metrics.max_drawdown).toFixed(2)}%` : "--"}</div></div>
@@ -116,7 +119,11 @@ export function PortfolioDetailPage() {
             <tbody>
               {positions.map((pos: PortfolioPosition) => (
                 <tr key={pos.symbol}>
-                  <td><code>{pos.symbol}</code></td>
+                  <td>
+                    <Link className="link font-mono text-sm" to={`/stock/${encodeURIComponent(pos.symbol)}?m=CN`}>
+                      {pos.symbol}
+                    </Link>
+                  </td>
                   <td className="font-medium">{pos.name ?? "--"}</td>
                   <td>{pos.shares}</td>
                   <td>¥{pos.price?.toFixed(2) ?? "--"}</td>

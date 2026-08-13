@@ -1,8 +1,11 @@
 import { useState } from "react";
 import useSWR from "swr";
+import { Link } from "react-router-dom";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_LONG_TERM_SELECT } from "../lib/demoCatalog";
 
 type StockCandidate = {
   code: string;
@@ -30,7 +33,11 @@ export function LongTermSelectPage() {
     }),
   );
 
-  const candidates = data?.candidates ?? [];
+  const live = data?.candidates ?? [];
+  const isDemo = !ran || Boolean(error) || (!isLoading && !live.length);
+  const candidates = isDemo ? DEMO_LONG_TERM_SELECT.candidates : live;
+  const strategyLabel = isDemo ? DEMO_LONG_TERM_SELECT.strategy : (data?.strategy ?? strategy);
+  const marketLabel = isDemo ? DEMO_LONG_TERM_SELECT.market : (data?.market ?? "CN");
 
   return (
     <div className="space-y-5">
@@ -39,6 +46,7 @@ export function LongTermSelectPage() {
         <div>
           <h1 className="text-2xl font-bold">中长线选股</h1>
           <p className="text-sm text-slate-500">基于多因子模型 + AI 的基本面与量化选股</p>
+          <DemoBanner show={isDemo} />
         </div>
       </div>
 
@@ -81,12 +89,11 @@ export function LongTermSelectPage() {
         </div>
       </div>
 
-      {error && <div className="alert alert-error">{error.message}</div>}
       {isLoading && <PageSkeleton rows={3} />}
 
       {candidates.length > 0 && (
         <div className="flex items-center gap-2 text-sm text-slate-500">
-          共选出 {candidates.length} 只标的 · 策略: {data?.strategy ?? strategy} · 市场: {data?.market ?? "CN"}
+          共选出 {candidates.length} 只标的 · 策略: {strategyLabel} · 市场: {marketLabel}
         </div>
       )}
 
@@ -99,12 +106,12 @@ export function LongTermSelectPage() {
             <tbody>
               {candidates.map((c: StockCandidate, i: number) => (
                 <tr key={c.code}>
-                  <td className="text-slate-400">{i + 1}</td>
-                  <td><code>{c.code}</code></td>
-                  <td className="font-medium">{c.name}</td>
-                  <td><span className="badge badge-primary">{c.score?.toFixed(1) ?? "--"}</span></td>
-                  <td className="text-xs text-slate-500">{c.industry ?? "--"}</td>
-                  <td className="max-w-xs text-xs text-slate-600">{c.reason ?? "--"}</td>
+                  <td>{i + 1}</td>
+                  <td><Link className="link link-primary font-mono" to={`/stocks/${c.code}`}>{c.code}</Link></td>
+                  <td>{c.name}</td>
+                  <td className="mono font-bold">{c.score.toFixed(1)}</td>
+                  <td>{c.industry ?? "--"}</td>
+                  <td className="text-sm text-slate-500">{c.reason ?? "--"}</td>
                 </tr>
               ))}
             </tbody>

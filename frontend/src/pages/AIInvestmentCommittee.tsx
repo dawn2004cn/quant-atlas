@@ -1,8 +1,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_INVESTMENT_COMMITTEE } from "../lib/demoCatalog";
 
 type DebateTurn = {
   speaker: string;
@@ -56,9 +58,10 @@ export function AIInvestmentCommitteePage() {
     }
   };
 
-  if (isLoading && !data) return <PageSkeleton rows={4} />;
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!data) return <div className="alert alert-warning">暂无委员会数据</div>;
+  if (isLoading && !data && !error) return <PageSkeleton rows={4} />;
+
+  const isDemo = Boolean(error) || !data || (!(data.debates ?? []).length && !(data.proposals ?? []).length);
+  const view = isDemo ? DEMO_INVESTMENT_COMMITTEE : data!;
 
   return (
     <div className="space-y-5">
@@ -67,11 +70,12 @@ export function AIInvestmentCommitteePage() {
       <div>
         <h1 className="text-2xl font-bold">AI 投资委员会</h1>
         <p className="text-sm text-slate-500">
-          多智能体辩论与投资决策 · {data.active_members} 名活跃成员
+          多智能体辩论与投资决策 · {view.active_members} 名活跃成员
         </p>
-        {data.updated_at && (
+        <DemoBanner show={isDemo} />
+        {view.updated_at && (
           <p className="mt-1 text-xs text-slate-400">
-            更新于：{new Date(data.updated_at).toLocaleString("zh-CN")}
+            更新于：{new Date(view.updated_at).toLocaleString("zh-CN")}
           </p>
         )}
       </div>
@@ -83,26 +87,26 @@ export function AIInvestmentCommitteePage() {
           className={`tab ${activeTab === "debates" ? "tab-active" : ""}`}
           onClick={() => setActiveTab("debates")}
         >
-          辩论 ({data.debates.length})
+          辩论 ({view.debates.length})
         </button>
         <button
           type="button"
           className={`tab ${activeTab === "proposals" ? "tab-active" : ""}`}
           onClick={() => setActiveTab("proposals")}
         >
-          提案 ({data.proposals.length})
+          提案 ({view.proposals.length})
         </button>
       </div>
 
       {/* Debates */}
       {activeTab === "debates" && (
         <>
-          {data.debates.length === 0 ? (
+          {view.debates.length === 0 ? (
             <div className="glass-card p-6 text-center text-sm text-slate-400">
               暂无活跃辩论
             </div>
           ) : (
-            data.debates.map((debate, idx) => (
+            view.debates.map((debate, idx) => (
               <div key={idx} className="glass-card space-y-3 p-4">
                 <div className="flex items-center justify-between">
                   <h2 className="font-bold">{debate.topic}</h2>
@@ -149,12 +153,12 @@ export function AIInvestmentCommitteePage() {
       {/* Proposals */}
       {activeTab === "proposals" && (
         <>
-          {data.proposals.length === 0 ? (
+          {view.proposals.length === 0 ? (
             <div className="glass-card p-6 text-center text-sm text-slate-400">
               暂无提案
             </div>
           ) : (
-            data.proposals.map((proposal) => {
+            view.proposals.map((proposal) => {
               const passPct =
                 proposal.total_votes > 0
                   ? (proposal.votes_for / proposal.total_votes) * 100

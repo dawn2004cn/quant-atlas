@@ -143,6 +143,7 @@ def _resolve_task_message_store(reg: Any) -> Any:
 
 
 def _make_daily_workbench_service(reg: Any) -> Any:
+    from app.infrastructure.memory_cache import MemoryCache
     from app.modules.strategy.services.analytics.daily_workbench_service import DailyWorkbenchService
     from app.modules.system.services.system.system_health_banner_service import SystemHealthBannerService
     return DailyWorkbenchService(
@@ -161,6 +162,8 @@ def _make_daily_workbench_service(reg: Any) -> Any:
         headline_signal_enrichment_service=reg.get_or_none("headline_signal_enrichment_service"),
         health_banner_service=SystemHealthBannerService(),
         market_regime_service=reg.get_or_none("market_regime_service"),
+        snapshot_cache=MemoryCache(default_ttl=45, maxsize=256),
+        snapshot_cache_ttl=45,
     )
 
 

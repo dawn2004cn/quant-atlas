@@ -1,7 +1,10 @@
+import { Link } from "react-router-dom";
 import useSWR from "swr";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
+import { DEMO_HEDGE_FUND } from "../lib/demoCatalog";
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <div className={`rounded-xl bg-zinc-900/50 ring-1 ring-zinc-800/50 ${className}`}>{children}</div>;
@@ -43,8 +46,9 @@ export function AIHedgeFundPage() {
   );
 
   if (isLoading && !data) return <PageSkeleton rows={4} />;
-  if (error) return <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3 text-sm text-rose-400">加载失败：{error.message}</div>;
-  if (!data) return <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-400">暂无对冲基金数据</div>;
+
+  const isDemo = Boolean(error) || !data || !(data.positions ?? []).length;
+  const view = isDemo ? DEMO_HEDGE_FUND : data;
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
@@ -52,9 +56,10 @@ export function AIHedgeFundPage() {
       <div>
         <h1 className="text-2xl font-bold">AI 对冲基金</h1>
         <p className="text-sm text-zinc-500">AI 驱动的自动化对冲基金管理面板</p>
-        {data.updated_at && (
+        <DemoBanner show={isDemo} />
+        {view.updated_at && (
           <p className="mt-1 text-xs text-zinc-400">
-            更新于：{new Date(data.updated_at).toLocaleString("zh-CN")}
+            更新于：{view.updated_at === "演示" ? "演示" : new Date(view.updated_at).toLocaleString("zh-CN")}
           </p>
         )}
       </div>
@@ -65,20 +70,20 @@ export function AIHedgeFundPage() {
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
             <div className="text-xs text-zinc-500">当前净值</div>
-            <div className="text-2xl font-bold">{data.nav.current.toFixed(4)}</div>
+            <div className="text-2xl font-bold">{view.nav.current.toFixed(4)}</div>
           </div>
           <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
             <div className="text-xs text-zinc-500">日涨跌幅</div>
-            <div className={`text-2xl font-bold ${data.nav.daily_change_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-              {data.nav.daily_change_pct >= 0 ? "+" : ""}
-              {data.nav.daily_change_pct.toFixed(2)}%
+            <div className={`text-2xl font-bold ${view.nav.daily_change_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+              {view.nav.daily_change_pct >= 0 ? "+" : ""}
+              {view.nav.daily_change_pct.toFixed(2)}%
             </div>
           </div>
           <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
             <div className="text-xs text-zinc-500">累计收益</div>
-            <div className={`text-2xl font-bold ${data.nav.inception_return_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-              {data.nav.inception_return_pct >= 0 ? "+" : ""}
-              {data.nav.inception_return_pct.toFixed(2)}%
+            <div className={`text-2xl font-bold ${view.nav.inception_return_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+              {view.nav.inception_return_pct >= 0 ? "+" : ""}
+              {view.nav.inception_return_pct.toFixed(2)}%
             </div>
           </div>
         </div>
@@ -89,7 +94,7 @@ export function AIHedgeFundPage() {
         <h2 className="mb-3 text-sm font-bold text-zinc-500">收益表现</h2>
         <div className="grid grid-cols-4 gap-3">
           {(["daily", "weekly", "monthly", "yearly"] as const).map((period) => {
-            const val = data.returns[period];
+            const val = view.returns[period];
             return (
               <div key={period} className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
                 <div className="text-xs text-zinc-500">
@@ -111,21 +116,21 @@ export function AIHedgeFundPage() {
         <div className="grid grid-cols-4 gap-3">
           <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
             <div className="text-xs text-zinc-500">夏普比</div>
-            <div className="text-lg font-bold">{data.metrics.sharpe.toFixed(3)}</div>
+            <div className="text-lg font-bold">{view.metrics.sharpe.toFixed(3)}</div>
           </div>
           <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
             <div className="text-xs text-zinc-500">最大回撤</div>
             <div className="text-lg font-bold text-rose-400">
-              {Math.abs(data.metrics.max_drawdown_pct).toFixed(2)}%
+              {Math.abs(view.metrics.max_drawdown_pct).toFixed(2)}%
             </div>
           </div>
           <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
             <div className="text-xs text-zinc-500">胜率</div>
-            <div className="text-lg font-bold">{(data.metrics.win_rate * 100).toFixed(1)}%</div>
+            <div className="text-lg font-bold">{(view.metrics.win_rate * 100).toFixed(1)}%</div>
           </div>
           <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
             <div className="text-xs text-zinc-500">总交易</div>
-            <div className="text-lg font-bold">{data.metrics.total_trades}</div>
+            <div className="text-lg font-bold">{view.metrics.total_trades}</div>
           </div>
         </div>
       </Panel>
@@ -133,7 +138,7 @@ export function AIHedgeFundPage() {
       {/* Positions */}
       <Panel className="p-4">
         <h2 className="mb-3 text-sm font-bold text-zinc-500">当前持仓</h2>
-        {data.positions.length === 0 ? (
+        {view.positions.length === 0 ? (
           <p className="text-sm text-zinc-400">暂无持仓</p>
         ) : (
           <div className="overflow-x-auto">
@@ -148,9 +153,13 @@ export function AIHedgeFundPage() {
                 </tr>
               </thead>
               <tbody>
-                {data.positions.map((pos) => (
+                {view.positions.map((pos) => (
                   <tr key={pos.symbol}>
-                    <td className="font-medium">{pos.symbol}</td>
+                    <td className="font-medium">
+                      <Link className="link" to={`/stock/${encodeURIComponent(pos.symbol)}?m=CN`}>
+                        {pos.symbol}
+                      </Link>
+                    </td>
                     <td>{pos.market}</td>
                     <td>
                       <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${pos.direction === "long" ? "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30" : "bg-rose-500/15 text-rose-400 ring-1 ring-rose-500/30"}`}>
