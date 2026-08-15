@@ -57,6 +57,21 @@ const TIER_LABELS: Record<string, string> = {
   institution: "大型机构",
 };
 
+function pickNotifs(raw: Record<string, unknown> | null | undefined): NotificationPrefs {
+  const nested =
+    raw && typeof raw.notifications === "object" && raw.notifications
+      ? (raw.notifications as Record<string, unknown>)
+      : {};
+  const out: NotificationPrefs = { ...DEMO_PROFILE.notifs, daily_briefing: true };
+  for (const key of Object.keys(NOTIF_LABELS)) {
+    const v = raw?.[key] ?? nested[key];
+    if (typeof v === "boolean") {
+      (out as Record<string, boolean>)[key] = v;
+    }
+  }
+  return out;
+}
+
 export default function Profile() {
   const [tab, setTab] = useState("basic");
   const [prefs, setPrefs] = useState<PagePrefs>({});
@@ -85,14 +100,14 @@ export default function Profile() {
         setPrefs(DEMO_PROFILE.prefs);
         setPolicy(DEMO_PROFILE.policy);
         setAudit(DEMO_PROFILE.audit);
-        setNotifs({ ...DEMO_PROFILE.notifs, daily_briefing: true });
+        setNotifs(pickNotifs({ ...DEMO_PROFILE.notifs, daily_briefing: true }));
         setInvest(DEMO_PROFILE.invest);
         setIsDemo(true);
       } else {
         setPrefs(p ?? DEMO_PROFILE.prefs);
         setPolicy(a ?? DEMO_PROFILE.policy);
         setAudit(auditItems.length ? auditItems : DEMO_PROFILE.audit);
-        setNotifs({ daily_briefing: true, ...(n ?? DEMO_PROFILE.notifs) });
+        setNotifs(pickNotifs((n as Record<string, unknown>) ?? DEMO_PROFILE.notifs));
         setInvest(i ?? DEMO_PROFILE.invest);
         setIsDemo(!auditItems.length);
       }
@@ -100,7 +115,7 @@ export default function Profile() {
       setPrefs(DEMO_PROFILE.prefs);
       setPolicy(DEMO_PROFILE.policy);
       setAudit(DEMO_PROFILE.audit);
-      setNotifs({ ...DEMO_PROFILE.notifs, daily_briefing: true });
+      setNotifs(pickNotifs({ ...DEMO_PROFILE.notifs, daily_briefing: true }));
       setInvest(DEMO_PROFILE.invest);
       setPersona(null);
       setIsDemo(true);

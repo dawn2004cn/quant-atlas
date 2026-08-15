@@ -4,6 +4,26 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-15 (OpenStock 启发续：晨报卡片 / Persona 导航 / Docker Lite)
+
+### 目标
+第四波：操盘台站内晨报摘要、按 Persona 收口高级导航、lite 自测 compose；修好通知偏好持久化。
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `MorningDigestCard.tsx` + `Dashboard.tsx` | 操盘台晨报摘要（尊重 `daily_briefing`） |
+| `usePersona.ts` + `Layout.tsx` | `feature_mask` 隐藏高级导航项 |
+| `user_lifecycle_service.py` | `update_notifications` + 扁平化返回；修复 SQL lifecycle 读参 |
+| `docker-compose.yml` `web-lite` | `--profile lite`（Redis + SQLite Web） |
+| `docs/QUICKSTART_DOCKER_LITE.md` | 一键自测说明 |
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py tests/application/test_user_lifecycle_sql.py`
+- `npx vite build`
+
+---
+
 ## 2026-08-15 (OpenStock 启发续：模拟交易 + Profile Persona)
 
 ### 目标

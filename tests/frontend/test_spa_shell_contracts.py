@@ -101,3 +101,20 @@ def test_paper_trading_page_and_profile_persona() -> None:
     assert "resetOnboardingFlag" in profile
     palette = (FE / "components" / "CommandPalette.tsx").read_text(encoding="utf-8")
     assert "/paper-trading" in palette
+
+
+def test_morning_digest_and_persona_nav() -> None:
+    dash = (FE / "pages" / "Dashboard.tsx").read_text(encoding="utf-8")
+    assert "MorningDigestCard" in dash
+    digest = (FE / "components" / "MorningDigestCard.tsx").read_text(encoding="utf-8")
+    assert "/briefing/smart-daily" in digest
+    assert "daily_briefing" in digest
+    layout = (FE / "components" / "Layout.tsx").read_text(encoding="utf-8")
+    assert "usePersona" in layout
+    assert "personaFeature" in layout
+    assert "isPersonaNavVisible" in layout
+    compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+    assert 'profiles: ["lite"]' in compose
+    assert "web-lite" in compose
+    quick = (ROOT / "docs" / "QUICKSTART_DOCKER_LITE.md").read_text(encoding="utf-8")
+    assert "--profile lite" in quick

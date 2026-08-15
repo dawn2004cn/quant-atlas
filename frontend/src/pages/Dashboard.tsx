@@ -19,6 +19,7 @@ import { fetchDailyWorkbench } from "../lib/api";
 import { DEMO_WORKBENCH } from "../lib/demoWorkbench";
 import { RealtimeBar } from "../components/workbench/RealtimeBar";
 import { CoreWorkflowStrip, PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
+import { MorningDigestCard } from "../components/MorningDigestCard";
 
 const MARKETS = ["CN", "HK", "US"] as const;
 const MARKET_LABELS: Record<string, string> = { CN: "A股", HK: "港股", US: "美股" };
@@ -126,6 +127,8 @@ export function DashboardPage() {
         lastQuote={lastQuote}
         lastAiChunk={lastAiChunk}
       />
+
+      <MorningDigestCard />
 
       {/* ── Timeseries ── */}
       <TimeseriesOpsCard />
