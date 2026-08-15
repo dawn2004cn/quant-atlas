@@ -57,18 +57,112 @@ def register_data_timeseries_routes(blueprint: Blueprint, *, legacy: bool) -> No
             raise ValidationError("symbol_required")
         market = MarketCode.CN
         days = parse_int_param(request.args.get("days"), name="days", default=60, min_value=5)
+        from app.domain.shared.history_adjust import normalize_adjust, try_local_cn_history
+
+        adjust = normalize_adjust(request.args.get("adjust"))
         end_d = date.today()
         start_d = end_d - timedelta(days=days)
-        provider = get_multi_source_history_provider()
-        bars = provider.get_history(symbol, market, start_d, end_d)
+        bars: list = []
+        source = None
+        adjust_meta: dict = {}
+        local_bars, adjust_meta = try_local_cn_history(
+            symbol, start_d.isoformat(), end_d.isoformat(), adjust
+        )
+        if local_bars:
+            bars = local_bars
+            source = adjust_meta.get("adjust_source")
+        else:
+            provider = get_multi_source_history_provider()
+            bars = provider.get_history(symbol, market, start_d, end_d)
+            source = provider.last_source
         return ok_response(
             data={
                 "symbol": symbol,
                 "market": market.value,
                 "bars": bars[-min(len(bars), 120) :],
                 "count": len(bars),
-                "source": provider.last_source,
+                "source": source,
+                "adjust": adjust_meta.get("adjust", adjust),
+                "adjust_applied": adjust_meta.get("adjust_applied", False),
             },
+            legacy_alias_key=None,
+            enable_legacy_alias=legacy,
+        )
+
+    @blueprint.post("/data/bars/batch")
+    @login_required
+    def data_bars_batch():
+        """Batch OHLCV for multiple symbols (local-engine style bulk query)."""
+        from app.domain.shared.history_adjust import normalize_adjust, try_local_cn_history
+
+        body = request.get_json(silent=True) or {}
+        symbols_raw = body.get("symbols") or []
+        if isinstance(symbols_raw, str):
+            symbols_raw = [s.strip() for s in symbols_raw.split(",")]
+        symbols = [str(s).strip().upper() for s in symbols_raw if str(s).strip()]
+        if not symbols:
+            raise ValidationError("symbols_required")
+        if len(symbols) > 50:
+            raise ValidationError("symbols_limit_50")
+        days = parse_int_param(body.get("days"), name="days", default=60, min_value=5, max_value=500)
+        adjust = normalize_adjust(body.get("adjust"))
+        market = MarketCode.CN
+        end_d = date.today()
+        start_d = end_d - timedelta(days=days)
+        provider = get_multi_source_history_provider()
+        items = []
+        for symbol in symbols:
+            bars, meta = try_local_cn_history(symbol, start_d.isoformat(), end_d.isoformat(), adjust)
+            source = meta.get("adjust_source")
+            if not bars:
+                try:
+                    bars = provider.get_history(symbol, market, start_d, end_d) or []
+                    source = getattr(provider, "last_source", None)
+                except Exception:  # noqa: BLE001
+                    bars = []
+            clipped = bars[-min(len(bars), 120) :] if bars else []
+            items.append(
+                {
+                    "symbol": symbol,
+                    "market": market.value,
+                    "bars": clipped,
+                    "count": len(clipped),
+                    "source": source,
+                    "adjust": meta.get("adjust", adjust),
+                    "adjust_applied": bool(meta.get("adjust_applied")),
+                }
+            )
+        return ok_response(
+            data={"items": items, "count": len(items), "adjust": adjust, "days": days},
+            legacy_alias_key=None,
+            enable_legacy_alias=legacy,
+        )
+
+    @blueprint.get("/data/sources")
+    @login_required
+    def data_sources_catalog():
+        """List registered data sources (semantic registry introspection)."""
+        from app.core.data_source_registry import get_data_source_registry
+
+        registry = get_data_source_registry()
+        type_filter = (request.args.get("type") or "").strip() or None
+        scope = (request.args.get("scope") or "").strip() or None
+        market = (request.args.get("market") or "").strip() or None
+        sources = registry.find(type=type_filter, scope=scope, market=market)
+        payload = [
+            {
+                "name": s.name,
+                "type": s.type,
+                "scope": s.scope,
+                "market": s.market,
+                "description": s.description,
+                "priority": s.priority,
+                "tags": list(s.tags),
+            }
+            for s in sources
+        ]
+        return ok_response(
+            data={"items": payload, "stats": registry.stats(), "count": len(payload)},
             legacy_alias_key=None,
             enable_legacy_alias=legacy,
         )

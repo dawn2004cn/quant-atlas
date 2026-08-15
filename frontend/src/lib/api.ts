@@ -461,7 +461,8 @@ export async function fetchStockHistory(
   symbol: string,
   market = "CN",
   count = 120,
-): Promise<unknown> {
+  adjust: "qfq" | "hfq" | "raw" = "qfq",
+): Promise<{ bars: unknown; meta?: Record<string, unknown> }> {
   const end = new Date();
   const start = new Date();
   start.setDate(start.getDate() - Math.ceil(count * 2.2) - 40);
@@ -470,8 +471,43 @@ export async function fetchStockHistory(
     count: String(count),
     start_date: start.toISOString().slice(0, 10),
     end_date: end.toISOString().slice(0, 10),
+    adjust,
   });
-  return apiFetch(`/api/v2/stocks/${encodeURIComponent(symbol)}/history?${query}`);
+  const response = await coalescedFetch(
+    `/api/v2/stocks/${encodeURIComponent(symbol)}/history?${query}`,
+    { credentials: "same-origin", headers: { Accept: "application/json" } },
+  );
+  if (!response.ok) {
+    const text = await response.text();
+    throw new ApiError(text || `HTTP ${response.status}`, response.status);
+  }
+  const json = (await response.json()) as ApiEnvelope<unknown>;
+  return { bars: unwrap(json), meta: json.meta };
+}
+
+export async function fetchDataSources(params?: {
+  type?: string;
+  scope?: string;
+  market?: string;
+}): Promise<{ items: Array<Record<string, unknown>>; stats?: Record<string, unknown>; count?: number }> {
+  const q = new URLSearchParams();
+  if (params?.type) q.set("type", params.type);
+  if (params?.scope) q.set("scope", params.scope);
+  if (params?.market) q.set("market", params.market);
+  const suffix = q.toString() ? `?${q}` : "";
+  return apiFetchV1(`/data/sources${suffix}`);
+}
+
+export async function fetchBarsBatch(payload: {
+  symbols: string[];
+  days?: number;
+  adjust?: "qfq" | "hfq" | "raw";
+}): Promise<{ items: Array<Record<string, unknown>>; count?: number; adjust?: string }> {
+  return apiFetchV1("/data/bars/batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function fetchHealth(): Promise<Record<string, unknown>> {

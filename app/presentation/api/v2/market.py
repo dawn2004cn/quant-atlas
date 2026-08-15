@@ -66,6 +66,7 @@ def create_market_blueprint(ctx):
         from datetime import date, timedelta
 
         from ....application.dto import StockHistoryDTO
+        from ....domain.shared.history_adjust import normalize_adjust, try_local_cn_history
         from ....domain.shared.market_history_utils import clamp_history_date_range
         from .request_parsers import parse_dto
         dto = parse_dto(request.args.to_dict(), StockHistoryDTO, partial=True)
@@ -74,6 +75,7 @@ def create_market_blueprint(ctx):
         except (ValueError, AttributeError):
             mc = MarketCode.CN
         count = getattr(dto, "count", 100) or 100
+        adjust = normalize_adjust(getattr(dto, "adjust", None) or request.args.get("adjust"))
         end_date = getattr(dto, "end_date", None) or date.today().isoformat()
         start_date = getattr(dto, "start_date", None)
         if not start_date:
@@ -83,26 +85,48 @@ def create_market_blueprint(ctx):
             end_date,
             count=count,
         )
-        if ctx.market_facade is not None:
-            bars = ctx.market_facade.get_history_bars(
-                symbol=symbol,
-                market=mc,
-                start_date=start_date,
-                end_date=end_date,
-                count=count,
-            )
-        else:
-            bars = ctx.market_service.get_history_bars(
-                symbol=symbol,
-                market=mc,
-                start_date=start_date,
-                end_date=end_date,
-                count=count,
-            )
-        meta: dict[str, object] = {"symbol": symbol, "start_date": start_date, "end_date": end_date}
+        bars: list = []
+        adjust_meta: dict = {"adjust": adjust, "adjust_applied": False}
+        if mc == MarketCode.CN:
+            local_bars, adjust_meta = try_local_cn_history(symbol, start_date, end_date, adjust)
+            if local_bars:
+                bars = local_bars
+        if not bars:
+            if ctx.market_facade is not None:
+                bars = ctx.market_facade.get_history_bars(
+                    symbol=symbol,
+                    market=mc,
+                    start_date=start_date,
+                    end_date=end_date,
+                    count=count,
+                )
+            else:
+                bars = ctx.market_service.get_history_bars(
+                    symbol=symbol,
+                    market=mc,
+                    start_date=start_date,
+                    end_date=end_date,
+                    count=count,
+                )
+            adjust_meta = {
+                **adjust_meta,
+                "adjust": adjust,
+                "adjust_applied": False,
+                "adjust_source": adjust_meta.get("adjust_source") or "market_facade",
+                "adjust_note": adjust_meta.get("adjust_note")
+                or "served_via_default_provider_adjust_best_effort",
+            }
+        if count and len(bars) > count:
+            bars = bars[-count:]
+        meta: dict[str, object] = {
+            "symbol": symbol,
+            "start_date": start_date,
+            "end_date": end_date,
+            **adjust_meta,
+        }
         mp = getattr(ctx.stock_service, "_market_provider", None)
         src = getattr(mp, "_last_history_source", None)
-        if src:
+        if src and "data_source" not in meta:
             meta["data_source"] = src
         return success_response(data=bars, meta=meta)
 

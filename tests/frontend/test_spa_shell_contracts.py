@@ -118,3 +118,26 @@ def test_morning_digest_and_persona_nav() -> None:
     assert "web-lite" in compose
     quick = (ROOT / "docs" / "QUICKSTART_DOCKER_LITE.md").read_text(encoding="utf-8")
     assert "--profile lite" in quick
+
+
+def test_free_stockdb_inspired_local_data_facades() -> None:
+    adjust = (ROOT / "app" / "domain" / "shared" / "history_adjust.py").read_text(encoding="utf-8")
+    assert "normalize_adjust" in adjust
+    assert "try_local_cn_history" in adjust
+    v2 = (ROOT / "app" / "presentation" / "api" / "v2" / "market.py").read_text(encoding="utf-8")
+    assert "try_local_cn_history" in v2
+    assert "adjust" in v2
+    ts = (ROOT / "app" / "presentation" / "api" / "v1" / "data_infrastructure" / "timeseries_routes.py").read_text(
+        encoding="utf-8"
+    )
+    assert '/data/bars/batch"' in ts or "/data/bars/batch" in ts
+    assert "/data/sources" in ts
+    detail = (FE / "pages" / "StockDetail.tsx").read_text(encoding="utf-8")
+    assert "前复权" in detail
+    assert "setAdjust" in detail
+    coverage = (FE / "pages" / "MarketCoverage.tsx").read_text(encoding="utf-8")
+    assert "fetchDataSources" in coverage
+    assert "fetchTimeseriesHealth" in coverage
+    tdx = (FE / "pages" / "TdxBlocks.tsx").read_text(encoding="utf-8")
+    assert "blocks/summaries" in tdx
+    assert "kind=zs/gn/fg" in tdx or "zs/gn/fg" in tdx
