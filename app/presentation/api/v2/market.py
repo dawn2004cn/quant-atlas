@@ -65,7 +65,7 @@ def create_market_blueprint(ctx):
     def stock_history(symbol: str):
         from datetime import date, timedelta
 
-        from ....application.dto import StockHistoryDTO
+        from ....application.dto.v2_dtos import StockHistoryDTO
         from ....domain.shared.history_adjust import normalize_adjust, try_local_cn_history
         from ....domain.shared.market_history_utils import clamp_history_date_range
         from .request_parsers import parse_dto
