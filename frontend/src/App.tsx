@@ -45,6 +45,8 @@ const SwarmDashboardPage = lazy(() => import("./pages/SwarmDashboard").then((m) 
 const SwarmDesignerPage = lazy(() => import("./pages/SwarmDesigner").then((m) => ({ default: m.SwarmDesignerPage })));
 const SignalObservationsPage = lazy(() => import("./pages/SignalObservations").then((m) => ({ default: m.SignalObservationsPage })));
 const VoiceBriefingPage = lazy(() => import("./pages/VoiceBriefing").then((m) => ({ default: m.VoiceBriefingPage })));
+const WatchlistBriefingPage = lazy(() => import("./pages/WatchlistBriefing").then((m) => ({ default: m.WatchlistBriefingPage })));
+const MarketCoveragePage = lazy(() => import("./pages/MarketCoverage").then((m) => ({ default: m.MarketCoveragePage })));
 const ResearchCanvasPage = lazy(() => import("./pages/ResearchCanvas").then((m) => ({ default: m.ResearchCanvasPage })));
 const ResearchPipelinePage = lazy(() => import("./pages/ResearchPipeline").then((m) => ({ default: m.ResearchPipelinePage })));
 
@@ -144,6 +146,8 @@ export default function App() {
               <Route path="portfolio" element={<LazyRoute label="Portfolio"><PortfolioPage /></LazyRoute>} />
               <Route path="portfolio/:id" element={<LazyRoute label="PortfolioDetail"><PortfolioDetailPage /></LazyRoute>} />
               <Route path="self-stocks" element={<LazyRoute label="SelfStocks"><SelfStocksPage /></LazyRoute>} />
+              <Route path="watchlist-briefing" element={<LazyRoute label="WatchlistBriefing"><WatchlistBriefingPage /></LazyRoute>} />
+              <Route path="market-coverage" element={<LazyRoute label="MarketCoverage"><MarketCoveragePage /></LazyRoute>} />
               <Route path="hot-sectors" element={<LazyRoute label="HotSectors"><HotSectorsPage /></LazyRoute>} />
               <Route path="global-radar" element={<LazyRoute label="GlobalRadar"><GlobalRadarPage /></LazyRoute>} />
               <Route path="stock-selector" element={<LazyRoute label="StockSelector"><StockSelectorPage /></LazyRoute>} />

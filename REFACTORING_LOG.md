@@ -4,6 +4,27 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-15 (OpenStock 启发：Cmd+K / 个股首屏 / 自选晨报)
+
+### 目标
+借鉴 OpenStock 的主路径体验：全局搜股、个股图表优先、自选晨报与数据边界说明（不搬 AGPL 代码）。
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `frontend/src/components/CommandPalette.tsx` | ⌘/Ctrl+K 搜股 + 快捷跳转（自选/诊股/晨报等） |
+| `frontend/src/components/Layout.tsx` | 顶栏搜索按钮 + 面板挂载；导航加入晨报/数据说明 |
+| `frontend/src/pages/StockDetail.tsx` | 报价+K 线置顶；快捷链到自选/诊股/数据说明 |
+| `frontend/src/pages/WatchlistBriefing.tsx` | 自选晨报页（`/briefing/smart-daily` + 演示兜底） |
+| `frontend/src/pages/MarketCoverage.tsx` | 数据与市场局限说明 |
+| `frontend/src/App.tsx` | 注册 `watchlist-briefing` / `market-coverage` |
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py`
+- `npx vite build`（跳过全量 tsc 门禁时）
+
+---
+
 ## 2026-08-13 (SPA 自测：HTTP Session 登录 + 组合演示可用性)
 
 ### 问题

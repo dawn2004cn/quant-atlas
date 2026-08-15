@@ -72,29 +72,38 @@ export function StockDetailPage() {
     );
   }
 
+  const displaySymbol = symbol || quote.code || "";
+
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
       <PageQuickNav items={QUICK_NAV_PRESETS.stockDetail} />
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link className="rounded-lg bg-zinc-800/40 px-3 py-1.5 text-xs font-medium text-zinc-400 ring-1 ring-zinc-700/40 transition-colors hover:bg-zinc-800 hover:text-zinc-200" to="/">← 操盘台</Link>
+
+      {/* Hero: identity + quote + chart first (OpenStock-style stock focus) */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
-            {symbol || quote.code}
-            <span className="ml-2 text-base font-normal text-zinc-500">({market})</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link className="rounded-lg bg-zinc-800/40 px-3 py-1.5 text-xs font-medium text-zinc-400 ring-1 ring-zinc-700/40 transition-colors hover:bg-zinc-800 hover:text-zinc-200" to="/">← 操盘台</Link>
+            <Link className="rounded-lg bg-zinc-800/40 px-3 py-1.5 text-xs font-medium text-zinc-400 ring-1 ring-zinc-700/40 transition-colors hover:bg-zinc-800 hover:text-zinc-200" to="/self-stocks">自选</Link>
+            <Link className="rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400 ring-1 ring-emerald-500/30" to={`/ai-analysis?symbol=${encodeURIComponent(displaySymbol)}&m=${market}`}>AI 诊股</Link>
+          </div>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight text-zinc-100">
+            {quote.name || displaySymbol}
+            <span className="ml-2 font-mono text-base font-normal text-zinc-500">{displaySymbol}</span>
+            <span className="ml-2 text-sm font-normal text-zinc-600">· {market}</span>
           </h1>
           <DemoBanner show={isDemo} />
         </div>
       </div>
 
-      {isLoading && !quote && <Panel className="flex items-center gap-3 p-5"><div className="h-4 w-4 animate-ping rounded-full bg-emerald-500/40" /><p className="text-sm text-zinc-500">加载行情…</p></Panel>}
+      {isLoading && !quote && (
+        <Panel className="flex items-center gap-3 p-5">
+          <div className="h-4 w-4 animate-ping rounded-full bg-emerald-500/40" />
+          <p className="text-sm text-zinc-500">加载行情…</p>
+        </Panel>
+      )}
 
       {quote && <StockQuoteCard quote={quote} />}
-      {symbol && <TradePlanPanel symbol={symbol} market={market} />}
 
-      <AiInsightPanel symbol={symbol} market={market} steps={steps} loading={aiLoading} error={aiError} onStart={startAi} />
-
-      {/* Chart */}
       <Panel className="p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--quant-muted)]">近 120 日走势</h3>
@@ -121,13 +130,22 @@ export function StockDetailPage() {
             ))}
           </div>
         </div>
-        {historyLoading && !bars.length && <div className="flex items-center gap-3 text-sm text-[var(--quant-muted)]"><div className="h-3 w-3 animate-spin rounded-full border-2 border-[var(--quant-surface-border)] border-t-[var(--quant-muted)]" />加载 K 线…</div>}
+        {historyLoading && !bars.length && (
+          <div className="flex items-center gap-3 text-sm text-[var(--quant-muted)]">
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-[var(--quant-surface-border)] border-t-[var(--quant-muted)]" />
+            加载 K 线…
+          </div>
+        )}
         {bars.length > 0 && (
           <Suspense fallback={<div className="h-80 animate-pulse rounded-xl bg-[var(--quant-surface)]" />}>
             <PriceHistoryChart data={bars} overlays={overlays} />
           </Suspense>
         )}
       </Panel>
+
+      {/* Secondary: plan / AI / indicators */}
+      {symbol && <TradePlanPanel symbol={symbol} market={market} />}
+      <AiInsightPanel symbol={symbol} market={market} steps={steps} loading={aiLoading} error={aiError} onStart={startAi} />
 
       {data?.indicators && Object.keys(data.indicators).length > 0 && (
         <Panel className="p-5">
@@ -136,7 +154,14 @@ export function StockDetailPage() {
         </Panel>
       )}
 
-      <a className="inline-block rounded-lg bg-zinc-800/40 px-4 py-2 text-xs font-medium text-zinc-400 ring-1 ring-zinc-700/40 transition-colors hover:bg-zinc-800 hover:text-zinc-200" href={`/stock/${encodeURIComponent(symbol)}?m=${market}`}>打开经典版详情</a>
+      <div className="flex flex-wrap gap-2 text-xs">
+        <Link className="rounded-lg bg-zinc-800/40 px-4 py-2 font-medium text-zinc-400 ring-1 ring-zinc-700/40 hover:text-zinc-200" to="/market-coverage">
+          数据说明
+        </Link>
+        <a className="rounded-lg bg-zinc-800/40 px-4 py-2 font-medium text-zinc-400 ring-1 ring-zinc-700/40 hover:text-zinc-200" href={`/stock/${encodeURIComponent(symbol)}?m=${market}`}>
+          打开经典版详情
+        </a>
+      </div>
     </div>
   );
 }

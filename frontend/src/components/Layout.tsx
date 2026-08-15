@@ -1,12 +1,13 @@
 ﻿import { Link, NavLink, useNavigate } from "react-router-dom";
 import { KeepAliveOutlet } from "./KeepAliveOutlet";
-import { lazy, Suspense, useState, useRef, useEffect } from "react";
+import { lazy, Suspense, useCallback, useState, useRef, useEffect } from "react";
 import { logoutSession } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 import { usePlatformFeatures, isNavItemVisible } from "../hooks/usePlatformFeatures";
 import { useTheme } from "../hooks/useTheme";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
+import { CommandPalette, useCommandPaletteHotkey } from "./CommandPalette";
 
 const AiAssistantDrawer = lazy(() =>
   import("./AiAssistantDrawer").then((m) => ({ default: m.AiAssistantDrawer })),
@@ -41,6 +42,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "今日操盘台", to: "/" },
       { label: "自选股", to: "/self-stocks" },
+      { label: "自选晨报", to: "/watchlist-briefing" },
       { label: "市场全景", to: "/market-panorama" },
       { label: "全球透视塔", to: "/global-radar" },
       { label: "热点板块", to: "/hot-sectors" },
@@ -48,6 +50,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "研报中心", to: "/yanbao-hub" },
       { label: "通达信板块", to: "/tdx-blocks" },
       { label: "影子操盘", to: "/shadow-account" },
+      { label: "数据与市场说明", to: "/market-coverage" },
     ],
   },
   {
@@ -186,6 +189,9 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const openCmd = useCallback(() => setCmdOpen(true), []);
+  useCommandPaletteHotkey(openCmd);
 
   async function onLogout() {
     await logoutSession();
@@ -220,6 +226,15 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
 
           {/* Right Side */}
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCmdOpen(true)}
+              className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-[var(--quant-surface-border)] bg-[var(--quant-surface)]/60 px-2.5 py-1.5 text-xs text-[var(--quant-muted)] hover:border-[var(--quant-accent)]/40 hover:text-[var(--quant-fg)]"
+              aria-label="打开命令面板"
+            >
+              <span>搜索</span>
+              <kbd className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">⌘K</kbd>
+            </button>
             {loading ? (
               <span className="text-[var(--quant-muted)]">…</span>
             ) : isAuthenticated ? (
@@ -311,6 +326,7 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
           <AiAssistantDrawer open={aiOpen} onClose={() => setAiOpen(false)} />
         </Suspense>
       ) : null}
+      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
       {!aiOpen && (
         <button
           type="button"

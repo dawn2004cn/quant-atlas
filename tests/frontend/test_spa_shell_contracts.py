@@ -52,3 +52,24 @@ def test_dashboard_shows_demo_while_workbench_loads() -> None:
     assert "DEMO_WORKBENCH" in text
     assert "awaitingLive" in text
     assert "演示占位" in text
+
+
+def test_command_palette_wired_in_layout() -> None:
+    layout = (FE / "components" / "Layout.tsx").read_text(encoding="utf-8")
+    palette = (FE / "components" / "CommandPalette.tsx").read_text(encoding="utf-8")
+    assert "CommandPalette" in layout
+    assert "useCommandPaletteHotkey" in layout
+    assert "⌘K" in palette or "Cmd" in palette or "metaKey" in palette
+    assert "/stocks/search" in palette
+    assert "/watchlist-briefing" in palette
+
+
+def test_openstock_inspired_pages_registered() -> None:
+    app = (FE / "App.tsx").read_text(encoding="utf-8")
+    assert 'path="watchlist-briefing"' in app
+    assert 'path="market-coverage"' in app
+    detail = (FE / "pages" / "StockDetail.tsx").read_text(encoding="utf-8")
+    assert "近 120 日走势" in detail
+    assert "AI 诊股" in detail
+    # Chart hero before AI insight panel render
+    assert detail.index("近 120 日走势") < detail.index("<AiInsightPanel")
