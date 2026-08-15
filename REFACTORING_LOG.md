@@ -4,6 +4,27 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-15 (借鉴 free-stockdb：本地数据引擎门面)
+
+### 目标
+学 free-stockdb「本地量化数据底座」体验（**不嵌入其 C++ 引擎 / 不搬源码**）：复权可选、批量 K 线、数据源可见、板块契约对齐。
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `domain/shared/history_adjust.py` | `qfq/hfq/raw` 归一化 + 本地 TDX 读取 |
+| `v2/market.py` history | `adjust` 查询参数 + meta |
+| `timeseries_routes.py` | `POST /data/bars/batch`、`GET /data/sources` |
+| `StockDetail.tsx` | 前/后/不复权切换 |
+| `MarketCoverage.tsx` | 时序健康 + 数据源注册表 |
+| `TdxBlocks.tsx` | 对齐 `kind=zs/gn/fg` + summaries/members |
+
+### 验证
+- `pytest tests/domain/test_history_adjust.py tests/frontend/test_spa_shell_contracts.py`
+- `npx vite build`
+
+---
+
 ## 2026-08-15 (OpenStock 启发续：晨报卡片 / Persona 导航 / Docker Lite)
 
 ### 目标

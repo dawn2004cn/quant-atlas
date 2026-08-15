@@ -20,6 +20,7 @@ class StockHistoryRequest(BaseModel):
     end: str = Field(..., description="End date YYYY-MM-DD")
     max_points: int = Field(default=0, ge=0, le=5000, description="Max data points")
     width: int = Field(default=0, ge=0, le=4000, description="Chart width for sampling")
+    adjust: str = Field(default="qfq", description="Price adjust: qfq | hfq | raw")
 
 
 class StockAnalysisRequest(BaseModel):

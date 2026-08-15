@@ -28,18 +28,20 @@ export function StockDetailPage() {
   const [search] = useSearchParams();
   const market = search.get("m") || "CN";
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const [adjust, setAdjust] = useState<"qfq" | "hfq" | "raw">("qfq");
 
   const { data, error, isLoading } = useSWR(
     isAuthenticated && symbol ? ["stock", symbol, market] : null,
     () => fetchStock(symbol, market),
   );
   const { data: historyRaw, error: historyError, isLoading: historyLoading } = useSWR(
-    isAuthenticated && symbol ? ["stock-history", symbol, market] : null,
-    () => fetchStockHistory(symbol, market, 120),
+    isAuthenticated && symbol ? ["stock-history", symbol, market, adjust] : null,
+    () => fetchStockHistory(symbol, market, 120, adjust),
   );
 
   const liveQuote = data ? extractRealtime(data as StockDetailPayload) : null;
-  const liveBars = normalizeBars(historyRaw);
+  const liveBars = normalizeBars(historyRaw?.bars ?? historyRaw);
+  const historyMeta = historyRaw?.meta;
   const isDemo = Boolean(error) || Boolean(historyError) || (!isLoading && !liveQuote?.price) || (!historyLoading && !liveBars.length);
   const quote = (!error && liveQuote?.price != null) ? liveQuote : DEMO_STOCK_DETAIL.quote;
   const bars = (!historyError && liveBars.length) ? liveBars : DEMO_STOCK_DETAIL.bars;
@@ -106,8 +108,37 @@ export function StockDetailPage() {
 
       <Panel className="p-5">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--quant-muted)]">近 120 日走势</h3>
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--quant-muted)]">近 120 日走势</h3>
+            {historyMeta?.adjust ? (
+              <p className="mt-1 font-mono text-[10px] text-zinc-600">
+                adjust={String(historyMeta.adjust_served ?? historyMeta.adjust)}
+                {historyMeta.adjust_source ? ` · ${String(historyMeta.adjust_source)}` : ""}
+                {historyMeta.adjust_note ? ` · ${String(historyMeta.adjust_note)}` : ""}
+              </p>
+            ) : null}
+          </div>
           <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["qfq", "前复权"],
+                ["hfq", "后复权"],
+                ["raw", "不复权"],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setAdjust(key)}
+                className={
+                  adjust === key
+                    ? "rounded-md bg-emerald-500/20 px-2 py-1 text-[11px] text-emerald-300 ring-1 ring-emerald-500/40"
+                    : "rounded-md bg-[var(--quant-surface)] px-2 py-1 text-[11px] text-[var(--quant-muted)] ring-1 ring-[var(--quant-surface-border)]"
+                }
+              >
+                {label}
+              </button>
+            ))}
             {(
               [
                 ["ma5", "MA5"],

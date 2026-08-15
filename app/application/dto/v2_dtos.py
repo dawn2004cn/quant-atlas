@@ -22,6 +22,7 @@ class StockHistoryDTO(BaseModel):
     start_date: str | None = Field(default=None, description="YYYY-MM-DD")
     end_date: str | None = Field(default=None, description="YYYY-MM-DD")
     count: int = Field(default=100, ge=1, le=10000, description="Number of bars")
+    adjust: str = Field(default="qfq", description="Price adjust: qfq | hfq | raw")
 
 
 # ------------------------------------------------------------------ #
