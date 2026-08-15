@@ -4,6 +4,86 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-15 (OpenStock 启发续：晨报卡片 / Persona 导航 / Docker Lite)
+
+### 目标
+第四波：操盘台站内晨报摘要、按 Persona 收口高级导航、lite 自测 compose；修好通知偏好持久化。
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `MorningDigestCard.tsx` + `Dashboard.tsx` | 操盘台晨报摘要（尊重 `daily_briefing`） |
+| `usePersona.ts` + `Layout.tsx` | `feature_mask` 隐藏高级导航项 |
+| `user_lifecycle_service.py` | `update_notifications` + 扁平化返回；修复 SQL lifecycle 读参 |
+| `docker-compose.yml` `web-lite` | `--profile lite`（Redis + SQLite Web） |
+| `docs/QUICKSTART_DOCKER_LITE.md` | 一键自测说明 |
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py tests/application/test_user_lifecycle_sql.py`
+- `npx vite build`
+
+---
+
+## 2026-08-15 (OpenStock 启发续：模拟交易 + Profile Persona)
+
+### 目标
+第三波：零售向模拟交易可自测；个人中心露出画像与晨报订阅开关。
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `frontend/src/lib/paperBook.ts` | localStorage 模拟账本（买入/卖出/重置） |
+| `frontend/src/pages/PaperTrading.tsx` | `/paper-trading` 权益/下单/持仓；链到影子复盘 |
+| `frontend/src/pages/Profile.tsx` | 画像卡 + `daily_briefing` 通知 + 重新引导 |
+| `frontend/src/pages/Onboarding.tsx` | 活跃交易档完成后进模拟交易 |
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py`
+- `npx vite build`
+
+---
+
+## 2026-08-15 (OpenStock 启发续：Persona Onboarding + 晨报自选备注)
+
+### 目标
+第二波体验：登录后轻量偏好引导；自选晨报优先展示真实自选备注。
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `frontend/src/pages/Onboarding.tsx` | 三档用法 → `POST /user/persona`；可跳过 |
+| `frontend/src/lib/onboarding.ts` | localStorage 完成标记（后端 persona 进程内缓存） |
+| `frontend/src/components/OnboardingGate.tsx` | 未完成则拦到 `/onboarding` |
+| `frontend/src/pages/Login.tsx` / `App.tsx` | 登录后进引导；路由注册 |
+| `frontend/src/pages/WatchlistBriefing.tsx` | 并行拉 `/watchlist/experience`，备注优先真实自选 |
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py`
+- `npx vite build`
+
+---
+
+## 2026-08-15 (OpenStock 启发：Cmd+K / 个股首屏 / 自选晨报)
+
+### 目标
+借鉴 OpenStock 的主路径体验：全局搜股、个股图表优先、自选晨报与数据边界说明（不搬 AGPL 代码）。
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `frontend/src/components/CommandPalette.tsx` | ⌘/Ctrl+K 搜股 + 快捷跳转（自选/诊股/晨报等） |
+| `frontend/src/components/Layout.tsx` | 顶栏搜索按钮 + 面板挂载；导航加入晨报/数据说明 |
+| `frontend/src/pages/StockDetail.tsx` | 报价+K 线置顶；快捷链到自选/诊股/数据说明 |
+| `frontend/src/pages/WatchlistBriefing.tsx` | 自选晨报页（`/briefing/smart-daily` + 演示兜底） |
+| `frontend/src/pages/MarketCoverage.tsx` | 数据与市场局限说明 |
+| `frontend/src/App.tsx` | 注册 `watchlist-briefing` / `market-coverage` |
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py`
+- `npx vite build`（跳过全量 tsc 门禁时）
+
+---
+
 ## 2026-08-13 (SPA 自测：HTTP Session 登录 + 组合演示可用性)
 
 ### 问题

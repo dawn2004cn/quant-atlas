@@ -1,12 +1,14 @@
 ﻿import { Link, NavLink, useNavigate } from "react-router-dom";
 import { KeepAliveOutlet } from "./KeepAliveOutlet";
-import { lazy, Suspense, useState, useRef, useEffect } from "react";
+import { lazy, Suspense, useCallback, useState, useRef, useEffect } from "react";
 import { logoutSession } from "../lib/api";
 import { useAuth } from "../hooks/useAuth";
 import { usePlatformFeatures, isNavItemVisible } from "../hooks/usePlatformFeatures";
+import { usePersona, isPersonaNavVisible } from "../hooks/usePersona";
 import { useTheme } from "../hooks/useTheme";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslation } from "react-i18next";
+import { CommandPalette, useCommandPaletteHotkey } from "./CommandPalette";
 
 const AiAssistantDrawer = lazy(() =>
   import("./AiAssistantDrawer").then((m) => ({ default: m.AiAssistantDrawer })),
@@ -26,6 +28,8 @@ interface NavItem {
   feature?: string;
   /** nav_menu item id, e.g. moments → nav_show_moments */
   navId?: string;
+  /** Persona feature_mask key, e.g. show_alpha_mining */
+  personaFeature?: string;
 }
 
 interface NavGroup {
@@ -41,6 +45,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "今日操盘台", to: "/" },
       { label: "自选股", to: "/self-stocks" },
+      { label: "自选晨报", to: "/watchlist-briefing" },
       { label: "市场全景", to: "/market-panorama" },
       { label: "全球透视塔", to: "/global-radar" },
       { label: "热点板块", to: "/hot-sectors" },
@@ -48,6 +53,9 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "研报中心", to: "/yanbao-hub" },
       { label: "通达信板块", to: "/tdx-blocks" },
       { label: "影子操盘", to: "/shadow-account" },
+      { label: "模拟交易", to: "/paper-trading" },
+      { label: "数据与市场说明", to: "/market-coverage" },
+      { label: "使用偏好引导", to: "/onboarding" },
     ],
   },
   {
@@ -58,11 +66,11 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "AI 诊股", to: "/ai-analysis" },
       { label: "研究报告", to: "/ai-research-report" },
       { label: "研究闭环", to: "/research-pipeline" },
-      { label: "量化实验室", to: "/quant-lab" },
+      { label: "量化实验室", to: "/quant-lab", personaFeature: "show_vectorized_backtest" },
       { label: "AI 对冲基金", to: "/ai-hedge-fund", navId: "ai_hedge_fund" },
-      { label: "War Room", to: "/war-room", feature: "feature_war_room" },
+      { label: "War Room", to: "/war-room", feature: "feature_war_room", personaFeature: "show_agent_topology" },
       { label: "语音简报", to: "/voice-briefing", navId: "voice_briefing" },
-      { label: "Agent 中心", to: "/agent-center", navId: "agent_center" },
+      { label: "Agent 中心", to: "/agent-center", navId: "agent_center", personaFeature: "show_agent_topology" },
       { label: "研究画布", to: "/research-canvas", navId: "research_canvas" },
     ],
   },
@@ -71,17 +79,17 @@ const NAV_GROUPS: NavGroup[] = [
     icon: "📈",
     items: [
       { label: "策略回测", to: "/backtest" },
-      { label: "信号旗", to: "/signal-flag" },
+      { label: "信号旗", to: "/signal-flag", personaFeature: "show_signal_flags" },
       { label: "智能选股", to: "/stock-selector" },
-      { label: "模拟观察单", to: "/signal-observations" },
-      { label: "策略向导", to: "/strategy-wizard" },
-      { label: "Alpha Factory", to: "/alpha-factory", navId: "alpha_factory" },
-      { label: "因子仓库", to: "/factor-repository" },
-      { label: "因子演化", to: "/factor-evolution" },
-      { label: "因子市场", to: "/marketplace", feature: "feature_alpha_marketplace" },
-      { label: "参数优化", to: "/optimize" },
+      { label: "模拟观察单", to: "/signal-observations", personaFeature: "show_observation_cards" },
+      { label: "策略向导", to: "/strategy-wizard", personaFeature: "show_strategy_wizard" },
+      { label: "Alpha Factory", to: "/alpha-factory", navId: "alpha_factory", personaFeature: "show_alpha_mining" },
+      { label: "因子仓库", to: "/factor-repository", personaFeature: "show_factor_pipeline" },
+      { label: "因子演化", to: "/factor-evolution", personaFeature: "show_factor_pipeline" },
+      { label: "因子市场", to: "/marketplace", feature: "feature_alpha_marketplace", personaFeature: "show_alpha_mining" },
+      { label: "参数优化", to: "/optimize", personaFeature: "show_vectorized_backtest" },
       { label: "数据湖健康", to: "/data-lake-health", navId: "data_lake_health" },
-      { label: "归因面板", to: "/attribution-dashboard" },
+      { label: "归因面板", to: "/attribution-dashboard", personaFeature: "enable_brinson_attribution" },
     ],
   },
   {
@@ -110,10 +118,12 @@ const NAV_GROUPS: NavGroup[] = [
 function DropdownGroup({
   group,
   features,
+  personaMask,
   onClose,
 }: {
   group: NavGroup;
   features: Record<string, boolean>;
+  personaMask: Record<string, boolean>;
   onClose: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -127,8 +137,10 @@ function DropdownGroup({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const visibleItems = group.items.filter((item) =>
-    isNavItemVisible(features, item.navId, item.feature),
+  const visibleItems = group.items.filter(
+    (item) =>
+      isNavItemVisible(features, item.navId, item.feature) &&
+      isPersonaNavVisible(personaMask, item.personaFeature),
   );
 
   if (visibleItems.length === 0) {
@@ -183,9 +195,13 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
   const { theme, toggle: toggleTheme } = useTheme();
   const { isAuthenticated, loading, mode, username, refresh } = useAuth();
   const { features } = usePlatformFeatures();
+  const { featureMask } = usePersona();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [cmdOpen, setCmdOpen] = useState(false);
+  const openCmd = useCallback(() => setCmdOpen(true), []);
+  useCommandPaletteHotkey(openCmd);
 
   async function onLogout() {
     await logoutSession();
@@ -194,6 +210,7 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
   }
 
   const featureMap: Record<string, boolean> = features as Record<string, boolean>;
+  const personaMask: Record<string, boolean> = featureMask;
 
   return (
     <div className="min-h-screen">
@@ -213,6 +230,7 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
                 key={group.label}
                 group={group}
                 features={featureMap}
+                personaMask={personaMask}
                 onClose={() => {}}
               />
             )).filter(Boolean)}
@@ -220,6 +238,15 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
 
           {/* Right Side */}
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCmdOpen(true)}
+              className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-[var(--quant-surface-border)] bg-[var(--quant-surface)]/60 px-2.5 py-1.5 text-xs text-[var(--quant-muted)] hover:border-[var(--quant-accent)]/40 hover:text-[var(--quant-fg)]"
+              aria-label="打开命令面板"
+            >
+              <span>搜索</span>
+              <kbd className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-zinc-400">⌘K</kbd>
+            </button>
             {loading ? (
               <span className="text-[var(--quant-muted)]">…</span>
             ) : isAuthenticated ? (
@@ -273,8 +300,10 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
         {mobileOpen && (
           <div className="lg:hidden border-t border-[var(--quant-nav-border)] bg-[var(--quant-nav-bg)] px-4 py-4 space-y-4">
             {NAV_GROUPS.map((group) => {
-              const items = group.items.filter((item) =>
-                isNavItemVisible(featureMap, item.navId, item.feature),
+              const items = group.items.filter(
+                (item) =>
+                  isNavItemVisible(featureMap, item.navId, item.feature) &&
+                  isPersonaNavVisible(personaMask, item.personaFeature),
               );
               if (items.length === 0) return null;
               return (
@@ -311,6 +340,7 @@ export function Layout({ enableBackToClassic, backToClassicUrl }: LayoutProps) {
           <AiAssistantDrawer open={aiOpen} onClose={() => setAiOpen(false)} />
         </Suspense>
       ) : null}
+      <CommandPalette open={cmdOpen} onClose={() => setCmdOpen(false)} />
       {!aiOpen && (
         <button
           type="button"

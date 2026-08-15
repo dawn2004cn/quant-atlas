@@ -5,6 +5,8 @@ export type QuickNavItem = { to: string; label: string };
 const CORE: QuickNavItem[] = [
   { to: "/", label: "操盘台" },
   { to: "/self-stocks", label: "自选" },
+  { to: "/watchlist-briefing", label: "晨报" },
+  { to: "/paper-trading", label: "模拟" },
   { to: "/hot-sectors", label: "热点" },
   { to: "/stock-selector", label: "选股" },
   { to: "/backtest", label: "回测" },

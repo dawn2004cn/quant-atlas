@@ -2,6 +2,7 @@
 import { lazy, Suspense } from "react";
 import { FeatureGate } from "./components/FeatureGate";
 import { Layout } from "./components/Layout";
+import { OnboardingGate } from "./components/OnboardingGate";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { DashboardPage } from "./pages/Dashboard";
@@ -45,6 +46,10 @@ const SwarmDashboardPage = lazy(() => import("./pages/SwarmDashboard").then((m) 
 const SwarmDesignerPage = lazy(() => import("./pages/SwarmDesigner").then((m) => ({ default: m.SwarmDesignerPage })));
 const SignalObservationsPage = lazy(() => import("./pages/SignalObservations").then((m) => ({ default: m.SignalObservationsPage })));
 const VoiceBriefingPage = lazy(() => import("./pages/VoiceBriefing").then((m) => ({ default: m.VoiceBriefingPage })));
+const WatchlistBriefingPage = lazy(() => import("./pages/WatchlistBriefing").then((m) => ({ default: m.WatchlistBriefingPage })));
+const MarketCoveragePage = lazy(() => import("./pages/MarketCoverage").then((m) => ({ default: m.MarketCoveragePage })));
+const OnboardingPage = lazy(() => import("./pages/Onboarding").then((m) => ({ default: m.OnboardingPage })));
+const PaperTradingPage = lazy(() => import("./pages/PaperTrading").then((m) => ({ default: m.PaperTradingPage })));
 const ResearchCanvasPage = lazy(() => import("./pages/ResearchCanvas").then((m) => ({ default: m.ResearchCanvasPage })));
 const ResearchPipelinePage = lazy(() => import("./pages/ResearchPipeline").then((m) => ({ default: m.ResearchPipelinePage })));
 
@@ -122,7 +127,10 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<ProtectedRoute />}>
-            <Route element={<Layout />}>
+            <Route element={<OnboardingGate />}>
+              <Route element={<Layout />}>
+              <Route path="onboarding" element={<LazyRoute label="Onboarding"><OnboardingPage /></LazyRoute>} />
+              <Route path="paper-trading" element={<LazyRoute label="PaperTrading"><PaperTradingPage /></LazyRoute>} />
               <Route index element={<DashboardPage />} />
               <Route path="backtest" element={<LazyRoute label="Backtest"><BacktestPage /></LazyRoute>} />
               <Route path="market-panorama" element={<LazyRoute label="MarketPanorama"><MarketPanoramaPage /></LazyRoute>} />
@@ -144,6 +152,8 @@ export default function App() {
               <Route path="portfolio" element={<LazyRoute label="Portfolio"><PortfolioPage /></LazyRoute>} />
               <Route path="portfolio/:id" element={<LazyRoute label="PortfolioDetail"><PortfolioDetailPage /></LazyRoute>} />
               <Route path="self-stocks" element={<LazyRoute label="SelfStocks"><SelfStocksPage /></LazyRoute>} />
+              <Route path="watchlist-briefing" element={<LazyRoute label="WatchlistBriefing"><WatchlistBriefingPage /></LazyRoute>} />
+              <Route path="market-coverage" element={<LazyRoute label="MarketCoverage"><MarketCoveragePage /></LazyRoute>} />
               <Route path="hot-sectors" element={<LazyRoute label="HotSectors"><HotSectorsPage /></LazyRoute>} />
               <Route path="global-radar" element={<LazyRoute label="GlobalRadar"><GlobalRadarPage /></LazyRoute>} />
               <Route path="stock-selector" element={<LazyRoute label="StockSelector"><StockSelectorPage /></LazyRoute>} />
@@ -225,6 +235,7 @@ export default function App() {
               <Route path="user-tiers/institution" element={<LazyRoute label="UserTiersInstitution"><UserTiersInstitutionPage /></LazyRoute>} />
 
               <Route path="*" element={<NotFoundPage />} />
+              </Route>
             </Route>
           </Route>
         </Routes>

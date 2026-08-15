@@ -43,3 +43,19 @@ def test_lifecycle_uses_sql_when_collab_available(tmp_path: Path) -> None:
     assert settings["tenant_id"] == 9
     assert settings["sync_status"]["mode"] == "sql_tenant"
     assert settings["notifications"]["site_message"] is False
+    assert settings["site_message"] is False
+    collab.get_lifecycle_row.assert_called_once_with(3, 9)
+
+
+def test_update_notifications_persists_and_flattens(tmp_path: Path) -> None:
+    svc = _make_svc(tmp_path)
+    user = MagicMock(id=7)
+    saved = svc.update_notifications(
+        user=user,
+        patch={"daily_briefing": True, "site_message": False, "noise": "x"},
+    )
+    assert saved == {"daily_briefing": True, "site_message": False}
+    settings = svc.get_settings(user=user)
+    assert settings["notifications"]["daily_briefing"] is True
+    assert settings["daily_briefing"] is True
+    assert settings["site_message"] is False

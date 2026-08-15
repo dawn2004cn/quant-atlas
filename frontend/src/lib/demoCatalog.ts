@@ -1219,6 +1219,7 @@ export const DEMO_PROFILE = {
     risk_alerts: true,
     psychology_alerts: false,
     weekly_review: true,
+    daily_briefing: true,
     wechat: false,
     sms: false,
   },

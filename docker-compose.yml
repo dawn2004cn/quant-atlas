@@ -162,6 +162,42 @@ services:
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:9090/healthz"]
 
+  # Self-test lite stack: Redis + web on SQLite (no MySQL).
+  # Usage: docker compose --profile lite up -d --build
+  web-lite:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles: ["lite"]
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_APP: run.py
+      FLASK_ENV: development
+      FLASK_DEBUG: "1"
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-dev-lite-secret}
+      API_JWT_SECRET: ${API_JWT_SECRET:-dev-lite-jwt}
+      SKIP_SECRETS_CHECKS: "1"
+      DATABASE_BACKEND: sqlite
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      SESSION_COOKIE_SECURE: "0"
+      ENABLE_ASYNC_MARKET_QUOTES: "0"
+    volumes:
+      - ./instance:/app/instance
+      - ./logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/system/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 50s
+      retries: 3
+
 volumes:
   redis_data:
   mysql_data:

@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { PageQuickNav, QUICK_NAV_PRESETS } from "../components/CoreWorkflowStrip";
 import { DemoBanner } from "../components/DemoBanner";
 import { apiFetchV1 } from "../lib/api";
 import { DEMO_PROFILE } from "../lib/demoCatalog";
+import { resetOnboardingFlag } from "../lib/onboarding";
 
 type PagePrefs = { font_size?: string };
 type AccessPolicy = { tier_label?: string; features?: Array<{ name: string; enabled: boolean }> };
@@ -13,10 +15,18 @@ type NotificationPrefs = {
   risk_alerts?: boolean;
   psychology_alerts?: boolean;
   weekly_review?: boolean;
+  daily_briefing?: boolean;
   wechat?: boolean;
   sms?: boolean;
 };
 type InvestmentProfile = { risk_level?: string; horizon?: string };
+type PersonaPayload = {
+  tier?: string;
+  risk_tolerance?: number;
+  experience_score?: number;
+  trading_frequency?: string;
+  assessed_at?: string;
+};
 
 const TABS = [
   { key: "basic", label: "基本设置" },
@@ -30,10 +40,37 @@ const NOTIF_LABELS: Record<string, string> = {
   price_alerts: "价格提醒",
   risk_alerts: "风险提醒",
   psychology_alerts: "心理提醒",
+  daily_briefing: "自选晨报摘要",
   weekly_review: "周度回顾",
   wechat: "微信推送",
   sms: "短信通知",
 };
+
+const TIER_LABELS: Record<string, string> = {
+  novice: "稳健入门",
+  day_trader: "活跃交易",
+  strategist: "策略研究",
+  retail: "散户",
+  boutique: "量化小团队",
+  investment: "投资机构",
+  fund: "基金",
+  institution: "大型机构",
+};
+
+function pickNotifs(raw: Record<string, unknown> | null | undefined): NotificationPrefs {
+  const nested =
+    raw && typeof raw.notifications === "object" && raw.notifications
+      ? (raw.notifications as Record<string, unknown>)
+      : {};
+  const out: NotificationPrefs = { ...DEMO_PROFILE.notifs, daily_briefing: true };
+  for (const key of Object.keys(NOTIF_LABELS)) {
+    const v = raw?.[key] ?? nested[key];
+    if (typeof v === "boolean") {
+      (out as Record<string, boolean>)[key] = v;
+    }
+  }
+  return out;
+}
 
 export default function Profile() {
   const [tab, setTab] = useState("basic");
@@ -42,32 +79,35 @@ export default function Profile() {
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [notifs, setNotifs] = useState<NotificationPrefs>({});
   const [invest, setInvest] = useState<InvestmentProfile>({});
+  const [persona, setPersona] = useState<PersonaPayload | null>(null);
   const [saving, setSaving] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const [p, a, au, n, i] = await Promise.all([
+      const [p, a, au, n, i, pe] = await Promise.all([
         apiFetchV1<PagePrefs>("/user/page-preferences"),
         apiFetchV1<AccessPolicy>("/user/access-policy"),
         apiFetchV1<{ items?: AuditEntry[] }>("/user/audit-trail?limit=10"),
         apiFetchV1<NotificationPrefs>("/user/lifecycle"),
         apiFetchV1<InvestmentProfile>("/user/investment-profile"),
+        apiFetchV1<PersonaPayload>("/user/persona").catch(() => null),
       ]);
+      setPersona(pe);
       const auditItems = au.items ?? [];
       const empty = !a?.tier_label && !auditItems.length && !i?.risk_level;
       if (empty) {
         setPrefs(DEMO_PROFILE.prefs);
         setPolicy(DEMO_PROFILE.policy);
         setAudit(DEMO_PROFILE.audit);
-        setNotifs(DEMO_PROFILE.notifs);
+        setNotifs(pickNotifs({ ...DEMO_PROFILE.notifs, daily_briefing: true }));
         setInvest(DEMO_PROFILE.invest);
         setIsDemo(true);
       } else {
         setPrefs(p ?? DEMO_PROFILE.prefs);
         setPolicy(a ?? DEMO_PROFILE.policy);
         setAudit(auditItems.length ? auditItems : DEMO_PROFILE.audit);
-        setNotifs(n ?? DEMO_PROFILE.notifs);
+        setNotifs(pickNotifs((n as Record<string, unknown>) ?? DEMO_PROFILE.notifs));
         setInvest(i ?? DEMO_PROFILE.invest);
         setIsDemo(!auditItems.length);
       }
@@ -75,8 +115,9 @@ export default function Profile() {
       setPrefs(DEMO_PROFILE.prefs);
       setPolicy(DEMO_PROFILE.policy);
       setAudit(DEMO_PROFILE.audit);
-      setNotifs(DEMO_PROFILE.notifs);
+      setNotifs(pickNotifs({ ...DEMO_PROFILE.notifs, daily_briefing: true }));
       setInvest(DEMO_PROFILE.invest);
+      setPersona(null);
       setIsDemo(true);
     }
   }, []);
@@ -145,6 +186,35 @@ export default function Profile() {
       {/* Basic Settings */}
       {tab === "basic" && (
         <div className="space-y-4">
+          <div className="quant-card">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-bold mb-1">使用画像</div>
+                <p className="text-sm text-[var(--quant-muted)]">
+                  {persona?.tier
+                    ? TIER_LABELS[persona.tier] || persona.tier
+                    : "尚未评估（默认稳健入门）"}
+                </p>
+                {persona?.trading_frequency ? (
+                  <p className="mt-1 font-mono text-[11px] text-[var(--quant-muted)]">
+                    频率 {persona.trading_frequency}
+                    {persona.assessed_at ? ` · ${persona.assessed_at.slice(0, 19)}` : ""}
+                  </p>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Link to="/onboarding" className="btn btn-ghost btn-sm" onClick={() => resetOnboardingFlag()}>
+                  重新引导
+                </Link>
+                <Link to="/watchlist-briefing" className="btn btn-ghost btn-sm">
+                  自选晨报
+                </Link>
+                <Link to="/paper-trading" className="btn btn-ghost btn-sm">
+                  模拟交易
+                </Link>
+              </div>
+            </div>
+          </div>
           <div className="quant-card">
             <div className="text-sm font-bold mb-3">界面设置</div>
             <div className="flex items-center gap-3">

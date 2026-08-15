@@ -50,7 +50,7 @@ class UserLifecycleService:
         if uid is None:
             return {"error": "user has no id"}
 
-        settings: dict[str, Any] = self._data.get(str(uid), {})
+        settings: dict[str, Any] = dict(self._data.get(str(uid), {}) or {})
 
         # If collaboration repo is available, prefer SQL tenant data
         if self._collab is not None:
@@ -60,12 +60,11 @@ class UserLifecycleService:
                 settings["sync_status"] = {"mode": "sql_tenant"}
 
                 # Merge lifecycle row data
-                row = self._collab.get_lifecycle_row(uid)
+                row = self._collab.get_lifecycle_row(uid, tenant.id)
                 if isinstance(row, dict):
                     settings.update(row)
             except Exception:
                 logger.warning("Suppressed exception in get_settings", exc_info=True)
-                pass  # Fall back to JSON data
 
         # Merge from optional services
         if self._access:
@@ -93,4 +92,65 @@ class UserLifecycleService:
             if groups:
                 settings["groups"] = groups
 
+        # Flatten notification flags for SPA Profile checkboxes
+        notifs = settings.get("notifications")
+        if isinstance(notifs, dict):
+            for key, value in notifs.items():
+                settings.setdefault(key, value)
+
         return settings
+
+    def update_notifications(self, user: Any, patch: dict[str, Any]) -> dict[str, Any]:
+        """Merge boolean notification preferences for the user."""
+        uid = getattr(user, "id", None) or getattr(user, "user_id", None)
+        if uid is None:
+            return {"error": "user has no id"}
+
+        key = str(uid)
+        entry = dict(self._data.get(key) or {})
+        notifs = dict(entry.get("notifications") or {})
+        raw = patch.get("notifications") if isinstance(patch.get("notifications"), dict) else patch
+        for flag, value in (raw or {}).items():
+            if flag == "notifications":
+                continue
+            if isinstance(value, bool):
+                notifs[str(flag)] = value
+
+        entry["notifications"] = notifs
+        self._data[key] = entry
+        self._save()
+
+        if self._collab is not None:
+            try:
+                tenant = self._collab.ensure_personal_tenant(uid)
+                self._collab.upsert_lifecycle_row(uid, tenant.id, notifications=notifs)
+            except Exception:
+                logger.warning("Suppressed exception in update_notifications", exc_info=True)
+
+        return notifs
+
+    def record_privacy_consent(self, user: Any, consent: dict[str, Any]) -> dict[str, Any]:
+        uid = getattr(user, "id", None) or getattr(user, "user_id", None)
+        if uid is None:
+            return {"error": "user has no id"}
+        key = str(uid)
+        entry = dict(self._data.get(key) or {})
+        entry["privacy_consent"] = dict(consent or {})
+        self._data[key] = entry
+        self._save()
+        return entry["privacy_consent"]
+
+    def export_user_data(self, user: Any) -> dict[str, Any]:
+        return self.get_settings(user)
+
+    def request_account_deletion(self, user: Any, reason: str = "") -> dict[str, Any]:
+        uid = getattr(user, "id", None) or getattr(user, "user_id", None)
+        if uid is None:
+            return {"error": "user has no id"}
+        key = str(uid)
+        entry = dict(self._data.get(key) or {})
+        payload = {"reason": reason or "", "requested": True}
+        entry["deletion_request"] = payload
+        self._data[key] = entry
+        self._save()
+        return payload
