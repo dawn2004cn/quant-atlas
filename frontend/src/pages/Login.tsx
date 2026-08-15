@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { loginWithPassword, loginWithSession } from "../lib/api";
+import { hasCompletedOnboarding } from "../lib/onboarding";
 import { toSpaPath } from "../lib/spaPath";
 
 export function LoginPage() {
@@ -29,7 +30,7 @@ export function LoginPage() {
           throw jwtErr;
         }
       }
-      navigate(redirectTo, { replace: true });
+      navigate(hasCompletedOnboarding() ? redirectTo : "/onboarding", { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : "登录失败";
       setError(message);

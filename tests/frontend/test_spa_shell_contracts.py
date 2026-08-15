@@ -68,8 +68,21 @@ def test_openstock_inspired_pages_registered() -> None:
     app = (FE / "App.tsx").read_text(encoding="utf-8")
     assert 'path="watchlist-briefing"' in app
     assert 'path="market-coverage"' in app
+    assert 'path="onboarding"' in app
+    assert "OnboardingGate" in app
     detail = (FE / "pages" / "StockDetail.tsx").read_text(encoding="utf-8")
     assert "近 120 日走势" in detail
     assert "AI 诊股" in detail
     # Chart hero before AI insight panel render
     assert detail.index("近 120 日走势") < detail.index("<AiInsightPanel")
+
+
+def test_onboarding_persona_flow_wired() -> None:
+    onboard = (FE / "pages" / "Onboarding.tsx").read_text(encoding="utf-8")
+    assert "/user/persona" in onboard
+    assert "markOnboardingCompleted" in onboard
+    login = (FE / "pages" / "Login.tsx").read_text(encoding="utf-8")
+    assert "hasCompletedOnboarding" in login
+    brief = (FE / "pages" / "WatchlistBriefing.tsx").read_text(encoding="utf-8")
+    assert "/watchlist/experience" in brief
+    assert "notesFromWatchlist" in brief

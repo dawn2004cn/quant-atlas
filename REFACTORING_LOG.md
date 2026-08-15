@@ -4,6 +4,26 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-15 (OpenStock 启发续：Persona Onboarding + 晨报自选备注)
+
+### 目标
+第二波体验：登录后轻量偏好引导；自选晨报优先展示真实自选备注。
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `frontend/src/pages/Onboarding.tsx` | 三档用法 → `POST /user/persona`；可跳过 |
+| `frontend/src/lib/onboarding.ts` | localStorage 完成标记（后端 persona 进程内缓存） |
+| `frontend/src/components/OnboardingGate.tsx` | 未完成则拦到 `/onboarding` |
+| `frontend/src/pages/Login.tsx` / `App.tsx` | 登录后进引导；路由注册 |
+| `frontend/src/pages/WatchlistBriefing.tsx` | 并行拉 `/watchlist/experience`，备注优先真实自选 |
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py`
+- `npx vite build`
+
+---
+
 ## 2026-08-15 (OpenStock 启发：Cmd+K / 个股首屏 / 自选晨报)
 
 ### 目标

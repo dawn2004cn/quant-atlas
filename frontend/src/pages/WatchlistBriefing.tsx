@@ -5,6 +5,7 @@ import { DemoBanner } from "../components/DemoBanner";
 import { PageSkeleton } from "../components/PageSkeleton";
 import { apiFetchV1 } from "../lib/api";
 import { DEMO_STOCKS } from "../lib/demoCatalog";
+import type { WatchlistStock } from "../types/watchlist";
 
 type BriefingPayload = {
   ok?: boolean;
@@ -15,6 +16,11 @@ type BriefingPayload = {
   top_picks?: Array<{ symbol?: string; name?: string; reason?: string; score?: number }>;
   watchlist_notes?: Array<{ symbol?: string; name?: string; note?: string }>;
   message?: string;
+};
+
+type ExperiencePayload = {
+  items?: Array<WatchlistStock & { code?: string; note?: string; risk_level?: string }>;
+  summary?: { text?: string; avg_score?: number; total?: number };
 };
 
 const DEMO_BRIEFING: BriefingPayload = {
@@ -40,10 +46,42 @@ const DEMO_BRIEFING: BriefingPayload = {
   })),
 };
 
+function fmtPct(v?: number | null): string {
+  if (v == null || Number.isNaN(v)) return "--";
+  return `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
+}
+
+function notesFromWatchlist(exp?: ExperiencePayload | null): BriefingPayload["watchlist_notes"] {
+  const items = exp?.items ?? [];
+  if (!items.length) return [];
+  return items.slice(0, 12).map((row) => {
+    const symbol = row.symbol || row.code || "";
+    const pct = fmtPct(row.change_pct);
+    const health = row.health_score != null ? `健康度 ${Math.round(row.health_score)}` : null;
+    const risk = row.risk_level ? `风险 ${row.risk_level}` : null;
+    const custom = row.note?.trim();
+    const bits = [custom, health, `涨跌 ${pct}`, risk].filter(Boolean);
+    return {
+      symbol,
+      name: row.name,
+      note: bits.join(" · ") || "自选关注",
+    };
+  });
+}
+
 export function WatchlistBriefingPage() {
   const { data, error, isLoading, mutate } = useSWR(
     "watchlist-briefing",
     () => apiFetchV1<BriefingPayload>("/briefing/smart-daily?market=CN&top_n=5&narrative=1"),
+    { revalidateOnFocus: false },
+  );
+
+  const { data: wlExp } = useSWR(
+    "watchlist-briefing-experience",
+    () =>
+      apiFetchV1<ExperiencePayload>(
+        "/watchlist/experience?sort_by=priority&include_news=false&market=CN",
+      ),
     { revalidateOnFocus: false },
   );
 
@@ -56,8 +94,10 @@ export function WatchlistBriefingPage() {
     (!(data.top_picks ?? []).length && !(data.narrative?.summary));
   const view = isDemo ? DEMO_BRIEFING : data;
   const picks = view.top_picks ?? [];
-  const notes = view.watchlist_notes ?? [];
+  const liveNotes = notesFromWatchlist(wlExp);
+  const notes = liveNotes.length > 0 ? liveNotes : (view.watchlist_notes ?? []);
   const bullets = view.narrative?.bullets ?? [];
+  const notesSource = liveNotes.length > 0 ? "自选实时" : isDemo ? "演示" : "晨报接口";
 
   return (
     <div className="mx-auto max-w-[960px] space-y-5">
@@ -133,7 +173,10 @@ export function WatchlistBriefingPage() {
 
       {notes.length > 0 ? (
         <section className="rounded-xl bg-zinc-900/50 p-5 ring-1 ring-zinc-800/50">
-          <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-400">自选备注</h3>
+          <div className="flex items-baseline justify-between gap-2">
+            <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-400">自选备注</h3>
+            <span className="font-mono text-[10px] text-zinc-600">{notesSource}</span>
+          </div>
           <ul className="mt-3 space-y-2">
             {notes.map((n) => (
               <li key={`${n.symbol}-${n.note}`} className="flex flex-wrap items-baseline gap-2 text-sm">

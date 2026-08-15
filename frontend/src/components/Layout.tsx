@@ -51,6 +51,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "通达信板块", to: "/tdx-blocks" },
       { label: "影子操盘", to: "/shadow-account" },
       { label: "数据与市场说明", to: "/market-coverage" },
+      { label: "使用偏好引导", to: "/onboarding" },
     ],
   },
   {
