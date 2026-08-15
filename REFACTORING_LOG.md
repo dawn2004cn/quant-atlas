@@ -4,6 +4,25 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-15 (OpenStock 启发续：模拟交易 + Profile Persona)
+
+### 目标
+第三波：零售向模拟交易可自测；个人中心露出画像与晨报订阅开关。
+
+### 交付
+| 文件 | 要点 |
+|------|------|
+| `frontend/src/lib/paperBook.ts` | localStorage 模拟账本（买入/卖出/重置） |
+| `frontend/src/pages/PaperTrading.tsx` | `/paper-trading` 权益/下单/持仓；链到影子复盘 |
+| `frontend/src/pages/Profile.tsx` | 画像卡 + `daily_briefing` 通知 + 重新引导 |
+| `frontend/src/pages/Onboarding.tsx` | 活跃交易档完成后进模拟交易 |
+
+### 验证
+- `pytest tests/frontend/test_spa_shell_contracts.py`
+- `npx vite build`
+
+---
+
 ## 2026-08-15 (OpenStock 启发续：Persona Onboarding + 晨报自选备注)
 
 ### 目标

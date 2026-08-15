@@ -30,7 +30,7 @@ const CHOICES: PersonaChoice[] = [
     risk_tolerance: 0.55,
     experience_score: 0.4,
     trading_frequency: "high",
-    nextHint: "推荐：市场全景 → 信号旗 → 自选",
+    nextHint: "推荐：模拟交易 → 市场全景 → 信号旗",
   },
   {
     id: "strategist",
@@ -65,7 +65,14 @@ export function OnboardingPage() {
         });
       }
       markOnboardingCompleted();
-      navigate(choice?.id === "strategist" ? "/strategy-wizard" : "/", { replace: true });
+      navigate(
+        choice?.id === "strategist"
+          ? "/strategy-wizard"
+          : choice?.id === "day_trader"
+            ? "/paper-trading"
+            : "/",
+        { replace: true },
+      );
     } catch (err) {
       // Still mark local completion so users are not stuck if API is down
       markOnboardingCompleted();

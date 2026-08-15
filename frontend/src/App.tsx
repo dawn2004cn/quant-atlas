@@ -49,6 +49,7 @@ const VoiceBriefingPage = lazy(() => import("./pages/VoiceBriefing").then((m) =>
 const WatchlistBriefingPage = lazy(() => import("./pages/WatchlistBriefing").then((m) => ({ default: m.WatchlistBriefingPage })));
 const MarketCoveragePage = lazy(() => import("./pages/MarketCoverage").then((m) => ({ default: m.MarketCoveragePage })));
 const OnboardingPage = lazy(() => import("./pages/Onboarding").then((m) => ({ default: m.OnboardingPage })));
+const PaperTradingPage = lazy(() => import("./pages/PaperTrading").then((m) => ({ default: m.PaperTradingPage })));
 const ResearchCanvasPage = lazy(() => import("./pages/ResearchCanvas").then((m) => ({ default: m.ResearchCanvasPage })));
 const ResearchPipelinePage = lazy(() => import("./pages/ResearchPipeline").then((m) => ({ default: m.ResearchPipelinePage })));
 
@@ -129,6 +130,7 @@ export default function App() {
             <Route element={<OnboardingGate />}>
               <Route element={<Layout />}>
               <Route path="onboarding" element={<LazyRoute label="Onboarding"><OnboardingPage /></LazyRoute>} />
+              <Route path="paper-trading" element={<LazyRoute label="PaperTrading"><PaperTradingPage /></LazyRoute>} />
               <Route index element={<DashboardPage />} />
               <Route path="backtest" element={<LazyRoute label="Backtest"><BacktestPage /></LazyRoute>} />
               <Route path="market-panorama" element={<LazyRoute label="MarketPanorama"><MarketPanoramaPage /></LazyRoute>} />

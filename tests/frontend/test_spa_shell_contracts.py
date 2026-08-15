@@ -69,6 +69,7 @@ def test_openstock_inspired_pages_registered() -> None:
     assert 'path="watchlist-briefing"' in app
     assert 'path="market-coverage"' in app
     assert 'path="onboarding"' in app
+    assert 'path="paper-trading"' in app
     assert "OnboardingGate" in app
     detail = (FE / "pages" / "StockDetail.tsx").read_text(encoding="utf-8")
     assert "近 120 日走势" in detail
@@ -86,3 +87,17 @@ def test_onboarding_persona_flow_wired() -> None:
     brief = (FE / "pages" / "WatchlistBriefing.tsx").read_text(encoding="utf-8")
     assert "/watchlist/experience" in brief
     assert "notesFromWatchlist" in brief
+
+
+def test_paper_trading_page_and_profile_persona() -> None:
+    paper = (FE / "pages" / "PaperTrading.tsx").read_text(encoding="utf-8")
+    assert "applyPaperOrder" in paper
+    assert "模拟买入" in paper
+    book = (FE / "lib" / "paperBook.ts").read_text(encoding="utf-8")
+    assert "qa_paper_book_v1" in book
+    profile = (FE / "pages" / "Profile.tsx").read_text(encoding="utf-8")
+    assert "/user/persona" in profile
+    assert "daily_briefing" in profile
+    assert "resetOnboardingFlag" in profile
+    palette = (FE / "components" / "CommandPalette.tsx").read_text(encoding="utf-8")
+    assert "/paper-trading" in palette

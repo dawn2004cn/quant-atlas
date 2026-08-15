@@ -21,6 +21,7 @@ const QUICK_ACTIONS: Array<{ id: string; label: string; hint: string; to: string
   { id: "act-select", label: "智能选股", hint: "选股", to: "/stock-selector" },
   { id: "act-panorama", label: "市场全景", hint: "行情", to: "/market-panorama" },
   { id: "act-coverage", label: "数据与市场说明", hint: "局限", to: "/market-coverage" },
+  { id: "act-paper", label: "模拟交易", hint: "Paper", to: "/paper-trading" },
   { id: "act-onboard", label: "使用偏好引导", hint: "Persona", to: "/onboarding" },
 ];
 
