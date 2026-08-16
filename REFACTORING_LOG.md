@@ -4,6 +4,19 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-16 (知识库爬虫任务 + 本地分类落库 + AI 工具)
+
+在基础知识库之上接入统一爬取编排：复用东财研报 / 新闻归档 / 财报 stash / 产业链配置，分类写入 `instance/knowledge_base/`，并暴露 AI 可调用工具。
+
+| 交付 | 说明 |
+|------|------|
+| `KnowledgeLocalStore` | JSONL 本地库 + `by_category/*.jsonl` + `build_ai_pack` |
+| `KnowledgeCrawlService` | 远程爬取（可选）→ 本地分类物化 |
+| Celery | `crawl_knowledge_bundle` / `scheduled_knowledge_crawl`（`KNOWLEDGE_CRAWL_BEAT=1`） |
+| API | `POST /knowledge/crawl`、`GET /knowledge/local/stats|search`、`GET /knowledge/pack` |
+| AI | `search_local_knowledge`、`get_local_knowledge_pack` |
+| SPA | 「爬取并本地化」按钮 + 本地库统计 |
+
 ## 2026-08-16 (基础知识库：研报/财报/新闻/产业链聚合检索)
 
 将平台已接入源聚合成 Quant Atlas「基础知识库」，支持关键词 + 标的跨源检索；**不做任意站点全网爬虫 / 新向量库**。

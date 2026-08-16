@@ -126,6 +126,10 @@ from .financial_tools import (
     get_cn_research_reports,
     get_tdx_financial_data,
 )
+from .knowledge_tools import (
+    get_local_knowledge_pack,
+    search_local_knowledge,
+)
 from .news_tools import (
     get_market_mood,
     get_news_sentiment,
@@ -236,6 +240,8 @@ QUANT_TOOL_BINDINGS = [
     run_intelligent_pipeline,
     search_web_intelligence,
     get_yanbao_market_digest,
+    search_local_knowledge,
+    get_local_knowledge_pack,
 ]
 
 
@@ -258,6 +264,7 @@ def quant_tools_agent_system_suffix() -> str:
 QUANT_TOOLS_SUPERVISOR_PROMPT_FRAGMENT = """你是一个量化研究助手，可以调用以下工具获取股票数据:
 - get_market_data: 获取历史K线
 - get_stock_news: 获取新闻
+- search_local_knowledge / get_local_knowledge_pack: 本地分类知识库（研报/财报/新闻/产业链）
 - get_cn_financial_statements: 获取财务数据
 - run_backtest: 执行回测
 - stock_selector: 选股
@@ -291,6 +298,8 @@ __all__ = [
     "run_intelligent_pipeline",
     "search_web_intelligence",
     "get_yanbao_market_digest",
+    "search_local_knowledge",
+    "get_local_knowledge_pack",
     "configure_quant_tools",
     "QuantToolRuntime",
     "MarketDataToolResult",

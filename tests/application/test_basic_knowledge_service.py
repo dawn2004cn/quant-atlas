@@ -52,7 +52,7 @@ def test_corpus_hits_for_industry_query() -> None:
     out = svc.search("产业链", sources=[SOURCE_CORPUS], limit=20)
     assert out["count"] >= 1
     assert all(i["source_type"] == SOURCE_CORPUS for i in out["items"])
-    assert "非全网任意站点爬取" in out["note"]
+    assert "非任意站点全网爬取" in out["note"] or "非全网任意站点爬取" in out["note"]
 
 
 def test_fan_in_yanbao_and_news() -> None:

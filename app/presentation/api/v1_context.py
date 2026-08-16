@@ -51,6 +51,7 @@ class ApiV1Context:
     selection_source_service: Any = None
     basic_market_data_service: Any = None
     basic_knowledge_service: Any = None
+    knowledge_crawl_service: Any = None
     task_dispatcher: Any = None
     task_message_store: Any = None
     active_job_tracker_service: Any = None
@@ -181,6 +182,7 @@ def create_api_v1_context(api_bundle, task_dispatcher=None, task_message_store=N
         selection_source_service=s.selection_source_service,
         basic_market_data_service=s.basic_market_data_service,
         basic_knowledge_service=getattr(s, "basic_knowledge_service", None),
+        knowledge_crawl_service=getattr(s, "knowledge_crawl_service", None),
         task_dispatcher=task_dispatcher,
         task_message_store=task_message_store,
         active_job_tracker_service=None,

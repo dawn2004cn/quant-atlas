@@ -111,11 +111,13 @@ class BasicKnowledgeService:
         news_archive: Any | None = None,
         industry_chain_service: Any | None = None,
         fundamental_access: Any | None = None,
+        local_store: Any | None = None,
     ) -> None:
         self._bmd = basic_market_data_service
         self._news = news_archive
         self._chain = industry_chain_service
         self._fund = fundamental_access
+        self._local = local_store
 
     def search(
         self,
@@ -125,6 +127,7 @@ class BasicKnowledgeService:
         sources: list[str] | None = None,
         market: str = "CN",
         limit: int = 30,
+        prefer_local: bool = True,
     ) -> dict[str, Any]:
         q = (query or "").strip()
         sym = (symbol or "").strip().upper() or None
@@ -135,6 +138,34 @@ class BasicKnowledgeService:
 
         hits: list[KnowledgeHit] = []
         errors: dict[str, str] = {}
+        local_count = 0
+
+        if prefer_local and self._local is not None:
+            try:
+                local_hits = self._local.search(
+                    q,
+                    categories=sorted(wanted),
+                    symbol=sym,
+                    limit=limit,
+                )
+                for row in local_hits:
+                    hits.append(
+                        KnowledgeHit(
+                            id=str(row.get("id") or ""),
+                            source_type=str(row.get("category") or SOURCE_CORPUS),
+                            title=str(row.get("title") or ""),
+                            snippet=str(row.get("content") or "")[:320],
+                            symbol=row.get("symbol") or sym,
+                            published_at=row.get("published_at"),
+                            url=row.get("url"),
+                            score=float(row.get("score") or 0) + 0.5,
+                            meta={"local": True, "tags": row.get("tags") or [], "source": row.get("source")},
+                        )
+                    )
+                local_count = len(local_hits)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("local knowledge search failed: %s", exc, exc_info=True)
+                errors["local"] = str(exc)
 
         if SOURCE_CORPUS in wanted:
             hits.extend(self._search_corpus(q, sym))
@@ -163,6 +194,13 @@ class BasicKnowledgeService:
                 logger.warning("industry chain search failed: %s", exc, exc_info=True)
                 errors[SOURCE_CHAIN] = str(exc)
 
+        # Deduplicate by id keeping highest score
+        by_id: dict[str, KnowledgeHit] = {}
+        for h in hits:
+            prev = by_id.get(h.id)
+            if prev is None or h.score > prev.score:
+                by_id[h.id] = h
+        hits = list(by_id.values())
         hits.sort(key=lambda h: h.score, reverse=True)
         if q:
             hits = [h for h in hits if h.score > 0] or hits[:limit]
@@ -179,9 +217,10 @@ class BasicKnowledgeService:
             "items": [h.to_dict() for h in truncated],
             "count": len(truncated),
             "by_source": by_source,
+            "local_hits": local_count,
             "errors": errors,
             "generated_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
-            "note": "聚合平台已接入源（研报库/新闻归档/财报摘要/产业链配置/基础知识语料）；非全网任意站点爬取。",
+            "note": "优先本地分类库 instance/knowledge_base，并聚合平台已接入源；非任意站点全网爬取。",
         }
 
     def _search_corpus(self, query: str, symbol: str | None) -> list[KnowledgeHit]:

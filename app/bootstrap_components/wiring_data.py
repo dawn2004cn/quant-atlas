@@ -74,6 +74,7 @@ register_factory("basic_market_data_service", _make_basic_market_data_service)
 
 
 def _make_basic_knowledge_service(reg: Any) -> Any:
+    from app.infrastructure.storage.knowledge_local_store import KnowledgeLocalStore
     from app.modules.data.services.basic_knowledge_service import BasicKnowledgeService
 
     news = reg.get_or_none("news_archive_repository") or reg.get_or_none("news_archive")
@@ -104,10 +105,41 @@ def _make_basic_knowledge_service(reg: Any) -> Any:
         news_archive=news,
         industry_chain_service=reg.get_or_none("industry_chain_service"),
         fundamental_access=fund,
+        local_store=KnowledgeLocalStore(),
     )
 
 
 register_factory("basic_knowledge_service", _make_basic_knowledge_service)
+
+
+def _make_knowledge_crawl_service(reg: Any) -> Any:
+    from app.infrastructure.storage.knowledge_local_store import KnowledgeLocalStore
+    from app.modules.data.services.knowledge_crawl_service import KnowledgeCrawlService
+
+    news = reg.get_or_none("news_archive_repository") or reg.get_or_none("news_archive")
+    if news is None:
+        try:
+            from app.config import get_settings
+            from app.infrastructure.repositories.common.deps import create_news_archive_repository
+
+            news = create_news_archive_repository(get_settings())
+        except Exception:  # noqa: BLE001
+            news = None
+
+    facade = reg.get_or_none("tool_facade_service")
+    fund = facade or reg.get_or_none("fundamental_access")
+
+    return KnowledgeCrawlService(
+        store=KnowledgeLocalStore(),
+        basic_market_data_service=reg.get_or_none("basic_market_data_service"),
+        news_archive=news,
+        tool_facade=facade,
+        industry_chain_service=reg.get_or_none("industry_chain_service"),
+        fundamental_access=fund,
+    )
+
+
+register_factory("knowledge_crawl_service", _make_knowledge_crawl_service)
 
 
 def _make_tdx_block_stats_service(reg: Any) -> Any:

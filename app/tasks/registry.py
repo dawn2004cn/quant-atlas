@@ -67,6 +67,7 @@ def _register_all_tasks() -> None:
         market_tasks,
         moments_tasks,
         news_backfill_tasks,
+        knowledge_crawl_tasks,
         qlib_data_update,
         questdb_sync_tasks,
         scanner_tasks,
@@ -204,6 +205,19 @@ def _register_all_tasks() -> None:
         "每日新闻归档更新",
         category="新闻",
         default_params={},
+    )
+
+    register_task(
+        "app.tasks.knowledge_crawl_tasks.crawl_knowledge_bundle",
+        knowledge_crawl_tasks.crawl_knowledge_bundle,
+        "基础知识库爬取：研报/新闻/财报/产业链 → 本地分类落库",
+        category="知识库",
+        default_params={
+            "codes": ["600519", "000001", "300750"],
+            "sources": ["yanbao", "news", "financial", "industry_chain", "corpus"],
+            "run_remote": True,
+        },
+        estimated_steps=["远程爬取", "本地分类落库", "完成"],
     )
 
     register_task(
