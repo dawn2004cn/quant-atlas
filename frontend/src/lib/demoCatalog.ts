@@ -199,6 +199,55 @@ export const DEMO_YANBAO = [
   },
 ];
 
+export const DEMO_BASIC_KNOWLEDGE = {
+  query: "产业链",
+  symbol: null,
+  items: [
+    {
+      id: "demo-kb-1",
+      source_type: "corpus",
+      title: "AI 算力产业链逻辑：上游芯片 → 中游服务器/光模块 → 下游云与应用",
+      snippet: "需求从大模型训练/推理拉动 GPU/ASIC；中游关注服务器与光模块；下游看云厂商资本开支。",
+      score: 6,
+    },
+    {
+      id: "demo-kb-2",
+      source_type: "yanbao",
+      title: "高端白酒景气延续，维持买入",
+      snippet: "演示研报样本 · 渠道库存健康",
+      symbol: "600519",
+      published_at: "2026-08-10",
+      score: 4,
+    },
+    {
+      id: "demo-kb-3",
+      source_type: "industry_chain",
+      title: "300750 · 新能源汽车",
+      snippet: "上游:锂电池,锂矿；下游:整车,充电桩；关联:002594,300750",
+      symbol: "300750",
+      score: 3,
+    },
+    {
+      id: "demo-kb-4",
+      source_type: "financial",
+      title: "600519 财报/财务摘要",
+      snippet: "演示：收入质量与现金流框架（非实盘财报）",
+      symbol: "600519",
+      score: 2,
+    },
+    {
+      id: "demo-kb-5",
+      source_type: "news",
+      title: "行业政策与订单跟踪（演示）",
+      snippet: "政策/订单类信息影响中期预期，需与公告交叉验证。",
+      score: 2,
+    },
+  ],
+  count: 5,
+  by_source: { corpus: 1, yanbao: 1, industry_chain: 1, financial: 1, news: 1 },
+  note: "演示数据 · 实盘将聚合平台研报库/新闻归档/财报/产业链",
+};
+
 export const DEMO_SIGNAL_FLAGS: SignalFlagItem[] = [
   {
     code: "600519",

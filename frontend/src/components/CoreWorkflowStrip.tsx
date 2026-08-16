@@ -32,6 +32,8 @@ const SPECIFIC: Record<string, QuickNavItem[]> = {
   stockDetail: preset({ to: "/ai-analysis", label: "诊股" }),
   marketplace: preset({ to: "/factor-repository", label: "因子" }),
   selfStocks: preset({ to: "/signal-flag", label: "信号旗" }),
+  yanbaoHub: preset({ to: "/knowledge", label: "知识库" }, { to: "/yanbao-hub", label: "研报" }),
+  knowledge: preset({ to: "/knowledge", label: "知识库" }, { to: "/yanbao-hub", label: "研报" }),
 };
 
 export const QUICK_NAV_PRESETS: Record<string, QuickNavItem[]> = new Proxy(SPECIFIC, {

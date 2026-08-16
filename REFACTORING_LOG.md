@@ -4,6 +4,17 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-16 (基础知识库：研报/财报/新闻/产业链聚合检索)
+
+将平台已接入源聚合成 Quant Atlas「基础知识库」，支持关键词 + 标的跨源检索；**不做任意站点全网爬虫 / 新向量库**。
+
+| 交付 | 说明 |
+|------|------|
+| `BasicKnowledgeService` | Fan-in：yanbao / news / financial / industry_chain / 内置产业逻辑语料 |
+| API | `GET /api/v1/knowledge/search`、`GET /api/v1/knowledge/sources` |
+| SPA | `/app/knowledge` + Cmd+K「基础知识库」+ 导航入口；演示数据兜底 |
+| 附带 | 研报中心列表路径对齐 `/market/yanbao` |
+
 ## 2026-08-15 (借鉴 free-stockdb：本地数据引擎门面)
 
 ### 目标

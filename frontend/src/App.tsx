@@ -66,6 +66,7 @@ const WarRoomPage = lazy(() => import("./pages/WarRoom").then((m) => ({ default:
 /* M2 — Secondary Data Pages */
 const AlertCenterPage = lazy(() => import("./pages/AlertCenter").then((m) => ({ default: m.AlertCenterPage })));
 const YanbaoHubPage = lazy(() => import("./pages/YanbaoHub").then((m) => ({ default: m.YanbaoHubPage })));
+const BasicKnowledgePage = lazy(() => import("./pages/BasicKnowledge").then((m) => ({ default: m.BasicKnowledgePage })));
 const LonghuBangPage = lazy(() => import("./pages/LonghuBang").then((m) => ({ default: m.LonghuBangPage })));
 const SelectionResultPage = lazy(() => import("./pages/SelectionResult").then((m) => ({ default: m.SelectionResultPage })));
 const InvestmentManagersPage = lazy(() => import("./pages/InvestmentManagers").then((m) => ({ default: m.InvestmentManagersPage })));
@@ -191,6 +192,7 @@ export default function App() {
               {/* M2 — Secondary Data Pages (9 pages) */}
               <Route path="alert-center" element={<LazyRoute label="AlertCenter"><AlertCenterPage /></LazyRoute>} />
               <Route path="yanbao-hub" element={<LazyRoute label="YanbaoHub"><YanbaoHubPage /></LazyRoute>} />
+              <Route path="knowledge" element={<LazyRoute label="BasicKnowledge"><BasicKnowledgePage /></LazyRoute>} />
               <Route path="longhu-bang" element={<LazyRoute label="LonghuBang"><LonghuBangPage /></LazyRoute>} />
               <Route path="selection-result/:taskId" element={<LazyRoute label="SelectionResult"><SelectionResultPage /></LazyRoute>} />
               <Route path="investment-managers" element={<LazyRoute label="InvestmentManagers"><InvestmentManagersPage /></LazyRoute>} />

@@ -63,7 +63,7 @@ export function YanbaoHubPage() {
 
   const { data, error, isLoading } = useSWR(
     ["yanbao/list", stockFilter, dateFrom, dateTo],
-    () => apiFetchV1<YanbaoResponse>(`/yanbao/list?${params}`),
+    () => apiFetchV1<YanbaoResponse>(`/market/yanbao?${params}`),
     { refreshInterval: 120_000 },
   );
 

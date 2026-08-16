@@ -50,6 +50,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: "全球透视塔", to: "/global-radar" },
       { label: "热点板块", to: "/hot-sectors" },
       { label: "龙虎榜", to: "/longhu-bang" },
+      { label: "基础知识库", to: "/knowledge" },
       { label: "研报中心", to: "/yanbao-hub" },
       { label: "通达信板块", to: "/tdx-blocks" },
       { label: "影子操盘", to: "/shadow-account" },

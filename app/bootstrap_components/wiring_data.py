@@ -73,6 +73,41 @@ def _make_basic_market_data_service(reg: Any) -> Any:
 register_factory("basic_market_data_service", _make_basic_market_data_service)
 
 
+def _make_basic_knowledge_service(reg: Any) -> Any:
+    from app.modules.data.services.basic_knowledge_service import BasicKnowledgeService
+
+    news = reg.get_or_none("news_archive_repository") or reg.get_or_none("news_archive")
+    if news is None:
+        try:
+            from app.config import get_settings
+            from app.infrastructure.repositories.common.deps import create_news_archive_repository
+
+            news = create_news_archive_repository(get_settings())
+        except Exception:  # noqa: BLE001
+            news = None
+
+    fund = reg.get_or_none("tool_facade_service")
+    if fund is None:
+        fund = reg.get_or_none("fundamental_access")
+    if fund is None:
+        try:
+            from app.modules.system.services.helpers.cn_fundamentals_access import (
+                get_cn_fundamentals_port,
+            )
+
+            fund = get_cn_fundamentals_port()
+        except Exception:  # noqa: BLE001
+            fund = None
+
+    return BasicKnowledgeService(
+        basic_market_data_service=reg.get_or_none("basic_market_data_service"),
+        news_archive=news,
+        industry_chain_service=reg.get_or_none("industry_chain_service"),
+        fundamental_access=fund,
+    )
+
+
+register_factory("basic_knowledge_service", _make_basic_knowledge_service)
 
 
 def _make_tdx_block_stats_service(reg: Any) -> Any:
