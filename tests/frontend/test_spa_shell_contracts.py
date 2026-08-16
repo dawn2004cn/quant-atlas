@@ -130,6 +130,7 @@ def test_basic_knowledge_base_wired() -> None:
     assert "/knowledge" in palette
     page = (FE / "pages" / "BasicKnowledge.tsx").read_text(encoding="utf-8")
     assert "/knowledge/search" in page
+    assert "/knowledge/crawl" in page
     assert "DEMO_BASIC_KNOWLEDGE" in page
     svc = (ROOT / "app" / "modules" / "data" / "services" / "basic_knowledge_service.py").read_text(
         encoding="utf-8"
@@ -141,6 +142,18 @@ def test_basic_knowledge_base_wired() -> None:
     )
     assert "/knowledge/search" in routes
     assert "/knowledge/sources" in routes
+    assert "/knowledge/crawl" in routes
+    assert "/knowledge/pack" in routes
+    store = (ROOT / "app" / "infrastructure" / "storage" / "knowledge_local_store.py").read_text(
+        encoding="utf-8"
+    )
+    assert "KnowledgeLocalStore" in store
+    assert "build_ai_pack" in store
+    crawl = (ROOT / "app" / "tasks" / "knowledge_crawl_tasks.py").read_text(encoding="utf-8")
+    assert "crawl_knowledge_bundle" in crawl
+    tools = (ROOT / "app" / "tools" / "knowledge_tools.py").read_text(encoding="utf-8")
+    assert "search_local_knowledge" in tools
+    assert "get_local_knowledge_pack" in tools
 
 
 def test_free_stockdb_inspired_local_data_facades() -> None:

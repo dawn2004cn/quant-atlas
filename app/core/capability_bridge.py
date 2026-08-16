@@ -130,6 +130,16 @@ _TOOL_SEMANTICS: dict[str, dict[str, Any]] = {
         "domain": "news",
         "tags": ["yanbao", "digest", "summary"],
     },
+    "search_local_knowledge": {
+        "description": "搜索本地基础知识库（已爬取并分类的研报/新闻/财报/产业链/语料）",
+        "domain": "research",
+        "tags": ["knowledge", "local", "yanbao", "news", "financial", "industry_chain"],
+    },
+    "get_local_knowledge_pack": {
+        "description": "获取按类别整理的本地知识包（prompt_block），便于注入 AI 上下文",
+        "domain": "research",
+        "tags": ["knowledge", "pack", "prompt", "local"],
+    },
 }
 
 

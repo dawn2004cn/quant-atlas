@@ -64,6 +64,16 @@ def _build_beat_schedule() -> dict[str, Any]:
     if get_runtime("NEWS_DAILY_BEAT", "1") == "1":
         BeatRegistry.register("news-archive-daily", "app.tasks.news_backfill_tasks.scheduled_news_daily", crontab(hour=6, minute=20), description="daily news archive", queue="default")
 
+    # -- KNOWLEDGE_CRAWL_BEAT (unify + localize after yanbao/news) --
+    if get_runtime("KNOWLEDGE_CRAWL_BEAT", "1") == "1":
+        BeatRegistry.register(
+            "knowledge-crawl-daily",
+            "app.tasks.knowledge_crawl_tasks.scheduled_knowledge_crawl",
+            crontab(hour=6, minute=40),
+            description="crawl+localize knowledge base",
+            queue="default",
+        )
+
     # -- SCANNER_CELERY_BEAT --
     if get_runtime("SCANNER_CELERY_BEAT", "1") == "1":
         BeatRegistry.register("scanner-core-every-2min", "app.tasks.scanner_tasks.scanner_core_tick", crontab(minute="*/2"), description="scanner core tick", queue="default")

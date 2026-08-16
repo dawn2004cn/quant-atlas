@@ -44,6 +44,8 @@ export function BasicKnowledgePage() {
   const [symbol, setSymbol] = useState("");
   const [sources, setSources] = useState<string[]>([...SOURCE_FILTERS]);
   const [submitted, setSubmitted] = useState({ q: "产业链", symbol: "", sources: SOURCE_FILTERS.join(",") });
+  const [crawling, setCrawling] = useState(false);
+  const [crawlNote, setCrawlNote] = useState("");
 
   const swrKey = useMemo(
     () => ["knowledge-search", submitted.q, submitted.symbol, submitted.sources],
@@ -60,6 +62,12 @@ export function BasicKnowledgePage() {
       params.set("limit", "40");
       return apiFetchV1<SearchPayload>(`/knowledge/search?${params}`);
     },
+    { revalidateOnFocus: false, shouldRetryOnError: false },
+  );
+
+  const { data: localStats, mutate: mutateStats } = useSWR(
+    "knowledge-local-stats",
+    () => apiFetchV1<{ total?: number; by_category?: Record<string, number>; root?: string }>("/knowledge/local/stats"),
     { revalidateOnFocus: false, shouldRetryOnError: false },
   );
 
@@ -82,6 +90,45 @@ export function BasicKnowledgePage() {
     });
   }
 
+  async function onCrawl() {
+    setCrawling(true);
+    setCrawlNote("");
+    try {
+      const codes = symbol.trim()
+        ? [symbol.trim().toUpperCase()]
+        : ["600519", "000001", "300750"];
+      const result = await apiFetchV1<{
+        materialized?: Record<string, number>;
+        store?: { total?: number };
+        note?: string;
+        queued?: boolean;
+        task_id?: string;
+      }>("/knowledge/crawl", {
+        method: "POST",
+        body: JSON.stringify({
+          codes,
+          sources: sources.length ? sources : SOURCE_FILTERS,
+          run_remote: true,
+        }),
+      });
+      if (result.queued) {
+        setCrawlNote(`已入队 Celery：${result.task_id || ""}`);
+      } else {
+        const m = result.materialized || {};
+        const parts = Object.entries(m)
+          .map(([k, n]) => `${SOURCE_LABELS[k] || k}:${n}`)
+          .join(" ");
+        setCrawlNote(`本地落库 ${result.store?.total ?? "?"} 条 · ${parts}`);
+      }
+      await mutate();
+      await mutateStats();
+    } catch (err) {
+      setCrawlNote(err instanceof Error ? err.message : "爬取失败（可用演示数据）");
+    } finally {
+      setCrawling(false);
+    }
+  }
+
   if (isLoading && !items.length && !isDemo) return <PageSkeleton rows={5} />;
 
   return (
@@ -92,11 +139,30 @@ export function BasicKnowledgePage() {
           <div className="text-[11px] font-mono uppercase tracking-[0.18em] text-zinc-500">Basic Knowledge Base</div>
           <h1 className="mt-0.5 text-2xl font-bold tracking-tight text-zinc-100">基础知识库</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            聚合研报、财报摘要、新闻归档、产业链逻辑与内置语料（平台已接入源，非任意站点爬虫）。
+            爬取研报/新闻/财报/产业链后分类写入本地库，供搜索与 AI 工具调用（已接入源，非任意站点爬虫）。
           </p>
           <DemoBanner show={isDemo} />
+          {localStats?.total != null ? (
+            <p className="mt-1 font-mono text-[11px] text-zinc-600">
+              本地库 {localStats.total} 条
+              {localStats.by_category
+                ? ` · ${Object.entries(localStats.by_category)
+                    .map(([k, n]) => `${SOURCE_LABELS[k] || k}:${n}`)
+                    .join(" ")}`
+                : ""}
+            </p>
+          ) : null}
+          {crawlNote ? <p className="mt-1 text-xs text-emerald-400/90">{crawlNote}</p> : null}
         </div>
         <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={crawling}
+            onClick={() => void onCrawl()}
+            className="rounded-lg bg-sky-500/15 px-3 py-1.5 text-xs font-semibold text-sky-300 ring-1 ring-sky-500/30 disabled:opacity-50"
+          >
+            {crawling ? "爬取中…" : "爬取并本地化"}
+          </button>
           <button
             type="button"
             onClick={() => void mutate()}
