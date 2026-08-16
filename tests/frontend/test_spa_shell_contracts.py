@@ -120,6 +120,29 @@ def test_morning_digest_and_persona_nav() -> None:
     assert "--profile lite" in quick
 
 
+def test_basic_knowledge_base_wired() -> None:
+    app = (FE / "App.tsx").read_text(encoding="utf-8")
+    assert 'path="knowledge"' in app
+    assert "BasicKnowledgePage" in app
+    layout = (FE / "components" / "Layout.tsx").read_text(encoding="utf-8")
+    assert 'to: "/knowledge"' in layout
+    palette = (FE / "components" / "CommandPalette.tsx").read_text(encoding="utf-8")
+    assert "/knowledge" in palette
+    page = (FE / "pages" / "BasicKnowledge.tsx").read_text(encoding="utf-8")
+    assert "/knowledge/search" in page
+    assert "DEMO_BASIC_KNOWLEDGE" in page
+    svc = (ROOT / "app" / "modules" / "data" / "services" / "basic_knowledge_service.py").read_text(
+        encoding="utf-8"
+    )
+    assert "BasicKnowledgeService" in svc
+    assert "SOURCE_YANBAO" in svc
+    routes = (ROOT / "app" / "presentation" / "api" / "routes_v1_basic_knowledge.py").read_text(
+        encoding="utf-8"
+    )
+    assert "/knowledge/search" in routes
+    assert "/knowledge/sources" in routes
+
+
 def test_free_stockdb_inspired_local_data_facades() -> None:
     adjust = (ROOT / "app" / "domain" / "shared" / "history_adjust.py").read_text(encoding="utf-8")
     assert "normalize_adjust" in adjust
