@@ -102,8 +102,8 @@ export function MarketPanoramaPage() {
     { revalidateOnFocus: false, refreshInterval: 45_000 },
   );
 
-  const rankings = panorama?.data?.rankings;
-  const sectors = panorama?.data?.sectors ?? [];
+  const rankings = panorama?.rankings;
+  const sectors = panorama?.sectors ?? [];
   const marketStats = quotesPage?.stats;
   const listItems = quotesPage?.items ?? [];
   const listTotal = quotesPage?.total ?? 0;
@@ -131,38 +131,38 @@ export function MarketPanoramaPage() {
       ) : null}
 
       {/* Sentiment Summary */}
-      {sentiment?.data ? (
+      {sentiment ? (
         <Panel className="p-5">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div>
               <p className="text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">市场情绪</p>
-              <div className="mt-1 text-3xl font-bold tracking-tight text-zinc-100">{sentiment.data.level ?? "--"}</div>
-              <p className="mt-1 text-sm text-zinc-500">{sentiment.data.description ?? ""}</p>
-              {sentiment.data.score != null && (
+              <div className="mt-1 text-3xl font-bold tracking-tight text-zinc-100">{sentiment.level ?? "--"}</div>
+              <p className="mt-1 text-sm text-zinc-500">{sentiment.description ?? ""}</p>
+              {sentiment.score != null && (
                 <div className="mt-2 flex items-center gap-2">
                   <div className="h-1.5 w-24 overflow-hidden rounded-full bg-zinc-800">
-                    <div className="h-full rounded-full bg-emerald-500/60" style={{ width: `${sentiment.data.score}%` }} />
+                    <div className="h-full rounded-full bg-emerald-500/60" style={{ width: `${sentiment.score}%` }} />
                   </div>
-                  <span className="font-mono text-[10px] text-zinc-500">{sentiment.data.score}</span>
+                  <span className="font-mono text-[10px] text-zinc-500">{sentiment.score}</span>
                 </div>
               )}
             </div>
             <div className="flex gap-3">
               <div className="min-w-[72px] rounded-lg bg-emerald-500/8 px-4 py-2.5 text-center ring-1 ring-emerald-500/10">
                 <div className="text-lg font-bold font-mono tabular-nums text-emerald-400">
-                  {marketStats?.up ?? panorama?.data?.summary?.gainers ?? "--"}
+                  {marketStats?.up ?? panorama?.summary?.gainers ?? "--"}
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.1em] text-emerald-400/60">上涨</div>
               </div>
               <div className="min-w-[72px] rounded-lg bg-zinc-800/50 px-4 py-2.5 text-center">
                 <div className="text-lg font-bold font-mono tabular-nums text-zinc-300">
-                  {marketStats?.flat ?? panorama?.data?.summary?.flat ?? "--"}
+                  {marketStats?.flat ?? panorama?.summary?.flat ?? "--"}
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.1em] text-zinc-500">平盘</div>
               </div>
               <div className="min-w-[72px] rounded-lg bg-rose-500/8 px-4 py-2.5 text-center ring-1 ring-rose-500/10">
                 <div className="text-lg font-bold font-mono tabular-nums text-rose-400">
-                  {marketStats?.down ?? panorama?.data?.summary?.losers ?? "--"}
+                  {marketStats?.down ?? panorama?.summary?.losers ?? "--"}
                 </div>
                 <div className="text-[10px] uppercase tracking-[0.1em] text-rose-400/60">下跌</div>
               </div>

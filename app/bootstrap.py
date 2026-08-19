@@ -205,13 +205,15 @@ def _wire_blueprints_and_modules(app, services, settings):
         task_message_store=task_message_store,
     )
     initialize_all_modules(container=services)
-    init_optional(
+    realtime_meta = init_optional(
         "realtime",
         lambda: init_realtime(
             app, settings,
             market_service=getattr(services, "market_service", None),
         ),
     )
+    if isinstance(realtime_meta, dict):
+        app.config["REALTIME_META"] = realtime_meta
 
 
 

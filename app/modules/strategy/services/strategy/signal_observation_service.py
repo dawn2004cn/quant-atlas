@@ -367,6 +367,8 @@ class SignalObservationService:
         return {"items": list(by_source.values()), "total": len(rows)}
 
     def _quote(self, symbol: str, market: MarketCode) -> GenericResponseDTO:
+        if self._market_service is None:
+            return {"code": symbol, "name": symbol}
         try:
             rows = self._market_service.list_quotes(market, [symbol])
             if rows:
@@ -376,6 +378,8 @@ class SignalObservationService:
         return {"code": symbol, "name": symbol}
 
     def _refresh_rows(self, rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        if self._market_service is None:
+            return rows
         open_rows = [r for r in rows if r.get("status") == "open"]
         by_market: dict[str, list[str]] = {}
         for row in open_rows:

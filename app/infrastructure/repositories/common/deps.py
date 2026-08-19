@@ -262,7 +262,7 @@ def create_signal_observation_repository(session_factory) -> Any | None:
     try:
         from ..mysql.mysql_signal_observation_repository import MySQLSignalObservationRepository
 
-        repo = MySQLSignalObservationRepository(session_factory())
+        repo = MySQLSignalObservationRepository(session_factory)
         return repo
     except Exception:
         return None
