@@ -74,12 +74,23 @@ def init_request_context_middleware(app: Any) -> None:
     @app.after_request
     def _finalize_request_context(response: Any) -> Any:
         if not request.path.startswith("/static/"):
-            http_logger.info(
-                "%s %s %s",
-                request.method,
-                request.path,
-                response.status_code,
-            )
+            path = request.path or ""
+            is_socketio_probe = path.startswith("/socket.io")
+            status = response.status_code
+            if is_socketio_probe and status in (404, 405):
+                http_logger.debug(
+                    "%s %s %s (socketio not enabled on this process)",
+                    request.method,
+                    path,
+                    status,
+                )
+            else:
+                http_logger.info(
+                    "%s %s %s",
+                    request.method,
+                    path,
+                    status,
+                )
         rid = get_request_id()
         if rid:
             response.headers.setdefault("X-Request-ID", rid)
@@ -91,6 +102,21 @@ def init_request_context_middleware(app: Any) -> None:
         clear_degraded_state()
         clear_context()
         return response
+
+    @app.context_processor
+    def _inject_realtime_template_flags() -> dict[str, Any]:
+        """Expose REALTIME_META to Jinja (base.html socket.io script gate)."""
+        from flask import current_app
+
+        meta = current_app.config.get("REALTIME_META") or {}
+        if not isinstance(meta, dict):
+            meta = {}
+        socketio_boot = bool(meta.get("socketio"))
+        integrated = bool(getattr(current_app, "socketio", None))
+        gateway = bool(meta.get("gateway_mode"))
+        return {
+            "enable_socketio": socketio_boot and (integrated or gateway),
+        }
 
     logger.debug("Request context middleware initialized")
 
