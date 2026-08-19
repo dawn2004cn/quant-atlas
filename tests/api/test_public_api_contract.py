@@ -48,6 +48,7 @@ def test_health_includes_realtime_capabilities(client):
     assert isinstance(rt, dict)
     assert "socketio_available" in rt
     assert "gateway_mode" in rt
+    assert "socketio_bootstrapped" in rt
 
 
 def test_public_registry_covers_compliance_manifest():

@@ -27,6 +27,7 @@ type GatewayMessage = {
 type RealtimeCapabilities = {
   socketio_available?: boolean;
   gateway_mode?: boolean;
+  socketio_integrated?: boolean;
 };
 
 const RECONNECT_BASE_DELAY = 1000;
@@ -187,8 +188,8 @@ export function useRealtime(enabled: boolean) {
 
       const socketioExplicit = import.meta.env.VITE_ENABLE_SOCKETIO === "true";
       const socketioAvailable = socketioExplicit || Boolean(caps.socketio_available);
-      gatewayEnabledRef.current =
-        import.meta.env.VITE_ENABLE_WS_GATEWAY === "true" || Boolean(caps.gateway_mode);
+      const gatewayExplicit = import.meta.env.VITE_ENABLE_WS_GATEWAY === "true";
+      gatewayEnabledRef.current = gatewayExplicit;
 
       if (socketioAvailable) {
         try {
@@ -196,7 +197,10 @@ export function useRealtime(enabled: boolean) {
             path: '/socket.io',
             transports: ['websocket', 'polling'],
             withCredentials: true,
-            reconnectionAttempts: 3,
+            reconnection: true,
+            reconnectionAttempts: 2,
+            reconnectionDelay: 8000,
+            timeout: 8000,
           });
         } catch (err) {
           setError(err instanceof Error ? err.message : 'Socket init failed');
