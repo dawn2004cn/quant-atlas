@@ -4,6 +4,21 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-19 (A股 TDX 实时行情 → Redis + day+live K线)
+
+交易时段（9:15–11:30 / 13:00–15:00）主动拉取 TDX TCP 行情写入 Redis；读路径优先 Redis；个股 K 线 = TDX lday + 当日实时 bar 合成。
+
+| 交付 | 说明 |
+|------|------|
+| `cn_trading_session` | 交易时段判定（CST） |
+| `TdxRedisQuoteStore` | Redis 读写 + pub 元数据 |
+| `TdxRealtimeFeedService` | 后台线程 3s 轮询（可配 `TDX_REDIS_QUOTE_INTERVAL_SEC`） |
+| 读路径 | `MultiSourceMarketProvider` 交易时段优先 Redis，腾讯备 |
+| K线 | `merge_intraday_bar` 合成当日 OHLCV |
+| 配置 | `TDX_REDIS_FEED=1`、`REDIS_URL`、可选 `TDX_REDIS_SYMBOLS` |
+
+**频率建议**：默认 **3 秒**（贴近通达信自选股 Level-1）；2s 更激进，5s 更省资源。每批最多 80 只 TCP 请求。
+
 ## 2026-06-24 (阶段 A：页面数据加载路由修复)
 
 ### 问题

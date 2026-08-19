@@ -40,6 +40,16 @@ _TOOL_SEMANTICS: dict[str, dict[str, Any]] = {
         "domain": "market_data",
         "tags": ["probe", "quote", "realtime"],
     },
+    "get_realtime_quote": {
+        "description": "获取股票实时行情（A股交易时段优先 TDX→Redis）。",
+        "domain": "market_data",
+        "tags": ["tdx", "redis", "quote", "realtime"],
+    },
+    "get_stock_history_bars": {
+        "description": "获取股票历史 K 线 bars（交易时段：lday + Redis 实时合成当日 bar）。",
+        "domain": "market_data",
+        "tags": ["kline", "history", "bars", "tdx"],
+    },
     "get_chip_distribution": {
         "description": "获取股票筹码分布数据，分析持仓成本结构",
         "domain": "market_data",

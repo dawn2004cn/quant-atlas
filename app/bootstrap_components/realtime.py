@@ -28,6 +28,14 @@ def _broadcast_loop(app: Any, market_service: Any) -> None:
 
     gateway = get_smart_degrade_gateway()
     interval = max(1, get_runtime_int("WS_QUOTE_INTERVAL_SEC", 5))
+    try:
+        from app.infrastructure.realtime.tdx_redis_quote_store import tdx_redis_feed_enabled
+        from app.modules.market_data.services.tdx_realtime_feed_service import feed_interval_sec
+
+        if tdx_redis_feed_enabled():
+            interval = max(1, int(feed_interval_sec()))
+    except Exception:
+        pass
     while True:
         try:
             with app.app_context():

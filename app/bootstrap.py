@@ -37,6 +37,7 @@ from .bootstrap_components.bootstrap_helpers import (
 from .bootstrap_components.module_wiring import initialize_all_modules
 from .bootstrap_components.presentation import configure_login_manager, register_blueprints
 from .bootstrap_components.realtime import init_realtime
+from .bootstrap_components.tdx_redis_feed import init_tdx_redis_feed
 from .bootstrap_components.security_headers import configure_security_headers, csp_nonce
 from .bootstrap_components.services import create_services
 from .config import get_settings
@@ -211,6 +212,10 @@ def _wire_blueprints_and_modules(app, services, settings):
             app, settings,
             market_service=getattr(services, "market_service", None),
         ),
+    )
+    init_optional(
+        "tdx_redis_feed",
+        lambda: init_tdx_redis_feed(app, settings),
     )
 
 
