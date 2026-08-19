@@ -144,6 +144,12 @@ def build_public_health_payload(services: Any) -> dict[str, Any]:
     else:
         deployment_status = "ok"
 
+    from app.core.runtime_config import get_runtime, get_runtime_bool
+
+    socketio_on = get_runtime_bool("ENABLE_SOCKETIO", False)
+    origins_ok = bool((get_runtime("SOCKETIO_ALLOWED_ORIGINS", "") or "").strip())
+    gateway_mode = get_runtime("WS_GATEWAY_MODE", "0") in ("1", "true")
+
     return {
         "status": "ok",
         "deployment_status": deployment_status,
@@ -151,6 +157,15 @@ def build_public_health_payload(services: Any) -> dict[str, Any]:
             "required_missing": list(report.missing_required),
             "optional_missing": list(report.missing_optional),
             "critical_missing": critical_missing,
+        },
+        "realtime": {
+            "socketio_enabled": socketio_on,
+            "origins_configured": origins_ok,
+            "gateway_mode": gateway_mode,
+            "socketio_available": socketio_on and origins_ok,
+            "ws_gateway_port": int(get_runtime("WS_GATEWAY_PORT", "5001") or 5001)
+            if gateway_mode
+            else None,
         },
     }
 
