@@ -24,9 +24,37 @@ type GatewayMessage = {
   ts?: number;
 };
 
-const GATEWAY_URL = "ws://localhost:9091/ws";
+type RealtimeCapabilities = {
+  socketio_available?: boolean;
+  gateway_mode?: boolean;
+};
+
 const RECONNECT_BASE_DELAY = 1000;
 const RECONNECT_MAX_DELAY = 30000;
+
+function wsGatewayUrl(): string {
+  const configured = import.meta.env.VITE_WS_GATEWAY_URL as string | undefined;
+  if (configured) return configured;
+  if (import.meta.env.DEV && typeof window !== "undefined") {
+    const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${proto}//${window.location.host}/ws`;
+  }
+  return "ws://localhost:9091/ws";
+}
+
+async function fetchRealtimeCapabilities(): Promise<RealtimeCapabilities> {
+  try {
+    const res = await fetch("/api/v1/health", {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return {};
+    const payload = (await res.json()) as { realtime?: RealtimeCapabilities };
+    return payload.realtime ?? {};
+  } catch {
+    return {};
+  }
+}
 
 export function useRealtime(enabled: boolean) {
   const [connected, setConnected] = useState(false);
@@ -38,14 +66,15 @@ export function useRealtime(enabled: boolean) {
   const subscribedSymbols = useRef<Set<string>>(new Set());
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gatewayEnabledRef = useRef(false);
 
   const connectGateway = useCallback(() => {
-    if (!enabled) return;
+    if (!enabled || !gatewayEnabledRef.current) return;
     setGatewayStatus('connecting');
 
     let ws: WebSocket;
     try {
-      ws = new WebSocket(GATEWAY_URL);
+      ws = new WebSocket(wsGatewayUrl());
     } catch (err) {
       setGatewayStatus('error');
       const msg = err instanceof Error ? err.message : 'WS init failed';
@@ -97,7 +126,7 @@ export function useRealtime(enabled: boolean) {
   }, [enabled]);
 
   const scheduleReconnect = useCallback(() => {
-    if (!enabled) return;
+    if (!enabled || !gatewayEnabledRef.current) return;
     if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
     const delay = Math.min(
       RECONNECT_BASE_DELAY * Math.pow(2, Math.random() * 3),
@@ -150,44 +179,62 @@ export function useRealtime(enabled: boolean) {
     }
 
     let socket: Socket | null = null;
-    try {
-      socket = io({
-        path: '/socket.io',
-        transports: ['websocket', 'polling'],
-        withCredentials: true,
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Socket init failed');
-      return;
-    }
+    let cancelled = false;
 
-    socket.on('connect', () => {
-      setConnected(true);
-      setError(null);
-      socket?.emit('subscribe', { room: 'alerts' });
-      socket?.emit('subscribe', { room: 'ai_analysis' });
-    });
+    void (async () => {
+      const caps = await fetchRealtimeCapabilities();
+      if (cancelled) return;
 
-    socket.on('disconnect', () => {
-      setConnected(false);
-    });
+      const socketioExplicit = import.meta.env.VITE_ENABLE_SOCKETIO === "true";
+      const socketioAvailable = socketioExplicit || Boolean(caps.socketio_available);
+      gatewayEnabledRef.current =
+        import.meta.env.VITE_ENABLE_WS_GATEWAY === "true" || Boolean(caps.gateway_mode);
 
-    socket.on('connect_error', (err) => {
-      setError(err.message);
-      setConnected(false);
-    });
+      if (socketioAvailable) {
+        try {
+          socket = io({
+            path: '/socket.io',
+            transports: ['websocket', 'polling'],
+            withCredentials: true,
+            reconnectionAttempts: 3,
+          });
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Socket init failed');
+          return;
+        }
 
-    socket.on('quote_update', (payload: QuoteUpdate) => {
-      setLastQuote(payload);
-    });
+        socket.on('connect', () => {
+          setConnected(true);
+          setError(null);
+          socket?.emit('subscribe', { room: 'alerts' });
+          socket?.emit('subscribe', { room: 'ai_analysis' });
+        });
 
-    socket.on('ai_analysis_chunk', (payload: AiAnalysisChunk) => {
-      setLastAiChunk(payload);
-    });
+        socket.on('disconnect', () => {
+          setConnected(false);
+        });
 
-    connectGateway();
+        socket.on('connect_error', (err) => {
+          setError(err.message);
+          setConnected(false);
+        });
+
+        socket.on('quote_update', (payload: QuoteUpdate) => {
+          setLastQuote(payload);
+        });
+
+        socket.on('ai_analysis_chunk', (payload: AiAnalysisChunk) => {
+          setLastAiChunk(payload);
+        });
+      }
+
+      if (gatewayEnabledRef.current) {
+        connectGateway();
+      }
+    })();
 
     return () => {
+      cancelled = true;
       socket?.disconnect();
       if (wsRef.current) {
         wsRef.current.close();

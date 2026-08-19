@@ -39,5 +39,16 @@ def test_compliance_manifest_payload_shape(client):
     assert "disclaimers" in data
 
 
+def test_health_includes_realtime_capabilities(client):
+    resp = client.get("/api/v1/health")
+    assert resp.status_code == 200
+    body = resp.get_json()
+    assert body is not None
+    rt = body.get("realtime")
+    assert isinstance(rt, dict)
+    assert "socketio_available" in rt
+    assert "gateway_mode" in rt
+
+
 def test_public_registry_covers_compliance_manifest():
     assert "/api/v1/compliance/manifest" in PUBLIC_API_V1_GET_PATHS
