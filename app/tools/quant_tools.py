@@ -147,7 +147,9 @@ from .stock_history_tools import (
 from .stock_history_tools import (
     get_chip_distribution,
     get_kline_chart,
+    get_realtime_quote,
     get_qlib_factor_snapshot,
+    get_stock_history_bars,
     get_tdx_local_snapshot,
     probe_ticker,
 )
@@ -215,6 +217,8 @@ def get_market_data(
 
 QUANT_TOOL_BINDINGS = [
     get_market_data,
+    get_stock_history_bars,
+    get_realtime_quote,
     get_kline_chart,
     get_qlib_factor_snapshot,
     probe_ticker,
@@ -257,6 +261,8 @@ def quant_tools_agent_system_suffix() -> str:
 
 QUANT_TOOLS_SUPERVISOR_PROMPT_FRAGMENT = """你是一个量化研究助手，可以调用以下工具获取股票数据:
 - get_market_data: 获取历史K线
+- get_stock_history_bars: 获取历史K线（更明确的bars接口）
+- get_realtime_quote: 获取实时行情（价格/涨跌/成交量等）
 - get_stock_news: 获取新闻
 - get_cn_financial_statements: 获取财务数据
 - run_backtest: 执行回测
@@ -271,6 +277,8 @@ __all__ = [
     "list_quant_tool_names",
     "quant_tools_agent_system_suffix",
     "get_market_data",
+    "get_stock_history_bars",
+    "get_realtime_quote",
     "get_kline_chart",
     "get_qlib_factor_snapshot",
     "probe_ticker",

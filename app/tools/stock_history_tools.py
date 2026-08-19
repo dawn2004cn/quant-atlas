@@ -280,3 +280,120 @@ def get_tdx_local_snapshot(ticker: str) -> TdxLocalSnapshotToolResult:
             error=str(e),
             confidence=0.3,
         )
+
+
+class RealTimeQuoteToolResult(BaseModel):
+    """Real-time quote result for external tool calls."""
+
+    model_config = ConfigDict(extra="ignore")
+    ticker: str
+    ok: bool = True
+    error: str | None = None
+    price: float | None = None
+    change_pct: float | None = None
+    volume: int | None = None
+    timestamp: str = ""
+    evidence: str = ""
+    confidence: float = Field(default=0.5, ge=0.0, le=1.0)
+
+
+@tool
+def get_realtime_quote(ticker: str) -> RealTimeQuoteToolResult:
+    """获取股票实时行情（交易时段优先 Redis/TDX，腾讯 gtimg 备源）。"""
+    from ..domain.enums import MarketCode
+    from ..infrastructure.providers.market_data import MultiSourceMarketProvider
+
+    try:
+        provider = MultiSourceMarketProvider()
+        quotes = provider.get_realtime_quotes([ticker], market=MarketCode.CN)
+        if not quotes:
+            return RealTimeQuoteToolResult(
+                ticker=ticker,
+                ok=False,
+                error="No quote available",
+                confidence=0.3,
+            )
+        q = quotes[0]
+        return RealTimeQuoteToolResult(
+            ticker=ticker,
+            price=q.price,
+            change_pct=q.change_pct,
+            volume=int(q.volume or 0),
+            timestamp=q.updated_at or "",
+            evidence=f"Retrieved real-time quote: {q.price}",
+            confidence=0.9,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"get_realtime_quote failed: {e}")
+        return RealTimeQuoteToolResult(
+            ticker=ticker,
+            ok=False,
+            error=str(e),
+            confidence=0.2,
+        )
+
+
+class StockHistoryBarsToolResult(BaseModel):
+    """A-share kline bars result for external tool calls."""
+
+    model_config = ConfigDict(extra="ignore")
+    ticker: str
+    market: str
+    start_date: str
+    end_date: str
+    ok: bool = True
+    error: str | None = None
+    bars: list[dict[str, Any]] = Field(default_factory=list)
+    bar_count: int = 0
+    evidence: str = ""
+    confidence: float = Field(default=0.5, ge=0.0, le=1.0)
+
+
+@tool
+def get_stock_history_bars(
+    ticker: str,
+    start_date: str = "",
+    end_date: str = "",
+    count: int = 100,
+) -> StockHistoryBarsToolResult:
+    """获取股票历史 K 线（交易时段：TDX lday + Redis 实时合成当日 bar）。"""
+    from datetime import datetime
+
+    from ..infrastructure.providers.market_data import MultiSourceMarketProvider
+
+    try:
+        provider = MultiSourceMarketProvider()
+        market, symbol = infer_market_and_symbol(ticker)
+
+        if not start_date:
+            # 默认 2y 回看
+            start_date = (datetime.now().replace(day=1)).strftime("%Y-%m-%d")
+        if not end_date:
+            end_date = datetime.now().strftime("%Y-%m-%d")
+
+        bars = provider.get_stock_history(symbol, market, start_date, end_date) or []
+        if count and count > 0:
+            bars = bars[-max(1, int(count)) :]
+
+        conf = 0.4 if not bars else min(0.95, 0.4 + len(bars) / 200)
+        return StockHistoryBarsToolResult(
+            ticker=ticker,
+            market=market.value,
+            start_date=start_date,
+            end_date=end_date,
+            bars=bars,
+            bar_count=len(bars),
+            evidence=f"Retrieved {len(bars)} history bars",
+            confidence=conf,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"get_stock_history_bars failed: {e}")
+        return StockHistoryBarsToolResult(
+            ticker=ticker,
+            market="CN",
+            start_date=start_date or "",
+            end_date=end_date or "",
+            ok=False,
+            error=str(e),
+            confidence=0.2,
+        )
