@@ -222,23 +222,24 @@ class MultiSourceMarketProvider(MarketDataProvider):
             misses.append(s)
         return hits, misses
 
-    def _fetch_and_sync(self, market: MarketCode, symbols: list[str]) -> list[StockQuote]:
-        if market == MarketCode.CN:
-            norm_codes = [SymbolNormalizer().normalize(s) for s in symbols]
-            try:
-                payload = self._quote_gateway.fetch_quotes_text(norm_codes, timeout=2)
-                if payload:
-                    raw_lines = payload.strip().split("\n")
-                    quotes = []
-                    for line in raw_lines:
-                        items = _split_gtimg_fields(line)
-                        if len(items) < 40:
-                            continue
-                        code = (items[2] or "").strip()
-                        if not code:
-                            continue
-                        from datetime import datetime
-                        quotes.append(StockQuote(
+    def _fetch_cn_quotes_remote(self, norm_codes: list[str], fetch_codes: list[str]) -> list[StockQuote]:
+        """Tencent gtimg fallback for CN quotes (subset of norm_codes)."""
+        market = MarketCode.CN
+        want = {c for c in fetch_codes}
+        try:
+            payload = self._quote_gateway.fetch_quotes_text(fetch_codes, timeout=2)
+            if payload:
+                raw_lines = payload.strip().split("\n")
+                quotes: list[StockQuote] = []
+                for line in raw_lines:
+                    items = _split_gtimg_fields(line)
+                    if len(items) < 40:
+                        continue
+                    code = (items[2] or "").strip()
+                    if not code or (want and code not in want):
+                        continue
+                    quotes.append(
+                        StockQuote(
                             code=code,
                             name=items[1] or code,
                             market=market,
@@ -260,16 +261,47 @@ class MultiSourceMarketProvider(MarketDataProvider):
                             pb=float(items[46] or 0),
                             total_market_cap=float(items[45] or 0) * 1e8,
                             industry=self._get_industry_from_cache(code),
-                        ))
-                    if quotes:
-                        self._update_multi_level_cache(market, quotes)
+                        )
+                    )
+                if quotes:
                     return quotes
-                _mark_market_data_degraded("market_tencent_fallback")
-                return self._get_l2_fallback(market, symbols)
-            except Exception as e:
-                logger.warning(f"CN quotes fetch failed, fallback to L2: {e}")
-                _mark_market_data_degraded("market_tencent_fallback")
-                return self._get_l2_fallback(market, symbols)
+            _mark_market_data_degraded("market_tencent_fallback")
+            return self._get_l2_fallback(market, list(want) if want else norm_codes)
+        except Exception as e:
+            logger.warning("CN quotes fetch failed, fallback to L2: %s", e)
+            _mark_market_data_degraded("market_tencent_fallback")
+            return self._get_l2_fallback(market, list(want) if want else norm_codes)
+
+    def _fetch_and_sync(self, market: MarketCode, symbols: list[str]) -> list[StockQuote]:
+        if market == MarketCode.CN:
+            norm_codes = [SymbolNormalizer().normalize(s) for s in symbols]
+            # 交易时段优先读 TDX→Redis 缓存（主动 feed 写入）
+            try:
+                from app.domain.shared.cn_trading_session import is_cn_tdx_quote_session
+                from app.infrastructure.realtime.tdx_redis_quote_store import (
+                    TdxRedisQuoteStore,
+                    tdx_redis_read_enabled,
+                )
+
+                if is_cn_tdx_quote_session() and tdx_redis_read_enabled():
+                    store = TdxRedisQuoteStore()
+                    if store.is_fresh():
+                        cached = store.get_quotes_dict(norm_codes)
+                        if cached:
+                            hits = store.to_stock_quotes(cached)
+                            hit_codes = {q.code for q in hits}
+                            miss = [c for c in norm_codes if c not in hit_codes]
+                            if not miss:
+                                self._update_multi_level_cache(market, hits)
+                                return hits
+                            remote = self._fetch_cn_quotes_remote(norm_codes, miss)
+                            merged = hits + remote
+                            if merged:
+                                self._update_multi_level_cache(market, merged)
+                            return merged
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("tdx redis quote read: %s", exc)
+            return self._fetch_cn_quotes_remote(norm_codes, norm_codes)
 
         try:
             import akshare as ak
@@ -694,6 +726,23 @@ class MultiSourceMarketProvider(MarketDataProvider):
                     self._cache.save_stock_history(cache_key, bars)
                 except Exception as e:
                     logger.warning("Failed to cache history for %s (non-critical): %s", symbol, e)
+
+            # 交易时段：lday 历史 + Redis 实时合成当日 K 线
+            try:
+                from app.domain.enums import MarketCode as _MC
+                from app.domain.shared.cn_trading_session import is_cn_tdx_quote_session
+                from app.infrastructure.providers.tdx_live_history import merge_intraday_bar
+                from app.infrastructure.realtime.tdx_redis_quote_store import (
+                    TdxRedisQuoteStore,
+                    tdx_redis_read_enabled,
+                )
+
+                if market == _MC.CN and is_cn_tdx_quote_session() and tdx_redis_read_enabled():
+                    live = TdxRedisQuoteStore().get_quote_dict(code)
+                    if live:
+                        bars = merge_intraday_bar(bars, live)
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("tdx live history merge skipped: %s", exc)
 
             return _filter_sort_history(bars, start, end) if bars else []
 
