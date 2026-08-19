@@ -431,35 +431,57 @@ $(function () {
 /* ── Quant Realtime (Socket.IO) ───────────────────────────────────── */
 
 (function () {
-    // Only initialize if socket.io library is loaded (provided by template)
     if (typeof io === 'undefined') return;
+
+    function initQuantRealtime() {
+        var socket = io({
+            path: '/socket.io',
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 2,
+            reconnectionDelay: 8000,
+            timeout: 8000,
+        });
+
+        socket.on('connect', function () {
+            console.debug('[QuantRealtime] connected');
+            socket.emit('subscribe', { room: 'market' });
+            socket.emit('subscribe', { room: 'alerts' });
+            window.QuantRealtime.connected = true;
+        });
+
+        socket.on('disconnect', function () {
+            window.QuantRealtime.connected = false;
+        });
+
+        socket.on('quote_update', function (d) {
+            window.QuantRealtime.lastQuote = d;
+            window.QuantRealtime.lastQuoteAt = Date.now();
+            document.dispatchEvent(new CustomEvent('quant:quote', { detail: d }));
+        });
+
+        socket.on('CrossTeamSiteAlertEvent', function (d) {
+            document.dispatchEvent(new CustomEvent('quant:cross-team-alert', { detail: d }));
+        });
+
+        window.QuantRealtime.socket = socket;
+    }
 
     window.QuantRealtime = window.QuantRealtime || {};
 
-    var socket = io({ transports: ['websocket', 'polling'] });
-
-    socket.on('connect', function () {
-        console.debug('[QuantRealtime] connected');
-        socket.emit('subscribe', { room: 'market' });
-        socket.emit('subscribe', { room: 'alerts' });
-        window.QuantRealtime.connected = true;
-    });
-
-    socket.on('disconnect', function () {
-        window.QuantRealtime.connected = false;
-    });
-
-    socket.on('quote_update', function (d) {
-        window.QuantRealtime.lastQuote = d;
-        window.QuantRealtime.lastQuoteAt = Date.now();
-        document.dispatchEvent(new CustomEvent('quant:quote', { detail: d }));
-    });
-
-    socket.on('CrossTeamSiteAlertEvent', function (d) {
-        document.dispatchEvent(new CustomEvent('quant:cross-team-alert', { detail: d }));
-    });
-
-    window.QuantRealtime.socket = socket;
+    fetch('/api/v1/health', {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+    })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (payload) {
+            if (payload && payload.realtime && payload.realtime.socketio_available) {
+                initQuantRealtime();
+            }
+        })
+        .catch(function () {
+            /* SocketIO optional in dev */
+        });
 })();
 
 /* ── CSRF token injection for authenticated API calls ───────────────── */
