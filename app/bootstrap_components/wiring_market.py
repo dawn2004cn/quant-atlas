@@ -276,7 +276,11 @@ def _make_signal_observation_service(reg: Any) -> Any:
     get_settings()
     sf = getattr(reg, "_session_factory", None)
     repo = create_signal_observation_repository(sf)
-    return SignalObservationService(observation_repository=repo, store_path=getattr(repo, "_store_path", None))
+    return SignalObservationService(
+        market_service=reg.get_or_none("market_service"),
+        observation_repository=repo,
+        store_path=getattr(repo, "_store_path", None),
+    )
 
 
 register_factory("signal_observation_service", _make_signal_observation_service)
