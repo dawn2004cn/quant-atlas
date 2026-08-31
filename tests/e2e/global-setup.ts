@@ -21,17 +21,22 @@ async function globalSetup(config: FullConfig) {
   }
   const html = await loginPage.text();
   const csrfMatch =
-    html.match(/name="csrf-token"\s+content="([^"]+)"/i) ??
-    html.match(/name="csrf_token"\s+value="([^"]+)"/i);
+    html.match(/name="csrf_token"\s+value="([^"]+)"/i) ??
+    html.match(/name="csrf-token"\s+content="([^"]+)"/i);
   if (!csrfMatch?.[1]) {
     throw new Error("CSRF token not found on /login");
   }
+  const csrf = csrfMatch[1];
 
   const loginResp = await ctx.post("/login", {
+    headers: {
+      Referer: `${baseURL}/login`,
+      "X-CSRF-Token": csrf,
+    },
     form: {
       username,
       password,
-      csrf_token: csrfMatch[1],
+      csrf_token: csrf,
     },
   });
   if (!loginResp.ok() && loginResp.status() !== 302) {
