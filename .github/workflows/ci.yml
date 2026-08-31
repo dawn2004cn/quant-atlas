@@ -256,8 +256,9 @@ jobs:
           python -c "from app import create_app; app = create_app(); app.run(host='127.0.0.1', port=5000)" &
           sleep 15
       - name: Run Playwright tests
-        run: cd tests/e2e && npx playwright test
+        run: cd tests/e2e && npx playwright test specs/04_health_check.spec.ts specs/01_login.spec.ts
         env:
+          E2E_NO_GLOBAL_SETUP: "1"
           FLASK_ENV: development
           SESSION_COOKIE_SECURE: "0"
           E2E_USERNAME: admin

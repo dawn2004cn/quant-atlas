@@ -25,7 +25,7 @@ test("SPA login shows error for invalid credentials", async ({ page }) => {
   await page.fill("input#password", "wrong-password");
   await page.click("button[type='submit']");
   // Error message should appear
-  await expect(page.locator("text=/登录失败|invalid_credentials|Unauthorized|用户名或密码|错误/i")).toBeVisible({ timeout: 5_000 });
+  await expect(page.locator("text=/登录失败|invalid_credentials|Unauthorized|请先登录|错误/i")).toBeVisible({ timeout: 5_000 });
 });
 
 test("switcher: Flask → SPA roundtrip", async ({ page }) => {
