@@ -49,6 +49,12 @@ This file is a consolidated chronological log of all major architecture refactor
 - `npm run build` ✓
 - `pytest tests/infrastructure/test_mysql_signal_observation_repository.py tests/api/test_public_api_contract.py::test_health_includes_realtime_capabilities` 3 passed
 
+### 续：经典模板 SocketIO 按需连接
+| 文件 | 要点 |
+|------|------|
+| `professional_workbench.html` | `connectTicks()` 先探测 `/api/v1/health.realtime.socketio_available` |
+| `research_canvas.html` | React canvas 连接前同样 health gate |
+
 ---
 
 ## 2026-06-24 (阶段 A：页面数据加载路由修复)

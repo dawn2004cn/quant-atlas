@@ -372,20 +372,34 @@ const pw = {
             return;
         }
         const symbols = (document.getElementById('rtSymbols').value || '').split(',').map(s => s.trim()).filter(Boolean);
-        if (this._tickSocket) this._tickSocket.disconnect();
-        this._tickSocket = io();
         const feed = document.getElementById('rtFeed');
-        this._tickSocket.on('connect', () => {
-            feed.textContent = '已连接，订阅 ' + symbols.join(', ') + '\n';
-            this._tickSocket.emit('subscribe_ticks', { symbols });
-        });
-        this._tickSocket.on('tick_update', (t) => {
-            feed.textContent = (t.timestamp || '') + ' ' + t.symbol + ' ' + t.price + ' bid=' + t.bid + ' ask=' + t.ask + '\n' + feed.textContent.slice(0, 4000);
-        });
-        this._tickSocket.on('ticks_subscribed', (msg) => {
-            feed.textContent += 'subscribed: ' + JSON.stringify(msg) + '\n';
-        });
-        this.loadTickStatus();
+        fetch('/api/v1/health', {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+        })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((payload) => {
+                if (!payload || !payload.realtime || !payload.realtime.socketio_available) {
+                    feed.textContent = 'Socket.IO 未启用（开发环境可忽略；需要实时推送时设置 ENABLE_SOCKETIO=1）\n';
+                    return;
+                }
+                if (this._tickSocket) this._tickSocket.disconnect();
+                this._tickSocket = io();
+                this._tickSocket.on('connect', () => {
+                    feed.textContent = '已连接，订阅 ' + symbols.join(', ') + '\n';
+                    this._tickSocket.emit('subscribe_ticks', { symbols });
+                });
+                this._tickSocket.on('tick_update', (t) => {
+                    feed.textContent = (t.timestamp || '') + ' ' + t.symbol + ' ' + t.price + ' bid=' + t.bid + ' ask=' + t.ask + '\n' + feed.textContent.slice(0, 4000);
+                });
+                this._tickSocket.on('ticks_subscribed', (msg) => {
+                    feed.textContent += 'subscribed: ' + JSON.stringify(msg) + '\n';
+                });
+                this.loadTickStatus();
+            })
+            .catch(() => {
+                feed.textContent = '无法探测 Socket.IO 可用性\n';
+            });
     },
     async registerNode() {
         try {
