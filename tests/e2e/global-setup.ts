@@ -1,4 +1,4 @@
-import { chromium, type FullConfig } from "@playwright/test";
+import { request, type FullConfig } from "@playwright/test";
 import fs from "fs";
 import path from "path";
 
@@ -14,18 +14,37 @@ async function globalSetup(config: FullConfig) {
 
   fs.mkdirSync(path.dirname(AUTH_FILE), { recursive: true });
 
-  const browser = await chromium.launch();
-  const context = await browser.newContext();
-  const page = await context.newPage();
-  await page.goto(`${baseURL}/login`);
-  await page.fill("input[name='username']", username);
-  await page.fill("input[name='password']", password);
-  await page.click("button[type='submit']");
-  await page.waitForURL((url) => !url.pathname.endsWith("/login"), {
-    timeout: 15_000,
+  const ctx = await request.newContext({ baseURL });
+  const loginPage = await ctx.get("/login");
+  if (!loginPage.ok()) {
+    throw new Error(`Failed to load /login: HTTP ${loginPage.status()}`);
+  }
+  const html = await loginPage.text();
+  const csrfMatch =
+    html.match(/name="csrf-token"\s+content="([^"]+)"/i) ??
+    html.match(/name="csrf_token"\s+value="([^"]+)"/i);
+  if (!csrfMatch?.[1]) {
+    throw new Error("CSRF token not found on /login");
+  }
+
+  const loginResp = await ctx.post("/login", {
+    form: {
+      username,
+      password,
+      csrf_token: csrfMatch[1],
+    },
   });
-  await context.storageState({ path: AUTH_FILE });
-  await browser.close();
+  if (!loginResp.ok() && loginResp.status() !== 302) {
+    throw new Error(`Login failed: HTTP ${loginResp.status()}`);
+  }
+
+  const whoami = await ctx.get("/api/v1/auth/whoami");
+  if (!whoami.ok()) {
+    throw new Error(`Session not established after login: HTTP ${whoami.status()}`);
+  }
+
+  await ctx.storageState({ path: AUTH_FILE });
+  await ctx.dispose();
 }
 
 export default globalSetup;

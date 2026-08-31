@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import path from "path";
+
+const AUTH_FILE = path.join(__dirname, ".auth/user.json");
 
 export default defineConfig({
   testDir: "./specs",
@@ -11,7 +14,7 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "list",
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5000",
-    storageState: ".auth/user.json",
+    storageState: AUTH_FILE,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
