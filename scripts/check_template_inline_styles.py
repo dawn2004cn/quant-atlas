@@ -13,21 +13,26 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TPL = ROOT / "app/presentation/web/templates"
 
-# Baseline after UI/CSS migration batch10 + auth (2026-06-20).
+# Baseline after UI/CSS migration batch10 + auth (2026-06-20), updated 2026-08-31.
 STYLE_ALLOWLIST: dict[str, int] = {
     "components/skeleton.html": 8,
     "global_radar.html": 6,
-    "self_stocks.html": 5,
+    "observability.html": 6,
+    "self_stocks.html": 6,
     "ai_investment_committee.html": 3,
     "portfolio_detail.html": 3,
+    "backtest.html": 2,
     "nl_strategy.html": 2,
     "components/strategy/evidence_card.html": 2,
     "agent_center.html": 1,
     "ai_hedge_fund.html": 1,
     "factor_detail.html": 1,
+    "factor_repository.html": 1,
     "portfolio.html": 1,
     "selection_result.html": 1,
+    "shadow_account.html": 1,
     "signal_observations.html": 1,
+    "stock_detail.html": 1,
     "stock_selector.html": 1,
     "strategy_compare.html": 1,
     "swarm_dashboard.html": 1,

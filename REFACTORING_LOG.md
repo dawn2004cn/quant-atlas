@@ -62,6 +62,7 @@ This file is a consolidated chronological log of all major architecture refactor
 | `.github/workflows/ci.yml` | phase-e-v1 触发；LFS checkout；compile 排除损坏 scripts；精简 lint/smoke/unit |
 | `scripts/boot_gate.py` | 自动注入项目根到 `sys.path` |
 | `pyproject.toml` | 注册 `e2e` / `asyncio` pytest markers |
+| `check_template_inline_styles.py` | allowlist 同步至 53（observability/backtest 等 6 页） |
 
 ---
 
