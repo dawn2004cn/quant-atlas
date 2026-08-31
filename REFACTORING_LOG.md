@@ -24,6 +24,33 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-31 (预存问题修复：Observability 编码 + secrets 模块 + 构建/测试)
+
+### 问题
+- `Observability.tsx` 为 UTF-16 LE 编码，tsc 报 binary/invalid character
+- `CoreWorkflowStrip.tsx` 空文件，导致 80+ 页面 `is not a module`
+- `app/core/secrets.py` gitignored 且不存在，`create_app()` 导入失败
+- SQLite adapter 对标识符使用 MySQL 反引号，测试 boot 报 `near "\`sh\`": syntax error`
+- `vite.config` manualChunks 引用未安装的 lightweight-charts/echarts，阻塞生产构建
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `Observability.tsx` | UTF-16 → UTF-8 转码 |
+| `CoreWorkflowStrip.tsx` | 自 git 历史 ea7af23 恢复 |
+| `security_sanity.py` + `bootstrap.py` | 启动安全检查迁入可提交模块；`secrets.py.example` 说明本地覆盖 |
+| `tests/conftest.py` | 默认 `FLASK_SECRET_KEY` 供 pytest |
+| `adapters.py` | SQLite 表/列名不用 MySQL 反引号 |
+| `vite.config.ts` | manualChunks 仅包含已安装包 |
+| `vite-env.d.ts` | 补全 `ImportMeta.env` 类型 |
+| `package.json` | 添加 `recharts` 依赖 |
+
+### 验证
+- `npm run build` ✓
+- `pytest tests/infrastructure/test_mysql_signal_observation_repository.py tests/api/test_public_api_contract.py::test_health_includes_realtime_capabilities` 3 passed
+
+---
+
 ## 2026-06-24 (阶段 A：页面数据加载路由修复)
 
 ### 问题

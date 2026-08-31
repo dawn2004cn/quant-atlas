@@ -113,8 +113,10 @@ class SqliteAdapter(DatabaseAdapter):
             """)
             markets = ['sh', 'sz', 'bj', 'hk', 'us', 'btc']
             for market in markets:
+                if not validate_identifier(market):
+                    continue
                 cur.execute(f"""
-                    CREATE TABLE IF NOT EXISTS stock_history_{quote_identifier(market)} (
+                    CREATE TABLE IF NOT EXISTS stock_history_{market} (
                         stock_code TEXT,
                         date TEXT,
                         open REAL,
@@ -196,7 +198,7 @@ class SqliteAdapter(DatabaseAdapter):
                     if not validate_identifier(col):
                         logger.warning("Skipping invalid column name in migration: %s", col)
                         continue
-                    cur.execute(f"ALTER TABLE stocks ADD COLUMN {quote_identifier(col)} {decl}")
+                    cur.execute(f'ALTER TABLE stocks ADD COLUMN "{col}" {decl}')
             conn.commit()
         finally:
             conn.close()

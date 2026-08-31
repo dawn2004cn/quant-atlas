@@ -45,7 +45,7 @@ from .core.asset_versioning import init_app as init_asset_versioning
 from .core.i18n import t
 from .core.logger import setup_logging
 from .core.plugins import PluginRegistry
-from .core.secrets import run_security_sanity_checks
+from .core.security_sanity import run_security_sanity_checks
 from .presentation.csrf_protection import csrf_protect
 
 

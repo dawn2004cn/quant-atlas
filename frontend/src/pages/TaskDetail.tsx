@@ -48,7 +48,7 @@ function mapCeleryToTask(taskId: string, celery: Awaited<ReturnType<typeof fetch
 
   let progress = 15;
   if (status === "running") progress = 55;
-  if (status === "completed" || status === "failed" || status === "cancelled") progress = 100;
+  if (status === "completed" || status === "failed") progress = 100;
 
   const result =
     celery.result && typeof celery.result === "object"
