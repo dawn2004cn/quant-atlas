@@ -38,17 +38,17 @@ export function TdxBlocksPage() {
 
   const { data: blocksData, error, isLoading } = useSWR(
     ["tdx-blocks", blockType],
-    () => apiFetchV1<{ data: { items: TdxBlock[] } }>(`/tdx/blocks?type=${encodeURIComponent(blockType)}&limit=100`),
+    () => apiFetchV1<{ items: TdxBlock[] }>(`/tdx/blocks?type=${encodeURIComponent(blockType)}&limit=100`),
     { refreshInterval: 300_000 },
   );
 
   const { data: membersData, isLoading: membersLoading } = useSWR(
     activeBlock ? ["tdx-members", activeBlock.code] : null,
-    () => apiFetchV1<{ data: { items: TdxBlockMember[] } }>(`/tdx/blocks/${encodeURIComponent(activeBlock!.code)}/members?limit=60`),
+    () => apiFetchV1<{ items: TdxBlockMember[] }>(`/tdx/blocks/${encodeURIComponent(activeBlock!.code)}/members?limit=60`),
   );
 
-  const blocks = blocksData?.data?.items ?? [];
-  const members = membersData?.data?.items ?? [];
+  const blocks = blocksData?.items ?? [];
+  const members = membersData?.items ?? [];
 
   return (
     <div className="space-y-5">

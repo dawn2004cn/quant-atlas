@@ -4,6 +4,26 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-31 (SPA 数据解包 + 开发环境 WS 硬化 + Signal Observation 修复)
+
+### 问题
+- 多个 SPA 页面在 `apiFetch`/`apiFetchV1` 已 `unwrap` envelope 后仍访问 `?.data?.xxx`，导致 market-panorama、hot-sectors、tdx-blocks、global-radar、decision-snapshot 等页面数据为空
+- Vite dev 默认代理 `/socket.io` 到 Flask，但 `ENABLE_SOCKETIO=0` 时后端无 SocketIO，产生 `ECONNABORTED`/`ECONNRESET` 与 Flask 404 日志
+- `MySQLSignalObservationRepository` 长生命周期 session 导致 `IllegalStateChangeError`；`signal_observation_service` 未注入 `market_service` 引发 `NoneType.list_quotes`
+
+### 修复
+| 区域 | 文件 | 要点 |
+|------|------|------|
+| SPA 解包 | `MarketPanorama.tsx`, `HotSectors.tsx`, `TdxBlocks.tsx`, `GlobalRadar.tsx`, `DecisionSnapshot.tsx`, `api.ts` | 移除双层 `.data`；修正 API 返回类型；公开分享页渲染已加载快照 |
+| Dev WS | `vite.config.ts`, `useRealtime.ts`, `base_app.js`, `service_readiness.py` | 默认禁用 socket.io 代理；health 探测后再连接；经典模板按需连接 |
+| 后端 | `mysql_signal_observation_repository.py`, `deps.py`, `wiring_market.py`, `request_context.py`, `bootstrap.py` | scoped session；注入 market_service；`/socket.io` 404 降噪；health 暴露 realtime 能力 |
+
+### 验证
+- `pytest tests/infrastructure/test_mysql_signal_observation_repository.py` 2 passed
+- 变更页面 TypeScript lint 无新增错误（全量 `npm run build` 受预存 `Observability.tsx` 损坏阻塞）
+
+---
+
 ## 2026-06-24 (阶段 A：页面数据加载路由修复)
 
 ### 问题

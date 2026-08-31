@@ -248,7 +248,9 @@ export async function fetchMarketSentiment(): Promise<MarketSentiment> {
   return apiFetch<MarketSentiment>("/api/v1/markets/CN/sentiment");
 }
 
-export async function fetchMarketHeadlines(limit = 40): Promise<{ data: { items?: Array<{ title?: string; summary?: string; source?: string }> } }> {
+export type MarketHeadline = { title?: string; summary?: string; source?: string };
+
+export async function fetchMarketHeadlines(limit = 40): Promise<{ items?: MarketHeadline[] }> {
   return apiFetch(`/api/v1/markets/CN/headlines?limit=${limit}`);
 }
 

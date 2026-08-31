@@ -6,16 +6,24 @@ import { apiFetchV1, fetchMarketQuotesPage } from "../lib/api";
 import type { HotSector, HotSectorMember, HotSectorSnapshot } from "../types/hotSector";
 
 /* ── API ── */
+type HotSectorsPayload = {
+  sectors: HotSector[];
+  warnings?: string[];
+  snapshot_at?: string;
+  source_mode?: string;
+  updated_at?: string;
+};
+
 function fetchSectors(kind: string, source: string, snapshotAt: string) {
   let url = `/hot-sectors?limit=60&kind=${encodeURIComponent(kind)}&source=${encodeURIComponent(source)}`;
   if (snapshotAt) url += `&snapshot_at=${encodeURIComponent(snapshotAt)}`;
-  return apiFetchV1<{ data: { sectors: HotSector[]; warnings?: string[]; snapshot_at?: string; source_mode?: string; updated_at?: string } }>(url);
+  return apiFetchV1<HotSectorsPayload>(url);
 }
 
 function fetchMembers(sectorCode: string, boardKind: string, name: string, provider: string, snapshotAt: string) {
   let url = `/hot-sectors/${encodeURIComponent(sectorCode)}/members?limit=80&source=auto&board_kind=${encodeURIComponent(boardKind)}&name=${encodeURIComponent(name)}&provider=${encodeURIComponent(provider)}`;
   if (snapshotAt) url += `&snapshot_at=${encodeURIComponent(snapshotAt)}`;
-  return apiFetchV1<{ data: { items: HotSectorMember[] } }>(url);
+  return apiFetchV1<{ items: HotSectorMember[] }>(url);
 }
 
 function fetchSnapshots() {
@@ -87,11 +95,11 @@ export function HotSectorsPage() {
   );
   const { data: snapshotsResp } = useSWR("hot-sectors/snapshots", fetchSnapshots, { refreshInterval: 600_000 });
 
-  const sectors = sectorsResp?.data?.sectors ?? [];
-  const warnings = sectorsResp?.data?.warnings ?? [];
-  const csAt = sectorsResp?.data?.snapshot_at ?? "";
-  const sourceMode = sectorsResp?.data?.source_mode ?? source;
-  const _ts = csAt || sectorsResp?.data?.updated_at || "";
+  const sectors = sectorsResp?.sectors ?? [];
+  const warnings = sectorsResp?.warnings ?? [];
+  const csAt = sectorsResp?.snapshot_at ?? "";
+  const sourceMode = sectorsResp?.source_mode ?? source;
+  const _ts = csAt || sectorsResp?.updated_at || "";
 
   const loadMembers = useCallback(async (sector: { code: string; name: string; kind: string; provider: string }) => {
     setActiveSector(sector);
@@ -99,7 +107,7 @@ export function HotSectorsPage() {
     setMembersData(null);
     try {
       const resp = await fetchMembers(sector.code, sector.kind, sector.name, sector.provider, csAt);
-      const items = resp?.data?.items ?? [];
+      const items = resp?.items ?? [];
       if (!items.length) { setMembersData([]); setMembersLoading(false); return; }
       const symbols = items.slice(0, 60).map((x) => x.symbol || "").filter(Boolean);
       const stocks = await fetchQuotes(symbols);
