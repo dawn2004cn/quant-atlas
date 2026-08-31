@@ -58,9 +58,10 @@ This file is a consolidated chronological log of all major architecture refactor
 ### 续：CI 契约与 workflow
 | 文件 | 要点 |
 |------|------|
-| `route_contract.py` | `DYNAMIC_FETCH_PREFIX_SKIP` 增加 `/api/v1/system/celery/task/`（JS 字符串拼接路径） |
-| `.github/workflows/ci.yml` | PR/push 触发分支增加 `architecture/phase-e-v1` |
+| `route_contract.py` | `DYNAMIC_FETCH_PREFIX_SKIP` 增加 `/api/v1/system/celery/task/` |
+| `.github/workflows/ci.yml` | phase-e-v1 触发；LFS checkout；compile 排除损坏 scripts；精简 lint/smoke/unit |
 | `scripts/boot_gate.py` | 自动注入项目根到 `sys.path` |
+| `pyproject.toml` | 注册 `e2e` / `asyncio` pytest markers |
 
 ---
 

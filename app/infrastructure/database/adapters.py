@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from typing import Any
 
 from app.core.logger import get_logger
-from app.core.utils.sql_utils import quote_identifier, validate_identifier
+from app.core.utils.sql_utils import validate_identifier
 
 from ...config import INSTANCE_DIR, AppSettings, get_settings
 from .mysql_client import mysql_get_connection
