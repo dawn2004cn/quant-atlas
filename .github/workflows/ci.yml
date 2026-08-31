@@ -241,6 +241,9 @@ jobs:
           node-version: "20"
       - name: Install Python deps
         run: pip install -e . 2>/dev/null || pip install flask
+      - name: Build frontend for SPA E2E
+        run: |
+          cd frontend && npm ci && npm run build
       - name: Install Playwright
         run: |
           cd tests/e2e && npm ci
@@ -248,11 +251,14 @@ jobs:
       - name: Start Flask server
         run: |
           ENABLE_CELERY=0 ENABLE_QLIB=0 ENABLE_RD_AGENT=0 MESH_ENABLED=0 PERCEPTION_ENABLED=0 \
-          FLASK_SECRET_KEY=ci-boot-gate-secret \
+          ENABLE_SOCKETIO=0 FLASK_SECRET_KEY=ci-boot-gate-secret \
           python -c "from app import create_app; app = create_app(); app.run(host='127.0.0.1', port=5000)" &
-          sleep 10
+          sleep 15
       - name: Run Playwright tests
         run: cd tests/e2e && npx playwright test
+        env:
+          E2E_USERNAME: admin
+          E2E_PASSWORD: admin123
       - name: Upload report
         if: failure()
         uses: actions/upload-artifact@v4
