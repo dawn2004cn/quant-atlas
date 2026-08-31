@@ -2,9 +2,9 @@
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, architecture/phase-e-v1 ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, architecture/phase-e-v1 ]
 
 env:
   PYTHON_VERSION: '3.12'

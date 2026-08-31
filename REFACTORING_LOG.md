@@ -55,6 +55,13 @@ This file is a consolidated chronological log of all major architecture refactor
 | `professional_workbench.html` | `connectTicks()` 先探测 `/api/v1/health.realtime.socketio_available` |
 | `research_canvas.html` | React canvas 连接前同样 health gate |
 
+### 续：CI 契约与 workflow
+| 文件 | 要点 |
+|------|------|
+| `route_contract.py` | `DYNAMIC_FETCH_PREFIX_SKIP` 增加 `/api/v1/system/celery/task/`（JS 字符串拼接路径） |
+| `.github/workflows/ci.yml` | PR/push 触发分支增加 `architecture/phase-e-v1` |
+| `scripts/boot_gate.py` | 自动注入项目根到 `sys.path` |
+
 ---
 
 ## 2026-06-24 (阶段 A：页面数据加载路由修复)
