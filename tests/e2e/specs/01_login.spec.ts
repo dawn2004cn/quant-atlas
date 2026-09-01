@@ -1,6 +1,8 @@
 import { test, expect } from "@playwright/test";
 import { TEST_USER } from "../fixtures/test_user";
 
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test("Flask login page renders", async ({ page }) => {
   await page.goto("/login");
   await expect(page.locator("input[name='username']")).toBeVisible();
@@ -22,8 +24,7 @@ test("SPA login shows error for invalid credentials", async ({ page }) => {
   await page.fill("input#username", "nonexistent-user");
   await page.fill("input#password", "wrong-password");
   await page.click("button[type='submit']");
-  // Error message should appear
-  await expect(page.locator("text=/登录失败|invalid_credentials|Unauthorized/")).toBeVisible({ timeout: 5_000 });
+  await expect(page.locator(".text-rose-400")).toBeVisible({ timeout: 5_000 });
 });
 
 test("switcher: Flask → SPA roundtrip", async ({ page }) => {

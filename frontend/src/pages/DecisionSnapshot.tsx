@@ -18,20 +18,7 @@ type DecisionSnapshotData = {
   signals: Array<{ name: string; value: number; impact: string }>;
 };
 
-export function DecisionSnapshotPage() {
-  const { snapshotId } = useParams<{ snapshotId: string }>();
-
-  const { data, error, isLoading } = useSWR(
-    snapshotId ? ["decision-snapshot", snapshotId] : null,
-    () => apiFetchV1<{ data: DecisionSnapshotData }>(`/decision/snapshot/${encodeURIComponent(snapshotId ?? "")}`),
-  );
-
-  const snap = data?.data;
-  if (isLoading) return <PageSkeleton rows={4} />;
-
-  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
-  if (!snap) return <div className="alert alert-warning">快照不存在</div>;
-
+function DecisionSnapshotView({ snap }: { snap: DecisionSnapshotData }) {
   return (
     <div className="space-y-5">
       <PageQuickNav items={QUICK_NAV_PRESETS.decisionSnapshot} />
@@ -48,13 +35,11 @@ export function DecisionSnapshotPage() {
         </div>
       </div>
 
-      {/* Decision Type */}
       <div className="glass-card p-4">
         <span className="text-xs font-semibold text-slate-500">决策类型</span>
         <div className="text-lg font-bold">{snap.decision_type}</div>
       </div>
 
-      {/* Evidence chain */}
       {snap.evidence?.length > 0 && (
         <section className="glass-card space-y-3 p-4">
           <h2 className="text-sm font-bold">证据链</h2>
@@ -70,7 +55,6 @@ export function DecisionSnapshotPage() {
         </section>
       )}
 
-      {/* Alternative views */}
       {snap.alternative_views && snap.alternative_views.length > 0 && (
         <section className="glass-card space-y-3 p-4">
           <h2 className="text-sm font-bold">反向观点</h2>
@@ -83,7 +67,6 @@ export function DecisionSnapshotPage() {
         </section>
       )}
 
-      {/* Signals */}
       {snap.signals?.length > 0 && (
         <section className="glass-card overflow-x-auto p-4">
           <h2 className="mb-3 text-sm font-bold">信号汇总</h2>
@@ -105,15 +88,29 @@ export function DecisionSnapshotPage() {
   );
 }
 
+export function DecisionSnapshotPage() {
+  const { snapshotId } = useParams<{ snapshotId: string }>();
+
+  const { data: snap, error, isLoading } = useSWR(
+    snapshotId ? ["decision-snapshot", snapshotId] : null,
+    () => apiFetchV1<DecisionSnapshotData>(`/decision/snapshot/${encodeURIComponent(snapshotId ?? "")}`),
+  );
+
+  if (isLoading) return <PageSkeleton rows={4} />;
+  if (error) return <div className="alert alert-error">加载失败：{error.message}</div>;
+  if (!snap) return <div className="alert alert-warning">快照不存在</div>;
+
+  return <DecisionSnapshotView snap={snap} />;
+}
+
 export function DecisionSnapshotPublicPage() {
   const { shareToken } = useParams<{ shareToken: string }>();
 
-  const { data, error, isLoading } = useSWR(
+  const { data: snap, error, isLoading } = useSWR(
     shareToken ? ["decision-share", shareToken] : null,
-    () => apiFetchV1<{ data: DecisionSnapshotData }>(`/snapshots/public/${encodeURIComponent(shareToken ?? "")}`),
+    () => apiFetchV1<DecisionSnapshotData>(`/snapshots/public/${encodeURIComponent(shareToken ?? "")}`),
   );
 
-  const snap = data?.data;
   if (isLoading) return <PageSkeleton rows={3} />;
   if (error) return <div className="alert alert-error">加载失败</div>;
   if (!snap) return <div className="alert alert-warning">该分享链接不存在或已过期</div>;
@@ -123,7 +120,7 @@ export function DecisionSnapshotPublicPage() {
       <div className="rounded-xl bg-brand/10 p-4 text-center">
         <p className="text-sm text-slate-500">公开分享 · 只读模式</p>
       </div>
-      <DecisionSnapshotPage />
+      <DecisionSnapshotView snap={snap} />
     </div>
   );
 }

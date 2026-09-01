@@ -211,6 +211,12 @@ function ResearchCanvas() {
                     await loadSocketIo();
                 }
                 if (cancelled || typeof io !== 'function') return;
+                const healthRes = await fetch('/api/v1/health', {
+                    credentials: 'same-origin',
+                    headers: { Accept: 'application/json' },
+                });
+                const health = healthRes.ok ? await healthRes.json() : null;
+                if (!health?.realtime?.socketio_available) return;
                 socket = io({ transports: ['websocket', 'polling'] });
                 socketRef.current = socket;
                 socket.on('connect', () => {

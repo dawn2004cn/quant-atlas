@@ -25,6 +25,7 @@ DYNAMIC_FETCH_PREFIX_SKIP: tuple[str, ...] = (
     "/api/v1/teams/",
     "/api/v1/truth/droplet/",
     "/api/v1/agent-swarm/swarm/status/",
+    "/api/v1/system/celery/task/",
 )
 
 

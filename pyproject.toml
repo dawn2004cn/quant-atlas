@@ -99,6 +99,8 @@ markers = [
     "integration: marks tests that need MySQL/Redis (deselect with '-m \"not integration\"')",
     "qlib: marks tests that need Qlib installed",
     "agent: marks tests that import LangGraph agents",
+    "e2e: marks browser or end-to-end smoke tests",
+    "asyncio: marks async tests (pytest-asyncio)",
 ]
 
 # ---------------------------------------------------------------------------

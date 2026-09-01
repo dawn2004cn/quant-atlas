@@ -33,6 +33,7 @@ os.environ.setdefault("REDIS_URL", "memory://")
 os.environ.setdefault("CELERY_BROKER_URL", "memory://")
 os.environ.setdefault("CELERY_RESULT_BACKEND", "memory://")
 os.environ.setdefault("STRICT_BOOTSTRAP", "0")
+os.environ.setdefault("FLASK_SECRET_KEY", "test-secret-key-for-pytest-only")
 
 
 # ---------------------------------------------------------------------------

@@ -144,6 +144,20 @@ def build_public_health_payload(services: Any) -> dict[str, Any]:
     else:
         deployment_status = "ok"
 
+    from flask import has_app_context, current_app
+
+    from app.core.runtime_config import get_runtime
+
+    realtime_meta: dict[str, Any] = {}
+    if has_app_context():
+        raw = current_app.config.get("REALTIME_META")
+        if isinstance(raw, dict):
+            realtime_meta = raw
+
+    socketio_boot = bool(realtime_meta.get("socketio"))
+    gateway_mode = bool(realtime_meta.get("gateway_mode"))
+    socketio_integrated = bool(getattr(current_app, "socketio", None)) if has_app_context() else False
+
     return {
         "status": "ok",
         "deployment_status": deployment_status,
@@ -151,6 +165,16 @@ def build_public_health_payload(services: Any) -> dict[str, Any]:
             "required_missing": list(report.missing_required),
             "optional_missing": list(report.missing_optional),
             "critical_missing": critical_missing,
+        },
+        "realtime": {
+            "socketio_bootstrapped": socketio_boot,
+            "socketio_integrated": socketio_integrated,
+            "gateway_mode": gateway_mode,
+            # Only true when bootstrap actually wired SocketIO (integrated or gateway process).
+            "socketio_available": socketio_boot and (socketio_integrated or gateway_mode),
+            "ws_gateway_port": int(get_runtime("WS_GATEWAY_PORT", "5001") or 5001)
+            if gateway_mode
+            else None,
         },
     }
 

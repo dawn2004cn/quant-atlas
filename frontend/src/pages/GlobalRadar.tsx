@@ -53,13 +53,13 @@ export function GlobalRadarPage() {
 
   const { data, error, isLoading } = useSWR(
     "global-radar",
-    () => apiFetchV1<{ data: GlobalRadarData }>("/markets/global/radar"),
+    () => apiFetchV1<GlobalRadarData>("/markets/global/radar"),
     { refreshInterval: 60_000 },
   );
 
   if (isLoading && !data) return <PageSkeleton rows={4} />;
 
-  const radar = data?.data;
+  const radar = data;
 
   return (
     <div className="space-y-5">

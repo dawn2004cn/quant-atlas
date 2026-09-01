@@ -4,6 +4,68 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-08-31 (SPA 数据解包 + 开发环境 WS 硬化 + Signal Observation 修复)
+
+### 问题
+- 多个 SPA 页面在 `apiFetch`/`apiFetchV1` 已 `unwrap` envelope 后仍访问 `?.data?.xxx`，导致 market-panorama、hot-sectors、tdx-blocks、global-radar、decision-snapshot 等页面数据为空
+- Vite dev 默认代理 `/socket.io` 到 Flask，但 `ENABLE_SOCKETIO=0` 时后端无 SocketIO，产生 `ECONNABORTED`/`ECONNRESET` 与 Flask 404 日志
+- `MySQLSignalObservationRepository` 长生命周期 session 导致 `IllegalStateChangeError`；`signal_observation_service` 未注入 `market_service` 引发 `NoneType.list_quotes`
+
+### 修复
+| 区域 | 文件 | 要点 |
+|------|------|------|
+| SPA 解包 | `MarketPanorama.tsx`, `HotSectors.tsx`, `TdxBlocks.tsx`, `GlobalRadar.tsx`, `DecisionSnapshot.tsx`, `api.ts` | 移除双层 `.data`；修正 API 返回类型；公开分享页渲染已加载快照 |
+| Dev WS | `vite.config.ts`, `useRealtime.ts`, `base_app.js`, `service_readiness.py` | 默认禁用 socket.io 代理；health 探测后再连接；经典模板按需连接 |
+| 后端 | `mysql_signal_observation_repository.py`, `deps.py`, `wiring_market.py`, `request_context.py`, `bootstrap.py` | scoped session；注入 market_service；`/socket.io` 404 降噪；health 暴露 realtime 能力 |
+
+### 验证
+- `pytest tests/infrastructure/test_mysql_signal_observation_repository.py` 2 passed
+- 变更页面 TypeScript lint 无新增错误（全量 `npm run build` 受预存 `Observability.tsx` 损坏阻塞）
+
+---
+
+## 2026-08-31 (预存问题修复：Observability 编码 + secrets 模块 + 构建/测试)
+
+### 问题
+- `Observability.tsx` 为 UTF-16 LE 编码，tsc 报 binary/invalid character
+- `CoreWorkflowStrip.tsx` 空文件，导致 80+ 页面 `is not a module`
+- `app/core/secrets.py` gitignored 且不存在，`create_app()` 导入失败
+- SQLite adapter 对标识符使用 MySQL 反引号，测试 boot 报 `near "\`sh\`": syntax error`
+- `vite.config` manualChunks 引用未安装的 lightweight-charts/echarts，阻塞生产构建
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `Observability.tsx` | UTF-16 → UTF-8 转码 |
+| `CoreWorkflowStrip.tsx` | 自 git 历史 ea7af23 恢复 |
+| `security_sanity.py` + `bootstrap.py` | 启动安全检查迁入可提交模块；`secrets.py.example` 说明本地覆盖 |
+| `tests/conftest.py` | 默认 `FLASK_SECRET_KEY` 供 pytest |
+| `adapters.py` | SQLite 表/列名不用 MySQL 反引号 |
+| `vite.config.ts` | manualChunks 仅包含已安装包 |
+| `vite-env.d.ts` | 补全 `ImportMeta.env` 类型 |
+| `package.json` | 添加 `recharts` 依赖 |
+
+### 验证
+- `npm run build` ✓
+- `pytest tests/infrastructure/test_mysql_signal_observation_repository.py tests/api/test_public_api_contract.py::test_health_includes_realtime_capabilities` 3 passed
+
+### 续：经典模板 SocketIO 按需连接
+| 文件 | 要点 |
+|------|------|
+| `professional_workbench.html` | `connectTicks()` 先探测 `/api/v1/health.realtime.socketio_available` |
+| `research_canvas.html` | React canvas 连接前同样 health gate |
+
+### 续：CI 契约与 workflow
+| 文件 | 要点 |
+|------|------|
+| `route_contract.py` | `DYNAMIC_FETCH_PREFIX_SKIP` 增加 `/api/v1/system/celery/task/` |
+| `.github/workflows/ci.yml` | phase-e-v1 触发；LFS checkout；compile 排除损坏 scripts；精简 lint/smoke/unit |
+| `scripts/boot_gate.py` | 自动注入项目根到 `sys.path` |
+| `pyproject.toml` | 注册 `e2e` / `asyncio` pytest markers |
+| `check_template_inline_styles.py` | allowlist 同步至 53（observability/backtest 等 6 页） |
+
+---
+
 ## 2026-06-24 (阶段 A：页面数据加载路由修复)
 
 ### 问题

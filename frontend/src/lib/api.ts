@@ -212,8 +212,8 @@ export async function fetchDailyWorkbench(
   return apiFetchV1<WorkbenchSnapshot>(`/daily-workbench?${query}`);
 }
 
-export async function fetchMarketPanorama(): Promise<{ data: import("../types/market").MarketPanorama }> {
-  return apiFetch<{ data: import("../types/market").MarketPanorama }>("/api/v1/markets/CN/panorama");
+export async function fetchMarketPanorama(): Promise<import("../types/market").MarketPanorama> {
+  return apiFetch<import("../types/market").MarketPanorama>("/api/v1/markets/CN/panorama");
 }
 
 export async function fetchMarketQuotesPage(params: {
@@ -238,11 +238,19 @@ export async function fetchMarketQuotesPage(params: {
   return apiFetchV1<import("../types/market").MarketQuotesPage>(`/markets/CN/quotes/page?${q}`);
 }
 
-export async function fetchMarketSentiment(): Promise<{ data: { score?: number; level?: string; description?: string } }> {
-  return apiFetch<{ data: { score?: number; level?: string; description?: string } }>("/api/v1/markets/CN/sentiment");
+export type MarketSentiment = {
+  score?: number;
+  level?: string;
+  description?: string;
+};
+
+export async function fetchMarketSentiment(): Promise<MarketSentiment> {
+  return apiFetch<MarketSentiment>("/api/v1/markets/CN/sentiment");
 }
 
-export async function fetchMarketHeadlines(limit = 40): Promise<{ data: { items?: Array<{ title?: string; summary?: string; source?: string }> } }> {
+export type MarketHeadline = { title?: string; summary?: string; source?: string };
+
+export async function fetchMarketHeadlines(limit = 40): Promise<{ items?: MarketHeadline[] }> {
   return apiFetch(`/api/v1/markets/CN/headlines?limit=${limit}`);
 }
 
