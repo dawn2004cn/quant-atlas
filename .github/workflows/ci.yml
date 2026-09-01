@@ -254,11 +254,13 @@ jobs:
           ENABLE_CELERY=0 ENABLE_QLIB=0 ENABLE_RD_AGENT=0 MESH_ENABLED=0 PERCEPTION_ENABLED=0 \
           ENABLE_SOCKETIO=0 FLASK_SECRET_KEY=ci-boot-gate-secret \
           python -c "from app import create_app; app = create_app(); app.run(host='127.0.0.1', port=5000)" &
-          sleep 15
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:5000/api/v1/system/health && break
+            sleep 2
+          done
       - name: Run Playwright tests
-        run: cd tests/e2e && npx playwright test specs/04_health_check.spec.ts specs/01_login.spec.ts
+        run: cd tests/e2e && npx playwright test
         env:
-          E2E_NO_GLOBAL_SETUP: "1"
           FLASK_ENV: development
           SESSION_COOKIE_SECURE: "0"
           E2E_USERNAME: admin
