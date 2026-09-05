@@ -204,6 +204,7 @@ let sortOrder = 'desc';
 let currentFilter = 'all';
 let panoServerMode = true;
 let panoTotal = 0;
+let panoRetryCount = 0;
 
 function formatAmount(v) {
 
@@ -323,25 +324,52 @@ async function loadData() {
     }
     panoServerMode = true;
 
+    const controller = new AbortController();
+    const abortTimer = setTimeout(function () { controller.abort(); }, 8000);
     try {
-        const res = await fetch('/api/v1/markets/CN/quotes/page?' + params.toString());
+        const res = await fetch('/api/v1/markets/CN/quotes/page?' + params.toString(), { signal: controller.signal });
         const json = await res.json();
         const data = json.data || json;
         filtered = data.items || [];
         panoTotal = data.total || 0;
         allData = filtered;
         if (data.stats && gid !== 'self') applyQuickStats(data.stats);
+        if (filtered.length) panoRetryCount = 0;
         renderTable();
         const scopeNote = gid === 'self' ? '自选股 · ' : '';
+        const warmingNote = data.warming ? ' · 后台同步中' : '';
         document.getElementById('lastUpdate').textContent =
-            scopeNote + new Date().toLocaleTimeString() + ' 已同步 第' + currentPage + '页 · 共' + panoTotal + '条';
-        if (!filtered.length) {
+            scopeNote + new Date().toLocaleTimeString() + ' 已同步 第' + currentPage + '页 · 共' + panoTotal + '条' + warmingNote;
+        if (!filtered.length && data.warming) {
+            document.getElementById('panoBody').innerHTML =
+                '<tr><td colspan="10" class="loading-tile">全市场快照后台同步中，即将自动刷新…</td></tr>';
+            schedulePanoRetry(2000);
+        } else if (!filtered.length) {
             document.getElementById('panoBody').innerHTML = '<tr><td colspan="10" class="loading-tile">无匹配数据</td></tr>';
         }
     } catch (e) {
         window.qcLogError('Market panorama data load failed', e);
-        document.getElementById('panoBody').innerHTML = '<tr><td colspan="10" class="loading-tile">加载失败: ' + e.message + '</td></tr>';
+        const aborted = e && (e.name === 'AbortError' || /abort/i.test(String(e.message || '')));
+        const msg = aborted ? '同步超时，正在重试…' : ('加载失败: ' + (e && e.message ? e.message : e));
+        document.getElementById('panoBody').innerHTML = '<tr><td colspan="10" class="loading-tile">' + msg + '</td></tr>';
+        schedulePanoRetry(aborted ? 2500 : 4000);
+    } finally {
+        clearTimeout(abortTimer);
     }
+}
+
+function schedulePanoRetry(delayMs) {
+    if (window._panoRetryTimer) return;
+    if (panoRetryCount >= 8) {
+        document.getElementById('panoBody').innerHTML =
+            '<tr><td colspan="10" class="loading-tile">行情源暂无响应，请点击刷新重试</td></tr>';
+        return;
+    }
+    panoRetryCount += 1;
+    window._panoRetryTimer = setTimeout(function () {
+        window._panoRetryTimer = null;
+        loadData();
+    }, delayMs);
 }
 
 function _boardFilter(s, filter) {
@@ -521,7 +549,10 @@ $(document).ready(() => {
         currentPage = 1;
         loadData();
     });
-    document.getElementById('panoramaRefreshBtn').addEventListener('click', () => loadData());
+    document.getElementById('panoramaRefreshBtn').addEventListener('click', () => {
+        panoRetryCount = 0;
+        loadData();
+    });
 
     if (window.QAUserCenter) {
         QAUserCenter.loadPanoramaFreshness('CN', document.getElementById('panoramaFreshnessStrip'));

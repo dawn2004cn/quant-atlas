@@ -4,6 +4,25 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (市场全景卡在「正在同步全市场快照」)
+
+### 根因
+- `GET /markets/CN/quotes/page` 在请求线程调用 `CnQuoteSnapshot.ensure_fresh()`，冷启动或缓存不足时同步执行 `list_quotes(CN, None)`
+- 全市场路径会先打 AkShare `stock_zh_a_spot_em()`，失败后再按约 5000 只分批拉腾讯；任一环无超时即挂起 HTTP
+- 经典页 `loadData()` 的 `fetch` 无超时，表格一直停留在初始文案「正在同步全市场快照...」
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_snapshot.py` | `ensure_fresh` 立即返回当前快照，活行情改后台线程；空刷新不覆盖已有行；`query_page` 增加 `warming`/`stale` |
+| `market_panorama.html` | `fetch` 8s 超时、`warming` 时提示并自动重试（最多 8 次） |
+| `MarketPanorama.tsx` | 空页 + warming 提示；SWR 同步中改为 2s 轮询 |
+
+### 验证
+- `pytest tests/modules/market_data/test_cn_quote_snapshot_page.py tests/presentation/test_market_panorama_pagination.py`
+
+---
+
 ## 2026-08-31 (SPA 数据解包 + 开发环境 WS 硬化 + Signal Observation 修复)
 
 ### 问题

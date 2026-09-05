@@ -1,6 +1,14 @@
 from __future__ import annotations
 
+import time
+
 from app.modules.market_data.services.cn_quote_snapshot import CnQuoteSnapshot
+
+
+class _HangingMarketService:
+    def list_quotes(self, market, symbols=None):
+        time.sleep(30)
+        return [{"code": "000002", "name": "hang", "price": 1, "change_pct": 0}]
 
 
 def test_cn_quote_snapshot_query_page_filter_and_sort() -> None:
@@ -48,3 +56,29 @@ def test_cn_quote_snapshot_lookup_rows_ordered() -> None:
     assert [h["code"] for h in hits] == ["300750", "600519"]
     assert missing
     assert "999999" in missing[0] or missing[0].endswith("999999")
+
+
+def test_ensure_fresh_returns_immediately_when_live_hangs() -> None:
+    snap = CnQuoteSnapshot(market_service=_HangingMarketService(), ttl_seconds=15)
+    started = time.monotonic()
+    snap.ensure_fresh()
+    assert time.monotonic() - started < 1.0
+    page = snap.query_page()
+    assert page["warming"] is True
+    assert page["items"] == []
+    assert page["total"] == 0
+
+
+def test_ensure_fresh_keeps_stale_rows_when_refresh_hangs() -> None:
+    snap = CnQuoteSnapshot(market_service=_HangingMarketService(), ttl_seconds=1)
+    snap.load_rows([
+        {"code": "600519", "name": "茅台", "price": 100, "change_pct": 1.0},
+    ])
+    time.sleep(1.05)
+    started = time.monotonic()
+    snap.ensure_fresh()
+    assert time.monotonic() - started < 1.0
+    page = snap.query_page()
+    assert page["items"][0]["code"] == "600519"
+    assert page["warming"] is True
+    assert page["stale"] is True
