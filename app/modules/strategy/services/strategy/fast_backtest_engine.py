@@ -105,35 +105,10 @@ class FastBacktestEngine:
                 return pd.Series(0.0, index=work.index)
 
         close = pd.to_numeric(work["close"], errors="coerce")
-        bh = close.pct_change().fillna(0.0)
-        tid = (template_id or "").strip().lower()
+        from app.domain.quant.signals import strategy_returns
 
-        if tid == "trend_following_basic":
-            fast = max(1, int(params.get("fast_ma", 20)))
-            slow = max(fast + 1, int(params.get("slow_ma", 60)))
-            pos = (close.rolling(fast).mean() > close.rolling(slow).mean()).astype(float)
-            return (pos.shift(1).fillna(0.0) * bh).fillna(0.0)
-
-        if tid == "mean_reversion_rsi":
-            period = max(2, int(params.get("rsi_period", 14)))
-            oversold = float(params.get("oversold", 30))
-            overbought = float(params.get("overbought", 70))
-            delta = close.diff()
-            gain = delta.clip(lower=0).rolling(period).mean()
-            loss = (-delta.clip(upper=0)).rolling(period).mean()
-            rs = gain / loss.replace(0, pd.NA)
-            rsi = 100 - (100 / (1 + rs))
-            pos = pd.Series(0.0, index=close.index)
-            pos = pos.mask(rsi < oversold, 1.0)
-            pos = pos.mask(rsi > overbought, 0.0)
-            return (pos.shift(1).fillna(0.0) * bh).fillna(0.0)
-
-        if tid == "factor_momentum_alpha":
-            lookback = max(1, int(params.get("lookback_period", 5)))
-            pos = (close.pct_change(lookback) > 0).astype(float)
-            return (pos.shift(1).fillna(0.0) * bh).fillna(0.0)
-
-        return bh
+        rets = strategy_returns(close.tolist(), params, (template_id or "").strip().lower() or "buy_hold")
+        return pd.Series(rets, index=close.index, dtype=float)
 
     def _calculate_max_drawdown(self, returns: pd.Series) -> float:
         cum_returns = (1 + returns).cumprod()

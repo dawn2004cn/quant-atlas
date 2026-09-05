@@ -51,6 +51,12 @@ def test_panel_icir_is_mean_ic_over_std():
     assert out["n_periods"] == 4
 
 
+def test_constant_factor_has_zero_ic():
+    out = diagnose_factor([1.0, 1.0, 1.0, 1.0, 1.0], [0.01, 0.02, 0.03, 0.04, 0.05])
+    assert out["rank_ic"] == 0.0
+    assert out["ic"] == 0.0
+
+
 def test_mismatched_or_short_input_is_empty():
     out = diagnose_factor([1.0], [0.1])
     assert out["rank_ic"] == 0.0

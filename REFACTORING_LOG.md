@@ -4,6 +4,29 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (补齐空壳：真实 IC / Hyperopt 信号 / 因子评分)
+
+### 问题
+- `compute_ic_decay` 用正弦波冒充因子；alpha mining `_fitness` 用表达式长度；`orthogonalize` 用随机向量
+- `DefaultWalkForwardOptimizer._evaluate` 忽略参数，对买入持有打分
+- `FactorPerformanceEngine.score_factor` 恒为 1.0，无法触发 immune 压力测试
+
+### 交付
+| 区域 | 文件 | 要点 |
+|------|------|------|
+| 表达式 | `app/domain/quant/expression.py` | gplearn 风格安全求值，禁止 `eval` |
+| 信号 | `app/domain/quant/signals.py` | MA/RSI/动量/period→动量，FastBacktest 与 hyperopt 共用 |
+| 挖掘 | `alpha_mining_service.py` | 真实 Rank IC 适应度、IC decay、有 features 时 Gram-Schmidt |
+| 因子引擎 | `factor_performance_engine.py` | `record()` / `diagnose()` / `1+abs(rank_ic)` |
+| Walk-forward | `walk_forward.py` + `WalkForwardService.hyperopt` | 参数改变策略收益 |
+| API | `routes_v1_quant_capability.py` | `POST /quant/{evaluate-expression,ic-decay,hyperopt}` |
+| 挖掘路由 | `routes_v1_alpha_mining.py` | body 带 `features`+`returns` 时走真实 IC |
+
+### 验证
+- `pytest tests/domain/quant tests/modules/strategy/test_alpha_mining_real_ic.py tests/modules/strategy/test_walk_forward_hyperopt.py tests/modules/strategy/test_fast_backtest_engine.py tests/infrastructure/test_walk_forward_evaluate.py tests/presentation/api/test_quant_capability_routes.py`
+
+---
+
 ## 2026-09-05 (Quant Capability Kernel：对照 QuantStats / Alphalens / HRP)
 
 ### 问题

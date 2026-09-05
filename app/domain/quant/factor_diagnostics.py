@@ -15,6 +15,8 @@ def _is_panel(values: Sequence[Any]) -> bool:
 def _spearman(x: np.ndarray, y: np.ndarray) -> float:
     if x.size < 3 or y.size != x.size:
         return 0.0
+    if float(np.std(x)) < 1e-12 or float(np.std(y)) < 1e-12:
+        return 0.0
     rx = _ranks(x)
     ry = _ranks(y)
     n = float(x.size)

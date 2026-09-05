@@ -245,6 +245,36 @@ def all_integration_cards() -> tuple[IntegrationCard, ...]:
             routes=(IntegrationRouteRef("策略回测", nav_id="backtest"),),
         ),
         IntegrationCard(
+            key="gplearn_safe_expression",
+            layer="analytics",
+            source_project="gplearn / Qlib Alpha158",
+            title="安全因子表达式求值与 IC 衰减",
+            summary="禁止 eval 的 GP 表达式解析；x0..x5 由收益序列派生；IC decay / 适应度走真实 Rank IC。",
+            solid_note="SRP：解析在 domain/quant/expression.py，挖掘服务只消费求值结果。",
+            code_paths=(
+                "app/domain/quant/expression.py",
+                "app/modules/strategy/services/alpha_mining_service.py",
+            ),
+            routes=(IntegrationRouteRef("量化实验室", nav_id="quant_lab"),),
+        ),
+        IntegrationCard(
+            key="freqtrade_hyperopt_signals",
+            layer="analytics",
+            source_project="Freqtrade Hyperopt / VectorBT",
+            title="参数网格 Hyperopt + 共享信号",
+            summary="MA/RSI/动量信号供 FastBacktest 与 walk-forward 共用；网格搜索按策略收益而非买入持有打分。",
+            solid_note="DIP：DefaultWalkForwardOptimizer 依赖 strategy_returns，不复制预览引擎。",
+            code_paths=(
+                "app/domain/quant/signals.py",
+                "app/infrastructure/strategy/walk_forward.py",
+                "app/modules/strategy/services/simulation_service.py",
+            ),
+            routes=(
+                IntegrationRouteRef("策略回测", nav_id="backtest"),
+                IntegrationRouteRef("量化实验室", nav_id="quant_lab"),
+            ),
+        ),
+        IntegrationCard(
             key="gemini_llm",
             layer="ops",
             source_project="Gemini（统一 LLM 配置）",
