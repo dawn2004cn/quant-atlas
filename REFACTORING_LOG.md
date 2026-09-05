@@ -4,6 +4,21 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (个股详情 /quotes 不再同步拉 25 年 K 线)
+
+### 根因
+- 首页 `GET /api/v1/quotes?symbol=sh000001` 走 `get_stock_detail` → `get_history(2000-01-01, 2099-12-31)`
+- 空库时 AkShare / 通达信 TCP 无超时，卡住 Flask GIL；E2E `/stock/000001` 与 `/backtest` 的 `page.goto` 30s 超时
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `stock_service.get_stock_detail` | CN 实时价先读 Redis 书；指标只用已缓存 K 线，不拉直播历史 |
+| `history_adapters.py` | `CN_HISTORY_REMOTE=0` 时跳过 akshare / tdx_tcp |
+| `.github/workflows/ci.yml` | E2E Flask 设 `CN_HISTORY_REMOTE=0` |
+
+---
+
 ## 2026-09-05 (全市场行情改回 Redis 延迟快照)
 
 ### 约定
