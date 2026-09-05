@@ -99,7 +99,7 @@ export function MarketPanoramaPage() {
         filter: listFilter,
         scope: listScope,
       }),
-    { revalidateOnFocus: false, refreshInterval: 45_000 },
+    { revalidateOnFocus: false, refreshInterval: (latest) => (latest?.warming ? 2000 : 45_000) },
   );
 
   const rankings = panorama?.rankings;
@@ -231,6 +231,8 @@ export function MarketPanoramaPage() {
         </div>
         {quotesLoading && !quotesPage ? (
           <p className="py-8 text-center text-sm text-zinc-600">加载行情…</p>
+        ) : quotesPage?.warming && !listItems.length ? (
+          <p className="py-8 text-center text-sm text-zinc-600">全市场快照后台同步中，即将自动刷新…</p>
         ) : (
           <>
             <RankingTable rows={listItems} label="代码" />

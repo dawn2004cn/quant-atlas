@@ -289,8 +289,13 @@ class MultiSourceHistoryProvider:
 
     def get_history(self, symbol: str, market: MarketCode, start_date: date, end_date: date) -> list[dict]:
         """按优先级尝试各个数据源，返回第一个成功的结果。失败 3 次后熔断 5 分钟."""
+        from app.core.runtime_config import get_runtime_bool
+
+        allow_remote = get_runtime_bool("CN_HISTORY_REMOTE", True)
         self.last_source = None
         for name, adapter in self._adapters_for(market):
+            if name in {"akshare", "tdx_tcp"} and not allow_remote:
+                continue
             if _circuit_until.get(name, 0) > time.time():
                 continue
             try:

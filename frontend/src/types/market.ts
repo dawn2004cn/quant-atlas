@@ -27,6 +27,8 @@ export type MarketQuotesPage = {
   page: number;
   page_size: number;
   scope?: string;
+  warming?: boolean;
+  stale?: boolean;
   stats?: {
     total?: number;
     up?: number;

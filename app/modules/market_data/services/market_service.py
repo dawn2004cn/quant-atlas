@@ -26,6 +26,17 @@ logger = get_logger(__name__)
 # A-share full-market snapshot should contain thousands of symbols; partial cache must refresh.
 _CN_FULL_MARKET_MIN_ROWS = 1500
 
+# Liquid A-shares for panorama / homepage when AkShare is unavailable (Tencent path).
+_CN_PAGE_UNIVERSE = (
+    "600519", "601318", "000001", "000858", "600036", "300750", "601166", "600276",
+    "002594", "002415", "601888", "000333", "600900", "601398", "000651", "600030",
+    "000002", "601088", "000725", "601628", "601169", "002352", "600016", "601988",
+    "600000", "601328", "601288", "601857", "601601", "600887", "000568", "002304",
+    "300059", "002475", "002230", "000063", "002714", "300124", "601012", "600438",
+    "300274", "002371", "688981", "688111", "600809", "000596", "002142", "601668",
+    "601800", "600048", "601186", "000166", "600104", "601633", "002027", "300498",
+)
+
 class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
     """Market data service with async support."""
 
@@ -198,7 +209,13 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
         result.sort(key=lambda x: x.get("price", 0), reverse=True)
         return result
 
-    def list_quotes(self, market: MarketCode, symbols: list[str] | None = None) -> list[dict]:
+    def list_quotes(
+        self,
+        market: MarketCode,
+        symbols: list[str] | None = None,
+        *,
+        live: bool = True,
+    ) -> list[dict]:
         """Get quotes for a market. Uses cache or fetches from provider."""
         cache = self._stock_cache
         if cache is None:
@@ -209,7 +226,7 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.info(f"list_quotes: market={market}, symbols_count={len(symbols) if symbols else 0}")
 
             if market == MarketCode.CN:
-                return self._list_cn_quotes(market, symbols, cache)
+                return self._list_cn_quotes(market, symbols, cache, live=live)
 
             if not symbols:
                 stocks = cache.get_all_stocks(max_age_minutes=10080)
@@ -235,14 +252,70 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.error(f"list_quotes failed: {e}", exc_info=True)
             return []
 
-    def _list_cn_quotes(self, market: MarketCode, symbols: list[str] | None, cache) -> list[dict]:
+    def list_quotes_tencent(
+        self,
+        symbols: list[str] | None = None,
+        *,
+        max_symbols: int | None = None,
+    ) -> list[dict]:
+        """Fetch CN quotes via Tencent only. Never imports or calls AkShare."""
+        if symbols:
+            limited = symbols[: max(0, int(max_symbols))] if max_symbols is not None else symbols
+            return self.list_quotes(MarketCode.CN, limited)
+        cache = self._stock_cache
+        try:
+            return self._pull_cn_via_tencent_batches(
+                cache, allow_akshare=False, max_symbols=max_symbols
+            )
+        except Exception as exc:
+            self.logger.warning("list_quotes_tencent failed: %s", exc)
+            return []
+
+    def refresh_cn_quote_book(self, *, allow_akshare: bool = False) -> list[dict]:
+        """Worker/background refresh: Tencent batches, optional AkShare, then Redis book."""
+        from app.modules.market_data.services.cn_quote_book import save_cn_quote_book
+
+        cache = self._stock_cache
+        rows: list[dict] = []
+        source = "tencent"
+        try:
+            rows = self._pull_cn_via_tencent_batches(cache, allow_akshare=allow_akshare)
+        except Exception as exc:
+            self.logger.warning("refresh_cn_quote_book tencent failed: %s", exc)
+        if allow_akshare and len(rows) < _CN_FULL_MARKET_MIN_ROWS:
+            try:
+                ak_rows = self._pull_akshare_cn_spot(cache)
+            except Exception as exc:
+                self.logger.warning("refresh_cn_quote_book akshare failed: %s", exc)
+                ak_rows = []
+            if len(ak_rows) > len(rows):
+                rows = ak_rows
+                source = "akshare"
+        if rows:
+            save_cn_quote_book(rows, source=source)
+            try:
+                from app.modules.market_data.services.cn_quote_snapshot import get_cn_quote_snapshot
+
+                get_cn_quote_snapshot().load_rows(rows)
+            except Exception as exc:
+                self.logger.debug("refresh_cn_quote_book snapshot load: %s", exc)
+        return rows
+
+    def _list_cn_quotes(
+        self,
+        market: MarketCode,
+        symbols: list[str] | None,
+        cache,
+        *,
+        live: bool = True,
+    ) -> list[dict]:
         """Fetch CN market quotes using cache, with live provider fallback."""
         if not symbols:
             all_stocks = cache.get_all_stocks(max_age_minutes=10080)
             if all_stocks:
                 deduped = self._dedup_stocks(all_stocks)
                 serialized = [self._serialize_stock(s) for s in deduped]
-                if len(serialized) >= _CN_FULL_MARKET_MIN_ROWS:
+                if not live or len(serialized) >= _CN_FULL_MARKET_MIN_ROWS:
                     self.logger.info(
                         "list_quotes CN full market: %s rows from stock_cache",
                         len(serialized),
@@ -252,6 +325,8 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
                     "list_quotes CN cache partial (%s rows), refreshing live snapshot",
                     len(serialized),
                 )
+            elif not live:
+                return []
 
         if symbols:
             normalized = self._normalize_cn_symbols(symbols)
@@ -360,31 +435,64 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.warning("akshare fetch failed: %s", exc)
             return []
 
-    def _fetch_cn_universe_codes(self, cache) -> list[str]:
+    def _fetch_cn_universe_codes(
+        self,
+        cache,
+        *,
+        allow_akshare: bool = True,
+        max_symbols: int | None = None,
+    ) -> list[str]:
         """Resolve the CN symbol universe for batched Tencent refresh."""
-        try:
-            import akshare as ak
+        seen: set[str] = set()
+        codes: list[str] = []
 
-            df = ak.stock_info_a_code_name()
-            if df is not None and not df.empty:
-                code_col = "code" if "code" in df.columns else df.columns[0]
-                return [
-                    "".join(ch for ch in str(code) if ch.isdigit())[-6:].zfill(6)
-                    for code in df[code_col].tolist()
-                    if str(code).strip()
-                ]
-        except Exception as exc:
-            self.logger.warning("CN universe via stock_info_a_code_name failed: %s", exc)
+        def _add(raw: object) -> None:
+            code6 = "".join(ch for ch in str(raw or "") if ch.isdigit())[-6:].zfill(6)
+            if code6 and code6 != "000000" and code6 not in seen:
+                seen.add(code6)
+                codes.append(code6)
 
-        try:
-            return [str(code).strip() for code in (cache.list_all_codes() or []) if str(code).strip()]
-        except Exception as exc:
-            self.logger.warning("CN universe via cache.list_all_codes failed: %s", exc)
-            return []
+        if not allow_akshare:
+            for seed in _CN_PAGE_UNIVERSE:
+                _add(seed)
 
-    def _pull_cn_via_tencent_batches(self, cache) -> list[dict]:
+        if cache is not None:
+            try:
+                for code in cache.list_all_codes() or []:
+                    _add(code)
+            except Exception as exc:
+                self.logger.warning("CN universe via cache.list_all_codes failed: %s", exc)
+
+        if allow_akshare:
+            for seed in _CN_PAGE_UNIVERSE:
+                _add(seed)
+            if len(codes) < _CN_FULL_MARKET_MIN_ROWS:
+                try:
+                    import akshare as ak
+
+                    df = ak.stock_info_a_code_name()
+                    if df is not None and not df.empty:
+                        code_col = "code" if "code" in df.columns else df.columns[0]
+                        for code in df[code_col].tolist():
+                            _add(code)
+                except Exception as exc:
+                    self.logger.warning("CN universe via stock_info_a_code_name failed: %s", exc)
+
+        if max_symbols is not None:
+            return codes[: max(0, int(max_symbols))]
+        return codes
+
+    def _pull_cn_via_tencent_batches(
+        self,
+        cache,
+        *,
+        allow_akshare: bool = True,
+        max_symbols: int | None = None,
+    ) -> list[dict]:
         """Batch-fetch CN quotes via Tencent gateway when AkShare snapshot is unavailable."""
-        codes = self._fetch_cn_universe_codes(cache)
+        codes = self._fetch_cn_universe_codes(
+            cache, allow_akshare=allow_akshare, max_symbols=max_symbols
+        )
         if not codes:
             return []
 
@@ -513,6 +621,33 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             payload = _build()
         return PanoramaDTO.model_validate(payload)
 
+    def _rankings_from_quote_rows(self, rows: list[dict]) -> dict[str, list[dict]]:
+        def _f(row: dict, key: str) -> float:
+            try:
+                return float(row.get(key) or 0)
+            except (TypeError, ValueError):
+                return 0.0
+
+        def _item(row: dict) -> dict:
+            return {
+                "code": row.get("code") or row.get("symbol") or "",
+                "name": row.get("name") or "",
+                "price": _f(row, "price"),
+                "change_pct": _f(row, "change_pct"),
+                "change_amount": _f(row, "change_amount"),
+                "volume": int(_f(row, "volume")),
+                "amount": _f(row, "amount"),
+                "turnover": _f(row, "turnover"),
+            }
+
+        items = [_item(r) for r in rows if r]
+        return {
+            "gainers": sorted(items, key=lambda x: x["change_pct"], reverse=True)[:10],
+            "losers": sorted(items, key=lambda x: x["change_pct"])[:10],
+            "amounts": sorted(items, key=lambda x: x["amount"], reverse=True)[:10],
+            "turnovers": sorted(items, key=lambda x: x["turnover"], reverse=True)[:10],
+        }
+
     def _build_panorama(self, m: MarketCode) -> PanoramaDTO:
         self.logger.info("get_panorama: market=%s", m)
         overview = {"market_status": "active", "sentiment_score": 0.0}
@@ -524,6 +659,20 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
                 rankings.update(self._market_provider.get_market_rankings(m))
         except Exception as e:
             self.logger.error("Error getting market panorama: %s", e, exc_info=True)
+        if m == MarketCode.CN and not any(rankings.get(k) for k in ("gainers", "losers")):
+            try:
+                from app.modules.market_data.services.cn_quote_snapshot import (
+                    get_cn_quote_snapshot,
+                    hydrate_page_snapshot,
+                )
+
+                snap = get_cn_quote_snapshot()
+                hydrate_page_snapshot(snap, self)
+                rows = snap.unique_rows()
+                if rows:
+                    rankings.update(self._rankings_from_quote_rows(rows))
+            except Exception as exc:
+                self.logger.warning("panorama fallback from snapshot failed: %s", exc)
         return PanoramaDTO(
             market_status=overview.get("market_status", "active"),
             sentiment_score=float(overview.get("sentiment_score", 0.0)),
@@ -585,40 +734,30 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             },
         }
 
-    def _fetch_cn_market_breadth(self) -> tuple[int, int, int] | None:
-        """Count A-share up/down/flat from AkShare full spot board."""
+    def _snapshot_breadth(self) -> tuple[int, int, int] | None:
+        """Up/down/flat from the in-process quote snapshot. Never calls AkShare."""
         try:
-            import akshare as ak
+            from app.modules.market_data.services.cn_quote_snapshot import (
+                get_cn_quote_snapshot,
+                hydrate_page_snapshot,
+            )
 
-            frame = ak.stock_zh_a_spot_em()
-            if frame is None or getattr(frame, "empty", True):
-                return None
-            change_col = None
-            for candidate in ("涨跌幅", "change_pct", "pct_chg"):
-                if candidate in frame.columns:
-                    change_col = candidate
-                    break
-            if change_col is None:
-                return None
-
-            def _to_pct(value: object) -> float:
-                try:
-                    if value is None or str(value).strip() in ("", "-", "nan"):
-                        return 0.0
-                    return float(value)
-                except (TypeError, ValueError):
-                    return 0.0
-
-            changes = frame[change_col].map(_to_pct)
-            up = int((changes > 0).sum())
-            down = int((changes < 0).sum())
-            flat = int(len(changes) - up - down)
-            if up + down + flat < _CN_FULL_MARKET_MIN_ROWS:
+            snap = get_cn_quote_snapshot()
+            hydrate_page_snapshot(snap, self)
+            stats = snap.query_page(page=1, page_size=1).get("stats") or {}
+            up = int(stats.get("up") or 0)
+            down = int(stats.get("down") or 0)
+            flat = int(stats.get("flat") or 0)
+            if up + down + flat <= 0:
                 return None
             return up, down, flat
         except Exception as exc:
-            self.logger.warning("CN market breadth fetch failed: %s", exc)
+            self.logger.warning("snapshot breadth failed: %s", exc)
             return None
+
+    def _fetch_cn_market_breadth(self) -> tuple[int, int, int] | None:
+        """Deprecated: AkShare full-board breadth. Page path uses ``_snapshot_breadth``."""
+        return self._snapshot_breadth()
 
     def _persist_sentiment_cache(self, market: str, up: int, down: int, flat: int) -> None:
         if self._stock_cache is None:
@@ -657,29 +796,20 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.warning("Could not get sentiment from cache for %s: %s", m_str, exc)
 
         if is_cn:
-            breadth = self._fetch_cn_market_breadth()
+            breadth = self._snapshot_breadth() or self._compute_local_breadth()
             if breadth:
                 up, down, flat = breadth
-                self._persist_sentiment_cache(m_str, up, down, flat)
+                total = up + down + flat
+                if total >= _CN_FULL_MARKET_MIN_ROWS:
+                    self._persist_sentiment_cache(m_str, up, down, flat)
                 return self._build_sentiment_payload(
                     m_str,
                     up,
                     down,
                     flat,
-                    stale=False,
+                    stale=total < _CN_FULL_MARKET_MIN_ROWS,
                     last_update=None,
-                    prefix="全市场实时",
-                )
-
-            # Fallback: compute from local stock cache change_pct
-            local_breadth = self._compute_local_breadth()
-            if local_breadth:
-                up, down, flat = local_breadth
-                return self._build_sentiment_payload(
-                    m_str, up, down, flat,
-                    stale=True,
-                    last_update=None,
-                    prefix="本地缓存估算",
+                    prefix="行情快照" if total < _CN_FULL_MARKET_MIN_ROWS else "全市场实时",
                 )
 
         return {

@@ -13,6 +13,32 @@ from app.domain.enums import MarketCode
 logger = get_logger(__name__)
 
 _DEFAULT_TTL_SEC = 45
+# Page-path hydrate: liquid seeds via Tencent only. Never pull the full A-share book.
+_PAGE_SEED_MAX = 80
+
+# Last-resort directory so the table is never blank when every live source fails.
+_SEED_DIRECTORY: tuple[tuple[str, str], ...] = (
+    ("600519", "贵州茅台"),
+    ("601318", "中国平安"),
+    ("000001", "平安银行"),
+    ("000858", "五粮液"),
+    ("600036", "招商银行"),
+    ("300750", "宁德时代"),
+    ("601166", "兴业银行"),
+    ("600276", "恒瑞医药"),
+    ("002594", "比亚迪"),
+    ("002415", "海康威视"),
+    ("000333", "美的集团"),
+    ("600900", "长江电力"),
+    ("601398", "工商银行"),
+    ("000651", "格力电器"),
+    ("600030", "中信证券"),
+    ("000002", "万科A"),
+    ("300059", "东方财富"),
+    ("601012", "隆基绿能"),
+    ("688981", "中芯国际"),
+    ("600887", "伊利股份"),
+)
 
 
 def _symbol_index_keys(symbol: str) -> list[str]:
@@ -94,7 +120,7 @@ def _code6(code: str) -> str:
 
 
 class CnQuoteSnapshot:
-    """进程内全市场 quote 索引；与 market-panorama 使用同一 stock_cache / list_quotes 数据源。"""
+    """进程内 quote 索引。页面路径只读 cache，空则腾讯种子补活，绝不走 AkShare。"""
 
     def __init__(
         self,
@@ -105,7 +131,7 @@ class CnQuoteSnapshot:
     ) -> None:
         self._market_service = market_service
         self._market_provider = market_provider
-        self._ttl = max(15, int(ttl_seconds))
+        self._ttl = max(1, int(ttl_seconds))
         self._lock = threading.RLock()
         self._by_key: dict[str, dict[str, Any]] = {}
         self._updated_at: float = 0.0
@@ -124,6 +150,21 @@ class CnQuoteSnapshot:
     def is_warm(self) -> bool:
         return bool(self._by_key) and self.age_seconds < self._ttl
 
+    def bind(
+        self,
+        *,
+        market_service: object | None = None,
+        market_provider: object | None = None,
+    ) -> None:
+        if market_service is not None:
+            self._market_service = market_service
+        if market_provider is not None:
+            self._market_provider = market_provider
+
+    @property
+    def is_refreshing(self) -> bool:
+        return False
+
     def load_rows(self, rows: list[dict[str, Any]]) -> None:
         """由 /markets/CN/quotes 等接口写入，避免重复读库。"""
         with self._lock:
@@ -131,15 +172,60 @@ class CnQuoteSnapshot:
             self._updated_at = time.time()
 
     def ensure_fresh(self, *, force: bool = False) -> None:
+        """Load local cache only. If empty, hydrate a bounded Tencent seed list.
+
+        Never calls ``list_quotes(CN, None)`` / AkShare. Full-market books stay
+        off the page path so a hung or OOM-prone AkShare pull cannot crash Flask.
+        """
         if not force and self.is_warm():
             return
         with self._lock:
             if not force and self.is_warm():
                 return
-            rows = self._load_from_services()
-            self._rebuild(rows)
-            self._updated_at = time.time()
-            logger.info("CnQuoteSnapshot refreshed: %s symbols", self._row_count)
+            rows = self._load_cached_only()
+            if rows:
+                self._rebuild(rows)
+                self._updated_at = time.time()
+                logger.info("CnQuoteSnapshot cache load: %s symbols", self._row_count)
+                return
+        self._hydrate_tencent_seed()
+
+    def _hydrate_tencent_seed(self) -> None:
+        """Fill an empty snapshot from Tencent + seed codes. No AkShare."""
+        svc = self._market_service
+        if svc is None or not hasattr(svc, "list_quotes_tencent"):
+            return
+        try:
+            rows = svc.list_quotes_tencent(max_symbols=_PAGE_SEED_MAX)
+        except TypeError:
+            try:
+                rows = svc.list_quotes_tencent()
+            except Exception as exc:
+                logger.warning("CnQuoteSnapshot tencent seed failed: %s", exc)
+                return
+        except Exception as exc:
+            logger.warning("CnQuoteSnapshot tencent seed failed: %s", exc)
+            return
+        if rows:
+            self.load_rows(rows)
+            logger.info("CnQuoteSnapshot tencent seed: %s symbols", self._row_count)
+
+    def fill_missing(self, symbols: list[str], *, fetcher) -> None:
+        """Live-fetch snapshot misses so symbol lists (sectors / radar) are not empty."""
+        if not symbols:
+            return
+        _hits, missing = self.lookup_rows(symbols)
+        if not missing:
+            return
+        try:
+            extra = fetcher(missing) or []
+        except Exception as exc:
+            logger.warning("CnQuoteSnapshot fill_missing failed: %s", exc)
+            return
+        if not extra:
+            return
+        with self._lock:
+            self._rebuild(self.unique_rows() + list(extra))
 
     def lookup_map(self, symbols: list[str]) -> tuple[dict[str, dict[str, Any]], list[str]]:
         """返回 (命中索引, 未命中 normalized 列表)。"""
@@ -267,38 +353,80 @@ class CnQuoteSnapshot:
         page_size = max(1, min(200, int(page_size)))
         start = (page - 1) * page_size
         items = rows[start : start + page_size]
+        with self._lock:
+            stale = bool(self._by_key) and self.age_seconds >= self._ttl
         return {
             "items": items,
             "total": total,
             "page": page,
             "page_size": page_size,
             "stats": _market_breadth_stats(self.unique_rows()),
+            "warming": False,
+            "stale": stale,
         }
 
-    def _load_from_services(self) -> list[dict[str, Any]]:
+    def _load_cached_only(self) -> list[dict[str, Any]]:
         if self._market_service is not None:
             try:
-                rows = self._market_service.list_quotes(MarketCode.CN, None)
+                list_quotes = self._market_service.list_quotes
+                try:
+                    rows = list_quotes(MarketCode.CN, None, live=False)
+                except TypeError:
+                    rows = []
                 if rows:
                     return rows
             except Exception as exc:
-                logger.warning("CnQuoteSnapshot list_quotes failed: %s", exc)
-
-        if self._market_provider is not None and hasattr(
-            self._market_provider, "get_realtime_quotes"
-        ):
-            try:
-                from app.domain.dto.quote_factory import quote_to_dict
-
-                quotes = self._market_provider.get_realtime_quotes(market=MarketCode.CN) or []
-                return [quote_to_dict(q) for q in quotes]
-            except Exception as exc:
-                logger.warning("CnQuoteSnapshot provider scan failed: %s", exc)
+                logger.warning("CnQuoteSnapshot cache list_quotes failed: %s", exc)
         return []
 
 
 _snapshot: CnQuoteSnapshot | None = None
 _snapshot_lock = threading.Lock()
+
+
+def _seed_directory_rows() -> list[dict[str, Any]]:
+    return [
+        {
+            "code": code,
+            "name": name,
+            "price": 0.0,
+            "change_pct": 0.0,
+            "amount": 0.0,
+            "source": "seed",
+        }
+        for code, name in _SEED_DIRECTORY
+    ]
+
+
+def hydrate_page_snapshot(
+    snapshot: CnQuoteSnapshot,
+    market_service: object | None,
+) -> None:
+    """Bind the request-scoped market service and fill the page snapshot.
+
+    Pages read the delayed Redis book first (5–15 min). Stock-cache / Tencent
+    seed only run when the book is empty. Never pull full-market AkShare.
+    """
+    if market_service is not None:
+        snapshot.bind(market_service=market_service)
+    try:
+        from app.modules.market_data.services.cn_quote_book import (
+            ensure_cn_quote_book,
+            load_cn_quote_book,
+        )
+
+        book = load_cn_quote_book()
+        if book:
+            snapshot.load_rows(book)
+            return
+        ensure_cn_quote_book(market_service)
+    except Exception as exc:
+        logger.warning("hydrate_page_snapshot redis book failed: %s", exc)
+    snapshot.ensure_fresh()
+    if snapshot.row_count > 0:
+        return
+    snapshot.load_rows(_seed_directory_rows())
+    logger.info("CnQuoteSnapshot seed directory: %s symbols", snapshot.row_count)
 
 
 def configure_cn_quote_snapshot(

@@ -93,13 +93,22 @@ class StockApplicationService(BaseApplicationService):
         self._stock_cache = stock_cache
 
     def get_stock_detail(self, code: str, market: str | MarketCode = "A") -> StockDetailResult:
-        """Get stock detail with fundamental data and indicators."""
+        """Get stock detail. CN realtime prefers the delayed Redis book.
+
+        Does not pull live K-line on this path — history stays on ``/history``.
+        Indicators use already-cached bars only.
+        """
         market_code = _resolve_market_code(market)
         market_label = market_code.value
         lookup_code = SymbolNormalizer().normalize(code) if market_code == MarketCode.CN else code.strip()
         profile: dict[str, Any] = {"realtime": {}, "name": "", "industry": ""}
 
-        if self._market_provider and hasattr(self._market_provider, "get_realtime_quotes"):
+        book_rt = self._realtime_from_quote_book(lookup_code) if market_code == MarketCode.CN else {}
+        if book_rt:
+            profile["realtime"] = book_rt
+            profile["name"] = book_rt.get("name") or ""
+            profile["industry"] = book_rt.get("industry") or ""
+        elif self._market_provider and hasattr(self._market_provider, "get_realtime_quotes"):
             try:
                 quotes = self._market_provider.get_realtime_quotes([lookup_code], market_code)
                 if quotes:
@@ -119,16 +128,58 @@ class StockApplicationService(BaseApplicationService):
             profile["name"] = profile.get("name") or profile["realtime"].get("name") or ""
             profile["industry"] = profile.get("industry") or profile["realtime"].get("industry") or ""
 
-        indicators: dict[str, Any] = {}
-        try:
-            history = self.get_history(code, market_code, start="2000-01-01", end="2099-12-31")
-            if history and self._indicator_provider:
-                if hasattr(self._indicator_provider, 'calculate'):
-                    indicators = self._indicator_provider.calculate(history)
-        except Exception as e:
-            self.logger.debug(f"Indicator calculation failed: {e}")
-
+        indicators = self._indicators_from_cached_history(lookup_code, market_code)
         return StockDetailResult(code=code, market=market_label, profile=profile, indicators=indicators)
+
+    def _realtime_from_quote_book(self, code: str) -> GenericResponseDTO:
+        try:
+            from app.modules.market_data.services.cn_quote_book import load_cn_quote_book
+
+            target = _code6(code)
+            if not target or target == "000000":
+                return {}
+            for row in load_cn_quote_book():
+                if not isinstance(row, dict):
+                    continue
+                if _code6(str(row.get("code") or row.get("symbol") or "")) != target:
+                    continue
+                return {
+                    "code": target,
+                    "name": str(row.get("name") or ""),
+                    "price": float(row.get("price", 0) or 0),
+                    "change_amount": float(row.get("change_amount", row.get("change", 0)) or 0),
+                    "change_pct": float(row.get("change_pct", row.get("pct_chg", 0)) or 0),
+                    "volume": float(row.get("volume", 0) or 0),
+                    "amount": float(row.get("amount", 0) or 0),
+                    "turnover": float(row.get("turnover", 0) or 0),
+                    "pe": row.get("pe"),
+                    "pb": row.get("pb"),
+                    "total_market_cap": float(row.get("total_market_cap", 0) or 0),
+                    "industry": str(row.get("industry") or ""),
+                    "source": "quote_book",
+                }
+        except Exception as exc:
+            self.logger.debug("quote book realtime miss for %s: %s", code, exc)
+        return {}
+
+    def _indicators_from_cached_history(self, code: str, market_code: MarketCode) -> dict[str, Any]:
+        if not self._indicator_provider or not self._stock_cache:
+            return {}
+        if not hasattr(self._indicator_provider, "calculate"):
+            return {}
+        try:
+            cache_key = (
+                SymbolNormalizer.to_db_code(code)
+                if market_code == MarketCode.CN
+                else f"{market_code.value}:{code}"
+            )
+            cached = self._stock_cache.get_stock_history_for_code(cache_key, limit=500) or []
+            if not cached:
+                return {}
+            return self._indicator_provider.calculate(cached) or {}
+        except Exception as exc:
+            self.logger.debug("cached indicator calc failed for %s: %s", code, exc)
+            return {}
 
     def _get_stock_from_cache(self, code: str, market) -> GenericResponseDTO:
         """Get stock data from cache as fallback."""

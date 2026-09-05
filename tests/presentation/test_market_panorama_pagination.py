@@ -31,6 +31,13 @@ def test_market_panorama_avoids_inline_onclick_handlers() -> None:
     assert "addEventListener('click'" in text or 'addEventListener("click"' in text
 
 
+def test_market_panorama_quotes_fetch_times_out_and_retries() -> None:
+    text = TEMPLATE.read_text(encoding="utf-8")
+    assert "AbortController" in text
+    assert "schedulePanoRetry" in text
+    assert "后台同步中" in text
+
+
 def test_self_stocks_avoids_inline_onclick_handlers() -> None:
     text = SELF_STOCKS.read_text(encoding="utf-8")
     assert "onclick=" not in text

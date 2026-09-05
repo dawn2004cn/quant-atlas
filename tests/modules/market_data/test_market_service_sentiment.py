@@ -5,7 +5,6 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import pandas as pd
 import pytest
 
 from app.domain.enums import MarketCode
@@ -15,6 +14,8 @@ from app.modules.market_data.services.market_service import MarketApplicationSer
 @pytest.fixture
 def market_svc_with_cache():
     cache = MagicMock()
+    cache.get_all_stocks.return_value = []
+    cache.list_all_codes.return_value = []
     provider = SimpleNamespace()
     with patch(
         "app.modules.market_data.services.market_service.get_quote_cache_port",
@@ -28,7 +29,7 @@ def market_svc_with_cache():
     return svc, cache
 
 
-def test_get_sentiment_refreshes_when_cache_sample_too_small(market_svc_with_cache):
+def test_get_sentiment_skips_akshare_when_cache_sample_too_small(market_svc_with_cache):
     svc, cache = market_svc_with_cache
     cache.get_latest_sentiment.return_value = {
         "up_count": 56,
@@ -37,20 +38,12 @@ def test_get_sentiment_refreshes_when_cache_sample_too_small(market_svc_with_cac
         "total_count": 101,
         "update_time": "2026-06-16T02:00:00+00:00",
     }
-    frame = pd.DataFrame(
-        {
-            "涨跌幅": [1.0] * 2600 + [-1.0] * 2400 + [0.0] * 100,
-        }
-    )
-    with patch("akshare.stock_zh_a_spot_em", return_value=frame):
+    with patch.object(svc, "_pull_akshare_cn_spot") as ak_spot:
         payload = svc.get_sentiment(MarketCode.CN)
 
-    assert payload["stats"]["total"] == 5100
-    assert payload["stats"]["gainers"] == 2600
-    assert payload["stats"]["losers"] == 2400
-    assert payload["stats"]["neutral"] == 100
-    assert "全市场实时" in payload["description"]
-    cache.save_sentiment.assert_called_once_with("CN", 2600, 2400, 100)
+    ak_spot.assert_not_called()
+    assert payload["stats"]["total"] >= 0
+    assert "stock_zh_a_spot_em" not in str(payload)
 
 
 def test_get_sentiment_uses_fresh_full_cache(market_svc_with_cache):
