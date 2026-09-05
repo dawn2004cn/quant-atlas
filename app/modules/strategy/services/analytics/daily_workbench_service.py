@@ -308,20 +308,23 @@ class DailyWorkbenchService:
         if not self._market_service or market != MarketCode.CN:
             return []
         try:
-            quotes = self._market_service.list_quotes(MarketCode.CN)
+            from app.modules.market_data.services.cn_quote_snapshot import (
+                get_cn_quote_snapshot,
+                hydrate_page_snapshot,
+            )
+
+            snap = get_cn_quote_snapshot()
+            hydrate_page_snapshot(snap, self._market_service)
+            page = snap.query_page(board_filter="limit_up", page=1, page_size=20)
             out: list[dict[str, Any]] = []
-            for q in quotes:
-                qd = q if isinstance(q, dict) else _to_dict(q)
-                if _safe_float(qd.get("change_pct")) >= 9.9:
-                    out.append(
-                        {
-                            "code": qd.get("code"),
-                            "name": qd.get("name"),
-                            "change_pct": qd.get("change_pct"),
-                        }
-                    )
-                if len(out) >= 20:
-                    break
+            for qd in page.get("items") or []:
+                out.append(
+                    {
+                        "code": qd.get("code"),
+                        "name": qd.get("name"),
+                        "change_pct": qd.get("change_pct"),
+                    }
+                )
             return out
         except Exception:
             return []

@@ -4,6 +4,23 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (首页 daily-workbench 仍打 AkShare 卡住 E2E)
+
+### 根因
+- `/` 操盘台聚合 `get_sentiment` → `ak.stock_zh_a_spot_em()`，`_build_limit_up_stocks` → `list_quotes(CN)` 全市场
+- 首页一开就卡住 Flask，全景/个股页 `page.goto` 30s 超时，列表继续空
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `market_service.py` | 情绪涨跌家数改用快照 `_snapshot_breadth`，不再打 AkShare |
+| `daily_workbench_service.py` | 涨停榜走 `hydrate_page_snapshot` + `query_page(limit_up)` |
+
+### 验证
+- `pytest tests/modules/market_data/test_market_service_sentiment.py tests/modules/strategy/test_daily_workbench_limit_up.py`
+
+---
+
 ## 2026-09-05 (个股列表仍空：快照未接到 market_service)
 
 ### 根因

@@ -704,40 +704,30 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             },
         }
 
-    def _fetch_cn_market_breadth(self) -> tuple[int, int, int] | None:
-        """Count A-share up/down/flat from AkShare full spot board."""
+    def _snapshot_breadth(self) -> tuple[int, int, int] | None:
+        """Up/down/flat from the in-process quote snapshot. Never calls AkShare."""
         try:
-            import akshare as ak
+            from app.modules.market_data.services.cn_quote_snapshot import (
+                get_cn_quote_snapshot,
+                hydrate_page_snapshot,
+            )
 
-            frame = ak.stock_zh_a_spot_em()
-            if frame is None or getattr(frame, "empty", True):
-                return None
-            change_col = None
-            for candidate in ("涨跌幅", "change_pct", "pct_chg"):
-                if candidate in frame.columns:
-                    change_col = candidate
-                    break
-            if change_col is None:
-                return None
-
-            def _to_pct(value: object) -> float:
-                try:
-                    if value is None or str(value).strip() in ("", "-", "nan"):
-                        return 0.0
-                    return float(value)
-                except (TypeError, ValueError):
-                    return 0.0
-
-            changes = frame[change_col].map(_to_pct)
-            up = int((changes > 0).sum())
-            down = int((changes < 0).sum())
-            flat = int(len(changes) - up - down)
-            if up + down + flat < _CN_FULL_MARKET_MIN_ROWS:
+            snap = get_cn_quote_snapshot()
+            hydrate_page_snapshot(snap, self)
+            stats = snap.query_page(page=1, page_size=1).get("stats") or {}
+            up = int(stats.get("up") or 0)
+            down = int(stats.get("down") or 0)
+            flat = int(stats.get("flat") or 0)
+            if up + down + flat <= 0:
                 return None
             return up, down, flat
         except Exception as exc:
-            self.logger.warning("CN market breadth fetch failed: %s", exc)
+            self.logger.warning("snapshot breadth failed: %s", exc)
             return None
+
+    def _fetch_cn_market_breadth(self) -> tuple[int, int, int] | None:
+        """Deprecated: AkShare full-board breadth. Page path uses ``_snapshot_breadth``."""
+        return self._snapshot_breadth()
 
     def _persist_sentiment_cache(self, market: str, up: int, down: int, flat: int) -> None:
         if self._stock_cache is None:
@@ -776,29 +766,20 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.warning("Could not get sentiment from cache for %s: %s", m_str, exc)
 
         if is_cn:
-            breadth = self._fetch_cn_market_breadth()
+            breadth = self._snapshot_breadth() or self._compute_local_breadth()
             if breadth:
                 up, down, flat = breadth
-                self._persist_sentiment_cache(m_str, up, down, flat)
+                total = up + down + flat
+                if total >= _CN_FULL_MARKET_MIN_ROWS:
+                    self._persist_sentiment_cache(m_str, up, down, flat)
                 return self._build_sentiment_payload(
                     m_str,
                     up,
                     down,
                     flat,
-                    stale=False,
+                    stale=total < _CN_FULL_MARKET_MIN_ROWS,
                     last_update=None,
-                    prefix="全市场实时",
-                )
-
-            # Fallback: compute from local stock cache change_pct
-            local_breadth = self._compute_local_breadth()
-            if local_breadth:
-                up, down, flat = local_breadth
-                return self._build_sentiment_payload(
-                    m_str, up, down, flat,
-                    stale=True,
-                    last_update=None,
-                    prefix="本地缓存估算",
+                    prefix="行情快照" if total < _CN_FULL_MARKET_MIN_ROWS else "全市场实时",
                 )
 
         return {
