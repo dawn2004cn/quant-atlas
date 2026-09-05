@@ -166,6 +166,8 @@ class BacktestFacade:
         start: str,
         end: str,
         initial_capital: float = 100000.0,
+        commission_rate: float = 0.0003,
+        slippage_bps: float = 8.0,
         client_idempotency_key: str | None = None,
     ) -> dict[str, Any]:
         """Queue a backtest via Celery when available; otherwise run synchronously."""
@@ -177,6 +179,8 @@ class BacktestFacade:
                     start=start,
                     end=end,
                     initial_capital=initial_capital,
+                    commission_rate=commission_rate,
+                    slippage_bps=slippage_bps,
                 )
             except PydanticValidationError as exc:
                 raise validation_error_from_pydantic(exc) from exc
@@ -189,6 +193,8 @@ class BacktestFacade:
                 start=dto.start,
                 end=dto.end,
                 initial_capital=dto.initial_capital,
+                commission_rate=dto.commission_rate,
+                slippage_bps=dto.slippage_bps,
                 client_idempotency_key=client_idempotency_key,
             )
 

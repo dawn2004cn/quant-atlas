@@ -23,6 +23,43 @@ from app.core.logger import get_logger
 logger = get_logger(__name__)
 
 
+def _close_prices(rows: list[dict[str, Any]]) -> list[float]:
+    prices: list[float] = []
+    for row in rows:
+        raw = row.get("Close", row.get("close", row.get("price")))
+        if raw is None:
+            continue
+        prices.append(float(raw))
+    return prices
+
+
+def _return_metrics(returns: list[float]) -> dict[str, float]:
+    if not returns:
+        return {"sharpe_ratio": 0.0, "total_return": 0.0, "max_drawdown": 0.0, "win_rate": 0.0}
+    equity = 1.0
+    peak = 1.0
+    max_dd = 0.0
+    for ret in returns:
+        equity *= 1.0 + ret
+        if equity > peak:
+            peak = equity
+        if peak > 0:
+            dd = (equity - peak) / peak
+            if dd < max_dd:
+                max_dd = dd
+    mean = sum(returns) / len(returns)
+    var = sum((x - mean) ** 2 for x in returns) / max(len(returns) - 1, 1)
+    std = var ** 0.5
+    sharpe = (mean / std) * (252 ** 0.5) if std > 0 else 0.0
+    wins = sum(1 for x in returns if x > 0)
+    return {
+        "sharpe_ratio": float(sharpe),
+        "total_return": float(equity - 1.0),
+        "max_drawdown": float(max_dd),
+        "win_rate": float(wins / len(returns)),
+    }
+
+
 @dataclass
 class OptimizationResult:
     """Result of parameter optimization."""
@@ -151,7 +188,7 @@ class WalkForwardOptimizer:
         param_space: dict[str, Any],
         metric: str,
     ) -> dict[str, Any]:
-        """Simplified Bayesian-like search (placeholder for Optuna)."""
+        """Grid/random search scored by real strategy returns (Freqtrade Hyperopt style)."""
         import random
 
         best_params = {}
@@ -166,7 +203,8 @@ class WalkForwardOptimizer:
                 elif isinstance(param_range, tuple):
                     params[param_name] = random.uniform(param_range[0], param_range[1])
 
-            score = random.uniform(0.5, 1.5)
+            metrics = await self._evaluate_params(strategy_class, params, train_data)
+            score = float(metrics.get(metric, -999))
 
             if score > best_score:
                 best_score = score
@@ -180,13 +218,21 @@ class WalkForwardOptimizer:
         params: dict[str, Any],
         test_data: list[dict[str, Any]],
     ) -> dict[str, float]:
-        """Evaluate parameters on test data."""
-        return {
-            "sharpe_ratio": 1.2,
-            "total_return": 0.15,
-            "max_drawdown": -0.08,
-            "win_rate": 0.55,
-        }
+        """Evaluate parameters on OHLC rows via shared strategy signals."""
+        _ = strategy_class
+        prices = _close_prices(test_data)
+        if len(prices) < 5:
+            return {
+                "sharpe_ratio": -999.0,
+                "total_return": -1.0,
+                "max_drawdown": 0.0,
+                "win_rate": 0.0,
+            }
+
+        from app.domain.quant.signals import strategy_returns
+
+        rets = strategy_returns(prices, params, strategy="auto")
+        return _return_metrics(rets)
 
     def get_recommended_params(self) -> dict[str, Any]:
         """Get recommended parameters based on recent windows."""

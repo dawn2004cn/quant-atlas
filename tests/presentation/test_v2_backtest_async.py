@@ -118,5 +118,30 @@ def test_backtest_async_when_query_flag_set(client):
     facade.run_backtest_async.assert_called_once()
     kwargs = facade.run_backtest_async.call_args.kwargs
     assert kwargs.get("client_idempotency_key") == "bt:600519:MA:2024-01-01:2024-06-01:100000"
+    assert kwargs.get("commission_rate") == 0.0003
+    assert kwargs.get("slippage_bps") == 8.0
     payload = resp.get_json()
     assert payload["data"]["status"] == "queued"
+
+
+def test_backtest_async_forwards_custom_costs(client):
+    http, facade, auth_header = client
+    facade.run_backtest_async.return_value = {"status": "queued", "task_id": "t-2"}
+
+    resp = http.post(
+        "/api/v2/strategies/backtest?async=1",
+        json={
+            "symbol": "600519",
+            "strategy": "MA",
+            "start": "2024-01-01",
+            "end": "2024-06-01",
+            "commission_rate": 0.001,
+            "slippage_bps": 12.0,
+        },
+        headers=auth_header,
+    )
+
+    assert resp.status_code == 200
+    kwargs = facade.run_backtest_async.call_args.kwargs
+    assert kwargs["commission_rate"] == 0.001
+    assert kwargs["slippage_bps"] == 12.0

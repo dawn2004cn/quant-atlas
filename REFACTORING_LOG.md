@@ -4,6 +4,24 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (异步回测成本透传 + auto_tuning 真实评分)
+
+### 问题
+- V2 `?async=1` 已把 `commission_rate`/`slippage_bps` 打进 facade，但 `run_backtest_async` 不接收这两个参数，生产路径会 TypeError
+- Celery `submit_strategy_backtest` / `run_strategy_backtest` 未把成本写入 payload，不同费率会错误去重
+- `WalkForwardOptimizer._evaluate_params` 写死 Sharpe=1.2；`_bayesian_search` 用 `random.uniform` 冒充 Optuna
+
+### 交付
+| 区域 | 文件 | 要点 |
+|------|------|------|
+| Facade / Task | `backtest_facade.py`、`backtest_tasks.py` | 异步回测与同步路径一样透传成本 |
+| Auto-tune | `domain/optimization/auto_tuning.py` | 用 `strategy_returns` 打分，参数会改变收益 |
+
+### 验证
+- `pytest tests/facade/test_backtest_facade.py tests/tasks/test_backtest_tasks.py tests/presentation/test_v2_backtest_async.py tests/domain/optimization/test_auto_tuning_signals.py`
+
+---
+
 ## 2026-09-05 (补齐空壳：真实 IC / Hyperopt 信号 / 因子评分)
 
 ### 问题
