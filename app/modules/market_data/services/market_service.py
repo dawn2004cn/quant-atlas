@@ -198,7 +198,13 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
         result.sort(key=lambda x: x.get("price", 0), reverse=True)
         return result
 
-    def list_quotes(self, market: MarketCode, symbols: list[str] | None = None) -> list[dict]:
+    def list_quotes(
+        self,
+        market: MarketCode,
+        symbols: list[str] | None = None,
+        *,
+        live: bool = True,
+    ) -> list[dict]:
         """Get quotes for a market. Uses cache or fetches from provider."""
         cache = self._stock_cache
         if cache is None:
@@ -209,7 +215,7 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.info(f"list_quotes: market={market}, symbols_count={len(symbols) if symbols else 0}")
 
             if market == MarketCode.CN:
-                return self._list_cn_quotes(market, symbols, cache)
+                return self._list_cn_quotes(market, symbols, cache, live=live)
 
             if not symbols:
                 stocks = cache.get_all_stocks(max_age_minutes=10080)
@@ -235,14 +241,21 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.error(f"list_quotes failed: {e}", exc_info=True)
             return []
 
-    def _list_cn_quotes(self, market: MarketCode, symbols: list[str] | None, cache) -> list[dict]:
+    def _list_cn_quotes(
+        self,
+        market: MarketCode,
+        symbols: list[str] | None,
+        cache,
+        *,
+        live: bool = True,
+    ) -> list[dict]:
         """Fetch CN market quotes using cache, with live provider fallback."""
         if not symbols:
             all_stocks = cache.get_all_stocks(max_age_minutes=10080)
             if all_stocks:
                 deduped = self._dedup_stocks(all_stocks)
                 serialized = [self._serialize_stock(s) for s in deduped]
-                if len(serialized) >= _CN_FULL_MARKET_MIN_ROWS:
+                if not live or len(serialized) >= _CN_FULL_MARKET_MIN_ROWS:
                     self.logger.info(
                         "list_quotes CN full market: %s rows from stock_cache",
                         len(serialized),
@@ -252,6 +265,8 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
                     "list_quotes CN cache partial (%s rows), refreshing live snapshot",
                     len(serialized),
                 )
+            elif not live:
+                return []
 
         if symbols:
             normalized = self._normalize_cn_symbols(symbols)

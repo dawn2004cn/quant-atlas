@@ -14,7 +14,9 @@ This file is a consolidated chronological log of all major architecture refactor
 ### 修复
 | 文件 | 要点 |
 |------|------|
-| `cn_quote_snapshot.py` | `ensure_fresh` 立即返回当前快照，活行情改后台线程；空刷新不覆盖已有行；`query_page` 增加 `warming`/`stale` |
+| `cn_quote_snapshot.py` | `ensure_fresh` 只读本地 cache（`list_quotes(..., live=False)`），不触发 AkShare/腾讯全市场；空结果不覆盖已有行 |
+| `market_service.py` | `list_quotes(..., live=False)` 缓存不足时也直接返回，供 panorama 请求路径使用 |
+| `.github/workflows/ci.yml` | E2E Flask `threaded=True`，避免单线程被长请求堵住后续 `page.goto` |
 | `market_panorama.html` | `fetch` 8s 超时、`warming` 时提示并自动重试（最多 8 次） |
 | `MarketPanorama.tsx` | 空页 + warming 提示；SWR 同步中改为 2s 轮询 |
 

@@ -70,3 +70,27 @@ def test_list_cn_quotes_uses_cache_when_full_enough() -> None:
 
     live_mock.assert_not_called()
     assert len(quotes) == 1800
+
+
+def test_list_cn_quotes_live_false_returns_partial_cache() -> None:
+    cache = MagicMock()
+    cache.get_all_stocks.return_value = _partial_cache_rows(249)
+
+    with patch(
+        "app.modules.market_data.services.market_service.get_quote_cache_port",
+        return_value=MagicMock(),
+    ):
+        svc = MarketApplicationService(
+            market_provider=SimpleNamespace(),
+            industry_provider=SimpleNamespace(),
+            stock_cache=cache,
+        )
+
+    with patch.object(
+        market_service_module.MarketApplicationService,
+        "_pull_akshare_cn_spot",
+    ) as live_mock:
+        quotes = svc.list_quotes(MarketCode.CN, None, live=False)
+
+    live_mock.assert_not_called()
+    assert len(quotes) == 249
