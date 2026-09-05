@@ -170,22 +170,19 @@ class QlibBinAdapter:
 class TdxFileAdapter:
     """通达信lday文件适配器."""
 
-    _instance = None
-
     def __init__(self, tdx_root: str | None = None):
-        from ...infrastructure.tdx_local.paths import resolve_tdx_root
-        self._root = tdx_root if tdx_root else None
-        if self._root is None:
-            try:
-                self._root = resolve_tdx_root(None)
-            except Exception:
-                self._root = None
+        from ...infrastructure.tdx_local.paths import resolve_tdx_root_configured
+
+        self._root = resolve_tdx_root_configured(tdx_root)
+        self._adapter = None
 
     def _get_adapter(self):
-        if TdxFileAdapter._instance is None:
+        if self._adapter is None:
             from ...infrastructure.providers.tdx_file_adapter import TDXFileHistoryAdapter
-            TdxFileAdapter._instance = TDXFileHistoryAdapter(tdx_root=self._root)
-        return TdxFileAdapter._instance
+
+            root = str(self._root) if self._root else None
+            self._adapter = TDXFileHistoryAdapter(tdx_root_path=root)
+        return self._adapter
 
     def get_history(self, symbol: str, market: MarketCode, start_date: date, end_date: date) -> list[dict]:
         try:
@@ -222,8 +219,9 @@ class TdxTcpAdapter:
 
     def get_history(self, symbol: str, market: MarketCode, start_date: date, end_date: date) -> list[dict]:
         try:
-            from ...infrastructure.providers.cn_tdx_provider import TdxProvider
-            provider = TdxProvider()
+            from ...infrastructure.providers.cn_tdx_provider import create_tdx_provider
+
+            provider = create_tdx_provider()
             return provider.get_history(symbol, market, start_date, end_date)
         except Exception as e:
             logger.debug(f"TDX TCP miss: {e}")
@@ -240,29 +238,44 @@ def _build_cn_history_adapters() -> list[tuple[str, Any]]:
     from .timeseries_history_adapters import ClickHouseHistoryAdapter, QuestDBHistoryAdapter
 
     prefer_ts = get_runtime_bool("HISTORY_PREFER_TIMESERIES", True)
+    tdx_file = ("tdx_file", TdxFileAdapter())
+    tdx_tcp = ("tdx_tcp", TdxTcpAdapter())
     tail: list[tuple[str, Any]] = [
         ("mysql", MySQLHistoryAdapter()),
         ("qlib", QlibBinAdapter()),
-        ("tdx_file", TdxFileAdapter()),
+        tdx_file,
         ("akshare", AkshareAdapter()),
-        ("tdx_tcp", TdxTcpAdapter()),
+        tdx_tcp,
         ("sqlite", SqliteHistoryAdapter()),
     ]
-    if not prefer_ts:
-        return [
-            ("mysql", MySQLHistoryAdapter()),
-            ("timescale", TimescaleHistoryAdapter()),
-            ("questdb", QuestDBHistoryAdapter()),
-            ("clickhouse", ClickHouseHistoryAdapter()),
-            *tail[1:],
-        ]
-
-    # 写入侧已停 QuestDB/CH：读链优先 Timescale，再回退遗留时序库
     head: list[tuple[str, Any]] = [("timescale", TimescaleHistoryAdapter())]
     if load_questdb_settings() is not None:
         head.append(("questdb", QuestDBHistoryAdapter()))
     if load_clickhouse_settings() is not None:
         head.append(("clickhouse", ClickHouseHistoryAdapter()))
+
+    prefer_tdx = False
+    try:
+        from ...infrastructure.tdx_local.paths import resolve_tdx_root_configured
+
+        prefer_tdx = resolve_tdx_root_configured() is not None
+    except Exception:
+        logger.debug("TDX root probe failed; keep default history order")
+
+    if prefer_tdx:
+        rest = [item for item in tail if item[0] not in {"tdx_file", "tdx_tcp"}]
+        tdx_first = [tdx_file, tdx_tcp]
+        if not prefer_ts:
+            return [*tdx_first, ("mysql", MySQLHistoryAdapter()), *head, *rest[1:]]
+        return tdx_first + head + rest
+
+    if not prefer_ts:
+        return [
+            ("mysql", MySQLHistoryAdapter()),
+            *head,
+            *tail[1:],
+        ]
+
     return head + tail
 
 

@@ -103,7 +103,7 @@ def all_integration_cards() -> tuple[IntegrationCard, ...]:
             layer="data",
             source_project="stock-analysis（通达信离线）",
             title="本机通达信数据层",
-            summary="lday / 板块 / gbbq 等与离线分析对齐；与在线行情互补。",
+            summary="与通达信 PC 对等：HQ 批量实时行情 + 本地 vipdoc/lday 历史，缺失则 HQ 下载日线。",
             solid_note="OCP：新增本地读取器不改 MarketProvider 核心，仅扩展适配层。",
             code_paths=(
                 "app/infrastructure/tdx_local/",
