@@ -224,6 +224,9 @@ def calc_metrics(
         active_std = float(active_ret.std())
         ir = float(active_ret.mean() / (active_std + 1e-10) * np.sqrt(bpy))
 
+    from app.domain.quant.tearsheet import compute_tearsheet
+
+    extra = compute_tearsheet(port_ret.to_numpy(dtype=float), dates=equity_curve.index)
     return {
         "final_value": float(equity_curve.iloc[-1]),
         "total_return": total_ret,
@@ -243,6 +246,13 @@ def calc_metrics(
         "benchmark_return": round(bench_return, 6),
         "excess_return": round(excess, 6),
         "information_ratio": round(ir, 4),
+        "omega_ratio": extra["omega_ratio"],
+        "var_95": extra["var_95"],
+        "cvar_95": extra["cvar_95"],
+        "tail_ratio": extra["tail_ratio"],
+        "ulcer_index": extra["ulcer_index"],
+        "recovery_factor": extra["recovery_factor"],
+        "monthly_returns": extra["monthly_returns"],
     }
 
 
@@ -255,4 +265,6 @@ def _empty_metrics(initial_cash: float) -> dict[str, Any]:
         "win_rate": 0, "profit_loss_ratio": 0, "profit_factor": 0,
         "max_consecutive_loss": 0, "avg_holding_days": 0, "trade_count": 0,
         "benchmark_return": 0, "excess_return": 0, "information_ratio": 0,
+        "omega_ratio": 0, "var_95": 0, "cvar_95": 0, "tail_ratio": 0,
+        "ulcer_index": 0, "recovery_factor": 0, "monthly_returns": {},
     }

@@ -4,6 +4,28 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (Quant Capability Kernel：对照 QuantStats / Alphalens / HRP)
+
+### 问题
+- 对照 Qlib / QuantStats / Alphalens / PyPortfolioOpt / Freqtrade / vn.py 后，Atlas 已有回测与组合优化，但缺少可复用的 QuantStats 级绩效核、真实因子 IC 诊断，以及 HRP 配置
+- V2 回测 DTO/API 未透传手续费与滑点；FastBacktestEngine 预览忽略模板、等同买入持有
+
+### 交付
+| 区域 | 文件 | 要点 |
+|------|------|------|
+| 领域核 | `app/domain/quant/{tearsheet,factor_diagnostics,hrp}.py` | Omega/CVaR/Ulcer/修复因子；Rank IC/ICIR/分位；Lopez de Prado HRP |
+| 回测指标 | `app/infrastructure/agent/backtest/metrics.py` | 生产 `calc_metrics` 附加 tearsheet 字段 |
+| 组合 | `app/domain/allocation/portfolio_optimizer.py` | `method="hrp"` |
+| 预览引擎 | `fast_backtest_engine.py` | MA / RSI / 动量模板真实信号，未知模板才回退买入持有 |
+| 成本透传 | DTO / Facade / Provider / V2 `/backtest` | `commission_rate` + `slippage_bps` |
+| API | `routes_v1_quant_capability.py` | `POST /api/v1/quant/{tearsheet,factor-diagnostics,hrp}` |
+| 前端 | `Backtest.tsx` / `backtestMetrics.ts` | 成本输入 + Sortino/Calmar/Omega/CVaR 卡片 |
+
+### 验证
+- `pytest tests/domain/quant tests/domain/test_portfolio_optimizer_hrp.py tests/modules/strategy/test_fast_backtest_engine.py tests/infrastructure/test_quant_tearsheet_metrics.py tests/presentation/api/test_quant_capability_routes.py`
+
+---
+
 ## 2026-08-31 (SPA 数据解包 + 开发环境 WS 硬化 + Signal Observation 修复)
 
 ### 问题

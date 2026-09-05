@@ -59,7 +59,12 @@ class BacktestEngine:
     See module-level docstring for migration details.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        *,
+        commission_rate: float | None = None,
+        slippage_bps: float | None = None,
+    ):
         warnings.warn(
             "BacktestEngine is deprecated. Use CompositeEngine "
             "(app/infrastructure/agent/backtest/engines/) for production backtests.",
@@ -67,8 +72,27 @@ class BacktestEngine:
             stacklevel=2,
         )
         self.risk = load_default_risk_params()
-        self.costs = load_default_trade_cost_params()
+        self.costs = self._costs_with_overrides(commission_rate, slippage_bps)
         self.sizing = load_default_position_sizing_params()
+        self._commission_rate = commission_rate
+        self._slippage_bps = slippage_bps
+
+    @staticmethod
+    def _costs_with_overrides(
+        commission_rate: float | None,
+        slippage_bps: float | None,
+    ):
+        from dataclasses import replace
+
+        costs = load_default_trade_cost_params()
+        updates: dict[str, float] = {}
+        if commission_rate is not None:
+            updates["commission_rate"] = commission_rate
+            updates["open_commission"] = commission_rate
+            updates["close_commission"] = commission_rate
+        if slippage_bps is not None:
+            updates["slippage_bps"] = slippage_bps
+        return replace(costs, **updates) if updates else costs
 
     @staticmethod
     def _slippage_price(price: float, side: str, slippage_bps: float) -> float:
@@ -146,7 +170,7 @@ class BacktestEngine:
     ) -> dict:
         """多标的组合回测."""
         risk = load_default_risk_params()
-        costs = load_default_trade_cost_params()
+        costs = self._costs_with_overrides(self._commission_rate, self._slippage_bps)
         sizing = load_default_position_sizing_params()
 
         dates_sets = []
@@ -231,7 +255,7 @@ class BacktestEngine:
     ) -> dict:
         """单标的回测."""
         risk = load_default_risk_params()
-        costs = load_default_trade_cost_params()
+        costs = self._costs_with_overrides(self._commission_rate, self._slippage_bps)
         sizing = load_default_position_sizing_params()
 
         if df.empty or "Date" not in df.columns or "Close" not in df.columns:

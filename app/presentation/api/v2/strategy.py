@@ -29,6 +29,8 @@ def create_strategy_blueprint(ctx):
                 "start": dto.start,
                 "end": dto.end,
                 "initial_capital": dto.initial_capital,
+                "commission_rate": dto.commission_rate,
+                "slippage_bps": dto.slippage_bps,
             }
         else:
             payload = {
@@ -37,6 +39,8 @@ def create_strategy_blueprint(ctx):
                 "start": body.get("start", ""),
                 "end": body.get("end", ""),
                 "initial_capital": body.get("initial_capital", 100000),
+                "commission_rate": body.get("commission_rate", 0.0003),
+                "slippage_bps": body.get("slippage_bps", 8.0),
             }
 
         if ctx.backtest_facade is not None:
