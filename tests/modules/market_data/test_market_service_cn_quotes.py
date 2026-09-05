@@ -143,3 +143,31 @@ def test_cn_universe_without_akshare_uses_seed() -> None:
     capped = svc._fetch_cn_universe_codes(cache, allow_akshare=False, max_symbols=3)
     assert capped[0] == "600519"
     assert len(capped) == 3
+
+
+def test_build_panorama_uses_snapshot_when_provider_rankings_empty() -> None:
+    cache = MagicMock()
+    cache.get_all_stocks.return_value = []
+    cache.list_all_codes.return_value = []
+    with patch(
+        "app.modules.market_data.services.market_service.get_quote_cache_port",
+        return_value=MagicMock(),
+    ):
+        svc = MarketApplicationService(
+            market_provider=SimpleNamespace(),
+            industry_provider=SimpleNamespace(),
+            stock_cache=cache,
+        )
+    from app.modules.market_data.services.cn_quote_snapshot import configure_cn_quote_snapshot
+
+    snap = configure_cn_quote_snapshot(market_service=svc)
+    snap.load_rows(
+        [
+            {"code": "600519", "name": "茅台", "price": 100, "change_pct": 3.2, "amount": 1e9},
+            {"code": "000001", "name": "平安", "price": 10, "change_pct": -1.1, "amount": 2e8},
+        ]
+    )
+    dto = svc._build_panorama(MarketCode.CN)
+    assert dto.gainers
+    assert dto.gainers[0].code in {"600519", "sz600519", "sh600519"} or str(dto.gainers[0].code).endswith("600519")
+    assert dto.losers

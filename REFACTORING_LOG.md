@@ -4,6 +4,26 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (个股列表仍空：快照未接到 market_service)
+
+### 根因
+- `configure_cn_quote_snapshot` 只写在从未调用的 `_init_market_service` 里；启动走 registry factory，进程内快照没有 `market_service`
+- `quotes/page` 只 `ensure_fresh()`，空 cache 时腾讯补活不会跑；自选带 codes 走 `fill_missing` 所以有数据
+- SPA `/panorama` 的涨跌榜读 provider 全市场 cache，冷启动同样为空
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_snapshot.py` | `hydrate_page_snapshot(snapshot, ctx.market_service)`：bind + 腾讯种子；再空则目录兜底 |
+| `routes_v1_market_core.py` | `quotes/page` 改为调用 `hydrate_page_snapshot` |
+| `module.py` / `service_wiring.py` | boot 时 bind 快照到 factory 创建的 `market_service` |
+| `market_service.py` | `get_panorama` 榜单为空时用快照/腾讯种子 |
+
+### 验证
+- `pytest tests/modules/market_data/test_cn_quote_snapshot_page.py tests/modules/market_data/test_market_service_cn_quotes.py tests/presentation/test_market_panorama_pagination.py` 19 passed
+
+---
+
 ## 2026-09-05 (市场全景崩溃且个股列表无数据)
 
 ### 根因

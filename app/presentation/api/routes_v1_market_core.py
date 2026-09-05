@@ -192,11 +192,14 @@ def register_market_core_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None
                 codes = {str(s) for s in watchlist_service.list_symbols(user_id) if s}
             except Exception:
                 codes = set()
-        from app.modules.market_data.services.cn_quote_snapshot import get_cn_quote_snapshot
+        from app.modules.market_data.services.cn_quote_snapshot import (
+            get_cn_quote_snapshot,
+            hydrate_page_snapshot,
+        )
 
         snapshot = get_cn_quote_snapshot()
-        snapshot.ensure_fresh()
         market_service = getattr(ctx, "market_service", None)
+        hydrate_page_snapshot(snapshot, market_service)
         if codes and market_service is not None:
             snapshot.fill_missing(
                 list(codes),

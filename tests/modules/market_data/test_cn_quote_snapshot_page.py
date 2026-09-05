@@ -116,6 +116,55 @@ def test_ensure_fresh_hydrates_tencent_seed_when_cache_empty() -> None:
     assert page["items"][0]["code"] == "000001"
 
 
+class _HangingProvider:
+    calls = 0
+
+    def get_realtime_quotes(self, symbols=None, market=None):
+        type(self).calls += 1
+        time.sleep(30)
+        return []
+
+
+def test_ensure_fresh_skips_full_market_provider() -> None:
+    _HangingProvider.calls = 0
+    snap = CnQuoteSnapshot(market_provider=_HangingProvider(), ttl_seconds=15)
+    started = time.monotonic()
+    snap.ensure_fresh()
+    assert time.monotonic() - started < 1.0
+    assert _HangingProvider.calls == 0
+    assert snap.query_page()["items"] == []
+
+
+def test_hydrate_page_snapshot_binds_unwired_snapshot() -> None:
+    from app.modules.market_data.services.cn_quote_snapshot import hydrate_page_snapshot
+
+    snap = CnQuoteSnapshot(ttl_seconds=15)
+    hydrate_page_snapshot(snap, _TencentMarketService())
+    page = snap.query_page()
+    assert page["items"][0]["code"] == "000001"
+    assert page["total"] >= 1
+
+
+class _EmptyTencent:
+    def list_quotes(self, market, symbols=None, *, live: bool = True):
+        return []
+
+    def list_quotes_tencent(self, symbols=None, *, max_symbols=None):
+        return []
+
+
+def test_hydrate_page_snapshot_seed_directory_when_live_empty() -> None:
+    from app.modules.market_data.services.cn_quote_snapshot import hydrate_page_snapshot
+
+    snap = CnQuoteSnapshot(ttl_seconds=15)
+    hydrate_page_snapshot(snap, _EmptyTencent())
+    page = snap.query_page()
+    assert page["total"] >= 10
+    codes = {row["code"] for row in page["items"]}
+    assert "600519" in codes
+    assert page["items"][0]["name"]
+
+
 def test_fill_missing_hydrates_symbol_lists_from_live() -> None:
     snap = CnQuoteSnapshot(market_service=_TencentMarketService(), ttl_seconds=15)
     snap.ensure_fresh()

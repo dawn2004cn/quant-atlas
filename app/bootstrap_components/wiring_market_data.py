@@ -27,8 +27,25 @@ register_factory("stock_service", _make_stock_service)
 
 
 def _make_market_service(reg: Any) -> Any:
+    from app.bootstrap_components.providers import create_cache_port
+    from app.infrastructure.providers.cn_industry_provider import CnIndustryProvider
+    from app.infrastructure.repositories.deps import create_stock_cache
+    from app.modules.market_data.services.cn_quote_snapshot import configure_cn_quote_snapshot
     from app.modules.market_data.services.market_service import MarketApplicationService
-    return MarketApplicationService()
+    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
+
+    provider = get_market_data_provider()
+    svc = MarketApplicationService(
+        provider,
+        CnIndustryProvider(),
+        stock_cache=create_stock_cache(),
+        cache=create_cache_port(),
+    )
+    try:
+        configure_cn_quote_snapshot(market_service=svc, market_provider=provider)
+    except Exception:
+        logger.warning("configure_cn_quote_snapshot skipped", exc_info=True)
+    return svc
 
 
 register_factory("market_service", _make_market_service)

@@ -591,6 +591,33 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             payload = _build()
         return PanoramaDTO.model_validate(payload)
 
+    def _rankings_from_quote_rows(self, rows: list[dict]) -> dict[str, list[dict]]:
+        def _f(row: dict, key: str) -> float:
+            try:
+                return float(row.get(key) or 0)
+            except (TypeError, ValueError):
+                return 0.0
+
+        def _item(row: dict) -> dict:
+            return {
+                "code": row.get("code") or row.get("symbol") or "",
+                "name": row.get("name") or "",
+                "price": _f(row, "price"),
+                "change_pct": _f(row, "change_pct"),
+                "change_amount": _f(row, "change_amount"),
+                "volume": int(_f(row, "volume")),
+                "amount": _f(row, "amount"),
+                "turnover": _f(row, "turnover"),
+            }
+
+        items = [_item(r) for r in rows if r]
+        return {
+            "gainers": sorted(items, key=lambda x: x["change_pct"], reverse=True)[:10],
+            "losers": sorted(items, key=lambda x: x["change_pct"])[:10],
+            "amounts": sorted(items, key=lambda x: x["amount"], reverse=True)[:10],
+            "turnovers": sorted(items, key=lambda x: x["turnover"], reverse=True)[:10],
+        }
+
     def _build_panorama(self, m: MarketCode) -> PanoramaDTO:
         self.logger.info("get_panorama: market=%s", m)
         overview = {"market_status": "active", "sentiment_score": 0.0}
@@ -602,6 +629,20 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
                 rankings.update(self._market_provider.get_market_rankings(m))
         except Exception as e:
             self.logger.error("Error getting market panorama: %s", e, exc_info=True)
+        if m == MarketCode.CN and not any(rankings.get(k) for k in ("gainers", "losers")):
+            try:
+                from app.modules.market_data.services.cn_quote_snapshot import (
+                    get_cn_quote_snapshot,
+                    hydrate_page_snapshot,
+                )
+
+                snap = get_cn_quote_snapshot()
+                hydrate_page_snapshot(snap, self)
+                rows = snap.unique_rows()
+                if rows:
+                    rankings.update(self._rankings_from_quote_rows(rows))
+            except Exception as exc:
+                self.logger.warning("panorama fallback from snapshot failed: %s", exc)
         return PanoramaDTO(
             market_status=overview.get("market_status", "active"),
             sentiment_score=float(overview.get("sentiment_score", 0.0)),

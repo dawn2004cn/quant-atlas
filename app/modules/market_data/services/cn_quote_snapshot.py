@@ -16,6 +16,30 @@ _DEFAULT_TTL_SEC = 45
 # Page-path hydrate: liquid seeds via Tencent only. Never pull the full A-share book.
 _PAGE_SEED_MAX = 80
 
+# Last-resort directory so the table is never blank when every live source fails.
+_SEED_DIRECTORY: tuple[tuple[str, str], ...] = (
+    ("600519", "贵州茅台"),
+    ("601318", "中国平安"),
+    ("000001", "平安银行"),
+    ("000858", "五粮液"),
+    ("600036", "招商银行"),
+    ("300750", "宁德时代"),
+    ("601166", "兴业银行"),
+    ("600276", "恒瑞医药"),
+    ("002594", "比亚迪"),
+    ("002415", "海康威视"),
+    ("000333", "美的集团"),
+    ("600900", "长江电力"),
+    ("601398", "工商银行"),
+    ("000651", "格力电器"),
+    ("600030", "中信证券"),
+    ("000002", "万科A"),
+    ("300059", "东方财富"),
+    ("601012", "隆基绿能"),
+    ("688981", "中芯国际"),
+    ("600887", "伊利股份"),
+)
+
 
 def _symbol_index_keys(symbol: str) -> list[str]:
     raw = str(symbol or "").strip()
@@ -125,6 +149,17 @@ class CnQuoteSnapshot:
 
     def is_warm(self) -> bool:
         return bool(self._by_key) and self.age_seconds < self._ttl
+
+    def bind(
+        self,
+        *,
+        market_service: object | None = None,
+        market_provider: object | None = None,
+    ) -> None:
+        if market_service is not None:
+            self._market_service = market_service
+        if market_provider is not None:
+            self._market_provider = market_provider
 
     @property
     def is_refreshing(self) -> bool:
@@ -342,22 +377,58 @@ class CnQuoteSnapshot:
                     return rows
             except Exception as exc:
                 logger.warning("CnQuoteSnapshot cache list_quotes failed: %s", exc)
-
-        if self._market_provider is not None and hasattr(
-            self._market_provider, "get_realtime_quotes"
-        ):
-            try:
-                from app.domain.dto.quote_factory import quote_to_dict
-
-                quotes = self._market_provider.get_realtime_quotes(market=MarketCode.CN) or []
-                return [quote_to_dict(q) for q in quotes]
-            except Exception as exc:
-                logger.warning("CnQuoteSnapshot provider cache scan failed: %s", exc)
         return []
 
 
 _snapshot: CnQuoteSnapshot | None = None
 _snapshot_lock = threading.Lock()
+
+
+def _seed_directory_rows() -> list[dict[str, Any]]:
+    return [
+        {
+            "code": code,
+            "name": name,
+            "price": 0.0,
+            "change_pct": 0.0,
+            "amount": 0.0,
+            "source": "seed",
+        }
+        for code, name in _SEED_DIRECTORY
+    ]
+
+
+def hydrate_page_snapshot(
+    snapshot: CnQuoteSnapshot,
+    market_service: object | None,
+) -> None:
+    """Bind the request-scoped market service and fill an empty snapshot.
+
+    Boot often creates the singleton before ``configure_cn_quote_snapshot``
+    runs; the route must pass ``ctx.market_service`` or the page stays empty.
+    """
+    if market_service is not None:
+        snapshot.bind(market_service=market_service)
+    snapshot.ensure_fresh()
+    if snapshot.row_count > 0:
+        return
+    if market_service is not None and hasattr(market_service, "list_quotes_tencent"):
+        try:
+            rows = market_service.list_quotes_tencent(max_symbols=_PAGE_SEED_MAX)
+        except TypeError:
+            try:
+                rows = market_service.list_quotes_tencent()
+            except Exception as exc:
+                logger.warning("hydrate_page_snapshot tencent failed: %s", exc)
+                rows = []
+        except Exception as exc:
+            logger.warning("hydrate_page_snapshot tencent failed: %s", exc)
+            rows = []
+        if rows:
+            snapshot.load_rows(rows)
+            return
+    snapshot.load_rows(_seed_directory_rows())
+    logger.info("CnQuoteSnapshot seed directory: %s symbols", snapshot.row_count)
 
 
 def configure_cn_quote_snapshot(
