@@ -17,7 +17,7 @@ This file is a consolidated chronological log of all major architecture refactor
 | `cn_quote_book.py` | `load/save_cn_quote_book`，空书时后台暖机 |
 | `market_service.refresh_cn_quote_book` | 写入 Redis 并回填进程快照 |
 | `cn_quote_book_tasks.py` + `celery_app.py` | beat `cn-quote-book-refresh` |
-| `hydrate_page_snapshot` | 优先 Redis 书，再腾讯种子 / 目录兜底 |
+| `hydrate_page_snapshot` | 先读 Redis 书（覆盖进程内旧快照 / stock_cache），空书才腾讯种子 / 目录兜底 |
 
 ### 验证
 - `pytest tests/modules/market_data/test_cn_quote_book.py` 等 24 passed

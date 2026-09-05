@@ -402,16 +402,13 @@ def hydrate_page_snapshot(
     snapshot: CnQuoteSnapshot,
     market_service: object | None,
 ) -> None:
-    """Bind the request-scoped market service and fill an empty snapshot.
+    """Bind the request-scoped market service and fill the page snapshot.
 
-    Boot often creates the singleton before ``configure_cn_quote_snapshot``
-    runs; the route must pass ``ctx.market_service`` or the page stays empty.
+    Pages read the delayed Redis book first (5–15 min). Stock-cache / Tencent
+    seed only run when the book is empty. Never pull full-market AkShare.
     """
     if market_service is not None:
         snapshot.bind(market_service=market_service)
-    snapshot.ensure_fresh()
-    if snapshot.row_count > 0:
-        return
     try:
         from app.modules.market_data.services.cn_quote_book import (
             load_cn_quote_book,
@@ -425,21 +422,9 @@ def hydrate_page_snapshot(
         schedule_cn_quote_book_refresh(market_service)
     except Exception as exc:
         logger.warning("hydrate_page_snapshot redis book failed: %s", exc)
-    if market_service is not None and hasattr(market_service, "list_quotes_tencent"):
-        try:
-            rows = market_service.list_quotes_tencent(max_symbols=_PAGE_SEED_MAX)
-        except TypeError:
-            try:
-                rows = market_service.list_quotes_tencent()
-            except Exception as exc:
-                logger.warning("hydrate_page_snapshot tencent failed: %s", exc)
-                rows = []
-        except Exception as exc:
-            logger.warning("hydrate_page_snapshot tencent failed: %s", exc)
-            rows = []
-        if rows:
-            snapshot.load_rows(rows)
-            return
+    snapshot.ensure_fresh()
+    if snapshot.row_count > 0:
+        return
     snapshot.load_rows(_seed_directory_rows())
     logger.info("CnQuoteSnapshot seed directory: %s symbols", snapshot.row_count)
 
