@@ -94,3 +94,52 @@ def test_list_cn_quotes_live_false_returns_partial_cache() -> None:
 
     live_mock.assert_not_called()
     assert len(quotes) == 249
+
+
+def test_list_quotes_tencent_skips_akshare() -> None:
+    cache = MagicMock()
+    cache.get_all_stocks.return_value = []
+    cache.list_all_codes.return_value = []
+
+    with patch(
+        "app.modules.market_data.services.market_service.get_quote_cache_port",
+        return_value=MagicMock(),
+    ):
+        svc = MarketApplicationService(
+            market_provider=SimpleNamespace(),
+            industry_provider=SimpleNamespace(),
+            stock_cache=cache,
+        )
+
+    with patch.object(svc, "_pull_akshare_cn_spot") as ak_mock:
+        with patch.object(
+            svc,
+            "_fetch_fresh_quotes_dict",
+            return_value={"000001": {"code": "000001", "name": "平安", "price": 10, "change_pct": 1.2}},
+        ):
+            quotes = svc.list_quotes_tencent()
+
+    ak_mock.assert_not_called()
+    assert quotes
+    code6 = "".join(ch for ch in str(quotes[0]["code"]) if ch.isdigit())[-6:]
+    assert code6 == "000001"
+
+
+def test_cn_universe_without_akshare_uses_seed() -> None:
+    cache = MagicMock()
+    cache.list_all_codes.return_value = ["600519"]
+    with patch(
+        "app.modules.market_data.services.market_service.get_quote_cache_port",
+        return_value=MagicMock(),
+    ):
+        svc = MarketApplicationService(
+            market_provider=SimpleNamespace(),
+            industry_provider=SimpleNamespace(),
+            stock_cache=cache,
+        )
+    codes = svc._fetch_cn_universe_codes(cache, allow_akshare=False)
+    assert "600519" in codes
+    assert "000001" in codes
+    capped = svc._fetch_cn_universe_codes(cache, allow_akshare=False, max_symbols=3)
+    assert capped[0] == "600519"
+    assert len(capped) == 3

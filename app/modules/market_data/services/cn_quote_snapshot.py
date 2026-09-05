@@ -13,6 +13,8 @@ from app.domain.enums import MarketCode
 logger = get_logger(__name__)
 
 _DEFAULT_TTL_SEC = 45
+# Page-path hydrate: liquid seeds via Tencent only. Never pull the full A-share book.
+_PAGE_SEED_MAX = 80
 
 
 def _symbol_index_keys(symbol: str) -> list[str]:
@@ -94,7 +96,7 @@ def _code6(code: str) -> str:
 
 
 class CnQuoteSnapshot:
-    """进程内全市场 quote 索引；与 market-panorama 使用同一 stock_cache / list_quotes 数据源。"""
+    """进程内 quote 索引。页面路径只读 cache，空则腾讯种子补活，绝不走 AkShare。"""
 
     def __init__(
         self,
@@ -109,8 +111,6 @@ class CnQuoteSnapshot:
         self._lock = threading.RLock()
         self._by_key: dict[str, dict[str, Any]] = {}
         self._updated_at: float = 0.0
-        self._last_live_attempt: float = 0.0
-        self._refreshing = False
         self._row_count = 0
 
     @property
@@ -128,7 +128,7 @@ class CnQuoteSnapshot:
 
     @property
     def is_refreshing(self) -> bool:
-        return self._refreshing
+        return False
 
     def load_rows(self, rows: list[dict[str, Any]]) -> None:
         """由 /markets/CN/quotes 等接口写入，避免重复读库。"""
@@ -137,10 +137,10 @@ class CnQuoteSnapshot:
             self._updated_at = time.time()
 
     def ensure_fresh(self, *, force: bool = False) -> None:
-        """Serve cache immediately; refresh the full market in a background thread.
+        """Load local cache only. If empty, hydrate a bounded Tencent seed list.
 
-        Request threads must not wait on AkShare / Tencent. Watchlist and other
-        symbol lists hydrate via ``fill_missing`` (bounded live fetch).
+        Never calls ``list_quotes(CN, None)`` / AkShare. Full-market books stay
+        off the page path so a hung or OOM-prone AkShare pull cannot crash Flask.
         """
         if not force and self.is_warm():
             return
@@ -152,36 +152,28 @@ class CnQuoteSnapshot:
                 self._rebuild(rows)
                 self._updated_at = time.time()
                 logger.info("CnQuoteSnapshot cache load: %s symbols", self._row_count)
-            self._schedule_live_refresh_locked(force=force)
+                return
+        self._hydrate_tencent_seed()
 
-    def _schedule_live_refresh_locked(self, *, force: bool) -> None:
-        if self._refreshing:
+    def _hydrate_tencent_seed(self) -> None:
+        """Fill an empty snapshot from Tencent + seed codes. No AkShare."""
+        svc = self._market_service
+        if svc is None or not hasattr(svc, "list_quotes_tencent"):
             return
-        now = time.time()
-        if not force and self._last_live_attempt and (now - self._last_live_attempt) < self._ttl:
-            return
-        self._refreshing = True
-        self._last_live_attempt = now
-        threading.Thread(
-            target=self._live_refresh_worker,
-            name="cn-quote-live-refresh",
-            daemon=True,
-        ).start()
-
-    def _live_refresh_worker(self) -> None:
         try:
-            rows = self._load_live()
-            with self._lock:
-                if rows:
-                    merged = self.unique_rows() + list(rows)
-                    self._rebuild(merged)
-                    self._updated_at = time.time()
-                    logger.info("CnQuoteSnapshot live refresh: %s symbols", self._row_count)
+            rows = svc.list_quotes_tencent(max_symbols=_PAGE_SEED_MAX)
+        except TypeError:
+            try:
+                rows = svc.list_quotes_tencent()
+            except Exception as exc:
+                logger.warning("CnQuoteSnapshot tencent seed failed: %s", exc)
+                return
         except Exception as exc:
-            logger.warning("CnQuoteSnapshot live refresh failed: %s", exc, exc_info=True)
-        finally:
-            with self._lock:
-                self._refreshing = False
+            logger.warning("CnQuoteSnapshot tencent seed failed: %s", exc)
+            return
+        if rows:
+            self.load_rows(rows)
+            logger.info("CnQuoteSnapshot tencent seed: %s symbols", self._row_count)
 
     def fill_missing(self, symbols: list[str], *, fetcher) -> None:
         """Live-fetch snapshot misses so symbol lists (sectors / radar) are not empty."""
@@ -327,7 +319,6 @@ class CnQuoteSnapshot:
         start = (page - 1) * page_size
         items = rows[start : start + page_size]
         with self._lock:
-            warming = self._refreshing
             stale = bool(self._by_key) and self.age_seconds >= self._ttl
         return {
             "items": items,
@@ -335,19 +326,9 @@ class CnQuoteSnapshot:
             "page": page,
             "page_size": page_size,
             "stats": _market_breadth_stats(self.unique_rows()),
-            "warming": warming,
+            "warming": False,
             "stale": stale,
         }
-
-    def _load_live(self) -> list[dict[str, Any]]:
-        if self._market_service is not None:
-            try:
-                rows = self._market_service.list_quotes(MarketCode.CN, None)
-                if rows:
-                    return rows
-            except Exception as exc:
-                logger.warning("CnQuoteSnapshot live list_quotes failed: %s", exc)
-        return self._load_cached_only()
 
     def _load_cached_only(self) -> list[dict[str, Any]]:
         if self._market_service is not None:

@@ -26,6 +26,17 @@ logger = get_logger(__name__)
 # A-share full-market snapshot should contain thousands of symbols; partial cache must refresh.
 _CN_FULL_MARKET_MIN_ROWS = 1500
 
+# Liquid A-shares for panorama / homepage when AkShare is unavailable (Tencent path).
+_CN_PAGE_UNIVERSE = (
+    "600519", "601318", "000001", "000858", "600036", "300750", "601166", "600276",
+    "002594", "002415", "601888", "000333", "600900", "601398", "000651", "600030",
+    "000002", "601088", "000725", "601628", "601169", "002352", "600016", "601988",
+    "600000", "601328", "601288", "601857", "601601", "600887", "000568", "002304",
+    "300059", "002475", "002230", "000063", "002714", "300124", "601012", "600438",
+    "300274", "002371", "688981", "688111", "600809", "000596", "002142", "601668",
+    "601800", "600048", "601186", "000166", "600104", "601633", "002027", "300498",
+)
+
 class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
     """Market data service with async support."""
 
@@ -241,6 +252,25 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.error(f"list_quotes failed: {e}", exc_info=True)
             return []
 
+    def list_quotes_tencent(
+        self,
+        symbols: list[str] | None = None,
+        *,
+        max_symbols: int | None = None,
+    ) -> list[dict]:
+        """Fetch CN quotes via Tencent only. Never imports or calls AkShare."""
+        if symbols:
+            limited = symbols[: max(0, int(max_symbols))] if max_symbols is not None else symbols
+            return self.list_quotes(MarketCode.CN, limited)
+        cache = self._stock_cache
+        try:
+            return self._pull_cn_via_tencent_batches(
+                cache, allow_akshare=False, max_symbols=max_symbols
+            )
+        except Exception as exc:
+            self.logger.warning("list_quotes_tencent failed: %s", exc)
+            return []
+
     def _list_cn_quotes(
         self,
         market: MarketCode,
@@ -375,31 +405,64 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.warning("akshare fetch failed: %s", exc)
             return []
 
-    def _fetch_cn_universe_codes(self, cache) -> list[str]:
+    def _fetch_cn_universe_codes(
+        self,
+        cache,
+        *,
+        allow_akshare: bool = True,
+        max_symbols: int | None = None,
+    ) -> list[str]:
         """Resolve the CN symbol universe for batched Tencent refresh."""
-        try:
-            import akshare as ak
+        seen: set[str] = set()
+        codes: list[str] = []
 
-            df = ak.stock_info_a_code_name()
-            if df is not None and not df.empty:
-                code_col = "code" if "code" in df.columns else df.columns[0]
-                return [
-                    "".join(ch for ch in str(code) if ch.isdigit())[-6:].zfill(6)
-                    for code in df[code_col].tolist()
-                    if str(code).strip()
-                ]
-        except Exception as exc:
-            self.logger.warning("CN universe via stock_info_a_code_name failed: %s", exc)
+        def _add(raw: object) -> None:
+            code6 = "".join(ch for ch in str(raw or "") if ch.isdigit())[-6:].zfill(6)
+            if code6 and code6 != "000000" and code6 not in seen:
+                seen.add(code6)
+                codes.append(code6)
 
-        try:
-            return [str(code).strip() for code in (cache.list_all_codes() or []) if str(code).strip()]
-        except Exception as exc:
-            self.logger.warning("CN universe via cache.list_all_codes failed: %s", exc)
-            return []
+        if not allow_akshare:
+            for seed in _CN_PAGE_UNIVERSE:
+                _add(seed)
 
-    def _pull_cn_via_tencent_batches(self, cache) -> list[dict]:
+        if cache is not None:
+            try:
+                for code in cache.list_all_codes() or []:
+                    _add(code)
+            except Exception as exc:
+                self.logger.warning("CN universe via cache.list_all_codes failed: %s", exc)
+
+        if allow_akshare:
+            for seed in _CN_PAGE_UNIVERSE:
+                _add(seed)
+            if len(codes) < _CN_FULL_MARKET_MIN_ROWS:
+                try:
+                    import akshare as ak
+
+                    df = ak.stock_info_a_code_name()
+                    if df is not None and not df.empty:
+                        code_col = "code" if "code" in df.columns else df.columns[0]
+                        for code in df[code_col].tolist():
+                            _add(code)
+                except Exception as exc:
+                    self.logger.warning("CN universe via stock_info_a_code_name failed: %s", exc)
+
+        if max_symbols is not None:
+            return codes[: max(0, int(max_symbols))]
+        return codes
+
+    def _pull_cn_via_tencent_batches(
+        self,
+        cache,
+        *,
+        allow_akshare: bool = True,
+        max_symbols: int | None = None,
+    ) -> list[dict]:
         """Batch-fetch CN quotes via Tencent gateway when AkShare snapshot is unavailable."""
-        codes = self._fetch_cn_universe_codes(cache)
+        codes = self._fetch_cn_universe_codes(
+            cache, allow_akshare=allow_akshare, max_symbols=max_symbols
+        )
         if not codes:
             return []
 

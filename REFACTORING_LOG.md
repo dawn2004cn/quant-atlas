@@ -4,6 +4,24 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (市场全景崩溃且个股列表无数据)
+
+### 根因
+- 上一轮后台线程仍调用 `list_quotes(CN, None)` → AkShare `stock_zh_a_spot_em()`，冷启动会把 Flask 打崩或 OOM
+- 页面只读空 cache，崩完之后快照仍空，首页「全部」/全景除自选外看不到行
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_snapshot.py` | 去掉后台 live 刷新；`ensure_fresh` 只读 cache，空则 `list_quotes_tencent(max_symbols=80)` |
+| `market_service.py` | `list_quotes_tencent` 禁止 AkShare；无 cache 时用流动性种子代码走腾讯 |
+| `routes_v1_market_core.py` | 带 symbol 的列表仍 `fill_missing` → 腾讯批量（与自选同路） |
+
+### 验证
+- `pytest tests/modules/market_data/test_cn_quote_snapshot_page.py tests/modules/market_data/test_market_service_cn_quotes.py tests/presentation/test_market_panorama_pagination.py`
+
+---
+
 ## 2026-09-05 (市场全景卡在「正在同步全市场快照」)
 
 ### 根因
