@@ -136,8 +136,10 @@ def test_ensure_fresh_skips_full_market_provider() -> None:
 
 
 def test_hydrate_page_snapshot_binds_unwired_snapshot() -> None:
+    from app.modules.market_data.services.cn_quote_book import clear_cn_quote_book
     from app.modules.market_data.services.cn_quote_snapshot import hydrate_page_snapshot
 
+    clear_cn_quote_book()
     snap = CnQuoteSnapshot(ttl_seconds=15)
     hydrate_page_snapshot(snap, _TencentMarketService())
     page = snap.query_page()
@@ -154,8 +156,10 @@ class _EmptyTencent:
 
 
 def test_hydrate_page_snapshot_seed_directory_when_live_empty() -> None:
+    from app.modules.market_data.services.cn_quote_book import clear_cn_quote_book
     from app.modules.market_data.services.cn_quote_snapshot import hydrate_page_snapshot
 
+    clear_cn_quote_book()
     snap = CnQuoteSnapshot(ttl_seconds=15)
     hydrate_page_snapshot(snap, _EmptyTencent())
     page = snap.query_page()

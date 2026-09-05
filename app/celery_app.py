@@ -202,6 +202,16 @@ def _build_beat_schedule() -> dict[str, Any]:
             respect_dedup=True,
         )
 
+    # -- CN quote book: Redis snapshot every 5–15 min (page path is read-only) --
+    book_minutes = max(5, min(get_runtime_int("CN_QUOTE_BOOK_MINUTES", 10), 15))
+    BeatRegistry.register(
+        "cn-quote-book-refresh",
+        "app.tasks.cn_quote_book_tasks.refresh_cn_quote_book_tick",
+        crontab(minute=f"*/{book_minutes}"),
+        description="CN quote book Redis refresh",
+        queue="default",
+    )
+
     # -- QUOTES_DUMP_MONITOR_CELERY_BEAT --
     if get_runtime("QUOTES_DUMP_MONITOR_CELERY_BEAT", "0") == "1":
         dump_minutes = max(5, min(get_runtime_int("QUOTES_DUMP_MONITOR_BEAT_MINUTES", 30), 59))

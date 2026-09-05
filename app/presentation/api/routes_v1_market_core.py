@@ -213,6 +213,15 @@ def register_market_core_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None
             board_filter=board_filter,
             codes=codes,
         )
+        try:
+            from app.modules.market_data.services.cn_quote_book import book_updated_at
+
+            cached_at = book_updated_at()
+            if cached_at:
+                payload["cached_at"] = cached_at
+                payload["stale"] = True
+        except Exception:
+            pass
         if scope in {"watchlist", "symbols"}:
             payload["scope"] = scope
         return ok_response(

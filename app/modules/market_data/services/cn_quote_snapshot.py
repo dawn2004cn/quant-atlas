@@ -412,6 +412,19 @@ def hydrate_page_snapshot(
     snapshot.ensure_fresh()
     if snapshot.row_count > 0:
         return
+    try:
+        from app.modules.market_data.services.cn_quote_book import (
+            load_cn_quote_book,
+            schedule_cn_quote_book_refresh,
+        )
+
+        book = load_cn_quote_book()
+        if book:
+            snapshot.load_rows(book)
+            return
+        schedule_cn_quote_book_refresh(market_service)
+    except Exception as exc:
+        logger.warning("hydrate_page_snapshot redis book failed: %s", exc)
     if market_service is not None and hasattr(market_service, "list_quotes_tencent"):
         try:
             rows = market_service.list_quotes_tencent(max_symbols=_PAGE_SEED_MAX)

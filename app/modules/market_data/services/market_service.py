@@ -271,6 +271,36 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             self.logger.warning("list_quotes_tencent failed: %s", exc)
             return []
 
+    def refresh_cn_quote_book(self, *, allow_akshare: bool = False) -> list[dict]:
+        """Worker/background refresh: Tencent batches, optional AkShare, then Redis book."""
+        from app.modules.market_data.services.cn_quote_book import save_cn_quote_book
+
+        cache = self._stock_cache
+        rows: list[dict] = []
+        source = "tencent"
+        try:
+            rows = self._pull_cn_via_tencent_batches(cache, allow_akshare=allow_akshare)
+        except Exception as exc:
+            self.logger.warning("refresh_cn_quote_book tencent failed: %s", exc)
+        if allow_akshare and len(rows) < _CN_FULL_MARKET_MIN_ROWS:
+            try:
+                ak_rows = self._pull_akshare_cn_spot(cache)
+            except Exception as exc:
+                self.logger.warning("refresh_cn_quote_book akshare failed: %s", exc)
+                ak_rows = []
+            if len(ak_rows) > len(rows):
+                rows = ak_rows
+                source = "akshare"
+        if rows:
+            save_cn_quote_book(rows, source=source)
+            try:
+                from app.modules.market_data.services.cn_quote_snapshot import get_cn_quote_snapshot
+
+                get_cn_quote_snapshot().load_rows(rows)
+            except Exception as exc:
+                self.logger.debug("refresh_cn_quote_book snapshot load: %s", exc)
+        return rows
+
     def _list_cn_quotes(
         self,
         market: MarketCode,

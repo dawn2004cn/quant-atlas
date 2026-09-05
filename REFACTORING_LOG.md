@@ -4,6 +4,26 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (全市场行情改回 Redis 延迟快照)
+
+### 约定
+- 页面只读 `quant:cn:quote:book`（内存 + Redis），不追求通达信 PC 级实时
+- 交易时段 Celery 每 5–15 分钟刷新（默认 10 分钟，`CN_QUOTE_BOOK_MINUTES`）
+- 刷新走腾讯分批，必要时 worker 才打 AkShare；请求线程不拉全市场
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_book.py` | `load/save_cn_quote_book`，空书时后台暖机 |
+| `market_service.refresh_cn_quote_book` | 写入 Redis 并回填进程快照 |
+| `cn_quote_book_tasks.py` + `celery_app.py` | beat `cn-quote-book-refresh` |
+| `hydrate_page_snapshot` | 优先 Redis 书，再腾讯种子 / 目录兜底 |
+
+### 验证
+- `pytest tests/modules/market_data/test_cn_quote_book.py` 等 24 passed
+
+---
+
 ## 2026-09-05 (首页 daily-workbench 仍打 AkShare 卡住 E2E)
 
 ### 根因
