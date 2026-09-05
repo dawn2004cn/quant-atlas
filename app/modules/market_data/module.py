@@ -67,6 +67,9 @@ def _init_market_service(services: Any) -> None:
                 market_service=existing,
                 market_provider=market_provider,
             )
+            from app.modules.market_data.services.cn_quote_book import ensure_cn_quote_book
+
+            ensure_cn_quote_book(existing)
             return
 
         from app.infrastructure.providers.cn_industry_provider import CnIndustryProvider
@@ -81,6 +84,9 @@ def _init_market_service(services: Any) -> None:
             market_service=services.market_service,
             market_provider=market_provider,
         )
+        from app.modules.market_data.services.cn_quote_book import ensure_cn_quote_book
+
+        ensure_cn_quote_book(services.market_service)
     except Exception as e:
         logger.warning("market_data.module._init_market_service: %s", e)
 

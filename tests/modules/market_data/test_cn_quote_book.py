@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -7,7 +8,9 @@ import pytest
 
 from app.modules.market_data.services.cn_quote_book import (
     clear_cn_quote_book,
+    ensure_cn_quote_book,
     load_cn_quote_book,
+    refresh_book_reason,
     save_cn_quote_book,
     should_refresh_book,
 )
@@ -109,3 +112,48 @@ def test_should_refresh_in_session_when_book_exists() -> None:
         return_value=True,
     ):
         assert should_refresh_book(force=False) is True
+        assert refresh_book_reason() == "session"
+
+
+def test_should_refresh_when_empty_outside_session() -> None:
+    with patch(
+        "app.modules.market_data.services.cn_quote_book._is_cn_session",
+        return_value=False,
+    ):
+        assert should_refresh_book(force=False) is True
+        assert refresh_book_reason() == "empty"
+
+
+def test_should_skip_when_book_exists_outside_session() -> None:
+    save_cn_quote_book([{"code": "1", "name": "x"}], source="t")
+    with patch(
+        "app.modules.market_data.services.cn_quote_book._is_cn_session",
+        return_value=False,
+    ):
+        assert should_refresh_book(force=False) is False
+        assert refresh_book_reason() is None
+
+
+def test_ensure_cn_quote_book_pulls_once_when_empty_off_hours() -> None:
+    pulled: list[bool] = []
+
+    class _Svc:
+        def refresh_cn_quote_book(self, *, allow_akshare: bool = False):
+            pulled.append(allow_akshare)
+            save_cn_quote_book(
+                [{"code": "600519", "name": "茅台", "price": 1600, "change_pct": 0.1}],
+                source="offhours",
+            )
+            return load_cn_quote_book()
+
+    with patch(
+        "app.modules.market_data.services.cn_quote_book._is_cn_session",
+        return_value=False,
+    ):
+        assert ensure_cn_quote_book(_Svc()) == "scheduled"
+        deadline = time.monotonic() + 2.0
+        while not pulled and time.monotonic() < deadline:
+            time.sleep(0.05)
+        assert pulled == [False]
+        assert load_cn_quote_book()
+        assert ensure_cn_quote_book(_Svc()) == "present"

@@ -10,10 +10,11 @@ logger = get_logger(__name__)
 
 
 def run_cn_quote_book_refresh(*, force: bool = False) -> dict[str, Any]:
-    from app.modules.market_data.services.cn_quote_book import should_refresh_book
+    from app.modules.market_data.services.cn_quote_book import refresh_book_reason
     from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
-    if not should_refresh_book(force=force):
+    reason = refresh_book_reason(force=force)
+    if reason is None:
         return {"ok": True, "skipped": True, "reason": "outside_session_with_book"}
 
     from app.infrastructure.providers.cn_industry_provider import CnIndustryProvider
@@ -34,7 +35,7 @@ def run_cn_quote_book_refresh(*, force: bool = False) -> dict[str, Any]:
         cache=cache_port,
     )
     rows = svc.refresh_cn_quote_book(allow_akshare=True)
-    return {"ok": True, "count": len(rows), "skipped": False}
+    return {"ok": True, "count": len(rows), "skipped": False, "reason": reason}
 
 
 from app.celery_app import celery as _celery

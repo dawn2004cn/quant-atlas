@@ -4,6 +4,14 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (非交易时段 Redis 空书补拉一次)
+
+### 约定
+- 交易时段：每 5–15 分钟刷新
+- 夜盘 / 周末 / 其他时段：书在则不刷；**书空则拉一次**（启动 `wire`、页面 hydrate、Celery tick）
+
+---
+
 ## 2026-09-05 (个股详情 /quotes 不再同步拉 25 年 K 线)
 
 ### 根因

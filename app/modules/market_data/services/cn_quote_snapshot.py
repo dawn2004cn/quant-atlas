@@ -411,15 +411,15 @@ def hydrate_page_snapshot(
         snapshot.bind(market_service=market_service)
     try:
         from app.modules.market_data.services.cn_quote_book import (
+            ensure_cn_quote_book,
             load_cn_quote_book,
-            schedule_cn_quote_book_refresh,
         )
 
         book = load_cn_quote_book()
         if book:
             snapshot.load_rows(book)
             return
-        schedule_cn_quote_book_refresh(market_service)
+        ensure_cn_quote_book(market_service)
     except Exception as exc:
         logger.warning("hydrate_page_snapshot redis book failed: %s", exc)
     snapshot.ensure_fresh()

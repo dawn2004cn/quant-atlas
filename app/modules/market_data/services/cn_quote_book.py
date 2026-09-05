@@ -1,6 +1,7 @@
 """Delayed CN quote book: process memory + Redis. Pages read only; workers write.
 
-Trading-session refresh is 5–15 minutes. This is not TDX-tick realtime.
+Trading-session refresh is 5–15 minutes. Off-hours / weekends: if Redis is
+empty, pull once so the page has the latest close. This is not TDX-tick realtime.
 """
 
 from __future__ import annotations
@@ -92,16 +93,45 @@ def _is_cn_session(now: datetime | None = None) -> bool:
     return (9 * 60 + 15) <= minutes <= (15 * 60 + 15)
 
 
+def refresh_book_reason(*, force: bool = False, now: datetime | None = None) -> str | None:
+    """Why the delayed book should be pulled.
+
+    - ``empty``: Redis/memory book missing — pull once even off-hours / weekends
+    - ``session``: trading session, periodic 5–15 min refresh
+    - ``force``: caller override
+    - ``None``: book exists and market is closed — keep the last pull
+    """
+    if force:
+        return "force"
+    if not load_cn_quote_book():
+        return "empty"
+    if _is_cn_session(now):
+        return "session"
+    return None
+
+
+def should_refresh_book(*, force: bool = False, now: datetime | None = None) -> bool:
+    return refresh_book_reason(force=force, now=now) is not None
+
+
 def schedule_cn_quote_book_refresh(market_service: object | None) -> None:
     """One background refresh if the book is empty. Never blocks the request."""
+    ensure_cn_quote_book(market_service)
+
+
+def ensure_cn_quote_book(market_service: object | None) -> str:
+    """If Redis is empty (nights/weekends included), pull once in the background.
+
+    Does not refresh an existing book outside the trading session.
+    """
     global _refreshing
-    if market_service is None or not hasattr(market_service, "refresh_cn_quote_book"):
-        return
     if load_cn_quote_book():
-        return
+        return "present"
+    if market_service is None or not hasattr(market_service, "refresh_cn_quote_book"):
+        return "no_service"
     with _refresh_lock:
         if _refreshing:
-            return
+            return "in_flight"
         _refreshing = True
 
     def _run() -> None:
@@ -115,11 +145,4 @@ def schedule_cn_quote_book_refresh(market_service: object | None) -> None:
                 _refreshing = False
 
     threading.Thread(target=_run, name="cn-quote-book-warm", daemon=True).start()
-
-
-def should_refresh_book(*, force: bool = False) -> bool:
-    if force:
-        return True
-    if not load_cn_quote_book():
-        return True
-    return _is_cn_session()
+    return "scheduled"
