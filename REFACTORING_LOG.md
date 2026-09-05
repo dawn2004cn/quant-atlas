@@ -4,6 +4,27 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (通达信 PC 对等：实时 HQ + 本地 vipdoc 历史)
+
+### 问题
+- A 股实时行情主路径只走腾讯，未用通达信 HQ `get_security_quotes`
+- `TdxFileAdapter` 用错误关键字 `tdx_root=` 构造适配器，且 `resolve_tdx_root(None)` 不读 `TDX_ROOT_PATH`，本地 vipdoc 日线从未进入读链
+- `TdxTcpAdapter` 引用不存在的 `TdxProvider`，HQ 下载日线是死代码
+- 实时批量接口按标的逐个请求，不像 PC 端一次最多 80 只
+
+### 交付
+| 区域 | 要点 |
+|------|------|
+| 路径 | `resolve_tdx_root_configured()`：显式路径否则读设置 |
+| 历史 | 本地 `vipdoc/*/lday/*.day` 优先；缺失则 HQ `get_security_bars` |
+| 实时 | 批量 HQ；`MultiSourceMarketProvider` A 股先 TDX 再腾讯 |
+| API | `GET /tdx/status` `/tdx/quotes` `/tdx/history` |
+
+### 验证
+- `pytest tests/infrastructure/providers/test_tdx_pc_parity.py`
+
+---
+
 ## 2026-08-31 (SPA 数据解包 + 开发环境 WS 硬化 + Signal Observation 修复)
 
 ### 问题

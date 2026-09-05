@@ -56,7 +56,8 @@ class AsyncMarketProvider:
 
         if self._tdx:
             try:
-                return self._tdx.get_history(code, market, start, end)
+                getter = getattr(self._tdx, "get_history", None) or getattr(self._tdx, "get_stock_history")
+                return getter(code, market, start, end)
             except Exception as e:
                 logger.debug("TDX history failed: %s", e)
 

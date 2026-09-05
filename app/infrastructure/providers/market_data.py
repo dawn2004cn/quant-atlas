@@ -222,8 +222,26 @@ class MultiSourceMarketProvider(MarketDataProvider):
             misses.append(s)
         return hits, misses
 
+    def _fetch_cn_quotes_from_tdx(self, symbols: list[str]) -> list[StockQuote]:
+        """通达信 HQ 实时行情（与 PC 端同一套服务器协议）。"""
+        try:
+            from app.infrastructure.providers.cn_tdx_provider import TdxRealTimeProvider, tdx_rows_to_stock_quotes
+
+            rt = TdxRealTimeProvider()
+            if not rt.is_connected():
+                return []
+            rows = rt.get_quotes(symbols, MarketCode.CN)
+            return tdx_rows_to_stock_quotes(rows, MarketCode.CN)
+        except Exception as exc:
+            logger.debug("TDX HQ quotes skipped: %s", exc)
+            return []
+
     def _fetch_and_sync(self, market: MarketCode, symbols: list[str]) -> list[StockQuote]:
         if market == MarketCode.CN:
+            tdx_quotes = self._fetch_cn_quotes_from_tdx(symbols)
+            if tdx_quotes:
+                self._update_multi_level_cache(market, tdx_quotes)
+                return tdx_quotes
             norm_codes = [SymbolNormalizer().normalize(s) for s in symbols]
             try:
                 payload = self._quote_gateway.fetch_quotes_text(norm_codes, timeout=2)
