@@ -65,22 +65,29 @@ def test_run_backtest_normalizes_metrics_aliases():
 
 def test_run_backtest_async_falls_back_to_sync(monkeypatch):
     facade = BacktestFacade(strategy_service=MagicMock())
+    captured: dict = {}
+
+    def _run(**kwargs):
+        captured.update(kwargs)
+        return {"status": "ok", "total_return": 0.1}
+
     monkeypatch.setattr("app.tasks.backtest_tasks.run_strategy_backtest_task", None)
-    monkeypatch.setattr(
-        "app.tasks.backtest_tasks.run_strategy_backtest",
-        lambda **kwargs: {"status": "ok", "total_return": 0.1},
-    )
+    monkeypatch.setattr("app.tasks.backtest_tasks.run_strategy_backtest", _run)
 
     result = facade.run_backtest_async(
         symbol="600519",
         strategy_name="MA",
         start="2024-01-01",
         end="2024-06-01",
+        commission_rate=0.001,
+        slippage_bps=12.0,
     )
 
     assert result["status"] == "completed"
     assert result["mode"] == "sync"
     assert result["result"]["status"] == "ok"
+    assert captured["commission_rate"] == 0.001
+    assert captured["slippage_bps"] == 12.0
 
 
 def test_run_backtest_requires_strategy_service():

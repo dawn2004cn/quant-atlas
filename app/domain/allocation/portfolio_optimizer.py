@@ -310,6 +310,10 @@ class PortfolioOptimizer:
         elif method == "black_litterman":
             posterior_returns = self._bl.incorporate_views([], cov)
             return self._mvo.optimize(posterior_returns, cov, target_return)
+        elif method == "hrp":
+            from app.domain.quant.hrp import hrp_weights
+
+            return hrp_weights(returns)
         else:
             return {t: 1.0 / len(tickers) for t in tickers}
 

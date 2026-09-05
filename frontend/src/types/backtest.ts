@@ -12,6 +12,8 @@ export type BacktestRequest = {
   start: string;
   end: string;
   initial_capital: number;
+  commission_rate?: number;
+  slippage_bps?: number;
 };
 
 export type BacktestCompareRow = {

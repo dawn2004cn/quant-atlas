@@ -594,6 +594,8 @@ export async function runBacktest(
         start: payload.start,
         end: payload.end,
         initial_capital: payload.initial_capital,
+        commission_rate: payload.commission_rate,
+        slippage_bps: payload.slippage_bps,
         ...(asyncMode ? { idempotency_key: idempotencyKey } : {}),
       }),
     },

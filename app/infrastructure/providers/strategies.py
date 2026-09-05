@@ -156,9 +156,19 @@ class DefaultBacktestProvider(BacktestProvider):
         start: str,
         end: str,
         initial_capital: float = 100000.0,
+        commission_rate: float | None = None,
+        slippage_bps: float | None = None,
     ) -> dict[str, Any]:
         try:
-            report = self.run(symbol, strategy, start, end, initial_capital)
+            report = self.run(
+                symbol,
+                strategy,
+                start,
+                end,
+                initial_capital,
+                commission_rate=commission_rate,
+                slippage_bps=slippage_bps,
+            )
             if hasattr(report, 'to_dict'):
                 return report.to_dict()
             return {"status": "completed", "report": str(report)}
@@ -174,7 +184,11 @@ class DefaultBacktestProvider(BacktestProvider):
         start: str,
         end: str,
         initial_capital: float,
+        commission_rate: float | None = None,
+        slippage_bps: float | None = None,
     ) -> BacktestReport:
+        self._commission_rate = commission_rate
+        self._slippage_bps = slippage_bps
         sid = (strategy_name or "").strip()
         strategy = StrategyFactory.create(StrategyConfig(strategy_id=sid, parameters={}))
         if strategy is None:
@@ -357,14 +371,20 @@ class DefaultBacktestProvider(BacktestProvider):
 
     def _simulate_portfolio_backtest(self, dfs: dict[str, pd.DataFrame], strategy: Any, initial_capital: float) -> dict:
         """多标的组合回测 - 委托给BacktestEngine."""
-        engine = BacktestEngine()
+        engine = BacktestEngine(
+            commission_rate=getattr(self, "_commission_rate", None),
+            slippage_bps=getattr(self, "_slippage_bps", None),
+        )
         return engine.simulate_portfolio_backtest(dfs, strategy, initial_capital)
 
     def _simulate_backtest(self, df: pd.DataFrame, initial_capital: float) -> dict:
         """单标的回测 - 委托给BacktestEngine."""
         from ...models import ALL_STRATEGIES
         strategy = ALL_STRATEGIES[0] if ALL_STRATEGIES else None
-        engine = BacktestEngine()
+        engine = BacktestEngine(
+            commission_rate=getattr(self, "_commission_rate", None),
+            slippage_bps=getattr(self, "_slippage_bps", None),
+        )
         return engine.simulate_single_backtest(df, strategy, initial_capital)
 
     def _empty_report(self, symbol, strategy, start, end, capital):

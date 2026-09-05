@@ -73,6 +73,8 @@ class BacktestRequestDTO(BaseModel):
     start: str = Field(..., description="Start date YYYY-MM-DD")
     end: str = Field(..., description="End date YYYY-MM-DD")
     initial_capital: float = Field(default=100000.0, gt=0, description="Initial capital")
+    commission_rate: float = Field(default=0.0003, ge=0, le=0.01, description="Commission rate")
+    slippage_bps: float = Field(default=8.0, ge=0, le=200, description="One-sided slippage in bps")
 
 
 class BacktestCompareRequestDTO(BaseModel):
