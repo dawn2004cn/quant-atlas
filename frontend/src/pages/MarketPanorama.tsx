@@ -99,7 +99,7 @@ export function MarketPanoramaPage() {
         filter: listFilter,
         scope: listScope,
       }),
-    { revalidateOnFocus: false, refreshInterval: quotesPage?.warming ? 2000 : 45_000 },
+    { revalidateOnFocus: false, refreshInterval: (latest) => (latest?.warming ? 2000 : 45_000) },
   );
 
   const rankings = panorama?.rankings;
