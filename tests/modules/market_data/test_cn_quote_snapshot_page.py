@@ -67,15 +67,13 @@ def test_ensure_fresh_returns_immediately_when_live_hangs() -> None:
     started = time.monotonic()
     snap.ensure_fresh()
     assert time.monotonic() - started < 1.0
-    assert _HangingMarketService.calls == 0
     page = snap.query_page()
-    assert page["warming"] is False
+    assert page["warming"] is True
     assert page["items"] == []
     assert page["total"] == 0
 
 
-def test_ensure_fresh_keeps_stale_rows_without_live_refresh() -> None:
-    _HangingMarketService.calls = 0
+def test_ensure_fresh_keeps_stale_rows_when_live_hangs() -> None:
     snap = CnQuoteSnapshot(market_service=_HangingMarketService(), ttl_seconds=1)
     snap.load_rows([
         {"code": "600519", "name": "茅台", "price": 100, "change_pct": 1.0},
@@ -84,7 +82,38 @@ def test_ensure_fresh_keeps_stale_rows_without_live_refresh() -> None:
     started = time.monotonic()
     snap.ensure_fresh()
     assert time.monotonic() - started < 1.0
-    assert _HangingMarketService.calls == 0
     page = snap.query_page()
     assert page["items"][0]["code"] == "600519"
-    assert page["warming"] is False
+    assert page["warming"] is True
+
+
+class _LiveMarketService:
+    def list_quotes(self, market, symbols=None, *, live: bool = True):
+        if symbols:
+            return [
+                {"code": "".join(ch for ch in str(s) if ch.isdigit())[-6:].zfill(6), "name": "X", "price": 9, "change_pct": 1.2}
+                for s in symbols
+            ]
+        if not live:
+            return []
+        return [{"code": "000001", "name": "平安", "price": 10, "change_pct": 1.5}]
+
+
+def test_ensure_fresh_background_live_fills_empty_snapshot() -> None:
+    snap = CnQuoteSnapshot(market_service=_LiveMarketService(), ttl_seconds=15)
+    snap.ensure_fresh()
+    deadline = time.time() + 2
+    while time.time() < deadline and (snap.is_refreshing or not snap.unique_rows()):
+        time.sleep(0.02)
+    page = snap.query_page()
+    assert page["total"] >= 1
+    assert page["items"][0]["code"] == "000001"
+
+
+def test_fill_missing_hydrates_symbol_lists_from_live() -> None:
+    snap = CnQuoteSnapshot(market_service=_LiveMarketService(), ttl_seconds=15)
+    snap.ensure_fresh()
+    snap.fill_missing(["600519", "300750"], fetcher=lambda missing: _LiveMarketService().list_quotes(None, missing))
+    page = snap.query_page(page=1, page_size=10, codes={"600519", "300750"})
+    assert page["total"] == 2
+    assert {row["code"] for row in page["items"]} == {"600519", "300750"}

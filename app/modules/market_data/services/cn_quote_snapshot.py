@@ -109,6 +109,7 @@ class CnQuoteSnapshot:
         self._lock = threading.RLock()
         self._by_key: dict[str, dict[str, Any]] = {}
         self._updated_at: float = 0.0
+        self._last_live_attempt: float = 0.0
         self._refreshing = False
         self._row_count = 0
 
@@ -136,11 +137,10 @@ class CnQuoteSnapshot:
             self._updated_at = time.time()
 
     def ensure_fresh(self, *, force: bool = False) -> None:
-        """Reload from local cache only. Never block on AkShare / Tencent.
+        """Serve cache immediately; refresh the full market in a background thread.
 
-        Full-market live pulls can hang for minutes and wedge the single-threaded
-        Flask E2E server. Populate the snapshot from stock_cache / provider cache;
-        empty cache stays empty instead of locking the request thread.
+        Request threads must not wait on AkShare / Tencent. Watchlist and other
+        symbol lists hydrate via ``fill_missing`` (bounded live fetch).
         """
         if not force and self.is_warm():
             return
@@ -150,8 +150,55 @@ class CnQuoteSnapshot:
             rows = self._load_cached_only()
             if rows:
                 self._rebuild(rows)
-            self._updated_at = time.time()
-            logger.info("CnQuoteSnapshot cache load: %s symbols", self._row_count)
+                self._updated_at = time.time()
+                logger.info("CnQuoteSnapshot cache load: %s symbols", self._row_count)
+            self._schedule_live_refresh_locked(force=force)
+
+    def _schedule_live_refresh_locked(self, *, force: bool) -> None:
+        if self._refreshing:
+            return
+        now = time.time()
+        if not force and self._last_live_attempt and (now - self._last_live_attempt) < self._ttl:
+            return
+        self._refreshing = True
+        self._last_live_attempt = now
+        threading.Thread(
+            target=self._live_refresh_worker,
+            name="cn-quote-live-refresh",
+            daemon=True,
+        ).start()
+
+    def _live_refresh_worker(self) -> None:
+        try:
+            rows = self._load_live()
+            with self._lock:
+                if rows:
+                    merged = self.unique_rows() + list(rows)
+                    self._rebuild(merged)
+                    self._updated_at = time.time()
+                    logger.info("CnQuoteSnapshot live refresh: %s symbols", self._row_count)
+        except Exception as exc:
+            logger.warning("CnQuoteSnapshot live refresh failed: %s", exc, exc_info=True)
+        finally:
+            with self._lock:
+                self._refreshing = False
+
+    def fill_missing(self, symbols: list[str], *, fetcher) -> None:
+        """Live-fetch snapshot misses so symbol lists (sectors / radar) are not empty."""
+        if not symbols:
+            return
+        _hits, missing = self.lookup_rows(symbols)
+        if not missing:
+            return
+        try:
+            extra = fetcher(missing) or []
+        except Exception as exc:
+            logger.warning("CnQuoteSnapshot fill_missing failed: %s", exc)
+            return
+        if not extra:
+            return
+        with self._lock:
+            self._rebuild(self.unique_rows() + list(extra))
 
     def lookup_map(self, symbols: list[str]) -> tuple[dict[str, dict[str, Any]], list[str]]:
         """返回 (命中索引, 未命中 normalized 列表)。"""
@@ -291,6 +338,16 @@ class CnQuoteSnapshot:
             "warming": warming,
             "stale": stale,
         }
+
+    def _load_live(self) -> list[dict[str, Any]]:
+        if self._market_service is not None:
+            try:
+                rows = self._market_service.list_quotes(MarketCode.CN, None)
+                if rows:
+                    return rows
+            except Exception as exc:
+                logger.warning("CnQuoteSnapshot live list_quotes failed: %s", exc)
+        return self._load_cached_only()
 
     def _load_cached_only(self) -> list[dict[str, Any]]:
         if self._market_service is not None:

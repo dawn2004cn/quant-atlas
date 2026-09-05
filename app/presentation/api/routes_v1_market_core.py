@@ -196,6 +196,12 @@ def register_market_core_routes(blueprint: Blueprint, ctx: ApiV1Context) -> None
 
         snapshot = get_cn_quote_snapshot()
         snapshot.ensure_fresh()
+        market_service = getattr(ctx, "market_service", None)
+        if codes and market_service is not None:
+            snapshot.fill_missing(
+                list(codes),
+                fetcher=lambda missing: market_service.list_quotes(mc, missing) or [],
+            )
         payload = snapshot.query_page(
             page=page,
             page_size=page_size,
