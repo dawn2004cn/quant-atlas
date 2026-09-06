@@ -4,6 +4,24 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-06 (空书 / 零价缓存不再挡住真实行情)
+
+### 根因
+- `hydrate_page_snapshot` 曾把种子目录、stock_cache 零价行当成「已有行情」
+- `pull_cn_page_quotes` 走 `get_quotes`，QuoteCache 里 `price=0` 的 key 算命中，不再请求腾讯
+- 旧 worker 写 `market_all_cache`，新页面只读 `quant:cn:quote:book`
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_book.rows_have_real_quotes` | 仅 `price>0` 算真行情；空书 / 零价书继续刷新 |
+| `load/save_cn_quote_book` | 兼容读写 `market_all_cache` |
+| `get_quotes` | 缓存价 ≤0 视为未命中 |
+| `pull_cn_page_quotes` | 直打 `TencentQuoteGateway`，不读 QuoteCache |
+| `hydrate_page_snapshot` | 无真实行情时同步拉腾讯并写 Redis 书 |
+
+---
+
 ## 2026-09-06 (E2E 关闭页面路径腾讯拉取)
 
 - `CN_QUOTE_LIVE_PULL=0` 时 `ensure` / 腾讯种子都不打外网，全景走种子目录

@@ -100,10 +100,15 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
     def get_quotes(self, codes: list[str]) -> GenericResponseDTO[str, object]:
         """Get multiple quotes with robust normalization."""
         cached = self.cache.get_quotes(codes)
-        missing = [c for c in codes if c not in cached]
+        usable_cached = {
+            key: payload
+            for key, payload in (cached or {}).items()
+            if self._payload_has_price(payload)
+        }
+        missing = [c for c in codes if c not in usable_cached]
 
         if not missing:
-            return cached
+            return usable_cached
 
         fresh = {}
         try:
@@ -145,7 +150,17 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
         except Exception as e:
             self.logger.error(f"Error fetching quotes: {e}")
 
-        return {**cached, **fresh}
+        return {**usable_cached, **fresh}
+
+    @staticmethod
+    def _payload_has_price(payload: object) -> bool:
+        if payload is None:
+            return False
+        raw = payload.get("price") if isinstance(payload, dict) else getattr(payload, "price", 0)
+        try:
+            return float(raw or 0) > 0
+        except (TypeError, ValueError):
+            return False
 
     def _fetch_fresh_quotes_dict(self, codes: list[str]) -> dict[str, object]:
         """Fetch missing quotes; optional async path when ``ENABLE_ASYNC_MARKET_QUOTES=1``."""
@@ -159,6 +174,25 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
                 self.logger.debug("list_quotes: async fetch returned %s symbols", len(async_result))
                 return async_result
         return self.get_quotes(codes)
+
+    def _fetch_tencent_live_quotes(self, codes: list[str]) -> list[dict]:
+        """Tencent HTTP only. Skips quote cache and zero-price L1/L2 hits."""
+        if not codes:
+            return []
+        from app.infrastructure.adapters.tencent_quote_gateway import TencentQuoteGateway
+        from app.infrastructure.mappers.tencent_quote_mapper import TencentQuoteMapper
+
+        gateway = getattr(self._market_provider, "_quote_gateway", None)
+        if gateway is None or not hasattr(gateway, "fetch_quotes_text"):
+            gateway = TencentQuoteGateway()
+        text = gateway.fetch_quotes_text(codes, timeout=4)
+        quotes = TencentQuoteMapper.parse_payload(text, MarketCode.CN)
+        rows: list[dict] = []
+        for quote in quotes:
+            ser = self._serialize_stock(quote)
+            if float(ser.get("price") or 0) > 0:
+                rows.append(ser)
+        return rows
 
     def _serialize_stock(self, s: dict | object) -> GenericResponseDTO[str, object]:
         """Serialize stock data for QuoteDTO."""
@@ -269,6 +303,18 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             )
         except Exception as exc:
             self.logger.warning("list_quotes_tencent failed: %s", exc)
+            return []
+
+    def pull_cn_page_quotes(self, *, max_symbols: int = 80) -> list[dict]:
+        """Bounded Tencent pull for the page path. Skips stale zero-price cache."""
+        limit = max(1, min(int(max_symbols), 80))
+        codes = [code for code in _CN_PAGE_UNIVERSE if code][:limit]
+        if not codes:
+            return []
+        try:
+            return self._fetch_tencent_live_quotes(self._normalize_cn_symbols(codes))
+        except Exception as exc:
+            self.logger.warning("pull_cn_page_quotes failed: %s", exc)
             return []
 
     def refresh_cn_quote_book(self, *, allow_akshare: bool = False) -> list[dict]:

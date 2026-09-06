@@ -167,7 +167,11 @@ def test_build_panorama_uses_snapshot_when_provider_rankings_empty() -> None:
             {"code": "000001", "name": "平安", "price": 10, "change_pct": -1.1, "amount": 2e8},
         ]
     )
-    dto = svc._build_panorama(MarketCode.CN)
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=False,
+    ):
+        dto = svc._build_panorama(MarketCode.CN)
     assert dto.gainers
     assert dto.gainers[0].code in {"600519", "sz600519", "sh600519"} or str(dto.gainers[0].code).endswith("600519")
     assert dto.losers

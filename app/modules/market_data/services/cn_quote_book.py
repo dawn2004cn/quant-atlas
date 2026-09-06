@@ -15,7 +15,31 @@ from app.core.logger import get_logger
 logger = get_logger(__name__)
 
 BOOK_KEY = "quant:cn:quote:book"
+LEGACY_BOOK_KEY = "market_all_cache"
 BOOK_TTL_SEC = 24 * 3600
+
+
+def rows_have_real_quotes(rows: list[dict[str, Any]] | None) -> bool:
+    for row in rows or []:
+        if not isinstance(row, dict):
+            continue
+        try:
+            if float(row.get("price") or 0) > 0:
+                return True
+        except (TypeError, ValueError):
+            continue
+    return False
+
+
+def _coerce_book_payload(payload: Any) -> dict[str, Any] | None:
+    if isinstance(payload, list) and payload:
+        items = [row for row in payload if isinstance(row, dict)]
+        return {"items": items, "source": "legacy", "count": len(items)} if items else None
+    if isinstance(payload, dict):
+        items = payload.get("items")
+        if isinstance(items, list) and items:
+            return payload
+    return None
 
 _memory_book: dict[str, Any] | None = None
 _refreshing = False
@@ -31,19 +55,21 @@ def _cache():
 
 def load_cn_quote_book() -> list[dict[str, Any]]:
     global _memory_book
-    payload = _memory_book
-    if not isinstance(payload, dict) or not payload.get("items"):
+    payload = _coerce_book_payload(_memory_book)
+    if payload is None:
         try:
-            payload = _cache().get(BOOK_KEY)
+            cache = _cache()
+            payload = _coerce_book_payload(cache.get(BOOK_KEY))
+            if payload is None:
+                payload = _coerce_book_payload(cache.get(LEGACY_BOOK_KEY))
         except Exception as exc:
             logger.debug("CN quote book redis get failed: %s", exc)
             payload = None
-        if isinstance(payload, dict) and payload.get("items"):
+        if payload is not None:
             _memory_book = payload
-    if not isinstance(payload, dict):
+    if payload is None:
         return []
-    items = payload.get("items") or []
-    return [row for row in items if isinstance(row, dict)]
+    return [row for row in payload.get("items") or [] if isinstance(row, dict)]
 
 
 def save_cn_quote_book(items: list[dict[str, Any]], *, source: str = "refresh") -> None:
@@ -58,7 +84,9 @@ def save_cn_quote_book(items: list[dict[str, Any]], *, source: str = "refresh") 
     }
     _memory_book = payload
     try:
-        _cache().set(BOOK_KEY, payload, ttl=BOOK_TTL_SEC)
+        cache = _cache()
+        cache.set(BOOK_KEY, payload, ttl=BOOK_TTL_SEC)
+        cache.set(LEGACY_BOOK_KEY, items, ttl=min(BOOK_TTL_SEC, 30 * 60))
     except Exception as exc:
         logger.debug("CN quote book redis set failed: %s", exc)
     logger.info("CN quote book saved: %s rows source=%s", len(items), source)
@@ -113,7 +141,7 @@ def refresh_book_reason(*, force: bool = False, now: datetime | None = None) -> 
     """
     if force:
         return "force"
-    if not load_cn_quote_book():
+    if not rows_have_real_quotes(load_cn_quote_book()):
         return "empty"
     if _is_cn_session(now):
         return "session"
@@ -135,7 +163,7 @@ def ensure_cn_quote_book(market_service: object | None) -> str:
     One attempt per process. Does not refresh an existing book off-hours.
     """
     global _refreshing, _warm_attempted
-    if load_cn_quote_book():
+    if rows_have_real_quotes(load_cn_quote_book()):
         return "present"
     if not live_quote_pull_enabled():
         return "disabled"

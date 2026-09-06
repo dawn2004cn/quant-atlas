@@ -197,19 +197,26 @@ class CnQuoteSnapshot:
         if not live_quote_pull_enabled():
             return
         svc = self._market_service
-        if svc is None or not hasattr(svc, "list_quotes_tencent"):
+        if svc is None:
             return
-        try:
-            rows = svc.list_quotes_tencent(max_symbols=_PAGE_SEED_MAX)
-        except TypeError:
+        rows: list[dict[str, Any]] = []
+        if hasattr(svc, "pull_cn_page_quotes"):
             try:
-                rows = svc.list_quotes_tencent()
+                rows = svc.pull_cn_page_quotes(max_symbols=_PAGE_SEED_MAX) or []
+            except Exception as exc:
+                logger.warning("CnQuoteSnapshot tencent seed failed: %s", exc)
+        if not rows and hasattr(svc, "list_quotes_tencent"):
+            try:
+                rows = svc.list_quotes_tencent(max_symbols=_PAGE_SEED_MAX) or []
+            except TypeError:
+                try:
+                    rows = svc.list_quotes_tencent() or []
+                except Exception as exc:
+                    logger.warning("CnQuoteSnapshot tencent seed failed: %s", exc)
+                    return
             except Exception as exc:
                 logger.warning("CnQuoteSnapshot tencent seed failed: %s", exc)
                 return
-        except Exception as exc:
-            logger.warning("CnQuoteSnapshot tencent seed failed: %s", exc)
-            return
         if rows:
             self.load_rows(rows)
             logger.info("CnQuoteSnapshot tencent seed: %s symbols", self._row_count)
@@ -378,7 +385,10 @@ class CnQuoteSnapshot:
                 except TypeError:
                     rows = []
                 if rows:
-                    return rows
+                    from app.modules.market_data.services.cn_quote_book import rows_have_real_quotes
+
+                    if rows_have_real_quotes(rows):
+                        return rows
             except Exception as exc:
                 logger.warning("CnQuoteSnapshot cache list_quotes failed: %s", exc)
         return []
@@ -402,32 +412,65 @@ def _seed_directory_rows() -> list[dict[str, Any]]:
     ]
 
 
+def _snapshot_has_real_quotes(snapshot: CnQuoteSnapshot) -> bool:
+    from app.modules.market_data.services.cn_quote_book import rows_have_real_quotes
+
+    return rows_have_real_quotes(snapshot.unique_rows())
+
+
+def _pull_live_page_quotes(market_service: object | None) -> list[dict[str, Any]]:
+    from app.modules.market_data.services.cn_quote_book import live_quote_pull_enabled
+
+    if market_service is None or not live_quote_pull_enabled():
+        return []
+    if hasattr(market_service, "pull_cn_page_quotes"):
+        try:
+            rows = market_service.pull_cn_page_quotes(max_symbols=_PAGE_SEED_MAX)
+            return [row for row in rows or [] if isinstance(row, dict)]
+        except Exception as exc:
+            logger.warning("hydrate live page quotes failed: %s", exc)
+    if hasattr(market_service, "list_quotes_tencent"):
+        try:
+            rows = market_service.list_quotes_tencent(max_symbols=_PAGE_SEED_MAX)
+            return [row for row in rows or [] if isinstance(row, dict)]
+        except Exception as exc:
+            logger.warning("hydrate tencent page quotes failed: %s", exc)
+    return []
+
+
 def hydrate_page_snapshot(
     snapshot: CnQuoteSnapshot,
     market_service: object | None,
 ) -> None:
-    """Bind the request-scoped market service and fill the page snapshot.
+    """Fill the page from Redis book, then a bounded live Tencent pull.
 
-    Pages read the delayed Redis book first (5–15 min). Stock-cache / Tencent
-    seed only run when the book is empty. Never pull full-market AkShare.
+    Zero-price directory/cache rows are not treated as real quotes.
     """
+    from app.modules.market_data.services.cn_quote_book import (
+        ensure_cn_quote_book,
+        load_cn_quote_book,
+        rows_have_real_quotes,
+        save_cn_quote_book,
+    )
+
     if market_service is not None:
         snapshot.bind(market_service=market_service)
     try:
-        from app.modules.market_data.services.cn_quote_book import (
-            ensure_cn_quote_book,
-            load_cn_quote_book,
-        )
-
         book = load_cn_quote_book()
-        if book:
+        if rows_have_real_quotes(book):
             snapshot.load_rows(book)
+            return
+        live_rows = _pull_live_page_quotes(market_service)
+        if rows_have_real_quotes(live_rows):
+            save_cn_quote_book(live_rows, source="tencent_page")
+            snapshot.load_rows(live_rows)
+            ensure_cn_quote_book(market_service)
             return
         ensure_cn_quote_book(market_service)
     except Exception as exc:
         logger.warning("hydrate_page_snapshot redis book failed: %s", exc)
     snapshot.ensure_fresh()
-    if snapshot.row_count > 0:
+    if _snapshot_has_real_quotes(snapshot):
         return
     snapshot.load_rows(_seed_directory_rows())
     logger.info("CnQuoteSnapshot seed directory: %s symbols", snapshot.row_count)

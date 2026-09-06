@@ -35,6 +35,40 @@ def test_save_and_load_cn_quote_book() -> None:
     assert rows[0]["code"] == "600519"
 
 
+def test_load_cn_quote_book_reads_legacy_market_all_cache() -> None:
+    fake = MagicMock()
+    fake.get.side_effect = lambda key, default=None: (
+        [{"code": "000001", "name": "平安", "price": 12.3, "change_pct": 0.4}]
+        if key == "market_all_cache"
+        else default
+    )
+    with patch("app.modules.market_data.services.cn_quote_book._cache", return_value=fake):
+        rows = load_cn_quote_book()
+    assert rows
+    assert rows[0]["code"] == "000001"
+    assert rows[0]["price"] == 12.3
+
+
+def test_hydrate_zero_price_cache_uses_tencent_and_saves_book() -> None:
+    class _ZeroThenLive:
+        def list_quotes(self, *args, **kwargs):
+            return [{"code": "000002", "name": "万科", "price": 0, "change_pct": 0}]
+
+        def list_quotes_tencent(self, *args, **kwargs):
+            return [{"code": "600519", "name": "茅台", "price": 1330.0, "change_pct": 2.4}]
+
+        def pull_cn_page_quotes(self, *, max_symbols: int = 80):
+            return self.list_quotes_tencent(max_symbols=max_symbols)
+
+    snap = CnQuoteSnapshot(ttl_seconds=15)
+    hydrate_page_snapshot(snap, _ZeroThenLive())
+    page = snap.query_page()
+    assert page["items"][0]["code"] == "600519"
+    assert page["items"][0]["price"] == 1330.0
+    stored = load_cn_quote_book()
+    assert stored and stored[0]["price"] == 1330.0
+
+
 def test_hydrate_prefers_redis_book_over_tencent() -> None:
     clear_cn_quote_book()
     save_cn_quote_book(
@@ -76,6 +110,106 @@ def test_hydrate_redis_book_overrides_warm_snapshot_and_stock_cache() -> None:
     assert page["total"] == 1
 
 
+def test_refresh_book_reason_treats_zero_price_book_as_empty() -> None:
+    save_cn_quote_book(
+        [{"code": "000002", "name": "万科", "price": 0, "change_pct": 0}],
+        source="seed",
+    )
+    with patch(
+        "app.modules.market_data.services.cn_quote_book._is_cn_session",
+        return_value=False,
+    ):
+        assert should_refresh_book(force=False) is True
+        assert refresh_book_reason() == "empty"
+
+
+def test_get_quotes_treats_zero_price_cache_as_miss() -> None:
+    quote_cache = MagicMock()
+    quote_cache.get_quotes.return_value = {
+        "sh600519": {"code": "600519", "name": "茅台", "price": 0.0},
+    }
+    provider = SimpleNamespace(
+        get_realtime_quotes=lambda codes, market=None: [
+            {"code": "600519", "name": "茅台", "price": 1330.0, "change_pct": 1.2}
+        ]
+    )
+    with patch(
+        "app.modules.market_data.services.market_service.get_quote_cache_port",
+        return_value=quote_cache,
+    ):
+        svc = MarketApplicationService(
+            market_provider=provider,
+            industry_provider=SimpleNamespace(),
+            stock_cache=MagicMock(),
+        )
+    result = svc.get_quotes(["sh600519"])
+    priced = next(iter(result.values()))
+    assert float(priced["price"] if isinstance(priced, dict) else priced.get("price")) == 1330.0
+
+
+def test_pull_cn_page_quotes_bypasses_zero_price_quote_cache() -> None:
+    from app.domain.enums import MarketCode
+    from app.domain.shared.value_objects import StockQuote
+
+    quote_cache = MagicMock()
+    quote_cache.get_quotes.return_value = {
+        "sh600519": {"code": "600519", "name": "茅台", "price": 0.0},
+        "600519": {"code": "600519", "name": "茅台", "price": 0.0},
+    }
+    live = StockQuote(
+        code="600519",
+        name="贵州茅台",
+        market=MarketCode.CN,
+        price=1330.0,
+        change_pct=2.4,
+    )
+    with patch(
+        "app.modules.market_data.services.market_service.get_quote_cache_port",
+        return_value=quote_cache,
+    ):
+        svc = MarketApplicationService(
+            market_provider=None,
+            industry_provider=SimpleNamespace(),
+            stock_cache=MagicMock(),
+        )
+    with patch.object(svc, "get_quotes", side_effect=AssertionError("must not use quote cache")):
+        with patch(
+            "app.infrastructure.adapters.tencent_quote_gateway.TencentQuoteGateway.fetch_quotes_text",
+            return_value="v_sh600519=\"ok\"",
+        ):
+            with patch(
+                "app.infrastructure.mappers.tencent_quote_mapper.TencentQuoteMapper.parse_payload",
+                return_value=[live],
+            ):
+                rows = svc.pull_cn_page_quotes(max_symbols=1)
+    assert rows
+    assert all(float(r.get("price") or 0) > 0 for r in rows)
+    assert any(str(r.get("code6") or r.get("code") or "").endswith("600519") for r in rows)
+
+
+def test_pull_cn_page_quotes_keeps_priced_rows_only() -> None:
+    cache = MagicMock()
+    with patch(
+        "app.modules.market_data.services.market_service.get_quote_cache_port",
+        return_value=MagicMock(),
+    ):
+        svc = MarketApplicationService(
+            market_provider=SimpleNamespace(),
+            industry_provider=SimpleNamespace(),
+            stock_cache=cache,
+        )
+    with patch.object(
+        svc,
+        "_fetch_tencent_live_quotes",
+        return_value=[
+            {"code": "sh600519", "code6": "600519", "name": "茅台", "price": 1330, "change_pct": 2.4},
+        ],
+    ):
+        rows = svc.pull_cn_page_quotes(max_symbols=8)
+    assert any(str(r.get("code6") or r.get("code") or "").endswith("600519") and float(r["price"]) == 1330 for r in rows)
+    assert all(float(r.get("price") or 0) > 0 for r in rows)
+
+
 def test_refresh_cn_quote_book_writes_store() -> None:
     cache = MagicMock()
     cache.get_all_stocks.return_value = []
@@ -106,7 +240,7 @@ def test_should_refresh_when_book_empty() -> None:
 
 
 def test_should_refresh_in_session_when_book_exists() -> None:
-    save_cn_quote_book([{"code": "1", "name": "x"}], source="t")
+    save_cn_quote_book([{"code": "1", "name": "x", "price": 10.0}], source="t")
     with patch(
         "app.modules.market_data.services.cn_quote_book._is_cn_session",
         return_value=True,
@@ -125,7 +259,7 @@ def test_should_refresh_when_empty_outside_session() -> None:
 
 
 def test_should_skip_when_book_exists_outside_session() -> None:
-    save_cn_quote_book([{"code": "1", "name": "x"}], source="t")
+    save_cn_quote_book([{"code": "1", "name": "x", "price": 10.0}], source="t")
     with patch(
         "app.modules.market_data.services.cn_quote_book._is_cn_session",
         return_value=False,
