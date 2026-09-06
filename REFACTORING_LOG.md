@@ -4,10 +4,10 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
-## 2026-09-06 (启动工厂也暖机空书，全景展示缓存时间)
+## 2026-09-06 (空书每进程只暖机一次，避免 E2E 卡死)
 
-- `service_wiring` / `wiring_market_data` 创建 `market_service` 后调用 `ensure_cn_quote_book`
-- 全景页展示 `cached_at`，标明延迟快照时间
+- 工厂创建服务时不再立刻 `ensure`（腾讯分批会占满 GIL，E2E `/stock/000001` 超时）
+- `ensure_cn_quote_book` 每个进程只调度一次；全景仍展示 `cached_at`
 
 ---
 

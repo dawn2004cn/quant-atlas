@@ -43,9 +43,6 @@ def _make_market_service(reg: Any) -> Any:
     )
     try:
         configure_cn_quote_snapshot(market_service=svc, market_provider=provider)
-        from app.modules.market_data.services.cn_quote_book import ensure_cn_quote_book
-
-        ensure_cn_quote_book(svc)
     except Exception:
         logger.warning("configure_cn_quote_snapshot skipped", exc_info=True)
     return svc

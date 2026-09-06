@@ -157,3 +157,23 @@ def test_ensure_cn_quote_book_pulls_once_when_empty_off_hours() -> None:
         assert pulled == [False]
         assert load_cn_quote_book()
         assert ensure_cn_quote_book(_Svc()) == "present"
+
+
+def test_ensure_cn_quote_book_only_attempts_once_while_empty() -> None:
+    class _Empty:
+        calls = 0
+
+        def refresh_cn_quote_book(self, *, allow_akshare: bool = False):
+            type(self).calls += 1
+            return []
+
+    _Empty.calls = 0
+    first = ensure_cn_quote_book(_Empty())
+    assert first == "scheduled"
+    deadline = time.monotonic() + 2.0
+    while _Empty.calls == 0 and time.monotonic() < deadline:
+        time.sleep(0.05)
+    second = ensure_cn_quote_book(_Empty())
+    assert second == "attempted"
+    time.sleep(0.1)
+    assert _Empty.calls == 1

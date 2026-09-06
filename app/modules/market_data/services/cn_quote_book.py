@@ -19,6 +19,7 @@ BOOK_TTL_SEC = 24 * 3600
 
 _memory_book: dict[str, Any] | None = None
 _refreshing = False
+_warm_attempted = False
 _refresh_lock = threading.Lock()
 
 
@@ -64,8 +65,10 @@ def save_cn_quote_book(items: list[dict[str, Any]], *, source: str = "refresh") 
 
 
 def clear_cn_quote_book() -> None:
-    global _memory_book
+    global _memory_book, _warm_attempted, _refreshing
     _memory_book = None
+    _warm_attempted = False
+    _refreshing = False
     try:
         _cache().delete(BOOK_KEY)
     except Exception:
@@ -122,9 +125,9 @@ def schedule_cn_quote_book_refresh(market_service: object | None) -> None:
 def ensure_cn_quote_book(market_service: object | None) -> str:
     """If Redis is empty (nights/weekends included), pull once in the background.
 
-    Does not refresh an existing book outside the trading session.
+    One attempt per process. Does not refresh an existing book off-hours.
     """
-    global _refreshing
+    global _refreshing, _warm_attempted
     if load_cn_quote_book():
         return "present"
     if market_service is None or not hasattr(market_service, "refresh_cn_quote_book"):
@@ -132,7 +135,10 @@ def ensure_cn_quote_book(market_service: object | None) -> str:
     with _refresh_lock:
         if _refreshing:
             return "in_flight"
+        if _warm_attempted:
+            return "attempted"
         _refreshing = True
+        _warm_attempted = True
 
     def _run() -> None:
         global _refreshing
