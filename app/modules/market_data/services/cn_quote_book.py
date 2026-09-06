@@ -88,6 +88,13 @@ def book_updated_at() -> str | None:
     return None
 
 
+def live_quote_pull_enabled() -> bool:
+    """Page/boot may hit Tencent. CI sets ``CN_QUOTE_LIVE_PULL=0`` to keep E2E off the network."""
+    from app.core.runtime_config import get_runtime_bool
+
+    return get_runtime_bool("CN_QUOTE_LIVE_PULL", True)
+
+
 def _is_cn_session(now: datetime | None = None) -> bool:
     now = now or datetime.now()
     if now.weekday() >= 5:
@@ -130,6 +137,8 @@ def ensure_cn_quote_book(market_service: object | None) -> str:
     global _refreshing, _warm_attempted
     if load_cn_quote_book():
         return "present"
+    if not live_quote_pull_enabled():
+        return "disabled"
     if market_service is None or not hasattr(market_service, "refresh_cn_quote_book"):
         return "no_service"
     with _refresh_lock:

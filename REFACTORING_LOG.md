@@ -4,6 +4,13 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-06 (E2E 关闭页面路径腾讯拉取)
+
+- `CN_QUOTE_LIVE_PULL=0` 时 `ensure` / 腾讯种子都不打外网，全景走种子目录
+- CI Flask 设置该开关，避免 GitHub runner 访问腾讯把 `/stock/000001` 卡死
+
+---
+
 ## 2026-09-06 (空书每进程只暖机一次，避免 E2E 卡死)
 
 - 工厂创建服务时不再立刻 `ensure`（腾讯分批会占满 GIL，E2E `/stock/000001` 超时）

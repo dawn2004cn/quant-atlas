@@ -192,6 +192,10 @@ class CnQuoteSnapshot:
 
     def _hydrate_tencent_seed(self) -> None:
         """Fill an empty snapshot from Tencent + seed codes. No AkShare."""
+        from app.modules.market_data.services.cn_quote_book import live_quote_pull_enabled
+
+        if not live_quote_pull_enabled():
+            return
         svc = self._market_service
         if svc is None or not hasattr(svc, "list_quotes_tencent"):
             return

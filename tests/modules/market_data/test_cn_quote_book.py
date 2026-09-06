@@ -177,3 +177,15 @@ def test_ensure_cn_quote_book_only_attempts_once_while_empty() -> None:
     assert second == "attempted"
     time.sleep(0.1)
     assert _Empty.calls == 1
+
+
+def test_ensure_disabled_when_live_pull_off() -> None:
+    class _Boom:
+        def refresh_cn_quote_book(self, *, allow_akshare: bool = False):
+            raise AssertionError("must not pull when CN_QUOTE_LIVE_PULL=0")
+
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=False,
+    ):
+        assert ensure_cn_quote_book(_Boom()) == "disabled"
