@@ -4,6 +4,13 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-06 (启动工厂也暖机空书，全景展示缓存时间)
+
+- `service_wiring` / `wiring_market_data` 创建 `market_service` 后调用 `ensure_cn_quote_book`
+- 全景页展示 `cached_at`，标明延迟快照时间
+
+---
+
 ## 2026-09-05 (非交易时段 Redis 空书补拉一次)
 
 ### 约定

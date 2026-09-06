@@ -338,8 +338,9 @@ async function loadData() {
         renderTable();
         const scopeNote = gid === 'self' ? '自选股 · ' : '';
         const warmingNote = data.warming ? ' · 后台同步中' : '';
+        const cacheNote = data.cached_at ? (' · 缓存 ' + data.cached_at) : '';
         document.getElementById('lastUpdate').textContent =
-            scopeNote + new Date().toLocaleTimeString() + ' 已同步 第' + currentPage + '页 · 共' + panoTotal + '条' + warmingNote;
+            scopeNote + new Date().toLocaleTimeString() + ' 已同步 第' + currentPage + '页 · 共' + panoTotal + '条' + cacheNote + warmingNote;
         if (!filtered.length && data.warming) {
             document.getElementById('panoBody').innerHTML =
                 '<tr><td colspan="10" class="loading-tile">全市场快照后台同步中，即将自动刷新…</td></tr>';

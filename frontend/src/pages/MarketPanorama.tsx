@@ -239,6 +239,7 @@ export function MarketPanoramaPage() {
             <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
               <span>
                 第 {listPage} / {listPageCount} 页 · 共 {listTotal} 条
+                {quotesPage?.cached_at ? ` · 缓存 ${quotesPage.cached_at}` : ""}
               </span>
               <div className="flex gap-2">
                 <button
