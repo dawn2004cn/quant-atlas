@@ -4,9 +4,19 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
-## 2026-09-07 (E2E：个股页改为等待 DOMContentLoaded)
+## 2026-09-07 (E2E：个股页改为 HTTP 断言，避免 Playwright 渲染巨页)
 
-Playwright `page.goto` 默认 `waitUntil=load`。个股页有大段内联脚本和 Lightweight Charts，CI 上 `load` 常 30s 超时，而 `/backtest` 等页正常。E2E 只断言 title/body，改为 `domcontentloaded`；模板里 team_context / charts 脚本加 `defer`，避免挡住解析。
+### 根因
+- `/stock/000001` SSR 不拉行情，但模板约 2500 行，内联 JS 约 2000 行，DOMContentLoaded 后会打 history / decision-brief / jarvis 等 API
+- Playwright 执行该页：第一次 `goto` 约 25s 后 Chromium session 关闭（`toHaveTitle` 收到空 title），随后 Flask 被残留请求占死，`/backtest` 也 30s 超时
+- `domcontentloaded` + vendor `defer` 不够：内联脚本仍会跑，且 `defer` 的 LightweightCharts 会在内联脚本之后才加载
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `06_stock_detail.spec.ts` | 带登录 cookie 的 `page.request.get`，断言 200 且 HTML 含 `000001` / 个股详情；不执行页面 JS |
+| `07_backtest.spec.ts` | `waitUntil=domcontentloaded`，避免被其它页残留资源拖到 `load` |
+| `stock_detail.html` / `team_context_bar.html` | 撤回 vendor `defer`，恢复图表脚本在内联代码前同步加载 |
 
 ---
 

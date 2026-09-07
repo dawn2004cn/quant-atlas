@@ -220,7 +220,7 @@
 
 {% include "components/stock/evidence_replay.html" %}
 {% include "components/stock/resonance_meter.html" %}
-<script defer src="{{ url_for('static', filename='js/collaboration/team_context_store.js') }}"></script>
+<script src="{{ url_for('static', filename='js/collaboration/team_context_store.js') }}"></script>
 {% include "components/collaboration/team_context_bar.html" %}
 {% include "components/collaboration/team_blackboard.html" %}
 {% include "components/collaboration/team_research_feed.html" %}
@@ -440,9 +440,9 @@
 {% block extra_js %}
 <script defer src="{{ url_for('static', filename='js/lazy_mermaid.js') }}"
         data-mermaid-src="{{ url_for('static', filename='js/vendor/mermaid.min.js') }}"></script>
-<script defer src="{{ url_for('static', filename='js/trace_link.js') }}"></script>
+<script src="{{ url_for('static', filename='js/trace_link.js') }}"></script>
 {# 本地 vendor 优先：jsDelivr 在国内常超时/被拦截，会导致 LightweightCharts 未定义、K 线整块不渲染 #}
-<script defer src="{{ url_for('static', filename='js/vendor/lightweight-charts.standalone.production.js') }}"></script>
+<script src="{{ url_for('static', filename='js/vendor/lightweight-charts.standalone.production.js') }}"></script>
 <script nonce="{{ csp_nonce() }}">
 const routeCode = '{{ code }}';
 const URL_MARKET = '{{ stock_market or "" }}' || new URLSearchParams(window.location.search).get('m') || null;
