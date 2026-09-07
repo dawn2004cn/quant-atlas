@@ -4,6 +4,25 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-07 (全景及时准确：新浪涨跌幅 + 过期书刷新)
+
+### 根因
+- SPA `/panorama` 先读 provider 全市场排行（stock_cache 零价也会当成已有榜），骨架屏挡住 `quotes/page`
+- Redis 书 24h TTL，交易时段过期后页面仍展示旧价
+- 仅 56 只蓝筹无法构成真实涨幅榜 / 涨停过滤
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `pull_cn_sina_movers` | 新浪 `hs_a` 涨跌幅（4s 超时），东财 clist 在本环境 502 |
+| `pull_cn_page_quotes` | 并行拉涨幅+跌幅，失败再腾讯种子 |
+| `_build_panorama` CN | 只走 hydrate 快照，不读 provider 全市场 dump |
+| `book_is_fresh` | 交易时段超过 15 分钟强制再拉 |
+| `ensure_cn_quote_book` | 失败 60s 后允许重试 |
+| `MarketPanorama.tsx` | 不再等 panorama 才渲染列表 |
+
+---
+
 ## 2026-09-06 (空书 / 零价缓存不再挡住真实行情)
 
 ### 根因

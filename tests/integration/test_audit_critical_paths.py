@@ -118,11 +118,14 @@ def test_panorama_cache_single_provider_hit(mock_quote_cache, mock_get_cache_man
         industry_provider=MagicMock(),
         stock_cache=None,
     )
-    svc.get_panorama(MarketCode.CN)
-    svc.get_panorama(MarketCode.CN)
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=False,
+    ):
+        svc.get_panorama(MarketCode.CN)
+        svc.get_panorama(MarketCode.CN)
 
-    assert provider.get_market_rankings.call_count == 1
-    assert provider.get_market_overview.call_count == 1
+    assert provider.get_market_rankings.call_count == 0
 
 
 @dataclass

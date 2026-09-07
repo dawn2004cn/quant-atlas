@@ -175,3 +175,62 @@ def test_build_panorama_uses_snapshot_when_provider_rankings_empty() -> None:
     assert dto.gainers
     assert dto.gainers[0].code in {"600519", "sz600519", "sh600519"} or str(dto.gainers[0].code).endswith("600519")
     assert dto.losers
+
+
+def test_build_panorama_skips_provider_full_market_rankings() -> None:
+    cache = MagicMock()
+    cache.get_all_stocks.return_value = []
+    cache.list_all_codes.return_value = []
+
+    class _BoomProvider:
+        def get_market_overview(self, _m):
+            return {"market_status": "active", "sentiment_score": 0.2}
+
+        def get_market_rankings(self, _m):
+            return {
+                "gainers": [{
+                    "code": "999999",
+                    "name": "缓存零价",
+                    "price": 0,
+                    "change_pct": 0,
+                    "change_amount": 0,
+                    "volume": 0,
+                    "amount": 0,
+                    "turnover": 0,
+                }],
+                "losers": [],
+                "amounts": [],
+                "turnovers": [],
+            }
+
+    with patch(
+        "app.modules.market_data.services.market_service.get_quote_cache_port",
+        return_value=MagicMock(),
+    ):
+        svc = MarketApplicationService(
+            market_provider=_BoomProvider(),
+            industry_provider=SimpleNamespace(),
+            stock_cache=cache,
+        )
+
+    class _Live:
+        def pull_cn_page_quotes(self, *, max_symbols: int = 80):
+            return [
+                {"code": "300112", "name": "万讯自控", "price": 10.55, "change_pct": 20.02, "amount": 3e8},
+                {"code": "000001", "name": "平安", "price": 11.8, "change_pct": -1.1, "amount": 2e8},
+            ]
+
+        def list_quotes(self, *args, **kwargs):
+            return []
+
+    svc.pull_cn_page_quotes = _Live().pull_cn_page_quotes
+    from app.modules.market_data.services.cn_quote_book import clear_cn_quote_book
+    from app.modules.market_data.services.cn_quote_snapshot import configure_cn_quote_snapshot
+
+    clear_cn_quote_book()
+    configure_cn_quote_snapshot(market_service=svc)
+    dto = svc._build_panorama(MarketCode.CN)
+    assert dto.gainers
+    code = str(dto.gainers[0].code)
+    assert code.endswith("300112") or code == "300112"
+    assert not code.endswith("999999")

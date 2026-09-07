@@ -185,11 +185,60 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
         gateway = getattr(self._market_provider, "_quote_gateway", None)
         if gateway is None or not hasattr(gateway, "fetch_quotes_text"):
             gateway = TencentQuoteGateway()
-        text = gateway.fetch_quotes_text(codes, timeout=4)
-        quotes = TencentQuoteMapper.parse_payload(text, MarketCode.CN)
         rows: list[dict] = []
-        for quote in quotes:
-            ser = self._serialize_stock(quote)
+        batch_size = 40
+        for offset in range(0, len(codes), batch_size):
+            chunk = codes[offset : offset + batch_size]
+            text = gateway.fetch_quotes_text(chunk, timeout=4)
+            quotes = TencentQuoteMapper.parse_payload(text, MarketCode.CN)
+            for quote in quotes:
+                ser = self._serialize_stock(quote)
+                if float(ser.get("price") or 0) > 0:
+                    rows.append(ser)
+        return rows
+
+    def pull_cn_sina_movers(self, *, page: int = 1, num: int = 80, desc: bool = True) -> list[dict]:
+        """Sina hs_a node: real gainers/losers with a hard timeout. No AkShare."""
+        import requests
+
+        resp = requests.get(
+            "https://vip.stock.finance.sina.com.cn/quotes_service/api/json_v2.php/Market_Center.getHQNodeData",
+            params={
+                "page": max(1, int(page)),
+                "num": max(1, min(int(num), 100)),
+                "sort": "changepercent",
+                "asc": 0 if desc else 1,
+                "node": "hs_a",
+            },
+            timeout=4,
+            headers={"User-Agent": "Mozilla/5.0"},
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+        if not isinstance(payload, list):
+            return []
+        rows: list[dict] = []
+        for item in payload:
+            if not isinstance(item, dict):
+                continue
+            ser = self._serialize_stock(
+                {
+                    "code": item.get("code") or item.get("symbol") or "",
+                    "name": item.get("name") or "",
+                    "price": item.get("trade") or 0,
+                    "change_pct": item.get("changepercent") or 0,
+                    "change_amount": item.get("pricechange") or 0,
+                    "volume": item.get("volume") or 0,
+                    "amount": item.get("amount") or 0,
+                    "turnover": item.get("turnoverratio") or 0,
+                    "open_price": item.get("open") or 0,
+                    "high_price": item.get("high") or 0,
+                    "low_price": item.get("low") or 0,
+                    "pe": item.get("per") or 0,
+                    "pb": item.get("pb") or 0,
+                    "source": "sina",
+                }
+            )
             if float(ser.get("price") or 0) > 0:
                 rows.append(ser)
         return rows
@@ -306,15 +355,37 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             return []
 
     def pull_cn_page_quotes(self, *, max_symbols: int = 80) -> list[dict]:
-        """Bounded Tencent pull for the page path. Skips stale zero-price cache."""
+        """Bounded live pull for the page path: Sina movers first, Tencent seeds fallback."""
+        from app.modules.market_data.services.cn_quote_book import rows_have_real_quotes
+
         limit = max(1, min(int(max_symbols), 80))
+        try:
+            from concurrent.futures import ThreadPoolExecutor
+
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                fut_up = pool.submit(self.pull_cn_sina_movers, page=1, num=limit, desc=True)
+                fut_down = pool.submit(self.pull_cn_sina_movers, page=1, num=limit, desc=False)
+                up = fut_up.result(timeout=5) or []
+                down = fut_down.result(timeout=5) or []
+            merged: dict[str, dict] = {}
+            for row in list(up) + list(down):
+                if not isinstance(row, dict):
+                    continue
+                code6 = "".join(ch for ch in str(row.get("code6") or row.get("code") or "") if ch.isdigit())[-6:]
+                if code6 and code6 != "000000":
+                    merged[code6] = row
+            rows = list(merged.values())
+            if rows_have_real_quotes(rows):
+                return rows
+        except Exception as exc:
+            self.logger.warning("sina movers failed: %s", exc)
         codes = [code for code in _CN_PAGE_UNIVERSE if code][:limit]
         if not codes:
             return []
         try:
             return self._fetch_tencent_live_quotes(self._normalize_cn_symbols(codes))
         except Exception as exc:
-            self.logger.warning("pull_cn_page_quotes failed: %s", exc)
+            self.logger.warning("pull_cn_page_quotes tencent failed: %s", exc)
             return []
 
     def refresh_cn_quote_book(self, *, allow_akshare: bool = False) -> list[dict]:
@@ -658,6 +729,10 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
         cache_key = f"market:panorama:{m.value}"
         cache = self._cache  # uses injected CachePort or falls back to no-op
 
+        # CN rankings come from the delayed quote book; never cache an empty dump.
+        if m == MarketCode.CN:
+            return self._build_panorama(m)
+
         def _build() -> dict[str, object]:
             return self._build_panorama(m).model_dump()
 
@@ -701,11 +776,29 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
         try:
             if hasattr(self._market_provider, "get_market_overview"):
                 overview.update(self._market_provider.get_market_overview(m))
-            if hasattr(self._market_provider, "get_market_rankings"):
-                rankings.update(self._market_provider.get_market_rankings(m))
         except Exception as e:
-            self.logger.error("Error getting market panorama: %s", e, exc_info=True)
-        if m == MarketCode.CN and not any(rankings.get(k) for k in ("gainers", "losers")):
+            self.logger.error("Error getting market panorama overview: %s", e, exc_info=True)
+        if m != MarketCode.CN:
+            try:
+                if hasattr(self._market_provider, "get_market_rankings"):
+                    rankings.update(self._market_provider.get_market_rankings(m))
+            except Exception as e:
+                self.logger.error("Error getting market panorama rankings: %s", e, exc_info=True)
+        if m == MarketCode.CN:
+            try:
+                from app.modules.market_data.services.cn_quote_snapshot import (
+                    get_cn_quote_snapshot,
+                    hydrate_page_snapshot,
+                )
+
+                snap = get_cn_quote_snapshot()
+                hydrate_page_snapshot(snap, self)
+                rows = snap.unique_rows()
+                if rows:
+                    rankings.update(self._rankings_from_quote_rows(rows))
+            except Exception as exc:
+                self.logger.warning("panorama fallback from snapshot failed: %s", exc)
+        elif not any(rankings.get(k) for k in ("gainers", "losers")):
             try:
                 from app.modules.market_data.services.cn_quote_snapshot import (
                     get_cn_quote_snapshot,

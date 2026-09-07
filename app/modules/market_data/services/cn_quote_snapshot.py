@@ -366,13 +366,15 @@ class CnQuoteSnapshot:
         items = rows[start : start + page_size]
         with self._lock:
             stale = bool(self._by_key) and self.age_seconds >= self._ttl
+        from app.modules.market_data.services.cn_quote_book import is_book_refreshing
+
         return {
             "items": items,
             "total": total,
             "page": page,
             "page_size": page_size,
             "stats": _market_breadth_stats(self.unique_rows()),
-            "warming": False,
+            "warming": is_book_refreshing(),
             "stale": stale,
         }
 
@@ -447,6 +449,7 @@ def hydrate_page_snapshot(
     Zero-price directory/cache rows are not treated as real quotes.
     """
     from app.modules.market_data.services.cn_quote_book import (
+        book_is_fresh,
         ensure_cn_quote_book,
         load_cn_quote_book,
         rows_have_real_quotes,
@@ -457,7 +460,7 @@ def hydrate_page_snapshot(
         snapshot.bind(market_service=market_service)
     try:
         book = load_cn_quote_book()
-        if rows_have_real_quotes(book):
+        if rows_have_real_quotes(book) and book_is_fresh():
             snapshot.load_rows(book)
             return
         live_rows = _pull_live_page_quotes(market_service)

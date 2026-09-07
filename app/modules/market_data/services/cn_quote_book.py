@@ -7,6 +7,7 @@ empty, pull once so the page has the latest close. This is not TDX-tick realtime
 from __future__ import annotations
 
 import threading
+import time
 from datetime import datetime
 from typing import Any
 
@@ -17,6 +18,8 @@ logger = get_logger(__name__)
 BOOK_KEY = "quant:cn:quote:book"
 LEGACY_BOOK_KEY = "market_all_cache"
 BOOK_TTL_SEC = 24 * 3600
+BOOK_SESSION_FRESH_SEC = 15 * 60
+_WARM_RETRY_SEC = 60.0
 
 
 def rows_have_real_quotes(rows: list[dict[str, Any]] | None) -> bool:
@@ -44,6 +47,7 @@ def _coerce_book_payload(payload: Any) -> dict[str, Any] | None:
 _memory_book: dict[str, Any] | None = None
 _refreshing = False
 _warm_attempted = False
+_warm_attempted_at = 0.0
 _refresh_lock = threading.Lock()
 
 
@@ -93,14 +97,42 @@ def save_cn_quote_book(items: list[dict[str, Any]], *, source: str = "refresh") 
 
 
 def clear_cn_quote_book() -> None:
-    global _memory_book, _warm_attempted, _refreshing
+    global _memory_book, _warm_attempted, _warm_attempted_at, _refreshing
     _memory_book = None
     _warm_attempted = False
+    _warm_attempted_at = 0.0
     _refreshing = False
     try:
         _cache().delete(BOOK_KEY)
     except Exception:
         pass
+
+
+def book_age_seconds() -> float | None:
+    raw = book_updated_at()
+    if not raw:
+        return None
+    try:
+        ts = datetime.fromisoformat(str(raw))
+    except ValueError:
+        return None
+    return max(0.0, (datetime.now() - ts).total_seconds())
+
+
+def book_is_fresh() -> bool:
+    """In session, Redis book older than 15 minutes is stale and must refresh."""
+    if not rows_have_real_quotes(load_cn_quote_book()):
+        return False
+    age = book_age_seconds()
+    if age is None:
+        return False
+    if _is_cn_session():
+        return age <= BOOK_SESSION_FRESH_SEC
+    return True
+
+
+def is_book_refreshing() -> bool:
+    return _refreshing
 
 
 def book_updated_at() -> str | None:
@@ -162,7 +194,7 @@ def ensure_cn_quote_book(market_service: object | None) -> str:
 
     One attempt per process. Does not refresh an existing book off-hours.
     """
-    global _refreshing, _warm_attempted
+    global _refreshing, _warm_attempted, _warm_attempted_at
     if rows_have_real_quotes(load_cn_quote_book()):
         return "present"
     if not live_quote_pull_enabled():
@@ -172,10 +204,12 @@ def ensure_cn_quote_book(market_service: object | None) -> str:
     with _refresh_lock:
         if _refreshing:
             return "in_flight"
-        if _warm_attempted:
+        now = time.monotonic()
+        if _warm_attempted and (now - _warm_attempted_at) < _WARM_RETRY_SEC:
             return "attempted"
         _refreshing = True
         _warm_attempted = True
+        _warm_attempted_at = now
 
     def _run() -> None:
         global _refreshing
