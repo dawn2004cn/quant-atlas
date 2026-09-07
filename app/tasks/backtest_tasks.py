@@ -20,6 +20,8 @@ def run_strategy_backtest(
     start: str,
     end: str,
     initial_capital: float = 100000.0,
+    commission_rate: float = 0.0003,
+    slippage_bps: float = 8.0,
 ) -> dict[str, Any]:
     """Run backtest synchronously (usable from Celery worker or inline)."""
     from app.bootstrap_components.service_wiring import get_registry
@@ -34,6 +36,8 @@ def run_strategy_backtest(
         start=start,
         end=end,
         initial_capital=initial_capital,
+        commission_rate=commission_rate,
+        slippage_bps=slippage_bps,
     )
     result = strategy_service.backtest(
         symbol=dto.symbol,
@@ -41,6 +45,8 @@ def run_strategy_backtest(
         start=dto.start,
         end=dto.end,
         initial_capital=dto.initial_capital,
+        commission_rate=dto.commission_rate,
+        slippage_bps=dto.slippage_bps,
     )
     if isinstance(result, dict) and result.get("error"):
         raise ValidationError(str(result["error"]))
@@ -62,6 +68,8 @@ def submit_strategy_backtest(
     start: str,
     end: str,
     initial_capital: float = 100000.0,
+    commission_rate: float = 0.0003,
+    slippage_bps: float = 8.0,
     client_idempotency_key: str | None = None,
 ) -> dict[str, Any]:
     """Submit async backtest when Celery is configured; else run inline.
@@ -76,6 +84,8 @@ def submit_strategy_backtest(
         "start": start,
         "end": end,
         "initial_capital": initial_capital,
+        "commission_rate": commission_rate,
+        "slippage_bps": slippage_bps,
     }
     if run_strategy_backtest_task is not None:
         from app.infrastructure.messaging.celery_reliability import enqueue_task_idempotent
@@ -112,6 +122,8 @@ if _celery is not None:
         start: str,
         end: str,
         initial_capital: float = 100000.0,
+        commission_rate: float = 0.0003,
+        slippage_bps: float = 8.0,
     ) -> dict[str, Any]:
         return run_strategy_backtest(
             symbol=symbol,
@@ -119,6 +131,8 @@ if _celery is not None:
             start=start,
             end=end,
             initial_capital=initial_capital,
+            commission_rate=commission_rate,
+            slippage_bps=slippage_bps,
         )
 
 else:

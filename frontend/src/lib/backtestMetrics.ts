@@ -93,9 +93,18 @@ export function extractMetricCards(result: Record<string, unknown>) {
   };
   const totalReturn = pick("total_return", "total_return_pct");
   const maxDd = pick("max_drawdown_pct") ?? pick("max_drawdown", "max_drawdown_pct");
+  const formatNum = (value: unknown) => {
+    if (value == null || value === "") return null;
+    const n = Number(value);
+    return Number.isNaN(n) ? String(value) : n.toFixed(2);
+  };
   return [
     { label: "总收益", value: formatPercentMetric(totalReturn) ?? totalReturn },
     { label: "夏普", value: pick("sharpe", "sharpe_ratio") },
+    { label: "索提诺", value: formatNum(pick("sortino")) },
+    { label: "卡玛", value: formatNum(pick("calmar")) },
+    { label: "Omega", value: formatNum(pick("omega_ratio", "omega")) },
+    { label: "CVaR 95", value: formatPercentMetric(pick("cvar_95")) },
     { label: "最大回撤", value: formatDrawdownMetric(maxDd) ?? maxDd },
     { label: "胜率", value: formatPercentMetric(pick("win_rate", "winrate")) ?? pick("win_rate", "winrate") },
   ].filter((row) => row.value != null);

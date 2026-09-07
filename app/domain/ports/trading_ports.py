@@ -34,6 +34,8 @@ class BacktestProvider(ABC):
         start: str,
         end: str,
         initial_capital: float = 100000.0,
+        commission_rate: float | None = None,
+        slippage_bps: float | None = None,
     ) -> dict[str, Any]:
         """Run backtest and return results."""
         raise NotImplementedError

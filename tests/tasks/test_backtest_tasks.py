@@ -26,21 +26,28 @@ def test_run_strategy_backtest_raises_without_service(monkeypatch):
 
 
 def test_submit_strategy_backtest_sync_mode(monkeypatch):
+    captured: dict = {}
+
+    def _run(**kwargs):
+        captured.update(kwargs)
+        return {"status": "ok"}
+
     monkeypatch.setattr("app.tasks.backtest_tasks.run_strategy_backtest_task", None)
-    monkeypatch.setattr(
-        "app.tasks.backtest_tasks.run_strategy_backtest",
-        lambda **kwargs: {"status": "ok"},
-    )
+    monkeypatch.setattr("app.tasks.backtest_tasks.run_strategy_backtest", _run)
 
     result = submit_strategy_backtest(
         symbol="600519",
         strategy_name="MA",
         start="2024-01-01",
         end="2024-06-01",
+        commission_rate=0.0008,
+        slippage_bps=15.0,
     )
 
     assert result["status"] == "completed"
     assert result["mode"] == "sync"
+    assert captured["commission_rate"] == 0.0008
+    assert captured["slippage_bps"] == 15.0
 
 
 def test_submit_strategy_backtest_idempotent_enqueue(monkeypatch):
@@ -87,3 +94,35 @@ def test_submit_strategy_backtest_idempotent_enqueue(monkeypatch):
     assert second["task_id"] == first["task_id"]
     assert second["deduplicated"] is True
     assert len(apply_calls) == 1
+    assert apply_calls[0]["kwargs"]["commission_rate"] == 0.0003
+    assert apply_calls[0]["kwargs"]["slippage_bps"] == 8.0
+
+
+def test_run_strategy_backtest_forwards_costs(monkeypatch):
+    captured: dict = {}
+
+    class _Svc:
+        def backtest(self, **kwargs):
+            captured.update(kwargs)
+            return {"status": "ok", "total_return": 0.1}
+
+    monkeypatch.setattr(
+        "app.bootstrap_components.service_wiring.get_registry",
+        lambda: MagicMock(get_or_none=lambda _name: _Svc()),
+    )
+    monkeypatch.setattr(
+        "app.tasks.backtest_tasks.attach_mlflow_run_id",
+        lambda payload, **kw: payload.model_dump() if hasattr(payload, "model_dump") else payload,
+    )
+
+    run_strategy_backtest(
+        symbol="600519",
+        strategy_name="MA",
+        start="2024-01-01",
+        end="2024-06-01",
+        commission_rate=0.002,
+        slippage_bps=20.0,
+    )
+
+    assert captured["commission_rate"] == 0.002
+    assert captured["slippage_bps"] == 20.0

@@ -4,6 +4,69 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-05 (异步回测成本透传 + auto_tuning 真实评分)
+
+### 问题
+- V2 `?async=1` 已把 `commission_rate`/`slippage_bps` 打进 facade，但 `run_backtest_async` 不接收这两个参数，生产路径会 TypeError
+- Celery `submit_strategy_backtest` / `run_strategy_backtest` 未把成本写入 payload，不同费率会错误去重
+- `WalkForwardOptimizer._evaluate_params` 写死 Sharpe=1.2；`_bayesian_search` 用 `random.uniform` 冒充 Optuna
+
+### 交付
+| 区域 | 文件 | 要点 |
+|------|------|------|
+| Facade / Task | `backtest_facade.py`、`backtest_tasks.py` | 异步回测与同步路径一样透传成本 |
+| Auto-tune | `domain/optimization/auto_tuning.py` | 用 `strategy_returns` 打分，参数会改变收益 |
+
+### 验证
+- `pytest tests/facade/test_backtest_facade.py tests/tasks/test_backtest_tasks.py tests/presentation/test_v2_backtest_async.py tests/domain/optimization/test_auto_tuning_signals.py`
+
+---
+
+## 2026-09-05 (补齐空壳：真实 IC / Hyperopt 信号 / 因子评分)
+
+### 问题
+- `compute_ic_decay` 用正弦波冒充因子；alpha mining `_fitness` 用表达式长度；`orthogonalize` 用随机向量
+- `DefaultWalkForwardOptimizer._evaluate` 忽略参数，对买入持有打分
+- `FactorPerformanceEngine.score_factor` 恒为 1.0，无法触发 immune 压力测试
+
+### 交付
+| 区域 | 文件 | 要点 |
+|------|------|------|
+| 表达式 | `app/domain/quant/expression.py` | gplearn 风格安全求值，禁止 `eval` |
+| 信号 | `app/domain/quant/signals.py` | MA/RSI/动量/period→动量，FastBacktest 与 hyperopt 共用 |
+| 挖掘 | `alpha_mining_service.py` | 真实 Rank IC 适应度、IC decay、有 features 时 Gram-Schmidt |
+| 因子引擎 | `factor_performance_engine.py` | `record()` / `diagnose()` / `1+abs(rank_ic)` |
+| Walk-forward | `walk_forward.py` + `WalkForwardService.hyperopt` | 参数改变策略收益 |
+| API | `routes_v1_quant_capability.py` | `POST /quant/{evaluate-expression,ic-decay,hyperopt}` |
+| 挖掘路由 | `routes_v1_alpha_mining.py` | body 带 `features`+`returns` 时走真实 IC |
+
+### 验证
+- `pytest tests/domain/quant tests/modules/strategy/test_alpha_mining_real_ic.py tests/modules/strategy/test_walk_forward_hyperopt.py tests/modules/strategy/test_fast_backtest_engine.py tests/infrastructure/test_walk_forward_evaluate.py tests/presentation/api/test_quant_capability_routes.py`
+
+---
+
+## 2026-09-05 (Quant Capability Kernel：对照 QuantStats / Alphalens / HRP)
+
+### 问题
+- 对照 Qlib / QuantStats / Alphalens / PyPortfolioOpt / Freqtrade / vn.py 后，Atlas 已有回测与组合优化，但缺少可复用的 QuantStats 级绩效核、真实因子 IC 诊断，以及 HRP 配置
+- V2 回测 DTO/API 未透传手续费与滑点；FastBacktestEngine 预览忽略模板、等同买入持有
+
+### 交付
+| 区域 | 文件 | 要点 |
+|------|------|------|
+| 领域核 | `app/domain/quant/{tearsheet,factor_diagnostics,hrp}.py` | Omega/CVaR/Ulcer/修复因子；Rank IC/ICIR/分位；Lopez de Prado HRP |
+| 回测指标 | `app/infrastructure/agent/backtest/metrics.py` | 生产 `calc_metrics` 附加 tearsheet 字段 |
+| 组合 | `app/domain/allocation/portfolio_optimizer.py` | `method="hrp"` |
+| 预览引擎 | `fast_backtest_engine.py` | MA / RSI / 动量模板真实信号，未知模板才回退买入持有 |
+| 成本透传 | DTO / Facade / Provider / V2 `/backtest` | `commission_rate` + `slippage_bps` |
+| API | `routes_v1_quant_capability.py` | `POST /api/v1/quant/{tearsheet,factor-diagnostics,hrp}` |
+| 前端 | `Backtest.tsx` / `backtestMetrics.ts` | 成本输入 + Sortino/Calmar/Omega/CVaR 卡片 |
+
+### 验证
+- `pytest tests/domain/quant tests/domain/test_portfolio_optimizer_hrp.py tests/modules/strategy/test_fast_backtest_engine.py tests/infrastructure/test_quant_tearsheet_metrics.py tests/presentation/api/test_quant_capability_routes.py`
+
+---
+
 ## 2026-08-31 (SPA 数据解包 + 开发环境 WS 硬化 + Signal Observation 修复)
 
 ### 问题

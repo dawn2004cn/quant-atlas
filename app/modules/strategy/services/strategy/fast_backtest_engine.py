@@ -95,16 +95,20 @@ class FastBacktestEngine:
         }
 
     def _apply_strategy_logic(self, df: pd.DataFrame, params: dict[str, Any], template_id: str) -> pd.Series:
-        """Apply a simplified version of the strategy logic to the data."""
-        if 'close' not in df.columns:
-            price_col = next((c for c in df.columns if 'close' in c.lower()), None)
+        """Apply a simplified template signal; unknown templates fall back to buy-and-hold."""
+        work = df.copy()
+        if "close" not in work.columns:
+            price_col = next((c for c in work.columns if "close" in str(c).lower()), None)
             if price_col:
-                df = df.rename(columns={price_col: 'close'})
+                work = work.rename(columns={price_col: "close"})
             else:
-                return pd.Series(0, index=df.index)
+                return pd.Series(0.0, index=work.index)
 
-        returns = df['close'].pct_change().fillna(0)
-        return returns
+        close = pd.to_numeric(work["close"], errors="coerce")
+        from app.domain.quant.signals import strategy_returns
+
+        rets = strategy_returns(close.tolist(), params, (template_id or "").strip().lower() or "buy_hold")
+        return pd.Series(rets, index=close.index, dtype=float)
 
     def _calculate_max_drawdown(self, returns: pd.Series) -> float:
         cum_returns = (1 + returns).cumprod()

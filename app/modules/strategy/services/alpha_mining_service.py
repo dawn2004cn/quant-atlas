@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any
 
 from app.core.logger import get_logger
+from app.domain.quant.expression import ExpressionError, evaluate_expression, features_from_returns
+from app.domain.quant.factor_diagnostics import diagnose_factor
 
 logger = get_logger(__name__)
 
@@ -165,24 +167,66 @@ class AutoAlphaMiningService:
 
     # ── New methods (Phase A Step 3) ──────────────────────────────────────────
 
-    def compute_ic_decay(self, factor_expression: str, returns_data: list[float],
-                         lookback_windows: list[int] | None = None) -> dict:
-        """Estimate IC decay half-life by computing IC over multiple lookback windows.
+    def fitness_from_ic(
+        self,
+        expression: str,
+        features: dict[str, list[float]],
+        returns: list[float],
+    ) -> float:
+        """Absolute Rank IC of a GP expression against aligned forward returns."""
+        try:
+            values = evaluate_expression(expression, features)
+        except (ExpressionError, ValueError, ZeroDivisionError):
+            return -1.0
+        if len(values) != len(returns):
+            return -1.0
+        return abs(float(diagnose_factor(values, returns)["rank_ic"]))
 
-        Args:
-            factor_expression: The factor expression to evaluate.
-            returns_data: Sequence of historical returns (most recent last).
-            lookback_windows: List of window lengths in trading days (default [20, 60, 120]).
+    def make_fitness(
+        self,
+        features: dict[str, list[float]] | None = None,
+        returns: list[float] | None = None,
+    ) -> Callable[[str], float]:
+        """Real IC fitness when features+returns are provided; length dummy otherwise."""
+        if features and returns:
+            def _ic_fitness(expr: str) -> float:
+                score = self.fitness_from_ic(expr, features, returns)
+                self._best_fitness = max(self._best_fitness, score)
+                return score
 
-        Returns:
-            Dict with per-window IC values and estimated half-life in trading days.
-        """
+            return _ic_fitness
+
+        def _dummy(expr: str) -> float:
+            return len(expr) * 0.01 + 0.5
+
+        return _dummy
+
+    def compute_ic_decay(
+        self,
+        factor_expression: str,
+        returns_data: list[float],
+        lookback_windows: list[int] | None = None,
+        factor_values: list[float] | None = None,
+        features: dict[str, list[float]] | None = None,
+    ) -> dict:
+        """Estimate IC decay half-life from a real factor series (Alphalens-style)."""
         if lookback_windows is None:
             lookback_windows = [20, 60, 120]
+        else:
+            lookback_windows = [int(w) for w in lookback_windows]
         if not returns_data:
             return {"ic_by_window": {}, "half_life": None, "error": "no_returns_data"}
 
-        signal = [math.sin(i * 0.1) * (1 + len(factor_expression) * 0.01) for i in range(len(returns_data))]
+        signal = factor_values
+        if signal is None:
+            feats = features or features_from_returns(returns_data)
+            try:
+                signal = evaluate_expression(factor_expression, feats)
+            except (ExpressionError, ValueError) as exc:
+                return {"ic_by_window": {}, "half_life": None, "error": str(exc)}
+
+        if len(signal) != len(returns_data):
+            return {"ic_by_window": {}, "half_life": None, "error": "length_mismatch"}
 
         ic_by_window = {}
         for w in lookback_windows:
@@ -190,15 +234,10 @@ class AutoAlphaMiningService:
                 continue
             recent_returns = returns_data[-w:]
             recent_signal = signal[-w:]
-            n = len(recent_returns)
-            if n < 3:
+            if len(recent_returns) < 3:
                 ic_by_window[str(w)] = 0.0
                 continue
-            rank_r = sorted(range(n), key=lambda i: recent_returns[i])
-            rank_s = sorted(range(n), key=lambda i: recent_signal[i])
-            d_sq = sum((rank_r[i] - rank_s[i]) ** 2 for i in range(n))
-            rho = 1.0 - (6.0 * d_sq) / (n * (n * n - 1))
-            ic_by_window[str(w)] = round(rho, 4)
+            ic_by_window[str(w)] = round(float(diagnose_factor(recent_signal, recent_returns)["rank_ic"]), 4)
 
         ic_values = [v for v in ic_by_window.values() if v is not None]
         half_life = None
@@ -213,27 +252,27 @@ class AutoAlphaMiningService:
 
         return {"ic_by_window": ic_by_window, "half_life": half_life}
 
-    def orthogonalize(self, factors: list) -> list:
-        """Decorrelate a list of factors using Gram-Schmidt orthogonalization.
-
-        The first factor is kept as-is; each subsequent factor has its projection
-        onto all previous (already orthogonalized) factors subtracted.
-
-        Args:
-            factors: List of AlphaFactor instances to orthogonalize.
-
-        Returns:
-            New list of AlphaFactor instances with decorrelated expressions.
-        """
+    def orthogonalize(self, factors: list, features: dict[str, list[float]] | None = None) -> list:
+        """Decorrelate factor series with Gram-Schmidt (real features when provided)."""
         if not factors:
             return []
 
-        def _to_vector(expr: str, length: int = 50) -> list[float]:
-            random.seed(hash(expr) & 0xFFFFFFFF)
-            return [random.gauss(0, 1) for _ in range(length)]
+        if features:
+            vectors = []
+            fallback_len = len(next(iter(features.values())))
+            for f in factors:
+                try:
+                    vectors.append(evaluate_expression(f.expression, features))
+                except (ExpressionError, ValueError):
+                    vectors.append([0.0] * fallback_len)
+            vec_length = len(vectors[0]) if vectors else 0
+        else:
+            def _to_vector(expr: str, length: int = 50) -> list[float]:
+                random.seed(hash(expr) & 0xFFFFFFFF)
+                return [random.gauss(0, 1) for _ in range(length)]
 
-        vec_length = 50
-        vectors = [_to_vector(f.expression, vec_length) for f in factors]
+            vec_length = 50
+            vectors = [_to_vector(f.expression, vec_length) for f in factors]
 
         ortho_vectors = []
         result = []
@@ -262,6 +301,7 @@ class AutoAlphaMiningService:
                 parent_ids=f.parent_ids,
                 orthogonalized=True,
             )
+            new_factor.residual_norm = math.sqrt(sum(x * x for x in ortho_vec))
             result.append(new_factor)
 
         logger.info("Orthogonalized %d factors -> %d decorrelated factors", len(factors), len(result))

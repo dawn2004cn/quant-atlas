@@ -34,9 +34,13 @@ def register_alpha_mining_routes(bp: Blueprint, ctx: ApiV1Context) -> None:
 
         svc.seed_population(size=population_size)
 
-        # Dummy fitness function — in production, replace with real IC computation
-        def _fitness(expr: str) -> float:
-            return len(expr) * 0.01 + 0.5
+        features = body.get("features")
+        returns = body.get("returns")
+        if not isinstance(features, dict):
+            features = None
+        if not isinstance(returns, list):
+            returns = None
+        _fitness = svc.make_fitness(features, returns)
 
         for _ in range(generations):
             svc.evolve(fitness_fn=_fitness, population_size=population_size)
@@ -116,7 +120,10 @@ def register_alpha_mining_routes(bp: Blueprint, ctx: ApiV1Context) -> None:
             raise ValidationError("factor_not_found")
 
         others = [f for f in all_factors if f.factor_id != factor_id]
-        ortho = svc.orthogonalize([target] + others)
+        features = (request.get_json(silent=True) or {}).get("features")
+        if not isinstance(features, dict):
+            features = None
+        ortho = svc.orthogonalize([target] + others, features=features)
         return ok_response(
             data={
                 "factor_id": factor_id,

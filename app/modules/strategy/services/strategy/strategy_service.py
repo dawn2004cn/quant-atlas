@@ -313,6 +313,8 @@ class StrategyApplicationService(BaseApplicationService):
         start: str,
         end: str,
         initial_capital: float = 100000.0,
+        commission_rate: float | None = None,
+        slippage_bps: float | None = None,
     ) -> GenericResponseDTO:
         """Run backtest for a symbol with given strategy."""
         if self._backtest_provider is None:
@@ -324,6 +326,8 @@ class StrategyApplicationService(BaseApplicationService):
                 start=start,
                 end=end,
                 initial_capital=initial_capital,
+                commission_rate=commission_rate,
+                slippage_bps=slippage_bps,
             )
         except Exception as e:
             self.logger.error(f"Backtest failed: {e}")

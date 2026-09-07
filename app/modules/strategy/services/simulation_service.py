@@ -169,6 +169,47 @@ class WalkForwardService:
             robust=avg_oos > avg_is * 0.5,
         )
 
+    def hyperopt(
+        self,
+        prices: list[float],
+        param_grid: dict[str, list],
+        strategy: str = "trend_following_basic",
+        train_ratio: float = 0.8,
+        max_trials: int = 200,
+    ) -> dict:
+        """Grid-search strategy params on prices; score in-sample vs out-of-sample Sharpe."""
+        from itertools import product
+
+        from app.domain.quant.signals import strategy_returns
+
+        keys = list(param_grid.keys())
+        values = [list(v) for v in param_grid.values()]
+        if not keys or not all(values):
+            return {"best": None, "n_trials": 0, "trials": []}
+
+        trials: list[dict] = []
+        best: dict | None = None
+        for combo in product(*values):
+            if len(trials) >= max_trials:
+                break
+            params = dict(zip(keys, combo))
+            rets = strategy_returns(prices, params, strategy)
+            split = max(10, int(len(rets) * train_ratio))
+            is_rets = rets[:split]
+            oos_rets = rets[split:]
+            is_sharpe = self._compute_sharpe(is_rets)
+            oos_sharpe = self._compute_sharpe(oos_rets) if len(oos_rets) >= 2 else 0.0
+            trial = {
+                "params": params,
+                "in_sample_sharpe": round(is_sharpe, 4),
+                "out_of_sample_sharpe": round(oos_sharpe, 4),
+            }
+            trials.append(trial)
+            if best is None or oos_sharpe > best["out_of_sample_sharpe"]:
+                best = trial
+
+        return {"best": best, "n_trials": len(trials), "trials": trials[:20]}
+
     def _compute_sharpe(self, returns: list[float], rf: float = 0.0) -> float:
         if len(returns) < 2:
             return 0.0

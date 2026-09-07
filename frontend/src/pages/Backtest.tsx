@@ -82,6 +82,8 @@ export function BacktestPage() {
   const [start, setStart] = useState(dates.start);
   const [end, setEnd] = useState(dates.end);
   const [capital, setCapital] = useState(100_000);
+  const [commissionRate, setCommissionRate] = useState(0.0003);
+  const [slippageBps, setSlippageBps] = useState(8);
   const [asyncMode, setAsyncMode] = useState(false);
 
   const [templateId, setTemplateId] = useState("");
@@ -116,7 +118,15 @@ export function BacktestPage() {
     setResult(null);
     try {
       const data = await runBacktest(
-        { symbol, strategy_name: strategy, start, end, initial_capital: capital },
+        {
+          symbol,
+          strategy_name: strategy,
+          start,
+          end,
+          initial_capital: capital,
+          commission_rate: commissionRate,
+          slippage_bps: slippageBps,
+        },
         asyncMode,
         (progress) => {
           setAsyncTaskId(progress.taskId);
@@ -224,6 +234,14 @@ export function BacktestPage() {
               <div>
                 <label className="mb-1.5 block text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">初始资金</label>
                 <input type="number" className="w-full rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-200 focus:border-emerald-500/40 focus:outline-none focus:ring-1 focus:ring-emerald-500/20" min={1000} step={1000} value={capital} onChange={(e) => setCapital(Number(e.target.value))} required />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">手续费率</label>
+                <input type="number" className="w-full rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-200 focus:border-emerald-500/40 focus:outline-none focus:ring-1 focus:ring-emerald-500/20" min={0} max={0.01} step={0.0001} value={commissionRate} onChange={(e) => setCommissionRate(Number(e.target.value))} />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[10px] font-mono uppercase tracking-[0.12em] text-zinc-500">滑点 (bps)</label>
+                <input type="number" className="w-full rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-2 text-sm text-zinc-200 focus:border-emerald-500/40 focus:outline-none focus:ring-1 focus:ring-emerald-500/20" min={0} max={200} step={1} value={slippageBps} onChange={(e) => setSlippageBps(Number(e.target.value))} />
               </div>
               <div className="flex items-center gap-3 pt-6">
                 <input type="checkbox" id="async" className="h-4 w-4 rounded border-zinc-700 bg-zinc-800 text-emerald-500 focus:ring-emerald-500/30" checked={asyncMode} onChange={(e) => setAsyncMode(e.target.checked)} />

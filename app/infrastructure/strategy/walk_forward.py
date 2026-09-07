@@ -164,26 +164,38 @@ class DefaultWalkForwardOptimizer(WalkForwardOptimizerPort):
         params: dict[str, float],
         objective: str,
     ) -> dict[str, float]:
-        prices = data["Close"] if "Close" in data.columns else data.iloc[:, 0]
+        if "Close" in data.columns:
+            prices = data["Close"]
+        elif "close" in data.columns:
+            prices = data["close"]
+        else:
+            prices = data.iloc[:, 0]
 
-        period = int(params.get("period", 20))
-        params.get("threshold", 0.02)
-
-        if len(prices) < period + 1:
+        min_len = int(
+            params.get("slow_ma")
+            or params.get("period")
+            or params.get("rsi_period")
+            or params.get("lookback_period")
+            or 20
+        )
+        if len(prices) < min_len + 1:
             return {"sharpe_ratio": -999, "total_return": -1}
 
-        returns = prices.pct_change().dropna()
+        from app.domain.quant.signals import strategy_returns
 
-        if len(returns) < 2:
+        rets = strategy_returns([float(x) for x in prices.tolist()], params, strategy="auto")
+        if len(rets) < 2:
             return {"sharpe_ratio": -999, "total_return": -1}
 
-        total_return = (prices.iloc[-1] / prices.iloc[0]) - 1
+        returns = pd.Series(rets)
+        equity = (1 + returns).cumprod()
+        total_return = float(equity.iloc[-1] - 1)
 
-        mean_return = returns.mean() * 252
-        std_return = returns.std() * np.sqrt(252)
+        mean_return = float(returns.mean() * 252)
+        std_return = float(returns.std() * np.sqrt(252))
         sharpe = (mean_return - self._rf) / std_return if std_return > 0 else 0
 
-        mdd = self._compute_max_drawdown(prices)
+        mdd = self._compute_max_drawdown(equity)
 
         return {
             "total_return": total_return,
