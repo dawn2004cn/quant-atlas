@@ -4,6 +4,12 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-07 (E2E：个股页改为等待 DOMContentLoaded)
+
+Playwright `page.goto` 默认 `waitUntil=load`。个股页有大段内联脚本和 Lightweight Charts，CI 上 `load` 常 30s 超时，而 `/backtest` 等页正常。E2E 只断言 title/body，改为 `domcontentloaded`；模板里 team_context / charts 脚本加 `defer`，避免挡住解析。
+
+---
+
 ## 2026-09-07 (E2E：直播拉取入口全部守门，避免个股页超时)
 
 ### 根因
