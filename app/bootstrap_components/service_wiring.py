@@ -125,17 +125,20 @@ def _make_market_service(reg):
 
 
 
-    return MarketApplicationService(
-
-        get_market_data_provider(),
-
+    provider = get_market_data_provider()
+    svc = MarketApplicationService(
+        provider,
         CnIndustryProvider(),
-
         stock_cache=create_stock_cache(),
-
         cache=create_cache_port(),
-
     )
+    try:
+        from app.modules.market_data.services.cn_quote_snapshot import configure_cn_quote_snapshot
+
+        configure_cn_quote_snapshot(market_service=svc, market_provider=provider)
+    except Exception:
+        logger.warning("configure_cn_quote_snapshot skipped", exc_info=True)
+    return svc
 
 
 

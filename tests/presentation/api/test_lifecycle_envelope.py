@@ -25,7 +25,7 @@ def test_success_response_canonical_envelope():
 
 
 @patch("app.modules.market_data.services.market_service.get_quote_cache_port")
-def test_market_panorama_uses_cache_on_second_call(mock_get_quote_cache_port):
+def test_cn_panorama_skips_provider_rankings_dump(mock_get_quote_cache_port):
     from app.modules.market_data.services.market_service import MarketApplicationService
 
     mock_get_quote_cache_port.return_value = MagicMock()
@@ -37,27 +37,21 @@ def test_market_panorama_uses_cache_on_second_call(mock_get_quote_cache_port):
         "amounts": [],
         "turnovers": [],
     }
-    stored: dict[str, object] = {}
     cache = MagicMock()
-
-    def _get_or_set(key: str, factory, *, ttl=None):
-        if key in stored:
-            return stored[key]
-        value = factory()
-        stored[key] = value
-        return value
-
-    cache.get_or_set.side_effect = _get_or_set
-
     svc = MarketApplicationService(
         market_provider=provider,
         industry_provider=MagicMock(),
         stock_cache=None,
         cache=cache,
     )
-    first = svc.get_panorama(MarketCode.CN)
-    second = svc.get_panorama(MarketCode.CN)
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=False,
+    ):
+        first = svc.get_panorama(MarketCode.CN)
+        second = svc.get_panorama(MarketCode.CN)
 
     assert first.market_status == "open"
     assert second.sentiment_score == pytest.approx(55.0)
-    assert provider.get_market_rankings.call_count == 1
+    assert provider.get_market_rankings.call_count == 0
+    cache.get_or_set.assert_not_called()

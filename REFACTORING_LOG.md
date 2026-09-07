@@ -4,6 +4,208 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-07 (E2E：个股页改为 HTTP 断言，避免 Playwright 渲染巨页)
+
+### 根因
+- `/stock/000001` SSR 不拉行情，但模板约 2500 行，内联 JS 约 2000 行，DOMContentLoaded 后会打 history / decision-brief / jarvis 等 API
+- Playwright 执行该页：第一次 `goto` 约 25s 后 Chromium session 关闭（`toHaveTitle` 收到空 title），随后 Flask 被残留请求占死，`/backtest` 也 30s 超时
+- `domcontentloaded` + vendor `defer` 不够：内联脚本仍会跑，且 `defer` 的 LightweightCharts 会在内联脚本之后才加载
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `06_stock_detail.spec.ts` | 带登录 cookie 的 `page.request.get`，断言 200 且 HTML 含 `000001` / 个股详情；不执行页面 JS |
+| `07_backtest.spec.ts` | `waitUntil=domcontentloaded`，避免被其它页残留资源拖到 `load` |
+| `stock_detail.html` / `team_context_bar.html` | 撤回 vendor `defer`，恢复图表脚本在内联代码前同步加载 |
+
+---
+
+## 2026-09-07 (E2E：直播拉取入口全部守门，避免个股页超时)
+
+### 根因
+- `pull_cn_sina_movers` / `pull_cn_page_quotes` 未检查 `CN_QUOTE_LIVE_PULL`
+- 页面路径用 `ThreadPoolExecutor` 拉新浪：`result(timeout=5)` 到期后 `shutdown(wait=True)` 仍会等 DNS/TLS
+- 个股详情书空时仍同步打腾讯，E2E 单线程/GIL 下 `/stock/000001` 30s 超时
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `pull_cn_sina_movers` / `pull_cn_page_quotes` / `_fetch_tencent_live_quotes` | `live_quote_pull_enabled()` 为假立即返回 |
+| `pull_cn_page_quotes` | 改为顺序拉取，timeout=(2, 4)，不再用线程池 |
+| `get_stock_detail` | `CN_QUOTE_LIVE_PULL=0` 且书空时不打 provider 实时 |
+
+---
+
+## 2026-09-07 (全景及时准确：新浪涨跌幅 + 过期书刷新)
+
+### 根因
+- SPA `/panorama` 先读 provider 全市场排行（stock_cache 零价也会当成已有榜），骨架屏挡住 `quotes/page`
+- Redis 书 24h TTL，交易时段过期后页面仍展示旧价
+- 仅 56 只蓝筹无法构成真实涨幅榜 / 涨停过滤
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `pull_cn_sina_movers` | 新浪 `hs_a` 涨跌幅（4s 超时），东财 clist 在本环境 502 |
+| `pull_cn_page_quotes` | 并行拉涨幅+跌幅，失败再腾讯种子 |
+| `_build_panorama` CN | 只走 hydrate 快照，不读 provider 全市场 dump |
+| `book_is_fresh` | 交易时段超过 15 分钟强制再拉 |
+| `ensure_cn_quote_book` | 失败 60s 后允许重试 |
+| `MarketPanorama.tsx` | 不再等 panorama 才渲染列表 |
+
+---
+
+## 2026-09-06 (空书 / 零价缓存不再挡住真实行情)
+
+### 根因
+- `hydrate_page_snapshot` 曾把种子目录、stock_cache 零价行当成「已有行情」
+- `pull_cn_page_quotes` 走 `get_quotes`，QuoteCache 里 `price=0` 的 key 算命中，不再请求腾讯
+- 旧 worker 写 `market_all_cache`，新页面只读 `quant:cn:quote:book`
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_book.rows_have_real_quotes` | 仅 `price>0` 算真行情；空书 / 零价书继续刷新 |
+| `load/save_cn_quote_book` | 兼容读写 `market_all_cache` |
+| `get_quotes` | 缓存价 ≤0 视为未命中 |
+| `pull_cn_page_quotes` | 直打 `TencentQuoteGateway`，不读 QuoteCache |
+| `hydrate_page_snapshot` | 无真实行情时同步拉腾讯并写 Redis 书 |
+
+---
+
+## 2026-09-06 (E2E 关闭页面路径腾讯拉取)
+
+- `CN_QUOTE_LIVE_PULL=0` 时 `ensure` / 腾讯种子都不打外网，全景走种子目录
+- CI Flask 设置该开关，避免 GitHub runner 访问腾讯把 `/stock/000001` 卡死
+
+---
+
+## 2026-09-06 (空书每进程只暖机一次，避免 E2E 卡死)
+
+- 工厂创建服务时不再立刻 `ensure`（腾讯分批会占满 GIL，E2E `/stock/000001` 超时）
+- `ensure_cn_quote_book` 每个进程只调度一次；全景仍展示 `cached_at`
+
+---
+
+## 2026-09-05 (非交易时段 Redis 空书补拉一次)
+
+### 约定
+- 交易时段：每 5–15 分钟刷新
+- 夜盘 / 周末 / 其他时段：书在则不刷；**书空则拉一次**（启动 `wire`、页面 hydrate、Celery tick）
+
+---
+
+## 2026-09-05 (个股详情 /quotes 不再同步拉 25 年 K 线)
+
+### 根因
+- 首页 `GET /api/v1/quotes?symbol=sh000001` 走 `get_stock_detail` → `get_history(2000-01-01, 2099-12-31)`
+- 空库时 AkShare / 通达信 TCP 无超时，卡住 Flask GIL；E2E `/stock/000001` 与 `/backtest` 的 `page.goto` 30s 超时
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `stock_service.get_stock_detail` | CN 实时价先读 Redis 书；指标只用已缓存 K 线，不拉直播历史 |
+| `history_adapters.py` | `CN_HISTORY_REMOTE=0` 时跳过 akshare / tdx_tcp |
+| `.github/workflows/ci.yml` | E2E Flask 设 `CN_HISTORY_REMOTE=0` |
+
+---
+
+## 2026-09-05 (全市场行情改回 Redis 延迟快照)
+
+### 约定
+- 页面只读 `quant:cn:quote:book`（内存 + Redis），不追求通达信 PC 级实时
+- 交易时段 Celery 每 5–15 分钟刷新（默认 10 分钟，`CN_QUOTE_BOOK_MINUTES`）
+- 刷新走腾讯分批，必要时 worker 才打 AkShare；请求线程不拉全市场
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_book.py` | `load/save_cn_quote_book`，空书时后台暖机 |
+| `market_service.refresh_cn_quote_book` | 写入 Redis 并回填进程快照 |
+| `cn_quote_book_tasks.py` + `celery_app.py` | beat `cn-quote-book-refresh` |
+| `hydrate_page_snapshot` | 先读 Redis 书（覆盖进程内旧快照 / stock_cache），空书才腾讯种子 / 目录兜底 |
+
+### 验证
+- `pytest tests/modules/market_data/test_cn_quote_book.py` 等 24 passed
+
+---
+
+## 2026-09-05 (首页 daily-workbench 仍打 AkShare 卡住 E2E)
+
+### 根因
+- `/` 操盘台聚合 `get_sentiment` → `ak.stock_zh_a_spot_em()`，`_build_limit_up_stocks` → `list_quotes(CN)` 全市场
+- 首页一开就卡住 Flask，全景/个股页 `page.goto` 30s 超时，列表继续空
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `market_service.py` | 情绪涨跌家数改用快照 `_snapshot_breadth`，不再打 AkShare |
+| `daily_workbench_service.py` | 涨停榜走 `hydrate_page_snapshot` + `query_page(limit_up)` |
+
+### 验证
+- `pytest tests/modules/market_data/test_market_service_sentiment.py tests/modules/strategy/test_daily_workbench_limit_up.py`
+
+---
+
+## 2026-09-05 (个股列表仍空：快照未接到 market_service)
+
+### 根因
+- `configure_cn_quote_snapshot` 只写在从未调用的 `_init_market_service` 里；启动走 registry factory，进程内快照没有 `market_service`
+- `quotes/page` 只 `ensure_fresh()`，空 cache 时腾讯补活不会跑；自选带 codes 走 `fill_missing` 所以有数据
+- SPA `/panorama` 的涨跌榜读 provider 全市场 cache，冷启动同样为空
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_snapshot.py` | `hydrate_page_snapshot(snapshot, ctx.market_service)`：bind + 腾讯种子；再空则目录兜底 |
+| `routes_v1_market_core.py` | `quotes/page` 改为调用 `hydrate_page_snapshot` |
+| `module.py` / `service_wiring.py` | boot 时 bind 快照到 factory 创建的 `market_service` |
+| `market_service.py` | `get_panorama` 榜单为空时用快照/腾讯种子 |
+
+### 验证
+- `pytest tests/modules/market_data/test_cn_quote_snapshot_page.py tests/modules/market_data/test_market_service_cn_quotes.py tests/presentation/test_market_panorama_pagination.py` 19 passed
+
+---
+
+## 2026-09-05 (市场全景崩溃且个股列表无数据)
+
+### 根因
+- 上一轮后台线程仍调用 `list_quotes(CN, None)` → AkShare `stock_zh_a_spot_em()`，冷启动会把 Flask 打崩或 OOM
+- 页面只读空 cache，崩完之后快照仍空，首页「全部」/全景除自选外看不到行
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_snapshot.py` | 去掉后台 live 刷新；`ensure_fresh` 只读 cache，空则 `list_quotes_tencent(max_symbols=80)` |
+| `market_service.py` | `list_quotes_tencent` 禁止 AkShare；无 cache 时用流动性种子代码走腾讯 |
+| `routes_v1_market_core.py` | 带 symbol 的列表仍 `fill_missing` → 腾讯批量（与自选同路） |
+
+### 验证
+- `pytest tests/modules/market_data/test_cn_quote_snapshot_page.py tests/modules/market_data/test_market_service_cn_quotes.py tests/presentation/test_market_panorama_pagination.py`
+
+---
+
+## 2026-09-05 (市场全景卡在「正在同步全市场快照」)
+
+### 根因
+- `GET /markets/CN/quotes/page` 在请求线程调用 `CnQuoteSnapshot.ensure_fresh()`，冷启动或缓存不足时同步执行 `list_quotes(CN, None)`
+- 全市场路径会先打 AkShare `stock_zh_a_spot_em()`，失败后再按约 5000 只分批拉腾讯；任一环无超时即挂起 HTTP
+- 经典页 `loadData()` 的 `fetch` 无超时，表格一直停留在初始文案「正在同步全市场快照...」
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_snapshot.py` | 请求线程只读 cache；全市场活行情后台刷新；`fill_missing` 对带 symbol 的列表走腾讯批量补缺 |
+| `market_service.py` | `list_quotes(..., live=False)` 缓存不足时也直接返回，供 panorama 请求路径使用 |
+| `.github/workflows/ci.yml` | E2E Flask `threaded=True`，避免单线程被长请求堵住后续 `page.goto` |
+| `market_panorama.html` | `fetch` 8s 超时、`warming` 时提示并自动重试（最多 8 次） |
+| `MarketPanorama.tsx` | 空页 + warming 提示；SWR 同步中改为 2s 轮询 |
+
+### 验证
+- `pytest tests/modules/market_data/test_cn_quote_snapshot_page.py tests/presentation/test_market_panorama_pagination.py`
+
+---
+
 ## 2026-09-05 (异步回测成本透传 + auto_tuning 真实评分)
 
 ### 问题

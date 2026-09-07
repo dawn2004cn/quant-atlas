@@ -28,7 +28,13 @@ def market_svc():
 
 
 def test_get_panorama_returns_dto_fields(market_svc):
-    panorama = market_svc.get_panorama(MarketCode.CN)
+    from unittest.mock import patch
+
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=False,
+    ):
+        panorama = market_svc.get_panorama(MarketCode.CN)
     assert panorama.market_status == "active"
     assert panorama.sentiment_score == pytest.approx(0.1)
 

@@ -99,7 +99,10 @@ export function MarketPanoramaPage() {
         filter: listFilter,
         scope: listScope,
       }),
-    { revalidateOnFocus: false, refreshInterval: 45_000 },
+    {
+      revalidateOnFocus: false,
+      refreshInterval: (latest) => (latest?.warming || ((latest?.total ?? 0) > 0 && (latest?.total ?? 0) < 40) ? 2000 : 45_000),
+    },
   );
 
   const rankings = panorama?.rankings;
@@ -110,7 +113,7 @@ export function MarketPanoramaPage() {
   const listPageSize = quotesPage?.page_size ?? 40;
   const listPageCount = Math.max(1, Math.ceil(listTotal / listPageSize));
 
-  if (isLoading && !panorama) return <PageSkeleton rows={4} />;
+  if (isLoading && !panorama && quotesLoading && !quotesPage) return <PageSkeleton rows={4} />;
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-5">
@@ -231,12 +234,15 @@ export function MarketPanoramaPage() {
         </div>
         {quotesLoading && !quotesPage ? (
           <p className="py-8 text-center text-sm text-zinc-600">加载行情…</p>
+        ) : quotesPage?.warming && !listItems.length ? (
+          <p className="py-8 text-center text-sm text-zinc-600">全市场快照后台同步中，即将自动刷新…</p>
         ) : (
           <>
             <RankingTable rows={listItems} label="代码" />
             <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
               <span>
                 第 {listPage} / {listPageCount} 页 · 共 {listTotal} 条
+                {quotesPage?.cached_at ? ` · 缓存 ${quotesPage.cached_at}` : ""}
               </span>
               <div className="flex gap-2">
                 <button

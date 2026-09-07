@@ -46,6 +46,7 @@ class MarketDataContextModule:
         """
         reg = get_registry()
         reg.wire_to(services)
+        _init_market_service(services)
 
     @staticmethod
     def initialize(container) -> None:
@@ -55,15 +56,25 @@ class MarketDataContextModule:
 
 def _init_market_service(services: Any) -> None:
     """Initialize MarketApplicationService (migrated from services.py)."""
-    if getattr(services, "market_service", None) is not None:
-        return
     try:
-        from app.infrastructure.providers.cn_industry_provider import CnIndustryProvider
         from app.modules.market_data.services.cn_quote_snapshot import configure_cn_quote_snapshot
-        from app.modules.market_data.services.market_service import MarketApplicationService
         from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
         market_provider = get_market_data_provider()
+        existing = getattr(services, "market_service", None)
+        if existing is not None:
+            configure_cn_quote_snapshot(
+                market_service=existing,
+                market_provider=market_provider,
+            )
+            from app.modules.market_data.services.cn_quote_book import ensure_cn_quote_book
+
+            ensure_cn_quote_book(existing)
+            return
+
+        from app.infrastructure.providers.cn_industry_provider import CnIndustryProvider
+        from app.modules.market_data.services.market_service import MarketApplicationService
+
         industry_provider = CnIndustryProvider()
         stock_cache = getattr(services, "_stock_cache", None)
         services.market_service = MarketApplicationService(
@@ -73,6 +84,9 @@ def _init_market_service(services: Any) -> None:
             market_service=services.market_service,
             market_provider=market_provider,
         )
+        from app.modules.market_data.services.cn_quote_book import ensure_cn_quote_book
+
+        ensure_cn_quote_book(services.market_service)
     except Exception as e:
         logger.warning("market_data.module._init_market_service: %s", e)
 
