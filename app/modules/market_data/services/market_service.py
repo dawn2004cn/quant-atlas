@@ -177,7 +177,9 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
 
     def _fetch_tencent_live_quotes(self, codes: list[str]) -> list[dict]:
         """Tencent HTTP only. Skips quote cache and zero-price L1/L2 hits."""
-        if not codes:
+        from app.modules.market_data.services.cn_quote_book import live_quote_pull_enabled
+
+        if not live_quote_pull_enabled() or not codes:
             return []
         from app.infrastructure.adapters.tencent_quote_gateway import TencentQuoteGateway
         from app.infrastructure.mappers.tencent_quote_mapper import TencentQuoteMapper
@@ -199,6 +201,10 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
 
     def pull_cn_sina_movers(self, *, page: int = 1, num: int = 80, desc: bool = True) -> list[dict]:
         """Sina hs_a node: real gainers/losers with a hard timeout. No AkShare."""
+        from app.modules.market_data.services.cn_quote_book import live_quote_pull_enabled
+
+        if not live_quote_pull_enabled():
+            return []
         import requests
 
         resp = requests.get(
@@ -210,7 +216,7 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
                 "asc": 0 if desc else 1,
                 "node": "hs_a",
             },
-            timeout=4,
+            timeout=(2, 4),
             headers={"User-Agent": "Mozilla/5.0"},
         )
         resp.raise_for_status()
@@ -356,17 +362,19 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
 
     def pull_cn_page_quotes(self, *, max_symbols: int = 80) -> list[dict]:
         """Bounded live pull for the page path: Sina movers first, Tencent seeds fallback."""
-        from app.modules.market_data.services.cn_quote_book import rows_have_real_quotes
+        from app.modules.market_data.services.cn_quote_book import (
+            live_quote_pull_enabled,
+            rows_have_real_quotes,
+        )
 
+        if not live_quote_pull_enabled():
+            return []
         limit = max(1, min(int(max_symbols), 80))
         try:
-            from concurrent.futures import ThreadPoolExecutor
-
-            with ThreadPoolExecutor(max_workers=2) as pool:
-                fut_up = pool.submit(self.pull_cn_sina_movers, page=1, num=limit, desc=True)
-                fut_down = pool.submit(self.pull_cn_sina_movers, page=1, num=limit, desc=False)
-                up = fut_up.result(timeout=5) or []
-                down = fut_down.result(timeout=5) or []
+            # Sequential on purpose: ThreadPoolExecutor.shutdown(wait=True) would
+            # block the Flask request if Sina DNS/TLS ignores requests timeout.
+            up = self.pull_cn_sina_movers(page=1, num=limit, desc=True) or []
+            down = self.pull_cn_sina_movers(page=1, num=limit, desc=False) or []
             merged: dict[str, dict] = {}
             for row in list(up) + list(down):
                 if not isinstance(row, dict):

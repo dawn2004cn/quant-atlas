@@ -4,6 +4,22 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-07 (E2E：直播拉取入口全部守门，避免个股页超时)
+
+### 根因
+- `pull_cn_sina_movers` / `pull_cn_page_quotes` 未检查 `CN_QUOTE_LIVE_PULL`
+- 页面路径用 `ThreadPoolExecutor` 拉新浪：`result(timeout=5)` 到期后 `shutdown(wait=True)` 仍会等 DNS/TLS
+- 个股详情书空时仍同步打腾讯，E2E 单线程/GIL 下 `/stock/000001` 30s 超时
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `pull_cn_sina_movers` / `pull_cn_page_quotes` / `_fetch_tencent_live_quotes` | `live_quote_pull_enabled()` 为假立即返回 |
+| `pull_cn_page_quotes` | 改为顺序拉取，timeout=(2, 4)，不再用线程池 |
+| `get_stock_detail` | `CN_QUOTE_LIVE_PULL=0` 且书空时不打 provider 实时 |
+
+---
+
 ## 2026-09-07 (全景及时准确：新浪涨跌幅 + 过期书刷新)
 
 ### 根因

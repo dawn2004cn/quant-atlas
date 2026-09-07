@@ -104,11 +104,16 @@ class StockApplicationService(BaseApplicationService):
         profile: dict[str, Any] = {"realtime": {}, "name": "", "industry": ""}
 
         book_rt = self._realtime_from_quote_book(lookup_code) if market_code == MarketCode.CN else {}
+        allow_live = True
+        if market_code == MarketCode.CN:
+            from app.modules.market_data.services.cn_quote_book import live_quote_pull_enabled
+
+            allow_live = live_quote_pull_enabled()
         if book_rt:
             profile["realtime"] = book_rt
             profile["name"] = book_rt.get("name") or ""
             profile["industry"] = book_rt.get("industry") or ""
-        elif self._market_provider and hasattr(self._market_provider, "get_realtime_quotes"):
+        elif allow_live and self._market_provider and hasattr(self._market_provider, "get_realtime_quotes"):
             try:
                 quotes = self._market_provider.get_realtime_quotes([lookup_code], market_code)
                 if quotes:

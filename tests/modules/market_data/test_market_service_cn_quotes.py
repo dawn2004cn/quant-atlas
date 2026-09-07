@@ -234,3 +234,44 @@ def test_build_panorama_skips_provider_full_market_rankings() -> None:
     code = str(dto.gainers[0].code)
     assert code.endswith("300112") or code == "300112"
     assert not code.endswith("999999")
+
+
+def _svc_with_empty_cache() -> MarketApplicationService:
+    cache = MagicMock()
+    cache.get_all_stocks.return_value = []
+    cache.list_all_codes.return_value = []
+    with patch(
+        "app.modules.market_data.services.market_service.get_quote_cache_port",
+        return_value=MagicMock(),
+    ):
+        return MarketApplicationService(
+            market_provider=SimpleNamespace(),
+            industry_provider=SimpleNamespace(),
+            stock_cache=cache,
+        )
+
+
+def test_pull_cn_sina_movers_disabled_does_not_hit_network() -> None:
+    svc = _svc_with_empty_cache()
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=False,
+    ):
+        with patch("requests.get") as get_mock:
+            rows = svc.pull_cn_sina_movers()
+    get_mock.assert_not_called()
+    assert rows == []
+
+
+def test_pull_cn_page_quotes_disabled_does_not_hit_sina_or_tencent() -> None:
+    svc = _svc_with_empty_cache()
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=False,
+    ):
+        with patch.object(svc, "pull_cn_sina_movers") as sina_mock:
+            with patch.object(svc, "_fetch_tencent_live_quotes") as tencent_mock:
+                rows = svc.pull_cn_page_quotes(max_symbols=80)
+    sina_mock.assert_not_called()
+    tencent_mock.assert_not_called()
+    assert rows == []

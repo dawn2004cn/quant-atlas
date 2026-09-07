@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from app.domain.enums import MarketCode
 from app.modules.market_data.services.cn_quote_book import clear_cn_quote_book, save_cn_quote_book
@@ -61,3 +61,25 @@ def test_get_stock_detail_skips_live_history() -> None:
     assert result.profile["realtime"]["price"] == 10.0
     assert result.indicators == {}
     provider.get_stock_history.assert_not_called()
+
+
+def test_get_stock_detail_skips_provider_when_live_pull_off() -> None:
+    clear_cn_quote_book()
+    cache = MagicMock()
+    cache.get_stocks_by_codes.return_value = []
+    cache.get_stock_history_for_code.return_value = []
+    provider = MagicMock()
+    provider.get_realtime_quotes.side_effect = AssertionError("E2E must not hit Tencent")
+    svc = StockApplicationService(
+        market_provider=provider,
+        stock_cache=cache,
+        indicator_provider=MagicMock(),
+    )
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=False,
+    ):
+        result = svc.get_stock_detail("000001", MarketCode.CN)
+    provider.get_realtime_quotes.assert_not_called()
+    assert result.profile["realtime"] in ({}, {"price": 0}) or not result.profile["realtime"].get("price")
+    clear_cn_quote_book()
