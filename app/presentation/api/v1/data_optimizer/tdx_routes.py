@@ -59,3 +59,65 @@ def register_data_optimizer_tdx_routes(
             resource_key="tdx_preload",
             enable_legacy_alias=False,
         )
+
+    @blueprint.get("/tdx/status")
+    @login_required
+    def tdx_status():
+        """通达信 PC 对等状态：本机 vipdoc + HQ 连接。"""
+        from app.infrastructure.providers.cn_tdx_provider import create_tdx_provider
+        from app.infrastructure.tdx_local.paths import resolve_tdx_root_configured
+
+        root = resolve_tdx_root_configured()
+        provider = create_tdx_provider()
+        return ok_resource(
+            resource={
+                "tdx_root": str(root) if root else None,
+                "local_available": root is not None,
+                "hq_connected": provider.is_realtime_connected(),
+                "symbol_count": len(provider.get_all_symbols(MarketCode.CN)) if root else 0,
+            },
+            resource_key="tdx_status",
+            enable_legacy_alias=False,
+        )
+
+    @blueprint.get("/tdx/quotes")
+    @login_required
+    def tdx_quotes():
+        """实时行情（通达信 HQ 批量 get_security_quotes）。"""
+        from app.infrastructure.providers.cn_tdx_provider import create_tdx_provider
+
+        symbols = parse_symbols_param(request.args.get("symbols", ""))
+        require_symbols(symbols)
+        provider = create_tdx_provider()
+        rows = provider.get_quotes(symbols, MarketCode.CN)
+        return ok_resource(
+            resource={"items": rows, "count": len(rows), "source": "tdx"},
+            resource_key="tdx_quotes",
+            enable_legacy_alias=False,
+        )
+
+    @blueprint.get("/tdx/history")
+    @login_required
+    def tdx_history():
+        """历史日 K：本地 vipdoc/lday 优先，缺失则 HQ 下载。"""
+        from app.infrastructure.providers.cn_tdx_provider import create_tdx_provider
+
+        symbol = (request.args.get("symbol") or "").strip()
+        if not symbol:
+            from app.application.errors import ValidationError
+
+            raise ValidationError("symbol_required")
+        start = request.args.get("start") or "2010-01-01"
+        end = request.args.get("end")
+        provider = create_tdx_provider()
+        rows = provider.get_history(symbol, MarketCode.CN, start, end)
+        return ok_resource(
+            resource={
+                "symbol": symbol,
+                "items": rows,
+                "count": len(rows),
+                "source": rows[0].get("source") if rows else None,
+            },
+            resource_key="tdx_history",
+            enable_legacy_alias=False,
+        )

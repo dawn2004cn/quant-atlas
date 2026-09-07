@@ -10,14 +10,14 @@ import pandas as pd
 from ...domain.enums import MarketCode
 from ...domain.ports.market_ports import HistoryPort
 from ..tdx_local.lday_reader import read_lday_file
-from ..tdx_local.paths import TdxLocalPaths, resolve_tdx_root
+from ..tdx_local.paths import TdxLocalPaths, resolve_tdx_root_configured
 
 
 class TDXFileHistoryAdapter(HistoryPort):
     """Direct TDX .day file reader - fastest possible access."""
 
     def __init__(self, tdx_root_path: str | None = None):
-        self._tdx_root = resolve_tdx_root(tdx_root_path)
+        self._tdx_root = resolve_tdx_root_configured(tdx_root_path)
         self._paths = TdxLocalPaths(self._tdx_root) if self._tdx_root else None
         self._cache: dict[str, pd.DataFrame] = {}
 
