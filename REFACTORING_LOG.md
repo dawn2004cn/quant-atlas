@@ -4,6 +4,20 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-09-08 (Nightly：安装 pytest extras，避免 Slow / full-boot 127)
+
+### 根因
+- Nightly 只 `pip install -r requirements.txt`，其中没有 pytest
+- 步骤直接跑 `pytest`，PATH 里没有命令 → exit 127
+- 该失败从 2026-09-02 起每天复现，与 9-07 合入的 #12/#13/#14 无关
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `.github/workflows/nightly.yml` | 补 `pip install -e ".[test]"`（失败则 `pip install pytest`）；改为 `python -m pytest` |
+
+---
+
 ## 2026-09-07 (E2E：个股页改为 HTTP 断言，避免 Playwright 渲染巨页)
 
 ### 根因
