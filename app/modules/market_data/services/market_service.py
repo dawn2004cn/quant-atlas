@@ -216,7 +216,7 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
                 "asc": 0 if desc else 1,
                 "node": "hs_a",
             },
-            timeout=(2, 4),
+            timeout=(3, 6),
             headers={"User-Agent": "Mozilla/5.0"},
         )
         resp.raise_for_status()
@@ -370,23 +370,29 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
         if not live_quote_pull_enabled():
             return []
         limit = max(1, min(int(max_symbols), 80))
+        # Sequential on purpose: ThreadPoolExecutor.shutdown(wait=True) would
+        # block the Flask request if Sina DNS/TLS ignores requests timeout.
+        # Each direction is independent so one timeout does not drop the other.
+        up: list[dict] = []
+        down: list[dict] = []
         try:
-            # Sequential on purpose: ThreadPoolExecutor.shutdown(wait=True) would
-            # block the Flask request if Sina DNS/TLS ignores requests timeout.
             up = self.pull_cn_sina_movers(page=1, num=limit, desc=True) or []
+        except Exception as extra:
+            self.logger.warning("sina gainers failed: %s", extra)
+        try:
             down = self.pull_cn_sina_movers(page=1, num=limit, desc=False) or []
-            merged: dict[str, dict] = {}
-            for row in list(up) + list(down):
-                if not isinstance(row, dict):
-                    continue
-                code6 = "".join(ch for ch in str(row.get("code6") or row.get("code") or "") if ch.isdigit())[-6:]
-                if code6 and code6 != "000000":
-                    merged[code6] = row
-            rows = list(merged.values())
-            if rows_have_real_quotes(rows):
-                return rows
-        except Exception as exc:
-            self.logger.warning("sina movers failed: %s", exc)
+        except Exception as extra:
+            self.logger.warning("sina losers failed: %s", extra)
+        merged: dict[str, dict] = {}
+        for row in list(up) + list(down):
+            if not isinstance(row, dict):
+                continue
+            code6 = "".join(ch for ch in str(row.get("code6") or row.get("code") or "") if ch.isdigit())[-6:]
+            if code6 and code6 != "000000":
+                merged[code6] = row
+        rows = list(merged.values())
+        if rows_have_real_quotes(rows):
+            return rows
         codes = [code for code in _CN_PAGE_UNIVERSE if code][:limit]
         if not codes:
             return []
@@ -407,6 +413,13 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             rows = self._pull_cn_via_tencent_batches(cache, allow_akshare=allow_akshare)
         except Exception as exc:
             self.logger.warning("refresh_cn_quote_book tencent failed: %s", exc)
+        if not rows:
+            try:
+                rows = self.pull_cn_page_quotes(max_symbols=80) or []
+                if rows:
+                    source = "sina_page"
+            except Exception as extra:
+                self.logger.warning("refresh_cn_quote_book sina failed: %s", extra)
         if allow_akshare and len(rows) < _CN_FULL_MARKET_MIN_ROWS:
             try:
                 ak_rows = self._pull_akshare_cn_spot(cache)

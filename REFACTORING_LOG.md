@@ -4,6 +4,38 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-11-03 (全景行情：未绑定 provider 时页面仍展示真实行情)
+
+### 根因
+- `get_cn_quote_snapshot()` 在 `bind_market_data_provider()` 未完成时抛 `RuntimeError`
+- `_build_panorama` 吞掉该异常后返回空涨跌幅榜；`quotes/page` 则 500
+- 前端 `RankingTable` 只渲染 `price > 0`，接口一空就显示「暂无真实行情」
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `get_cn_quote_snapshot` | provider 未绑定仍创建快照，由 hydrate 注入 `market_service` |
+| `market_service` factory | provider 缺失时仍构造服务，走新浪/腾讯页面路径 |
+| `frontend/package.json` | vite ≥6.4.5，覆盖 source-map-js / brace-expansion / js-yaml，清掉 CI `npm audit --audit-level=high` |
+
+---
+
+## 2026-11-03 (全景行情：过期书不再被零价种子盖掉)
+
+### 根因
+- `_is_cn_session` 用服务器本地时间；UTC 机器在 A 股开盘时段会判成休市
+- 交易时段书超过 15 分钟就算 stale，hydrate 丢掉已有真实行情去拉直播；直播失败后写入价格全 0 的种子目录
+- 新浪涨幅/跌幅任一边超时会整段放弃，连已经拉到的一侧也丢掉
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `cn_quote_book._is_cn_session` | 统一按 `Asia/Shanghai` 判断 9:15–15:15 |
+| `hydrate_page_snapshot` | 先展示有价书；直播失败保留旧书；生产不写零价种子 |
+| `pull_cn_page_quotes` | 涨幅/跌幅独立拉取；刷新书腾讯为空时回退新浪 |
+
+---
+
 ## 2026-09-07 (E2E：个股页改为 HTTP 断言，避免 Playwright 渲染巨页)
 
 ### 根因

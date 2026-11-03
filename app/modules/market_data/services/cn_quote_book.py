@@ -156,7 +156,14 @@ def live_quote_pull_enabled() -> bool:
 
 
 def _is_cn_session(now: datetime | None = None) -> bool:
-    now = now or datetime.now()
+    from app.core.shanghai_time import SHANGHAI_TZ
+
+    if now is None:
+        now = datetime.now(SHANGHAI_TZ)
+    elif now.tzinfo is None:
+        now = now.replace(tzinfo=SHANGHAI_TZ)
+    else:
+        now = now.astimezone(SHANGHAI_TZ)
     if now.weekday() >= 5:
         return False
     minutes = now.hour * 60 + now.minute

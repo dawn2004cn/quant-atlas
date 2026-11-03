@@ -135,6 +135,22 @@ def test_ensure_fresh_skips_full_market_provider() -> None:
     assert snap.query_page()["items"] == []
 
 
+def test_get_cn_quote_snapshot_without_bound_provider() -> None:
+    import app.modules.market_data.services.cn_quote_snapshot as snap_mod
+    from app.modules.market_data.services.cn_quote_snapshot import get_cn_quote_snapshot
+
+    prev = snap_mod._snapshot
+    snap_mod._snapshot = None
+    try:
+        snap = get_cn_quote_snapshot()
+        assert snap is not None
+        page = snap.query_page()
+        assert page["items"] == []
+        assert page["total"] == 0
+    finally:
+        snap_mod._snapshot = prev
+
+
 def test_hydrate_page_snapshot_binds_unwired_snapshot() -> None:
     from app.modules.market_data.services.cn_quote_book import clear_cn_quote_book
     from app.modules.market_data.services.cn_quote_snapshot import hydrate_page_snapshot
@@ -156,12 +172,18 @@ class _EmptyTencent:
 
 
 def test_hydrate_page_snapshot_seed_directory_when_live_empty() -> None:
+    from unittest.mock import patch
+
     from app.modules.market_data.services.cn_quote_book import clear_cn_quote_book
     from app.modules.market_data.services.cn_quote_snapshot import hydrate_page_snapshot
 
     clear_cn_quote_book()
     snap = CnQuoteSnapshot(ttl_seconds=15)
-    hydrate_page_snapshot(snap, _EmptyTencent())
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=False,
+    ):
+        hydrate_page_snapshot(snap, _EmptyTencent())
     page = snap.query_page()
     assert page["total"] >= 10
     codes = {row["code"] for row in page["items"]}

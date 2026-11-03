@@ -125,7 +125,11 @@ def _make_market_service(reg):
 
 
 
-    provider = get_market_data_provider()
+    try:
+        provider = get_market_data_provider()
+    except RuntimeError:
+        logger.warning("market_service factory: MarketDataProvider unbound, using Sina/Tencent page path")
+        provider = None
     svc = MarketApplicationService(
         provider,
         CnIndustryProvider(),
