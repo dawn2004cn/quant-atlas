@@ -513,7 +513,12 @@ def get_cn_quote_snapshot() -> CnQuoteSnapshot:
     if _snapshot is None:
         with _snapshot_lock:
             if _snapshot is None:
-                from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
+                market_provider = None
+                try:
+                    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
-                _snapshot = CnQuoteSnapshot(market_provider=get_market_data_provider())
+                    market_provider = get_market_data_provider()
+                except RuntimeError as extra:
+                    logger.debug("CnQuoteSnapshot unbound provider: %s", extra)
+                _snapshot = CnQuoteSnapshot(market_provider=market_provider)
     return _snapshot

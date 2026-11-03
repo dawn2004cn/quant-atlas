@@ -4,6 +4,22 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-11-03 (全景行情：未绑定 provider 时页面仍展示真实行情)
+
+### 根因
+- `get_cn_quote_snapshot()` 在 `bind_market_data_provider()` 未完成时抛 `RuntimeError`
+- `_build_panorama` 吞掉该异常后返回空涨跌幅榜；`quotes/page` 则 500
+- 前端 `RankingTable` 只渲染 `price > 0`，接口一空就显示「暂无真实行情」
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `get_cn_quote_snapshot` | provider 未绑定仍创建快照，由 hydrate 注入 `market_service` |
+| `market_service` factory | provider 缺失时仍构造服务，走新浪/腾讯页面路径 |
+| `frontend/package.json` | vite ≥6.4.5，覆盖 source-map-js / brace-expansion / js-yaml，清掉 CI `npm audit --audit-level=high` |
+
+---
+
 ## 2026-11-03 (全景行情：过期书不再被零价种子盖掉)
 
 ### 根因

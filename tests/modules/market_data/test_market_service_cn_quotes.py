@@ -251,6 +251,30 @@ def _svc_with_empty_cache() -> MarketApplicationService:
         )
 
 
+def test_build_panorama_without_bound_provider_still_shows_live_quotes() -> None:
+    """Page rankings must not go blank just because MarketDataProvider bind failed."""
+    import app.modules.market_data.services.cn_quote_snapshot as snap_mod
+    from app.modules.market_data.services.cn_quote_book import clear_cn_quote_book
+
+    prev = snap_mod._snapshot
+    snap_mod._snapshot = None
+    clear_cn_quote_book()
+    try:
+        svc = _svc_with_empty_cache()
+        svc.pull_cn_page_quotes = lambda **_kw: [
+            {"code": "300112", "name": "万讯自控", "price": 10.55, "change_pct": 20.02, "amount": 3e8},
+            {"code": "000001", "name": "平安", "price": 11.8, "change_pct": -1.1, "amount": 2e8},
+        ]
+        dto = svc._build_panorama(MarketCode.CN)
+        assert dto.gainers
+        assert float(dto.gainers[0].price) > 0
+        assert dto.losers
+        assert float(dto.losers[0].price) > 0
+    finally:
+        snap_mod._snapshot = prev
+        clear_cn_quote_book()
+
+
 def test_pull_cn_sina_movers_disabled_does_not_hit_network() -> None:
     svc = _svc_with_empty_cache()
     with patch(

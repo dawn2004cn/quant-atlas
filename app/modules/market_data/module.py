@@ -60,7 +60,11 @@ def _init_market_service(services: Any) -> None:
         from app.modules.market_data.services.cn_quote_snapshot import configure_cn_quote_snapshot
         from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
-        market_provider = get_market_data_provider()
+        try:
+            market_provider = get_market_data_provider()
+        except RuntimeError:
+            logger.warning("market_data.module: MarketDataProvider unbound; quotes still hydrate via Sina")
+            market_provider = None
         existing = getattr(services, "market_service", None)
         if existing is not None:
             configure_cn_quote_snapshot(
