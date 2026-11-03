@@ -444,9 +444,10 @@ def hydrate_page_snapshot(
     snapshot: CnQuoteSnapshot,
     market_service: object | None,
 ) -> None:
-    """Fill the page from Redis book, then a bounded live Tencent pull.
+    """Fill the page from Redis book, then a bounded live pull.
 
-    Zero-price directory/cache rows are not treated as real quotes.
+    A stale book with real prices is still shown if the live refresh fails.
+    Zero-price directory rows are only used when live pull is disabled (CI).
     """
     from app.modules.market_data.services.cn_quote_book import (
         book_is_fresh,
@@ -458,11 +459,14 @@ def hydrate_page_snapshot(
 
     if market_service is not None:
         snapshot.bind(market_service=market_service)
+    has_book = False
     try:
         book = load_cn_quote_book()
-        if rows_have_real_quotes(book) and book_is_fresh():
+        has_book = rows_have_real_quotes(book)
+        if has_book:
             snapshot.load_rows(book)
-            return
+            if book_is_fresh():
+                return
         live_rows = _pull_live_page_quotes(market_service)
         if rows_have_real_quotes(live_rows):
             save_cn_quote_book(live_rows, source="tencent_page")
@@ -470,10 +474,19 @@ def hydrate_page_snapshot(
             ensure_cn_quote_book(market_service)
             return
         ensure_cn_quote_book(market_service)
+        if has_book:
+            return
     except Exception as exc:
         logger.warning("hydrate_page_snapshot redis book failed: %s", exc)
+        if has_book:
+            return
     snapshot.ensure_fresh()
     if _snapshot_has_real_quotes(snapshot):
+        return
+    from app.modules.market_data.services.cn_quote_book import live_quote_pull_enabled
+
+    if live_quote_pull_enabled():
+        logger.info("CnQuoteSnapshot empty after live pull; not seeding zero prices")
         return
     snapshot.load_rows(_seed_directory_rows())
     logger.info("CnQuoteSnapshot seed directory: %s symbols", snapshot.row_count)

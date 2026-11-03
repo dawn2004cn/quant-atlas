@@ -26,8 +26,9 @@ function Panel({ children, className = "" }: { children: React.ReactNode; classN
 
 function RankingTable({ rows, label }: { rows: import("../types/market").PanoramaStockRow[]; label: string }) {
   const navigate = useNavigate();
-  if (!rows.length) {
-    return <p className="py-8 text-center text-sm text-zinc-600">暂无数据</p>;
+  const priced = rows.filter((row) => Number(row.price) > 0);
+  if (!priced.length) {
+    return <p className="py-8 text-center text-sm text-zinc-600">暂无真实行情</p>;
   }
   return (
     <div className="overflow-x-auto rounded-lg ring-1 ring-zinc-800/40">
@@ -40,7 +41,7 @@ function RankingTable({ rows, label }: { rows: import("../types/market").Panoram
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-800/30">
-          {rows.slice(0, 20).map((row, i) => (
+          {priced.slice(0, 20).map((row, i) => (
             <tr
               key={row.code ?? i}
               onClick={() => navigate(`/stock/${encodeURIComponent(row.code ?? "")}`)}

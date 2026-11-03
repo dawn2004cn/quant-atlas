@@ -156,12 +156,18 @@ class _EmptyTencent:
 
 
 def test_hydrate_page_snapshot_seed_directory_when_live_empty() -> None:
+    from unittest.mock import patch
+
     from app.modules.market_data.services.cn_quote_book import clear_cn_quote_book
     from app.modules.market_data.services.cn_quote_snapshot import hydrate_page_snapshot
 
     clear_cn_quote_book()
     snap = CnQuoteSnapshot(ttl_seconds=15)
-    hydrate_page_snapshot(snap, _EmptyTencent())
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=False,
+    ):
+        hydrate_page_snapshot(snap, _EmptyTencent())
     page = snap.query_page()
     assert page["total"] >= 10
     codes = {row["code"] for row in page["items"]}

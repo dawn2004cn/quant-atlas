@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -327,6 +328,30 @@ def test_ensure_disabled_when_live_pull_off() -> None:
         assert ensure_cn_quote_book(_Boom()) == "disabled"
 
 
+def test_pull_cn_page_quotes_keeps_gainers_if_losers_fail() -> None:
+    with patch(
+        "app.modules.market_data.services.market_service.get_quote_cache_port",
+        return_value=MagicMock(),
+    ):
+        svc = MarketApplicationService(
+            market_provider=SimpleNamespace(),
+            industry_provider=SimpleNamespace(),
+            stock_cache=MagicMock(),
+        )
+    movers = [{"code": "300112", "name": "万讯自控", "price": 10.55, "change_pct": 20.02}]
+
+    def _sina(*, page: int = 1, num: int = 80, desc: bool = True):
+        if not desc:
+            raise TimeoutError("losers timed out")
+        return movers
+
+    with patch.object(svc, "pull_cn_sina_movers", side_effect=_sina):
+        with patch.object(svc, "_fetch_tencent_live_quotes") as tencent:
+            rows = svc.pull_cn_page_quotes(max_symbols=40)
+    tencent.assert_not_called()
+    assert rows and float(rows[0]["price"]) == 10.55
+
+
 def test_pull_cn_page_quotes_prefers_sina_movers() -> None:
     with patch(
         "app.modules.market_data.services.market_service.get_quote_cache_port",
@@ -395,3 +420,70 @@ def test_ensure_cn_quote_book_retries_after_cooldown() -> None:
     book_mod._warm_attempted_at = time.monotonic() - 120
     third = ensure_cn_quote_book(_Empty())
     assert third == "scheduled"
+
+
+def test_cn_session_uses_shanghai_clock_not_server_local() -> None:
+    from datetime import timezone
+
+    from app.modules.market_data.services.cn_quote_book import _is_cn_session
+
+    # 02:00 UTC = 10:00 上海，A 股交易中
+    assert _is_cn_session(datetime(2026, 11, 3, 2, 0, tzinfo=timezone.utc)) is True
+    # 08:00 UTC = 16:00 上海，已收盘
+    assert _is_cn_session(datetime(2026, 11, 3, 8, 0, tzinfo=timezone.utc)) is False
+    # 周六
+    assert _is_cn_session(datetime(2026, 11, 7, 2, 0, tzinfo=timezone.utc)) is False
+
+
+def test_hydrate_keeps_stale_book_when_live_pull_fails() -> None:
+    save_cn_quote_book(
+        [{"code": "600519", "name": "茅台", "price": 1600, "change_pct": 1.2}],
+        source="stale",
+    )
+
+    class _DeadLive:
+        def pull_cn_page_quotes(self, *, max_symbols: int = 80):
+            return []
+
+        def list_quotes_tencent(self, *args, **kwargs):
+            return []
+
+        def list_quotes(self, *args, **kwargs):
+            return []
+
+    snap = CnQuoteSnapshot(ttl_seconds=15)
+    with patch(
+        "app.modules.market_data.services.cn_quote_book._is_cn_session",
+        return_value=True,
+    ):
+        with patch(
+            "app.modules.market_data.services.cn_quote_book.book_age_seconds",
+            return_value=20 * 60,
+        ):
+            hydrate_page_snapshot(snap, _DeadLive())
+    page = snap.query_page()
+    assert page["items"][0]["code"] == "600519"
+    assert page["items"][0]["price"] == 1600
+    assert all(float(row.get("price") or 0) > 0 for row in page["items"])
+
+
+def test_hydrate_live_on_empty_does_not_seed_zero_prices() -> None:
+    class _Empty:
+        def pull_cn_page_quotes(self, *, max_symbols: int = 80):
+            return []
+
+        def list_quotes_tencent(self, *args, **kwargs):
+            return []
+
+        def list_quotes(self, *args, **kwargs):
+            return []
+
+    snap = CnQuoteSnapshot(ttl_seconds=15)
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=True,
+    ):
+        hydrate_page_snapshot(snap, _Empty())
+    page = snap.query_page()
+    assert page["total"] == 0
+    assert page["items"] == []
