@@ -4,6 +4,20 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-11-11 (行情调用：通达信日 K / 实时优先)
+
+### 根因
+- CN 历史读链仅在配置了 `TDX_ROOT` 时才把 lday 放最前，否则 Timescale / HTTP / 新浪先打
+- MCP 行情工具 HTTP 优先，AI 拿不到通达信日 K 与 HQ 实时
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `history_adapters._build_cn_history_adapters` | CN 始终 `tdx_file` → `tdx_tcp`，再时序库 / MySQL / AkShare |
+| `quant-atlas-mcp/server.py` | `get_historical_kline` 日 K：lday → HQ；`get_stock_quote` / `get_cn_quotes`：HQ 实时，失败再 HTTP |
+
+---
+
 ## 2026-11-11 (AI 调用面：MCP 补齐行情/全景/能力发现)
 
 ### 根因
@@ -14,7 +28,7 @@ This file is a consolidated chronological log of all major architecture refactor
 ### 修复
 | 文件 | 要点 |
 |------|------|
-| `scripts/mcp-servers/quant-atlas-mcp/server.py` | 新增 `get_cn_quotes` / `get_market_panorama` / `get_stock_quote` / `search_capabilities`；`QUANT_ATLAS_API_URL` HTTP 优先 |
+| `scripts/mcp-servers/quant-atlas-mcp/server.py` | 新增 `get_cn_quotes` / `get_market_panorama` / `get_stock_quote` / `search_capabilities`；通达信优先，HTTP 为后备 |
 | `docs/AI_CALLING.md` | MCP → CapabilityRegistry → REST 的调用方案 |
 | `cursor.mcp.json` | Cursor `mcpServers` 示例 |
 

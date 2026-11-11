@@ -16,7 +16,9 @@
 | `execute_backtest` | 沙箱回测，不实盘下单 |
 | `get_portfolio_status` | 模拟盘快照 |
 
-先起 Flask，再挂 MCP（HTTP 优先，失败才 in-process）：
+A 股日 K / 实时：**通达信优先**（本地 `vipdoc/*/lday/*.day`，再 HQ），HTTP / Timescale / 新浪为后备。全景涨跌榜仍走全市场扫描（HTTP），因为 HQ 单次最多 80 只。
+
+先起 Flask，再挂 MCP（K 线与单票行情先 TDX，失败才 HTTP / in-process）：
 
 ```bash
 # 终端 1
@@ -44,7 +46,7 @@ MCP 未接入时，模型可调：
 - `GET /api/v1/markets/CN/quotes?symbol=000001`
 - `GET /api/v1/stocks/CN/{symbol}/history`
 
-信封：`{success, data, meta}`。生产 `CN_QUOTE_LIVE_PULL=1`。
+信封：`{success, data, meta}`。生产 `CN_QUOTE_LIVE_PULL=1`。服务端历史读链对 A 股日 K 同样是通达信 lday / HQ 优先。
 
 ## 4. 不要用的路径
 

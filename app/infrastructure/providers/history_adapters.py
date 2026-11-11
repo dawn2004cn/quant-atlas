@@ -229,7 +229,7 @@ class TdxTcpAdapter:
 
 
 def _build_cn_history_adapters() -> list[tuple[str, Any]]:
-    """CN 读链：时序库优先（可配置），MySQL 降为后备。"""
+    """CN 读链：通达信日 K（本地 lday → HQ）始终优先，时序库 / MySQL 为后备。"""
     from ...core.runtime_config import get_runtime_bool
     from ...infrastructure.database.timeseries_settings import (
         load_clickhouse_settings,
@@ -238,14 +238,14 @@ def _build_cn_history_adapters() -> list[tuple[str, Any]]:
     from .timeseries_history_adapters import ClickHouseHistoryAdapter, QuestDBHistoryAdapter
 
     prefer_ts = get_runtime_bool("HISTORY_PREFER_TIMESERIES", True)
-    tdx_file = ("tdx_file", TdxFileAdapter())
-    tdx_tcp = ("tdx_tcp", TdxTcpAdapter())
-    tail: list[tuple[str, Any]] = [
+    tdx_first: list[tuple[str, Any]] = [
+        ("tdx_file", TdxFileAdapter()),
+        ("tdx_tcp", TdxTcpAdapter()),
+    ]
+    rest: list[tuple[str, Any]] = [
         ("mysql", MySQLHistoryAdapter()),
         ("qlib", QlibBinAdapter()),
-        tdx_file,
         ("akshare", AkshareAdapter()),
-        tdx_tcp,
         ("sqlite", SqliteHistoryAdapter()),
     ]
     head: list[tuple[str, Any]] = [("timescale", TimescaleHistoryAdapter())]
@@ -254,29 +254,9 @@ def _build_cn_history_adapters() -> list[tuple[str, Any]]:
     if load_clickhouse_settings() is not None:
         head.append(("clickhouse", ClickHouseHistoryAdapter()))
 
-    prefer_tdx = False
-    try:
-        from ...infrastructure.tdx_local.paths import resolve_tdx_root_configured
-
-        prefer_tdx = resolve_tdx_root_configured() is not None
-    except Exception:
-        logger.debug("TDX root probe failed; keep default history order")
-
-    if prefer_tdx:
-        rest = [item for item in tail if item[0] not in {"tdx_file", "tdx_tcp"}]
-        tdx_first = [tdx_file, tdx_tcp]
-        if not prefer_ts:
-            return [*tdx_first, ("mysql", MySQLHistoryAdapter()), *head, *rest[1:]]
-        return tdx_first + head + rest
-
     if not prefer_ts:
-        return [
-            ("mysql", MySQLHistoryAdapter()),
-            *head,
-            *tail[1:],
-        ]
-
-    return head + tail
+        return [*tdx_first, rest[0], *head, *rest[1:]]
+    return tdx_first + head + rest
 
 
 class MultiSourceHistoryProvider:
