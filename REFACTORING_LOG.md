@@ -4,6 +4,19 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-11-11 (CI：frontend npm audit 高危)
+
+### 根因
+- Security job 对 `frontend/` 跑 `npm audit --audit-level=high`
+- 锁文件钉死 `vite@6.4.3`、`brace-expansion@2.1.4`、`js-yaml@4.3.1`、`source-map-js@1.2.1`
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `frontend/package.json` | `vite ^6.4.5`；overrides：`brace-expansion 2.1.7` / `js-yaml 4.3.2` / `source-map-js 1.2.2` |
+
+---
+
 ## 2026-11-11 (行情调用：通达信日 K / 实时优先)
 
 ### 根因
