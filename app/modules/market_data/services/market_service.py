@@ -361,7 +361,7 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
             return []
 
     def pull_cn_page_quotes(self, *, max_symbols: int = 80) -> list[dict]:
-        """Bounded live pull for the page path: Sina movers first, Tencent seeds fallback."""
+        """Bounded live pull: Tongdaxin HQ first, then Sina movers, then Tencent."""
         from app.modules.market_data.services.cn_quote_book import (
             live_quote_pull_enabled,
             rows_have_real_quotes,
@@ -370,30 +370,53 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
         if not live_quote_pull_enabled():
             return []
         limit = max(1, min(int(max_symbols), 80))
+        tdx_rows = self._pull_cn_tdx_page_quotes(limit)
+        if rows_have_real_quotes(tdx_rows):
+            return tdx_rows
+        up: list[dict] = []
+        down: list[dict] = []
         try:
             # Sequential on purpose: ThreadPoolExecutor.shutdown(wait=True) would
             # block the Flask request if Sina DNS/TLS ignores requests timeout.
             up = self.pull_cn_sina_movers(page=1, num=limit, desc=True) or []
+        except Exception as extra:
+            self.logger.warning("sina gainers failed: %s", extra)
+        try:
             down = self.pull_cn_sina_movers(page=1, num=limit, desc=False) or []
-            merged: dict[str, dict] = {}
-            for row in list(up) + list(down):
-                if not isinstance(row, dict):
-                    continue
-                code6 = "".join(ch for ch in str(row.get("code6") or row.get("code") or "") if ch.isdigit())[-6:]
-                if code6 and code6 != "000000":
-                    merged[code6] = row
-            rows = list(merged.values())
-            if rows_have_real_quotes(rows):
-                return rows
-        except Exception as exc:
-            self.logger.warning("sina movers failed: %s", exc)
+        except Exception as extra:
+            self.logger.warning("sina losers failed: %s", extra)
+        merged: dict[str, dict] = {}
+        for row in list(up) + list(down):
+            if not isinstance(row, dict):
+                continue
+            code6 = "".join(ch for ch in str(row.get("code6") or row.get("code") or "") if ch.isdigit())[-6:]
+            if code6 and code6 != "000000":
+                merged[code6] = row
+        rows = list(merged.values())
+        if rows_have_real_quotes(rows):
+            return rows
         codes = [code for code in _CN_PAGE_UNIVERSE if code][:limit]
         if not codes:
             return []
         try:
             return self._fetch_tencent_live_quotes(self._normalize_cn_symbols(codes))
-        except Exception as exc:
-            self.logger.warning("pull_cn_page_quotes tencent failed: %s", exc)
+        except Exception as extra:
+            self.logger.warning("pull_cn_page_quotes tencent failed: %s", extra)
+            return []
+
+    def _pull_cn_tdx_page_quotes(self, limit: int) -> list[dict]:
+        """One Tongdaxin HQ batch (≤80). Skip when pytdx port is unbound."""
+        try:
+            from app.modules.data.services.pytdx_market_data_service import get_pytdx_market_data_service
+
+            svc = get_pytdx_market_data_service()
+            if not svc.is_available():
+                return []
+            codes = [code for code in _CN_PAGE_UNIVERSE if code][:limit]
+            rows = svc.get_quotes(codes) or []
+            return [row for row in rows if isinstance(row, dict) and float(row.get("price") or 0) > 0]
+        except Exception as extra:
+            self.logger.debug("tdx page quotes miss: %s", extra)
             return []
 
     def refresh_cn_quote_book(self, *, allow_akshare: bool = False) -> list[dict]:
@@ -405,8 +428,15 @@ class MarketApplicationService(BaseApplicationService, AsyncServiceMixin):
         source = "tencent"
         try:
             rows = self._pull_cn_via_tencent_batches(cache, allow_akshare=allow_akshare)
-        except Exception as exc:
-            self.logger.warning("refresh_cn_quote_book tencent failed: %s", exc)
+        except Exception as extra:
+            self.logger.warning("refresh_cn_quote_book tencent failed: %s", extra)
+        if not rows:
+            try:
+                rows = self.pull_cn_page_quotes(max_symbols=80) or []
+                if rows:
+                    source = "page_live"
+            except Exception as extra:
+                self.logger.warning("refresh_cn_quote_book page live failed: %s", extra)
         if allow_akshare and len(rows) < _CN_FULL_MARKET_MIN_ROWS:
             try:
                 ak_rows = self._pull_akshare_cn_spot(cache)

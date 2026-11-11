@@ -156,7 +156,14 @@ def live_quote_pull_enabled() -> bool:
 
 
 def _is_cn_session(now: datetime | None = None) -> bool:
-    now = now or datetime.now()
+    from app.core.shanghai_time import SHANGHAI_TZ
+
+    if now is None:
+        now = datetime.now(SHANGHAI_TZ)
+    elif now.tzinfo is None:
+        now = now.replace(tzinfo=SHANGHAI_TZ)
+    else:
+        now = now.astimezone(SHANGHAI_TZ)
     if now.weekday() >= 5:
         return False
     minutes = now.hour * 60 + now.minute
@@ -190,12 +197,12 @@ def schedule_cn_quote_book_refresh(market_service: object | None) -> None:
 
 
 def ensure_cn_quote_book(market_service: object | None) -> str:
-    """If Redis is empty (nights/weekends included), pull once in the background.
+    """Background-refresh when the book is empty or stale in session.
 
-    One attempt per process. Does not refresh an existing book off-hours.
+    Never blocks the request. Off-hours an existing book is kept as last close.
     """
     global _refreshing, _warm_attempted, _warm_attempted_at
-    if rows_have_real_quotes(load_cn_quote_book()):
+    if book_is_fresh():
         return "present"
     if not live_quote_pull_enabled():
         return "disabled"

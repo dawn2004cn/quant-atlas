@@ -4,6 +4,65 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-11-11 (AI 调用文档 + 页面先出真实行情)
+
+### 根因
+- `docs/AI_CALLING.md` 只有工具表，没有 Cursor 配置、优先级、页面契约
+- 全景 hydrate 在 Redis 簿过期时同步打新浪，首屏被 3–6s 超时拖死；过期失败还用零价种子盖掉真实行情
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `docs/AI_CALLING.md` | MCP / Capability / REST、通达信优先、页面 Redis 先出数 |
+| `hydrate_page_snapshot` | 有真实行情立刻返回，过期后台刷新，生产不种零价 |
+| `pull_cn_page_quotes` | 通达信 HQ → 新浪涨跌独立 try → 腾讯 |
+| `frontend/App.tsx` | SWR `keepPreviousData` + 2s 去重 |
+
+---
+
+## 2026-11-11 (CI：frontend npm audit 高危)
+
+### 根因
+- Security job 对 `frontend/` 跑 `npm audit --audit-level=high`
+- 锁文件钉死 `vite@6.4.3`、`brace-expansion@2.1.4`、`js-yaml@4.3.1`、`source-map-js@1.2.1`
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `frontend/package.json` | `vite ^6.4.5`；overrides：`brace-expansion 2.1.7` / `js-yaml 4.3.2` / `source-map-js 1.2.2` |
+
+---
+
+## 2026-11-11 (行情调用：通达信日 K / 实时优先)
+
+### 根因
+- CN 历史读链仅在配置了 `TDX_ROOT` 时才把 lday 放最前，否则 Timescale / HTTP / 新浪先打
+- MCP 行情工具 HTTP 优先，AI 拿不到通达信日 K 与 HQ 实时
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `history_adapters._build_cn_history_adapters` | CN 始终 `tdx_file` → `tdx_tcp`，再时序库 / MySQL / AkShare |
+| `quant-atlas-mcp/server.py` | `get_historical_kline` 日 K：lday → HQ；`get_stock_quote` / `get_cn_quotes`：HQ 实时，失败再 HTTP |
+
+---
+
+## 2026-11-11 (AI 调用面：MCP 补齐行情/全景/能力发现)
+
+### 根因
+- `quant-atlas-mcp` 只有 K 线/回测/组合，AI 调不到页面同源的 A 股行情
+- 无 HTTP 优先路径，每次 in-process 都要硬拉 provider
+- 缺少一份给 Cursor/Claude 的接入说明
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `scripts/mcp-servers/quant-atlas-mcp/server.py` | 新增 `get_cn_quotes` / `get_market_panorama` / `get_stock_quote` / `search_capabilities`；通达信优先，HTTP 为后备 |
+| `docs/AI_CALLING.md` | MCP → CapabilityRegistry → REST 的调用方案 |
+| `cursor.mcp.json` | Cursor `mcpServers` 示例 |
+
+---
+
 ## 2026-09-07 (E2E：个股页改为 HTTP 断言，避免 Playwright 渲染巨页)
 
 ### 根因
