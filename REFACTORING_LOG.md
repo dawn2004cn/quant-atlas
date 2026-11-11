@@ -4,6 +4,22 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-11-11 (AI 调用面：MCP 补齐行情/全景/能力发现)
+
+### 根因
+- `quant-atlas-mcp` 只有 K 线/回测/组合，AI 调不到页面同源的 A 股行情
+- 无 HTTP 优先路径，每次 in-process 都要硬拉 provider
+- 缺少一份给 Cursor/Claude 的接入说明
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `scripts/mcp-servers/quant-atlas-mcp/server.py` | 新增 `get_cn_quotes` / `get_market_panorama` / `get_stock_quote` / `search_capabilities`；`QUANT_ATLAS_API_URL` HTTP 优先 |
+| `docs/AI_CALLING.md` | MCP → CapabilityRegistry → REST 的调用方案 |
+| `cursor.mcp.json` | Cursor `mcpServers` 示例 |
+
+---
+
 ## 2026-09-07 (E2E：个股页改为 HTTP 断言，避免 Playwright 渲染巨页)
 
 ### 根因
