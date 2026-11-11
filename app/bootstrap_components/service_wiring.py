@@ -123,9 +123,11 @@ def _make_market_service(reg):
     from app.modules.market_data.services.market_service import MarketApplicationService
     from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
-
-
-    provider = get_market_data_provider()
+    try:
+        provider = get_market_data_provider()
+    except RuntimeError:
+        logger.warning("market_service factory: MarketDataProvider unbound, using TDX/Sina page path")
+        provider = None
     svc = MarketApplicationService(
         provider,
         CnIndustryProvider(),

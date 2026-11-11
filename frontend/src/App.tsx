@@ -1,5 +1,6 @@
 ﻿import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { SWRConfig } from "swr";
 import { FeatureGate } from "./components/FeatureGate";
 import { Layout } from "./components/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -114,6 +115,14 @@ function LazyRoute({ children, label }: { children: React.ReactNode; label?: str
 
 export default function App() {
   return (
+    <SWRConfig
+      value={{
+        keepPreviousData: true,
+        revalidateOnFocus: false,
+        dedupingInterval: 2000,
+        errorRetryCount: 2,
+      }}
+    >
     <BrowserRouter basename="/app">
       <ErrorBoundary label="Root">
         <Routes>
@@ -227,5 +236,6 @@ export default function App() {
         </Routes>
       </ErrorBoundary>
     </BrowserRouter>
+    </SWRConfig>
   );
 }

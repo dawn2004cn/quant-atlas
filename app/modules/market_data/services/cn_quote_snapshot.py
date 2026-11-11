@@ -444,9 +444,11 @@ def hydrate_page_snapshot(
     snapshot: CnQuoteSnapshot,
     market_service: object | None,
 ) -> None:
-    """Fill the page from Redis book, then a bounded live Tencent pull.
+    """Fill the page from Redis book first so the request stays fast.
 
-    Zero-price directory/cache rows are not treated as real quotes.
+    A stale book with real prices is shown immediately; live refresh is
+    background. Zero-price directory rows are only used when live pull is
+    disabled (CI).
     """
     from app.modules.market_data.services.cn_quote_book import (
         book_is_fresh,
@@ -458,22 +460,36 @@ def hydrate_page_snapshot(
 
     if market_service is not None:
         snapshot.bind(market_service=market_service)
+    has_book = False
     try:
         book = load_cn_quote_book()
-        if rows_have_real_quotes(book) and book_is_fresh():
+        has_book = rows_have_real_quotes(book)
+        if has_book:
             snapshot.load_rows(book)
+            if book_is_fresh():
+                return
+            ensure_cn_quote_book(market_service)
             return
         live_rows = _pull_live_page_quotes(market_service)
         if rows_have_real_quotes(live_rows):
-            save_cn_quote_book(live_rows, source="tencent_page")
+            save_cn_quote_book(live_rows, source="page_live")
             snapshot.load_rows(live_rows)
             ensure_cn_quote_book(market_service)
             return
         ensure_cn_quote_book(market_service)
+        if has_book:
+            return
     except Exception as exc:
         logger.warning("hydrate_page_snapshot redis book failed: %s", exc)
+        if has_book:
+            return
     snapshot.ensure_fresh()
     if _snapshot_has_real_quotes(snapshot):
+        return
+    from app.modules.market_data.services.cn_quote_book import live_quote_pull_enabled
+
+    if live_quote_pull_enabled():
+        logger.info("CnQuoteSnapshot empty after live pull; not seeding zero prices")
         return
     snapshot.load_rows(_seed_directory_rows())
     logger.info("CnQuoteSnapshot seed directory: %s symbols", snapshot.row_count)
@@ -500,7 +516,12 @@ def get_cn_quote_snapshot() -> CnQuoteSnapshot:
     if _snapshot is None:
         with _snapshot_lock:
             if _snapshot is None:
-                from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
+                market_provider = None
+                try:
+                    from app.modules.system.services.helpers.market_data_provider import get_market_data_provider
 
-                _snapshot = CnQuoteSnapshot(market_provider=get_market_data_provider())
+                    market_provider = get_market_data_provider()
+                except RuntimeError as extra:
+                    logger.debug("CnQuoteSnapshot unbound provider: %s", extra)
+                _snapshot = CnQuoteSnapshot(market_provider=market_provider)
     return _snapshot

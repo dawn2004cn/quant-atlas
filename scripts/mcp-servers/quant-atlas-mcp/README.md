@@ -23,3 +23,5 @@ python scripts/mcp-servers/quant-atlas-mcp/server.py
 Cursor / Claude `mcpServers`: see `cursor.mcp.json`. Copy into your local MCP config.
 
 Default is **read + backtest only** (no live order tool).
+
+Full guide: [`docs/AI_CALLING.md`](../../../docs/AI_CALLING.md).

@@ -4,6 +4,22 @@ This file is a consolidated chronological log of all major architecture refactor
 
 ---
 
+## 2026-11-11 (AI 调用文档 + 页面先出真实行情)
+
+### 根因
+- `docs/AI_CALLING.md` 只有工具表，没有 Cursor 配置、优先级、页面契约
+- 全景 hydrate 在 Redis 簿过期时同步打新浪，首屏被 3–6s 超时拖死；过期失败还用零价种子盖掉真实行情
+
+### 修复
+| 文件 | 要点 |
+|------|------|
+| `docs/AI_CALLING.md` | MCP / Capability / REST、通达信优先、页面 Redis 先出数 |
+| `hydrate_page_snapshot` | 有真实行情立刻返回，过期后台刷新，生产不种零价 |
+| `pull_cn_page_quotes` | 通达信 HQ → 新浪涨跌独立 try → 腾讯 |
+| `frontend/App.tsx` | SWR `keepPreviousData` + 2s 去重 |
+
+---
+
 ## 2026-11-11 (CI：frontend npm audit 高危)
 
 ### 根因

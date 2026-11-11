@@ -349,7 +349,7 @@ def test_pull_cn_page_quotes_prefers_sina_movers() -> None:
     assert float(rows[0]["price"]) == 10.55
 
 
-def test_hydrate_stale_session_book_pulls_live() -> None:
+def test_hydrate_stale_session_book_serves_immediately() -> None:
     save_cn_quote_book(
         [{"code": "600519", "name": "茅台", "price": 1600, "change_pct": 0.1}],
         source="stale",
@@ -357,7 +357,7 @@ def test_hydrate_stale_session_book_pulls_live() -> None:
 
     class _Live:
         def pull_cn_page_quotes(self, *, max_symbols: int = 80):
-            return [{"code": "300112", "name": "万讯自控", "price": 10.55, "change_pct": 20.02}]
+            raise AssertionError("stale book must not block the page on a live pull")
 
     snap = CnQuoteSnapshot(ttl_seconds=15)
     with patch(
@@ -371,8 +371,8 @@ def test_hydrate_stale_session_book_pulls_live() -> None:
         ):
             hydrate_page_snapshot(snap, _Live())
     page = snap.query_page()
-    assert page["items"][0]["code"] == "300112"
-    assert page["items"][0]["price"] == 10.55
+    assert page["items"][0]["code"] == "600519"
+    assert page["items"][0]["price"] == 1600
 
 
 def test_ensure_cn_quote_book_retries_after_cooldown() -> None:
@@ -395,3 +395,67 @@ def test_ensure_cn_quote_book_retries_after_cooldown() -> None:
     book_mod._warm_attempted_at = time.monotonic() - 120
     third = ensure_cn_quote_book(_Empty())
     assert third == "scheduled"
+
+
+def test_cn_session_uses_shanghai_clock_not_server_local() -> None:
+    from datetime import datetime, timezone
+
+    from app.modules.market_data.services.cn_quote_book import _is_cn_session
+
+    assert _is_cn_session(datetime(2026, 11, 3, 2, 0, tzinfo=timezone.utc)) is True
+    assert _is_cn_session(datetime(2026, 11, 3, 8, 0, tzinfo=timezone.utc)) is False
+    assert _is_cn_session(datetime(2026, 11, 7, 2, 0, tzinfo=timezone.utc)) is False
+
+
+def test_hydrate_keeps_stale_book_when_live_pull_fails() -> None:
+    save_cn_quote_book(
+        [{"code": "600519", "name": "茅台", "price": 1600, "change_pct": 1.2}],
+        source="stale",
+    )
+
+    class _DeadLive:
+        def pull_cn_page_quotes(self, *, max_symbols: int = 80):
+            return []
+
+        def list_quotes_tencent(self, *args, **kwargs):
+            return []
+
+        def list_quotes(self, *args, **kwargs):
+            return []
+
+    snap = CnQuoteSnapshot(ttl_seconds=15)
+    with patch(
+        "app.modules.market_data.services.cn_quote_book._is_cn_session",
+        return_value=True,
+    ):
+        with patch(
+            "app.modules.market_data.services.cn_quote_book.book_age_seconds",
+            return_value=20 * 60,
+        ):
+            hydrate_page_snapshot(snap, _DeadLive())
+    page = snap.query_page()
+    assert page["items"][0]["code"] == "600519"
+    assert page["items"][0]["price"] == 1600
+    assert all(float(row.get("price") or 0) > 0 for row in page["items"])
+
+
+def test_hydrate_live_on_empty_does_not_seed_zero_prices() -> None:
+    class _Empty:
+        def pull_cn_page_quotes(self, *, max_symbols: int = 80):
+            return []
+
+        def list_quotes_tencent(self, *args, **kwargs):
+            return []
+
+        def list_quotes(self, *args, **kwargs):
+            return []
+
+    snap = CnQuoteSnapshot(ttl_seconds=15)
+    with patch(
+        "app.modules.market_data.services.cn_quote_book.live_quote_pull_enabled",
+        return_value=True,
+    ):
+        hydrate_page_snapshot(snap, _Empty())
+    page = snap.query_page()
+    assert page["total"] == 0
+    assert page["items"] == []

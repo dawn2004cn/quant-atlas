@@ -31,7 +31,7 @@ export function DashboardPage() {
   const { data, error, isLoading, mutate } = useSWR(
     ["workbench", market],
     () => fetchDailyWorkbench(market, 12),
-    { refreshInterval: 60_000 },
+    { refreshInterval: 60_000, keepPreviousData: true, revalidateOnFocus: false },
   );
 
   if (isLoading && !data) {
